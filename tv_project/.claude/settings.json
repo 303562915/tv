@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+
+      "Bash(npm run build)",
+      "Bash(adb devices)",
+      "Bash(adb install *)",
+      "Bash(ls)",
+      "Bash(dir)",
+
+      "Bash(git status)",
+      "Bash(git diff)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(git push --force)",
+      "Bash(curl * | bash)"
+    ]
+  }
+}

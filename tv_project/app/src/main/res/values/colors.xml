@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="primary">#FF6B9EFF</color>
+    
+    <!-- 主题配色 - 从 Lua 版本迁移 -->
+    <color name="theme_primary">#6C63FF</color><!-- 紫罗兰色 -->
+    <color name="theme_accent">#FF6584</color><!-- 粉红色 -->
+    <color name="theme_text_primary">#212121</color><!-- 深色文本 -->
+    <color name="theme_text_secondary">#757575</color><!-- 浅灰色文本 -->
+    <color name="theme_background">#F0F0F0</color><!-- 浅灰色背景 -->
+    <color name="theme_card">#4ECDC4</color><!-- 青绿色 -->
+    
+    <!-- 扩展配色 -->
+    <color name="theme_success">#00C853</color>
+    <color name="theme_warning">#FFB300</color>
+    <color name="theme_error">#D32F2F</color>
+    <color name="theme_info">#0288D1</color>
+    <color name="theme_gradient_start">#667EEA</color>
+    <color name="theme_gradient_end">#764BA2</color>
+    <color name="theme_selected_bg">#E8F5E9</color>
+    <color name="theme_selected_border">#4CAF50</color>
+    <color name="theme_divider">#E0E0E0</color>
+    <color name="theme_overlay">#80000000</color>
+    <color name="theme_highlight">#FFF9C4</color>
+    <color name="theme_disabled">#BDBDBD</color>
+    <color name="theme_card_background">#F0F0F0</color><!-- 卡片背景色 - 与整体背景一致 -->
+    <color name="theme_card_elevated">#FFFFFF</color><!-- 卡片凸起背景 - 白色，有层次感 -->
+    <color name="search_box_background">#E0E0E0</color><!-- 搜索框背景 - 日间模式 -->
+    
+    <!-- 视频源列表颜色 -->
+    <color name="unselected_bg">#F5F5F5</color><!-- 未选中项背景 - 浅灰色 -->
+    <color name="unselected_text">#757575</color><!-- 未选中项文字 - 灰色 -->
+    
+    <!-- 播放器进度条颜色 - 腾讯视频风格 -->
+    <color name="player_progress_played">#00D7D0</color><!-- 已播放进度 - 青色 -->
+    <color name="player_progress_buffered">#4D00D7D0</color><!-- 已缓冲进度 - 半透明青色 -->
+    <color name="player_progress_unplayed">#33FFFFFF</color><!-- 未播放进度 - 半透明白色 -->
+    
+    <!-- 选集背景颜色 - 根据时长区分 -->
+    <color name="episode_movie_bg">#1A237E</color><!-- 电影背景 - 更深的蓝色 (≥60分钟) -->
+    <color name="episode_normal_bg">#FFFFFF</color><!-- 普通影视背景 - 白色 (<60分钟) -->
+    <color name="episode_movie_text">#FFD700</color><!-- 电影文字 - 金黄色 -->
+    <color name="episode_normal_text">#000000</color><!-- 普通影视文字 - 黑色 -->
+</resources>

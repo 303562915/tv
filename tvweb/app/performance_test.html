@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>资源加载性能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #409EFF;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 15px;
+            background: white;
+            border-left: 4px solid #67C23A;
+            border-radius: 4px;
+        }
+        .result.warning {
+            border-left-color: #E6A23C;
+        }
+        .result.error {
+            border-left-color: #F56C6C;
+        }
+        .metric {
+            display: inline-block;
+            margin: 10px 20px 10px 0;
+        }
+        .metric-label {
+            font-weight: bold;
+            color: #666;
+        }
+        .metric-value {
+            font-size: 24px;
+            color: #409EFF;
+            font-weight: bold;
+        }
+        button {
+            background: #409EFF;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 10px 10px 0;
+        }
+        button:hover {
+            background: #66b1ff;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #409EFF;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #409EFF;
+            color: white;
+        }
+        tr:hover {
+            background: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 资源加载性能测试</h1>
+
+        <div class="test-section">
+            <h2>页面加载性能</h2>
+            <div id="pagePerformance"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>资源加载详情</h2>
+            <div id="resourceDetails"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>CDN vs 本地对比测试</h2>
+            <button onclick="testCDN()">测试CDN速度</button>
+            <button onclick="testLocal()">测试本地速度</button>
+            <button onclick="compareAll()">对比测试</button>
+            <div id="comparisonResults"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>优化建议</h2>
+            <div id="suggestions"></div>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载完成后自动运行测试
+        window.addEventListener('load', function() {
+            showPagePerformance();
+            showResourceDetails();
+            generateSuggestions();
+        });
+
+        // 显示页面性能指标
+        function showPagePerformance() {
+            const perfData = window.performance.timing;
+            const pageLoadTime = perfData.loadEventEnd - perfData.navigationStart;
+            const domReadyTime = perfData.domContentLoadedEventEnd - perfData.navigationStart;
+            const firstPaintTime = perfData.responseEnd - perfData.fetchStart;
+
+            const html = `
+                <div class="result">
+                    <div class="metric">
+                        <div class="metric-label">页面总加载时间</div>
+                        <div class="metric-value">${(pageLoadTime / 1000).toFixed(2)}s</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">DOM就绪时间</div>
+                        <div class="metric-value">${(domReadyTime / 1000).toFixed(2)}s</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">首次渲染时间</div>
+                        <div class="metric-value">${(firstPaintTime / 1000).toFixed(2)}s</div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('pagePerformance').innerHTML = html;
+        }
+
+        // 显示资源加载详情
+        function showResourceDetails() {
+            const resources = window.performance.getEntriesByType('resource');
+            let totalSize = 0;
+            let tableHTML = '<table><tr><th>资源</th><th>类型</th><th>大小</th><th>加载时间</th><th>来源</th></tr>';
+
+            resources.forEach(resource => {
+                const size = resource.transferSize || 0;
+                totalSize += size;
+                const duration = resource.duration.toFixed(2);
+                const name = resource.name.split('/').pop();
+                const type = resource.initiatorType;
+                const isCDN = resource.name.includes('cdn.') || resource.name.includes('unpkg.com');
+                const source = isCDN ? 'CDN' : '本地';
+
+                tableHTML += `
+                    <tr>
+                        <td>${name}</td>
+                        <td>${type}</td>
+                        <td>${(size / 1024).toFixed(2)} KB</td>
+                        <td>${duration} ms</td>
+                        <td>${source}</td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += '</table>';
+            tableHTML += `<div class="result"><strong>总资源大小：</strong> ${(totalSize / 1024).toFixed(2)} KB</div>`;
+
+            document.getElementById('resourceDetails').innerHTML = tableHTML;
+        }
+
+        // 测试CDN速度
+        async function testCDN() {
+            const results = document.getElementById('comparisonResults');
+            results.innerHTML = '<div class="loading"></div> 正在测试CDN速度...';
+
+            const cdnUrls = [
+                'https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js',
+                'https://unpkg.com/element-ui@2.15.14/lib/index.js',
+                'https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js'
+            ];
+
+            let html = '<h3>CDN加载测试结果</h3><table><tr><th>资源</th><th>加载时间</th><th>状态</th></tr>';
+
+            for (const url of cdnUrls) {
+                const start = performance.now();
+                try {
+                    const response = await fetch(url, { method: 'HEAD' });
+                    const end = performance.now();
+                    const time = (end - start).toFixed(2);
+                    const status = response.ok ? '✓ 成功' : '✗ 失败';
+                    const statusClass = response.ok ? '' : 'error';
+
+                    html += `<tr class="${statusClass}"><td>${url.split('/').pop()}</td><td>${time} ms</td><td>${status}</td></tr>`;
+                } catch (error) {
+                    html += `<tr class="error"><td>${url.split('/').pop()}</td><td>-</td><td>✗ 失败</td></tr>`;
+                }
+            }
+
+            html += '</table>';
+            results.innerHTML = html;
+        }
+
+        // 测试本地速度
+        async function testLocal() {
+            const results = document.getElementById('comparisonResults');
+            results.innerHTML = '<div class="loading"></div> 正在测试本地速度...';
+
+            const localUrls = [
+                'assets/js/vue.js',
+                'assets/js/element-ui.js',
+                'assets/js/axios.min.js'
+            ];
+
+            let html = '<h3>本地加载测试结果</h3><table><tr><th>资源</th><th>加载时间</th><th>状态</th></tr>';
+
+            for (const url of localUrls) {
+                const start = performance.now();
+                try {
+                    const response = await fetch(url, { method: 'HEAD' });
+                    const end = performance.now();
+                    const time = (end - start).toFixed(2);
+                    const status = response.ok ? '✓ 成功' : '✗ 失败';
+                    const statusClass = response.ok ? '' : 'error';
+
+                    html += `<tr class="${statusClass}"><td>${url.split('/').pop()}</td><td>${time} ms</td><td>${status}</td></tr>`;
+                } catch (error) {
+                    html += `<tr class="error"><td>${url.split('/').pop()}</td><td>-</td><td>✗ 失败</td></tr>`;
+                }
+            }
+
+            html += '</table>';
+            results.innerHTML = html;
+        }
+
+        // 对比测试
+        async function compareAll() {
+            const results = document.getElementById('comparisonResults');
+            results.innerHTML = '<div class="loading"></div> 正在进行对比测试...';
+
+            await testCDN();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            const cdnHTML = results.innerHTML;
+
+            await testLocal();
+            const localHTML = results.innerHTML;
+
+            results.innerHTML = cdnHTML + localHTML;
+        }
+
+        // 生成优化建议
+        function generateSuggestions() {
+            const perfData = window.performance.timing;
+            const pageLoadTime = perfData.loadEventEnd - perfData.navigationStart;
+            const suggestions = [];
+
+            if (pageLoadTime > 3000) {
+                suggestions.push({
+                    type: 'warning',
+                    text: '页面加载时间超过3秒，建议启用CDN加速'
+                });
+            }
+
+            const resources = window.performance.getEntriesByType('resource');
+            const largeResources = resources.filter(r => r.transferSize > 500000);
+
+            if (largeResources.length > 0) {
+                suggestions.push({
+                    type: 'warning',
+                    text: `发现${largeResources.length}个大于500KB的资源，建议压缩或使用CDN`
+                });
+            }
+
+            const hasGzip = resources.some(r => {
+                return r.name.includes('.js') && r.transferSize < r.decodedBodySize * 0.5;
+            });
+
+            if (!hasGzip) {
+                suggestions.push({
+                    type: 'error',
+                    text: '未检测到Gzip压缩，建议在服务器启用压缩'
+                });
+            }
+
+            if (suggestions.length === 0) {
+                suggestions.push({
+                    type: '',
+                    text: '✓ 页面性能良好，无需优化'
+                });
+            }
+
+            let html = '';
+            suggestions.forEach(s => {
+                html += `<div class="result ${s.type}">${s.text}</div>`;
+            });
+
+            document.getElementById('suggestions').innerHTML = html;
+        }
+    </script>
+</body>
+</html>
