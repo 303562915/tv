@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#00000000">
+
+    <!-- 侧栏内容 -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/sidebarContainer"
+        android:layout_width="280dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="@drawable/sidebar_gradient_bg"
+        android:fitsSystemWindows="false"
+        android:paddingTop="0dp"
+        android:paddingBottom="0dp"
+        android:paddingStart="0dp"
+        android:paddingEnd="0dp">
+
+    <!-- 顶部标题栏 -->
+    <LinearLayout
+        android:id="@+id/titleBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="倍速设置"
+            android:textColor="@android:color/white"
+            android:textSize="18sp" />
+
+        <ImageView
+            android:id="@+id/closeButton"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:tint="@android:color/white"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless" />
+    </LinearLayout>
+
+    <!-- 标签页切换 -->
+    <LinearLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="0dp"
+        app:layout_constraintTop_toBottomOf="@id/titleBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/basicSpeedTab"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:text="基础倍速"
+            android:textColor="#1A1A1A"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:background="@drawable/tab_selected_bg"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/smartSpeedTab"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:text="滑动灵敏度"
+            android:textColor="#888888"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:background="@drawable/tab_unselected_bg"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginStart="4dp" />
+    </LinearLayout>
+
+    <!-- 基础倍速内容 -->
+    <ScrollView
+        android:id="@+id/basicSpeedContent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:visibility="visible"
+        android:scrollbars="none"
+        app:layout_constraintTop_toBottomOf="@id/tabLayout"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- 播放速度设置标题 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="播放速度设置"
+                android:textColor="#888888"
+                android:textSize="12sp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="8dp" />
+
+            <!-- 倍速按钮网格 -->
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="3"
+                android:rowCount="2"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp">
+
+                <!-- 第一行 -->
+                <TextView
+                    android:id="@+id/speed30Button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="3.0X"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:gravity="center"
+                    android:background="@drawable/speed_button_bg"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/speed20Button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="2.0X"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:gravity="center"
+                    android:background="@drawable/speed_button_bg"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/speed15Button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="1.5X"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:gravity="center"
+                    android:background="@drawable/speed_button_bg"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <!-- 第二行 -->
+                <TextView
+                    android:id="@+id/speed125Button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="1.25X"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:gravity="center"
+                    android:background="@drawable/speed_button_bg"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/speed10Button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="1.0X"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:gravity="center"
+                    android:background="@drawable/speed_button_bg"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/speed05Button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="0.5X"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:gravity="center"
+                    android:background="@drawable/speed_button_bg"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </GridLayout>
+
+            <!-- 其他设置标题 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="其他设置"
+                android:textColor="#888888"
+                android:textSize="12sp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="12dp" />
+
+            <!-- 长按速度设置 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="长按速度设置"
+                    android:textColor="@android:color/white"
+                    android:textSize="15sp"
+                    android:paddingBottom="12dp" />
+
+                <!-- 长按速度按钮网格 -->
+                <GridLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:columnCount="3"
+                    android:rowCount="2">
+
+                    <!-- 第一行 -->
+                    <TextView
+                        android:id="@+id/longPressSpeed30Button"
+                        android:layout_width="0dp"
+                        android:layout_height="50dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="4dp"
+                        android:text="3.0X"
+                        android:textColor="@android:color/white"
+                        android:textSize="14sp"
+                        android:gravity="center"
+                        android:background="@drawable/speed_button_bg"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                    <TextView
+                        android:id="@+id/longPressSpeed20Button"
+                        android:layout_width="0dp"
+                        android:layout_height="50dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="4dp"
+                        android:text="2.0X"
+                        android:textColor="@android:color/white"
+                        android:textSize="14sp"
+                        android:gravity="center"
+                        android:background="@drawable/speed_button_bg"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                    <TextView
+                        android:id="@+id/longPressSpeed15Button"
+                        android:layout_width="0dp"
+                        android:layout_height="50dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="4dp"
+                        android:text="1.5X"
+                        android:textColor="@android:color/white"
+                        android:textSize="14sp"
+                        android:gravity="center"
+                        android:background="@drawable/speed_button_bg"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                    <!-- 第二行 -->
+                    <TextView
+                        android:id="@+id/longPressSpeed125Button"
+                        android:layout_width="0dp"
+                        android:layout_height="50dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="4dp"
+                        android:text="1.25X"
+                        android:textColor="@android:color/white"
+                        android:textSize="14sp"
+                        android:gravity="center"
+                        android:background="@drawable/speed_button_bg"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                    <TextView
+                        android:id="@+id/longPressSpeed10Button"
+                        android:layout_width="0dp"
+                        android:layout_height="50dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="4dp"
+                        android:text="1.0X"
+                        android:textColor="@android:color/white"
+                        android:textSize="14sp"
+                        android:gravity="center"
+                        android:background="@drawable/speed_button_bg"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                    <TextView
+                        android:id="@+id/longPressSpeed05Button"
+                        android:layout_width="0dp"
+                        android:layout_height="50dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="4dp"
+                        android:text="0.5X"
+                        android:textColor="@android:color/white"
+                        android:textSize="14sp"
+                        android:gravity="center"
+                        android:background="@drawable/speed_button_bg"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </GridLayout>
+            </LinearLayout>
+
+            <!-- 长按上滑锁定倍速 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="16dp"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="长按上滑锁定倍速"
+                    android:textColor="@android:color/white"
+                    android:textSize="15sp" />
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@android:drawable/ic_menu_info_details"
+                    android:tint="#666666"
+                    android:layout_marginEnd="12dp" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/longPressLockSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    app:thumbTint="@color/switch_thumb_color"
+                    app:trackTint="@color/switch_track_color" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- 滑动灵敏度内容 -->
+    <ScrollView
+        android:id="@+id/smartSpeedContent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        android:scrollbars="none"
+        app:layout_constraintTop_toBottomOf="@id/tabLayout"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- 滑动灵敏度设置标题 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="滑动快进/快退灵敏度"
+                android:textColor="#888888"
+                android:textSize="12sp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="8dp" />
+
+            <!-- 灵敏度按钮网格 -->
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="3"
+                android:rowCount="2"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp">
+
+                <!-- 第一行 -->
+                <TextView
+                    android:id="@+id/sensitivity165Button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="1.65X"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:gravity="center"
+                    android:background="@drawable/speed_button_bg"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/sensitivity155Button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="1.55X"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:gravity="center"
+                    android:background="@drawable/speed_button_bg"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/sensitivity145Button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="1.45X"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:gravity="center"
+                    android:background="@drawable/speed_button_bg"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <!-- 第二行 -->
+                <TextView
+                    android:id="@+id/sensitivity135Button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="1.35X"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:gravity="center"
+                    android:background="@drawable/speed_button_bg"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/sensitivity125Button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="1.25X"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:gravity="center"
+                    android:background="@drawable/speed_button_bg"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/sensitivity115Button"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    android:text="1.15X"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:gravity="center"
+                    android:background="@drawable/speed_button_bg"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </GridLayout>
+
+            <!-- 说明文字 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="数值越大，滑动相同距离快进/快退的时间越多"
+                android:textColor="#666666"
+                android:textSize="12sp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="16dp" />
+        </LinearLayout>
+    </ScrollView>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</FrameLayout>

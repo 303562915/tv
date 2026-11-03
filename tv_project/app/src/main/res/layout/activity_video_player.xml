@@ -1,0 +1,698 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rootView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
+
+    <!-- 播放器视图 -->
+    <com.google.android.exoplayer2.ui.PlayerView
+        android:id="@+id/playerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:show_buffering="never"
+        app:keep_content_on_player_reset="true"
+        app:surface_type="texture_view"
+        app:use_controller="false"
+        app:resize_mode="fit" />
+
+    <!-- 字幕视图 -->
+    <com.google.android.exoplayer2.ui.SubtitleView
+        android:id="@+id/subtitleView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="bottom" />
+
+    <!-- 加载提示 -->
+    <LinearLayout
+        android:id="@+id/loadingView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@android:color/transparent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="正在缓冲"
+            android:textColor="@android:color/white"
+            android:textSize="14sp" />
+        
+        <TextView
+            android:id="@+id/bandwidthText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- 长按加速提示（顶部中间） -->
+    <LinearLayout
+        android:id="@+id/longPressSpeedLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|top"
+        android:layout_marginTop="80dp"
+        android:background="@drawable/speed_hint_background"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="6dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/longPressSpeedText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3.0X"
+            android:textColor="@android:color/white"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium" />
+
+        <!-- 三个三角形动画 -->
+        <LinearLayout
+            android:id="@+id/speedArrowsLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/speedArrow1"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:src="@drawable/ic_play_arrow_small"
+                android:tint="@android:color/white"
+                android:contentDescription="加速" />
+
+            <ImageView
+                android:id="@+id/speedArrow2"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_marginStart="2dp"
+                android:src="@drawable/ic_play_arrow_small"
+                android:tint="@android:color/white"
+                android:contentDescription="加速" />
+
+            <ImageView
+                android:id="@+id/speedArrow3"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_marginStart="2dp"
+                android:src="@drawable/ic_play_arrow_small"
+                android:tint="@android:color/white"
+                android:contentDescription="加速" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 进度调整遮罩层（整体变暗） -->
+    <View
+        android:id="@+id/progressOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#40000000"
+        android:visibility="gone" />
+
+    <!-- 进度调整提示（中间大显示） -->
+    <LinearLayout
+        android:id="@+id/progressSeekLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/progress_seek_background"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:visibility="gone">
+
+        <!-- 预览图 -->
+        <ImageView
+            android:id="@+id/progressPreviewImage"
+            android:layout_width="240dp"
+            android:layout_height="135dp"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            android:contentDescription="视频预览" />
+
+        <!-- 时间显示 -->
+        <TextView
+            android:id="@+id/progressSeekTimeDisplay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:text="05:07 / 44:44" />
+
+        <!-- 粗进度条 -->
+        <ProgressBar
+            android:id="@+id/gestureProgressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="280dp"
+            android:layout_height="6dp"
+            android:layout_marginTop="16dp"
+            android:max="100"
+            android:progress="50"
+            android:progressDrawable="@drawable/thick_progress_bar" />
+    </LinearLayout>
+
+    <!-- 手势反馈提示（音量/亮度用） -->
+    <LinearLayout
+        android:id="@+id/gestureHintLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/gesture_hint_background"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/gestureHintText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+    
+    <!-- 音量/亮度调节（顶部，图标嵌入进度条内部左侧） -->
+    <FrameLayout
+        android:id="@+id/volumeBrightnessLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="29dp"
+        android:layout_gravity="center_horizontal|top"
+        android:layout_marginTop="30dp"
+        android:visibility="gone">
+        
+        <!-- 进度条在下层，固定顶部对齐 -->
+        <ProgressBar
+            android:id="@+id/volumeBrightnessProgressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="176dp"
+            android:layout_height="29dp"
+            android:layout_gravity="top|center_horizontal"
+            android:max="100"
+            android:progress="50"
+            android:progressDrawable="@drawable/volume_brightness_progress" />
+        
+        <!-- 图标在上层，固定顶部对齐 -->
+        <ImageView
+            android:id="@+id/volumeBrightnessIcon"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_gravity="start|top"
+            android:layout_marginStart="7dp"
+            android:layout_marginTop="3.5dp"
+            android:tint="#E6333333"
+            android:elevation="2dp"
+            android:contentDescription="音量/亮度" />
+    </FrameLayout>
+
+    <!-- 错误提示 -->
+    <TextView
+        android:id="@+id/errorText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:visibility="gone" />
+    
+    <!-- 网速质量提示 -->
+    <TextView
+        android:id="@+id/qualityHintText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="80dp"
+        android:background="@drawable/gesture_hint_background"
+        android:padding="12dp"
+        android:textColor="@android:color/white"
+        android:textSize="14sp"
+        android:visibility="gone" />
+    
+    <!-- 跳过片头按钮 -->
+    <Button
+        android:id="@+id/skipIntroButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="120dp"
+        android:background="@drawable/skip_intro_background"
+        android:text="跳过片头"
+        android:textColor="@android:color/white"
+        android:textSize="11sp"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:visibility="gone" />
+    
+    <!-- 即将播放下一集提示（小按钮样式） -->
+    <Button
+        android:id="@+id/nextEpisodeHintButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="120dp"
+        android:background="@drawable/gesture_hint_background"
+        android:text="5秒后播放下一集"
+        android:textColor="@android:color/white"
+        android:textSize="14sp"
+        android:padding="12dp"
+        android:visibility="gone" />
+
+    <!-- 顶部工具栏 -->
+    <LinearLayout
+        android:id="@+id/topToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/gradient_top"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <!-- 状态栏：时间、网络、电量 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/currentTimeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <Space
+                android:layout_width="8dp"
+                android:layout_height="wrap_content" />
+
+            <!-- 网速显示 -->
+            <TextView
+                android:id="@+id/networkSpeedText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:text="0 KB/s" />
+
+            <Space
+                android:layout_width="8dp"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/networkStatusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <Space
+                android:layout_width="8dp"
+                android:layout_height="wrap_content" />
+
+            <ImageView
+                android:id="@+id/batteryIcon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center_vertical"
+                android:src="@android:drawable/ic_lock_idle_charging" />
+        </LinearLayout>
+
+        <!-- 标题栏 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/backButton"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="返回"
+                android:src="@drawable/ic_back_tencent_style"
+                android:scaleType="centerInside"
+                android:tint="@android:color/white" />
+
+            <TextView
+                android:id="@+id/titleText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:ellipsize="marquee"
+                android:singleLine="true"
+                android:textColor="@android:color/white"
+                android:textSize="16sp" />
+
+            <ImageButton
+                android:id="@+id/shareButton"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="分享"
+                android:src="@drawable/share"
+                android:scaleType="fitCenter"
+                android:tint="@android:color/white"
+                android:visibility="visible" />
+
+            <ImageButton
+                android:id="@+id/castButton"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="投屏"
+                android:src="@drawable/fit_to_screen"
+                android:scaleType="fitCenter"
+                android:tint="@android:color/white"
+                android:visibility="visible" />
+
+            <ImageButton
+                android:id="@+id/menuButton"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="菜单"
+                android:src="@drawable/dots_vertical"
+                android:scaleType="fitCenter"
+                android:tint="@android:color/white" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 检测到更快路线提示 -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/fasterRouteHint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|top"
+        android:layout_marginTop="100dp"
+        android:visibility="gone"
+        app:cardBackgroundColor="#E01E88E5"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="8dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/fasterRouteTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="检测到更快路线"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/fasterRouteInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="线路1 (1200KB/s)"
+                android:textColor="@android:color/white"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/fasterRouteCountdown"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="3秒后自动消失"
+                android:textColor="#CCFFFFFF"
+                android:textSize="12sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="点击切换"
+                android:textColor="#CCFFFFFF"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- 左侧控制栏 -->
+    <LinearLayout
+        android:id="@+id/leftControlBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|center_vertical"
+        android:layout_marginStart="18dp"
+        android:orientation="vertical">
+
+        <ImageButton
+            android:id="@+id/lockButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="锁定"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/closure_unlock_btn"
+            android:tint="@android:color/white" />
+    </LinearLayout>
+
+    <!-- 底部控制栏 -->
+    <LinearLayout
+        android:id="@+id/bottomControlBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@drawable/gradient_bottom"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <!-- 丢帧信息 -->
+        <TextView
+            android:id="@+id/droppedFramesText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            android:visibility="gone" />
+
+        <!-- 进度条 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/currentPositionText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="00:00"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp">
+
+                <!-- 播放进度条 -->
+                <SeekBar
+                    android:id="@+id/progressSeekBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:maxHeight="4dp"
+                    android:minHeight="4dp"
+                    android:progressDrawable="@drawable/tencent_style_seekbar"
+                    android:thumb="@drawable/tencent_style_thumb"
+                    android:thumbOffset="0dp" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/durationText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="00:00"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- 状态文字显示（进度条下方） -->
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:text=""
+            android:textColor="#CCCCCC"
+            android:textSize="11sp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:visibility="gone" />
+
+        <!-- 加载日志显示 -->
+        <TextView
+            android:id="@+id/loadingLogText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:text=""
+            android:textColor="#AAAAAA"
+            android:textSize="10sp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:alpha="0"
+            android:visibility="gone" />
+
+        <!-- 控制按钮 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/playPauseButton"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="播放/暂停"
+                android:src="@drawable/dkplayer_ic_action_pause"
+                android:scaleType="fitCenter"
+                android:tint="@android:color/white" />
+
+            <ImageButton
+                android:id="@+id/nextButton"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="下一集"
+                android:src="@drawable/album_play_next"
+                android:scaleType="fitCenter"
+                android:tint="@android:color/white"
+                android:visibility="gone" />
+
+            <ImageButton
+                android:id="@+id/screenshotButton"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="截屏"
+                android:src="@drawable/dkplayer_ic_action_close"
+                android:scaleType="fitCenter"
+                android:tint="@android:color/white"
+                android:visibility="gone" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/qualityButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:text="清晰"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/episodeButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:text="选集"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/downloadButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:text="下载"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/parseRecordButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:text="解析"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/speedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:text="倍速"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <ImageButton
+                android:id="@+id/rotateButton"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="旋转"
+                android:src="@drawable/fit_to_screen"
+                android:scaleType="fitCenter"
+                android:tint="@android:color/white" />
+
+            <ImageButton
+                android:id="@+id/fullscreenButton"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="全屏"
+                android:src="@drawable/dkplayer_ic_action_fullscreen1"
+                android:scaleType="fitCenter"
+                android:tint="@android:color/white" />
+        </LinearLayout>
+    </LinearLayout>
+
+</FrameLayout>

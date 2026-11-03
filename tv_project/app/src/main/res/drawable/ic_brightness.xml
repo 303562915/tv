@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 亮度图标 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    
+    <!-- 太阳中心圆 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,9c1.65,0 3,1.35 3,3s-1.35,3 -3,3 -3,-1.35 -3,-3 1.35,-3 3,-3m0,-2c-2.76,0 -5,2.24 -5,5s2.24,5 5,5 5,-2.24 5,-5 -2.24,-5 -5,-5z" />
+    
+    <!-- 太阳光线 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M11,1h2v3h-2z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M11,20h2v3h-2z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M20,11h3v2h-3z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M1,11h3v2h-3z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M17.66,6.34l2.12,-2.12 1.41,1.41 -2.12,2.12z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M2.81,18.37l2.12,-2.12 1.41,1.41 -2.12,2.12z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M17.66,17.66l2.12,2.12 1.41,-1.41 -2.12,-2.12z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M2.81,5.63l2.12,2.12 1.41,-1.41 -2.12,-2.12z" />
+</vector>

@@ -1,0 +1,14 @@
+{
+  "tasks": [
+    {
+      "id": "54ab601f",
+      "cron": "*/5 * * * *",
+      "prompt": "执行播放器全面测试：1. 检查应用内存使用 2. 测试视频播放性能 3. 验证预加载功能 4. 检查日志错误 5. 报告发现的问题",
+      "createdAt": 1777908516845,
+      "lastFiredAt": 1778391931782,
+      "recurring": true,
+      "createdBySessionId": "521bf8b4-abec-4d7c-999c-4ac409de30c3",
+      "createdByPid": 28288
+    }
+  ]
+}

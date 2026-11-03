@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "自动构建安装",
+  "description": "当 Kotlin 文件保存后，自动执行清理、构建、安装和日志分析",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.kt"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Kotlin 文件已修改，请执行以下步骤：1. 运行 ./gradlew assembleDebug 构建项目 2. 检查 .kotlin/errors/ 目录下的错误日志 3. 如果有错误，分析并自动修复 4. 修复后重新构建 5. 构建成功后运行 ./gradlew installDebug 安装到设备 6. 使用 adb logcat 查看运行日志，检查是否有崩溃或错误 7. 如果发现问题，自动修复并重复流程"
+  }
+}

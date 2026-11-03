@@ -1,0 +1,98 @@
+# 实现计划
+
+- [x] 1. 编写 Bug Condition 探索测试
+  - **Property 1: Bug Condition** - Gradle 构建失败与 JavaPoet 错误
+  - **关键**: 此测试必须在未修复代码上失败 - 失败确认 bug 存在
+  - **不要在测试失败时尝试修复测试或代码**
+  - **注意**: 此测试编码了预期行为 - 在实现后通过时将验证修复
+  - **目标**: 展示证明 bug 存在的反例
+  - **范围化 PBT 方法**: 对于确定性 bug，将属性范围限定为具体失败案例以确保可重现性
+  - 在未修复代码上执行 `./gradlew build`
+  - 验证构建失败并显示 JavaPoet 错误: `Unable to find method 'java.lang.String com.squareup.javapoet.ClassName.canonicalName()'`
+  - 记录失败的具体错误信息和堆栈跟踪
+  - 在未修复代码上执行 `./gradlew assembleDebug`
+  - 验证 debug APK 构建失败并显示相同的 JavaPoet 错误
+  - 检查构建日志中的弃用警告（MediaStore.Video.Thumbnails）
+  - **预期结果**: 测试失败（这是正确的 - 证明 bug 存在）
+  - 记录发现的反例以理解根本原因
+  - 当测试编写完成、运行并记录失败时标记任务完成
+  - _Requirements: 1.1, 1.2, 1.3_
+
+- [x] 2. 编写 Preservation 属性测试（在实现修复之前）
+  - **Property 2: Preservation** - 依赖注入和代码生成功能
+  - **重要**: 遵循观察优先方法
+  - 在未修复代码上观察非 bug 输入的行为
+  - 编写基于属性的测试捕获 Preservation Requirements 中观察到的行为模式
+  - 基于属性的测试生成许多测试用例以提供更强保证
+  - 验证 Hilt 依赖注入在现有代码中正常工作（检查 `@AndroidEntryPoint`、`@Inject`、`@HiltViewModel` 注解）
+  - 验证 Room 数据库代码生成正常（检查 DAO 和 Database 类）
+  - 验证 Glide 代码生成正常（检查 `GlideApp` 生成）
+  - 验证 ExoPlayer 视频播放功能正常
+  - 验证 LocalVideoFolderActivity 视频文件扫描功能正常
+  - 验证视频缩略图加载功能正常（记录当前行为）
+  - 在未修复代码上运行测试
+  - **预期结果**: 测试通过（确认要保持的基线行为）
+  - 当测试编写完成、运行并在未修复代码上通过时标记任务完成
+  - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
+
+- [x] 3. 修复 Gradle 构建错误和弃用 API
+
+  - [x] 3.1 降级 Hilt 版本以解决 JavaPoet 兼容性
+    - 打开 `gradle/libs.versions.toml` 文件
+    - 在 `[versions]` 部分找到 `hilt = "2.52"`
+    - 将 Hilt 版本从 "2.52" 降级到 "2.51"
+    - 保存文件
+    - 执行 `./gradlew clean` 清理构建缓存
+    - 执行 `./gradlew build --refresh-dependencies` 刷新依赖
+    - _Bug_Condition: isBugCondition(buildConfig) where buildConfig.hiltVersion == "2.52" AND buildConfig.kspVersion == "2.0.21-1.0.28"_
+    - _Expected_Behavior: Gradle 构建成功完成，无 JavaPoet 方法解析错误，生成可用 APK_
+    - _Preservation: Hilt 依赖注入、Room 数据库生成、Glide 代码生成必须继续正常工作_
+    - _Requirements: 1.1, 1.2, 2.1, 2.2, 3.1, 3.2, 3.3_
+
+  - [x] 3.2 更新 LocalVideoFolderActivity 使用现代 ThumbnailUtils API
+    - 打开 `app/src/main/java/com/tv/ball/presentation/localvideo/LocalVideoFolderActivity.kt`
+    - 添加必要的导入语句:
+      - `import android.media.ThumbnailUtils`
+      - `import android.util.Size`
+      - `import android.os.Build`
+      - `import java.io.File`
+    - 找到使用 `MediaStore.Video.Thumbnails.getThumbnail()` 的代码
+    - 替换为使用 `ThumbnailUtils.createVideoThumbnail()` 的实现
+    - 添加 API 级别检查: API 29+ 使用新 API，API 24-28 使用旧 API（带 @Suppress）
+    - 实现 `getVideoFilePath(videoId: Long)` 辅助函数获取视频文件路径
+    - 添加适当的错误处理（try-catch）
+    - _Bug_Condition: 使用弃用的 MediaStore.Video.Thumbnails API 导致编译警告_
+    - _Expected_Behavior: 使用现代 ThumbnailUtils API，无弃用警告，保持相同视觉效果_
+    - _Preservation: 视频缩略图加载必须继续显示，视觉效果相同_
+    - _Requirements: 1.3, 2.3, 3.6_
+
+  - [x] 3.3 验证 Bug Condition 探索测试现在通过
+    - **Property 1: Expected Behavior** - Gradle 构建成功
+    - **重要**: 重新运行任务 1 中的相同测试 - 不要编写新测试
+    - 任务 1 中的测试编码了预期行为
+    - 当此测试通过时，确认满足预期行为
+    - 执行 `./gradlew build`
+    - **预期结果**: 构建成功，无 JavaPoet 错误（确认 bug 已修复）
+    - 验证生成了 APK 文件
+    - 检查构建日志确认无 MediaStore.Video.Thumbnails 弃用警告
+    - _Requirements: 2.1, 2.2, 2.3_
+
+  - [x] 3.4 验证 Preservation 测试仍然通过
+    - **Property 2: Preservation** - 依赖注入和代码生成功能
+    - **重要**: 重新运行任务 2 中的相同测试 - 不要编写新测试
+    - 运行任务 2 中的 Preservation 属性测试
+    - **预期结果**: 测试通过（确认无回归）
+    - 验证 Hilt 依赖注入继续正常工作
+    - 验证 Room 数据库操作继续正常工作
+    - 验证 Glide 图片加载继续正常工作
+    - 验证 ExoPlayer 视频播放继续正常工作
+    - 验证视频缩略图显示继续正常（使用更新的 API）
+    - 确认修复后所有测试仍然通过（无回归）
+
+- [x] 4. 检查点 - 确保所有测试通过
+  - 执行完整的 Gradle 构建: `./gradlew clean build`
+  - 验证构建成功完成，无错误
+  - 验证生成了 debug 和 release APK
+  - 验证无 JavaPoet 相关错误
+  - 验证无 MediaStore.Video.Thumbnails 弃用警告
+  - 如果出现问题，询问用户

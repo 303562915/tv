@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="图片加载性能测试"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:paddingBottom="16dp" />
+
+        <!-- 测试图片显示 -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="4dp">
+
+            <ImageView
+                android:id="@+id/ivTest"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@android:drawable/ic_menu_gallery" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- 状态显示 -->
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="准备就绪"
+            android:textSize="16sp"
+            android:padding="8dp"
+            android:background="@android:color/darker_gray"
+            android:textColor="@android:color/white"
+            android:layout_marginBottom="16dp" />
+
+        <!-- 测试按钮 -->
+        <Button
+            android:id="@+id/btnTestPreload"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="测试预加载 (20张图片)"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnTestSingle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="测试单张加载"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnViewStats"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="查看统计"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnCheckPerformance"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="检查性能状态"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnResetStats"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="重置统计"
+            android:backgroundTint="@android:color/holo_red_light"
+            android:layout_marginBottom="16dp" />
+
+        <!-- 性能状态 -->
+        <TextView
+            android:id="@+id/tvPerformance"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="性能状态: 未检测"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:padding="12dp"
+            android:background="@android:color/white"
+            android:layout_marginBottom="16dp" />
+
+        <!-- 统计信息 -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="4dp">
+
+            <TextView
+                android:id="@+id/tvStats"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="暂无统计数据"
+                android:textSize="14sp"
+                android:fontFamily="monospace"
+                android:padding="16dp" />
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+</ScrollView>
