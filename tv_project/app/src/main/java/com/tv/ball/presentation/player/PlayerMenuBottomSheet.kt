@@ -18,8 +18,6 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
     
     private var onAspectRatioSelected: ((AspectRatioManager.AspectRatioMode) -> Unit)? = null
     private var onSpeedChanged: ((Float) -> Unit)? = null
-    private var onCastClicked: (() -> Unit)? = null
-    private var onDownloadClicked: (() -> Unit)? = null
     private var onSkipIntroToggled: ((Boolean) -> Unit)? = null
     private var onSkipOutroToggled: ((Boolean) -> Unit)? = null
     private var onRepeatModeChanged: ((Int) -> Unit)? = null
@@ -85,18 +83,6 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
         binding.speed125Button.setOnClickListener { setSpeed(1.25f) }
         binding.speed15Button.setOnClickListener { setSpeed(1.5f) }
         binding.speed20Button.setOnClickListener { setSpeed(2.0f) }
-        
-        // 投屏按钮
-        binding.castButton.setOnClickListener {
-            onCastClicked?.invoke()
-            dismiss()
-        }
-        
-        // 下载按钮
-        binding.downloadButton.setOnClickListener {
-            onDownloadClicked?.invoke()
-            dismiss()
-        }
         
         // 片头跳过开关
         binding.skipIntroSwitch.isChecked = skipIntroEnabled
@@ -172,14 +158,6 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
     
     fun setOnSpeedChangedListener(listener: (Float) -> Unit) {
         this.onSpeedChanged = listener
-    }
-    
-    fun setOnCastClickedListener(listener: () -> Unit) {
-        this.onCastClicked = listener
-    }
-    
-    fun setOnDownloadClickedListener(listener: () -> Unit) {
-        this.onDownloadClicked = listener
     }
     
     fun setOnSkipIntroToggledListener(listener: (Boolean) -> Unit) {

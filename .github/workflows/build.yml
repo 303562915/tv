@@ -5,12 +5,17 @@ on:
     branches:
       - main
       - master
+    tags:
+      - 'v*'
   pull_request:
   workflow_dispatch:
 
 concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -75,6 +80,80 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  # ---------------------------------------------------------------------------
+  # 每次推送到 main / master（或手动触发）都会刷新一条滚动 Release，
+  # 这样仓库的 Releases 页面始终有可直接下载的 APK，不需要等打 tag。
+  # ---------------------------------------------------------------------------
+  publish-latest:
+    name: Publish Latest APK
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: tv_project
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Ensure Android SDK platform 36
+        run: |
+          set +e
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMANAGER" ]; then
+            SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager -type f 2>/dev/null | head -n 1)"
+          fi
+          echo "sdkmanager: $SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1
+          "$SDKMANAGER" --install "platforms;android-36" "build-tools;36.0.0"
+          echo "Android SDK setup finished"
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Assemble Debug
+        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
+
+      - name: Rename APK
+        run: |
+          set -euo pipefail
+          mkdir -p "$GITHUB_WORKSPACE/out"
+          for f in app/build/outputs/apk/debug/*.apk; do
+            cp "$f" "$GITHUB_WORKSPACE/out/TVPlayer-latest-debug.apk"
+          done
+          ls -lh "$GITHUB_WORKSPACE/out"
+
+      - name: Publish rolling release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: 最新构建 (latest)
+          prerelease: true
+          make_latest: true
+          files: out/*.apk
+          fail_on_unmatched_files: true
+          generate_release_notes: false
+          body: |
+            由 `${{ github.ref_name }}` 分支最新提交自动构建的调试版 APK。
+
+            - 提交：`${{ github.sha }}`
+            - 构建：${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            该 Release 每次推送都会覆盖更新，正式版本请看 `v*` 标签的 Release。
+
+  # ---------------------------------------------------------------------------
+  # 打 v* 标签时生成正式 Release：有签名 Secrets 就发 release APK，
+  # 没有则自动回退到 debug 签名包，保证下载下来的 APK 一定能安装。
+  # ---------------------------------------------------------------------------
   release:
     name: Release APK
     if: startsWith(github.ref, 'refs/tags/v')
@@ -116,11 +195,12 @@ jobs:
       #   KEYSTORE_PASSWORD  keystore 密码
       #   KEY_ALIAS          签名密钥别名
       #   KEY_PASSWORD       密钥别名密码
-      # 未配置签名时，构建脚本会回退使用 debug 签名，release 产物仍可安装但不可发布到应用商店。
+      # 未配置签名时，下面会自动回退构建 debug 签名包。
       - name: Decode keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-        run: echo "$KEYSTORE_BASE64" | base64 -d > ../release.keystore
+        if: env.KEYSTORE_BASE64 != ''
+        run: echo "$KEYSTORE_BASE64" | base64 -d > "$GITHUB_WORKSPACE/release.keystore"
 
       - name: Assemble Release
         env:
@@ -128,13 +208,39 @@ jobs:
           TVPLAYER_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           TVPLAYER_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           TVPLAYER_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./gradlew :app:assembleRelease --no-daemon
+        run: ./gradlew :app:assembleRelease --no-daemon --stacktrace
+
+      - name: Fallback to debug signing when release is unsigned
+        run: |
+          set -euo pipefail
+          if ls app/build/outputs/apk/release/*-unsigned.apk >/dev/null 2>&1; then
+            echo "未配置 release 签名，回退构建 debug 签名 APK"
+            ./gradlew :app:assembleDebug --no-daemon --stacktrace
+            echo "FALLBACK_DEBUG=1" >> "$GITHUB_ENV"
+          fi
+
+      - name: Collect APK
+        run: |
+          set -euo pipefail
+          mkdir -p "$GITHUB_WORKSPACE/out"
+          if [ "${FALLBACK_DEBUG:-0}" = "1" ]; then
+            cp app/build/outputs/apk/debug/*.apk "$GITHUB_WORKSPACE/out/TVPlayer-${GITHUB_REF_NAME}-debug.apk"
+          else
+            for f in app/build/outputs/apk/release/*.apk; do
+              case "$f" in
+                *-unsigned.apk) continue;;
+              esac
+              cp "$f" "$GITHUB_WORKSPACE/out/TVPlayer-${GITHUB_REF_NAME}-arm64-v8a.apk"
+            done
+          fi
+          ls -lh "$GITHUB_WORKSPACE/out"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: tv_project/app/build/outputs/apk/release/*.apk
+          files: out/*.apk
           generate_release_notes: true
+          fail_on_unmatched_files: true
 
   secret-scan:
     name: Secret Scan

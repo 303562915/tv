@@ -23,6 +23,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "影视星球"
+rootProject.name = "TVPlayer"
 include(":app")
  
