@@ -47,6 +47,8 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // 签名配置：优先使用 CI 注入的正式密钥（环境变量或 Gradle 属性）；
+    // 未提供密钥时回退 debug 签名，保证 Release 产物仍然可安装。
     signingConfigs {
         if (hasReleaseSigning) {
             create("release") {
@@ -54,19 +56,26 @@ android {
                 storePassword = releaseStorePassword
                 keyAlias = releaseKeyAlias
                 keyPassword = releaseKeyPassword
+                enableV1Signing = true
+                enableV2Signing = true
+                enableV3Signing = true
             }
         }
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = true
-            // 只有注入了完整签名信息时才使用 release 签名，否则输出 unsigned APK
-            signingConfig = signingConfigs.findByName("release")
+            // 关闭混淆：播放器 / Glide 反射较多，保持可运行优先
+            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = if (hasReleaseSigning) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
         debug {
             isMinifyEnabled = false
