@@ -76,33 +76,6 @@
                 android:textSize="11sp" />
         </LinearLayout>
 
-        <!-- 投屏 -->
-        <LinearLayout
-            android:id="@+id/castButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackground">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_cast_black_24dp"
-                android:tint="#AAAAAA" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="投屏"
-                android:textColor="#AAAAAA"
-                android:textSize="11sp" />
-        </LinearLayout>
-
         <!-- 分享 -->
         <LinearLayout
             android:id="@+id/shareButton"

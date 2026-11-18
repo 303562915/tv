@@ -100,10 +100,10 @@ jobs:
 
       - name: Assemble Release
         env:
-          KEYSTORE_PATH: ${{ github.workspace }}/release.keystore
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          TVPLAYER_STORE_FILE: ${{ github.workspace }}/release.keystore
+          TVPLAYER_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          TVPLAYER_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          TVPLAYER_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew :app:assembleRelease --no-daemon
 
       - name: Create GitHub Release
