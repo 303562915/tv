@@ -59,4 +59,7 @@
     <color name="theme_on_primary_container">#FFE7E5FF</color>
     <color name="theme_secondary_container">#FF2F2B5E</color>
     <color name="theme_on_secondary_container">#FFE7E5FF</color>
-</resources>
+    <!-- 悬浮胶囊底栏（夜间） -->
+    <color name="nav_capsule">#F21E1E23</color>
+    <color name="nav_capsule_stroke">#1FFFFFFF</color></resources>
+

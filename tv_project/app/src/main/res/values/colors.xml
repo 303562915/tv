@@ -58,4 +58,7 @@
     <color name="theme_on_primary_container">#FF2A2570</color>
     <color name="theme_secondary_container">#FFEDEBFF</color>
     <color name="theme_on_secondary_container">#FF2A2570</color>
-</resources>
+    <!-- 悬浮胶囊底栏 -->
+    <color name="nav_capsule">#F2FFFFFF</color>
+    <color name="nav_capsule_stroke">#14000000</color></resources>
+
