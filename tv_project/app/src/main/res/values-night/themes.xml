@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme - Night Mode -->
-    <style name="Theme.TVPlayer" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.影视星球" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/theme_primary</item>
         <item name="colorPrimaryVariant">@color/theme_primary</item>

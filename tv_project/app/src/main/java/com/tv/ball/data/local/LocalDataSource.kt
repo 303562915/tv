@@ -7,12 +7,28 @@ import kotlinx.coroutines.withContext
 
 class LocalDataSource(
     private val context: Context,
+    private val videoDao: VideoDao,
     private val historyDao: HistoryDao,
     private val playlistDao: PlaylistDao
 ) {
     
     private val sharedPreferences: SharedPreferences by lazy {
         context.getSharedPreferences("video_player_prefs", Context.MODE_PRIVATE)
+    }
+    
+    // Video operations
+    fun getAllVideos() = videoDao.getAllVideos()
+    
+    suspend fun getVideoById(videoId: Long) = withContext(Dispatchers.IO) {
+        videoDao.getVideoById(videoId)
+    }
+    
+    suspend fun insertVideo(video: com.tv.ball.data.model.VideoEntity) = withContext(Dispatchers.IO) {
+        videoDao.insertVideo(video)
+    }
+    
+    suspend fun deleteAllVideos() = withContext(Dispatchers.IO) {
+        videoDao.deleteAllVideos()
     }
     
     // History operations

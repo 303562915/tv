@@ -388,6 +388,17 @@
                 android:visibility="visible" />
 
             <ImageButton
+                android:id="@+id/castButton"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="投屏"
+                android:src="@drawable/fit_to_screen"
+                android:scaleType="fitCenter"
+                android:tint="@android:color/white"
+                android:visibility="visible" />
+
+            <ImageButton
                 android:id="@+id/menuButton"
                 android:layout_width="28dp"
                 android:layout_height="28dp"
@@ -631,6 +642,24 @@
                 android:layout_height="36dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:text="选集"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/downloadButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:text="下载"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/parseRecordButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:text="解析"
                 android:textColor="@android:color/white"
                 android:textSize="12sp" />
 
