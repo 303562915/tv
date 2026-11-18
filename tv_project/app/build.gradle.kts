@@ -139,6 +139,12 @@ dependencies {
     // Gson for JSON serialization
     implementation("com.google.code.gson:gson:2.10.1")
 
+    // NanoHTTPD：局域网投屏用的本地 Web 服务
+    implementation("org.nanohttpd:nanohttpd:2.3.1")
+
+    // ViewPager2：首页分类分页 / 轮播容器
+    implementation("androidx.viewpager2:viewpager2:1.1.0")
+
     // Coroutines
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)

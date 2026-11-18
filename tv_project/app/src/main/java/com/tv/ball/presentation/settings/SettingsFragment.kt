@@ -1,30 +1,34 @@
 package com.tv.ball.presentation.settings
 
 import android.app.AlertDialog
-import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.tv.ball.databinding.FragmentSettingsBinding
+import com.tv.ball.presentation.localvideo.LocalVideoActivity
+import kotlinx.coroutines.launch
 import java.io.File
 
-/**
- * 设置页面
- *
- * 只包含播放器自身需要的配置项，所有数据保存在本地，无需登录。
- */
 class SettingsFragment : Fragment() {
-
+    
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
-
-    private val prefs by lazy {
-        requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    
+    private val viewModel: SettingsViewModel by lazy {
+        ViewModelProvider(this)[SettingsViewModel::class.java]
     }
 
+    private val userPreferences by lazy {
+        com.tv.ball.di.Dependencies.userPreferences
+    }
+    
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -33,173 +37,154 @@ class SettingsFragment : Fragment() {
         _binding = FragmentSettingsBinding.inflate(inflater, container, false)
         return binding.root
     }
-
+    
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupTitleBar()
-        setupPlayback()
-        setupAppearance()
-        setupStorage()
-        setupAbout()
+        setupClickListeners()
+        observeViewModel()
+        loadContinuePlayInfo()
+        updateCodeCountdownDisplay()
     }
+    
+    override fun onResume() {
+        super.onResume()
+        loadContinuePlayInfo()
+    }
+    
+    private fun loadContinuePlayInfo() {
+        viewModel.loadRecentPlay()
+    }
+    
+    private fun observeViewModel() {
+        // 继续播放功能已禁用
+        /*
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.recentPlay.collect { playInfo ->
+                if (playInfo != null) {
+                    binding.cardContinuePlay.visibility = View.VISIBLE
+                    binding.tvContinuePlayTitle.text = "继续播放： ${playInfo.title}  ${playInfo.episode}"
+                    binding.cardContinuePlay.setOnClickListener {
+                        // 跳转到播放页面
+                        val intent = Intent(requireContext(), com.tv.ball.presentation.player.VideoPlayerActivity::class.java).apply {
+                            putExtra("video_id", playInfo.videoId?.toLongOrNull() ?: 0L)
+                            putExtra("video_title", playInfo.title)
+                            putExtra("video_url", "") // URL会从历史记录中恢复
+                            putExtra("thumbnail_url", "")
+                        }
+                        startActivity(intent)
+                    }
+                } else {
+                    binding.cardContinuePlay.visibility = View.GONE
+                }
+            }
+        }
+        */
+    }
+    
+    private fun setupClickListeners() {
+        // 通用
+        binding.layoutNotification.setOnClickListener {
+            com.tv.ball.util.CustomToast.show(requireContext(), "通知设置 - 开发中")
+        }
 
-    private fun setupTitleBar() {
-        binding.btnBack.setOnClickListener {
-            parentFragmentManager.popBackStack()
+        binding.layoutCareMode.setOnClickListener {
+            com.tv.ball.util.CustomToast.show(requireContext(), "关怀模式 - 开发中")
+        }
+
+        binding.layoutDouyinLive.setOnClickListener {
+            com.tv.ball.util.CustomToast.show(requireContext(), "抖音直播 - 开发中")
+        }
+
+        binding.layoutBilibiliBlueLink.setOnClickListener {
+            com.tv.ball.util.CustomToast.show(requireContext(), "B站蓝链申请 - 开发中")
+        }
+
+        binding.layoutGroupRobot.setOnClickListener {
+            com.tv.ball.util.CustomToast.show(requireContext(), "群机器人 - 开发中")
+        }
+
+        // 账号
+        binding.layoutCodeCountdown.setOnClickListener {
+            showCodeCountdownDialog()
+        }
+        binding.switchTouchSound.setOnCheckedChangeListener { _, isChecked ->
+            com.tv.ball.util.CustomToast.show(requireContext(), if (isChecked) "触摸音效已开启" else "触摸音效已关闭")
+        }
+
+        binding.layoutWechat.setOnClickListener {
+            com.tv.ball.util.CustomToast.show(requireContext(), "微信号 - 开发中")
+        }
+
+        binding.layoutAlipay.setOnClickListener {
+            com.tv.ball.util.CustomToast.show(requireContext(), "支付宝 - 开发中")
+        }
+
+        binding.layoutFlagSettings.setOnClickListener {
+            com.tv.ball.util.CustomToast.show(requireContext(), "标旗设置 - 开发中")
+        }
+
+        binding.layoutStoreSettings.setOnClickListener {
+            com.tv.ball.util.CustomToast.show(requireContext(), "店铺设置 - 开发中")
+        }
+
+        binding.layoutAgentCommission.setOnClickListener {
+            com.tv.ball.util.CustomToast.show(requireContext(), "新增代理自动分佣 - 开发中")
+        }
+
+        binding.layoutProductCommission.setOnClickListener {
+            com.tv.ball.util.CustomToast.show(requireContext(), "新增产品自动分佣 - 开发中")
+        }
+
+        binding.layoutDeleteAccount.setOnClickListener {
+            showDeleteAccountDialog()
+        }
+
+        // 关于
+        binding.layoutPrivacyCollection.setOnClickListener {
+            com.tv.ball.util.CustomToast.show(requireContext(), "个人信息收集清单 - 开发中")
+        }
+
+        binding.layoutThirdPartySharing.setOnClickListener {
+            com.tv.ball.util.CustomToast.show(requireContext(), "第三方信息共享清单 - 开发中")
         }
     }
 
-    private fun setupPlayback() {
-        // 默认倍速
-        updateSpeedLabel()
-        binding.layoutPlaybackSpeed.setOnClickListener {
-            showSpeedDialog()
-        }
-
-        // 自动连播
-        binding.switchAutoNext.isChecked = prefs.getBoolean(KEY_AUTO_NEXT, true)
-        binding.switchAutoNext.setOnCheckedChangeListener { _, isChecked ->
-            prefs.edit().putBoolean(KEY_AUTO_NEXT, isChecked).apply()
-        }
-
-        // 跳过片头片尾
-        binding.switchSkipIntro.isChecked = prefs.getBoolean(KEY_SKIP_INTRO, false)
-        binding.switchSkipIntro.setOnCheckedChangeListener { _, isChecked ->
-            prefs.edit().putBoolean(KEY_SKIP_INTRO, isChecked).apply()
-        }
+    private fun showDeleteAccountDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("注销账号")
+            .setMessage("注销账号后，您的所有数据将被清除且无法恢复。\n\n确定要注销账号吗？")
+            .setPositiveButton("确定") { _, _ ->
+                com.tv.ball.util.CustomToast.show(requireContext(), "账号注销功能 - 开发中")
+            }
+            .setNegativeButton("取消", null)
+            .show()
     }
 
-    private fun updateSpeedLabel() {
-        val speed = prefs.getFloat(KEY_PLAYBACK_SPEED, 1.0f)
-        binding.tvPlaybackSpeed.text = String.format(java.util.Locale.US, "%.2fx", speed)
+    private fun updateCodeCountdownDisplay() {
+        val countdown = userPreferences.getCodeCountdown()
+        binding.tvCodeCountdown.text = "${countdown}秒"
     }
 
-    private fun showSpeedDialog() {
-        val labels = arrayOf("0.5x", "0.75x", "1.0x", "1.25x", "1.5x", "2.0x")
-        val values = floatArrayOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 2.0f)
-        val current = prefs.getFloat(KEY_PLAYBACK_SPEED, 1.0f)
-        val currentIndex = values.indexOfFirst { it == current }.takeIf { it >= 0 } ?: 2
+    private fun showCodeCountdownDialog() {
+        val options = arrayOf("30秒", "60秒", "90秒", "120秒")
+        val values = arrayOf(30, 60, 90, 120)
+        val currentCountdown = userPreferences.getCodeCountdown()
+        val currentIndex = values.indexOf(currentCountdown).takeIf { it >= 0 } ?: 1
 
         AlertDialog.Builder(requireContext())
-            .setTitle("默认倍速")
-            .setSingleChoiceItems(labels, currentIndex) { dialog, which ->
-                prefs.edit().putFloat(KEY_PLAYBACK_SPEED, values[which]).apply()
-                updateSpeedLabel()
+            .setTitle("验证码倒计时设置")
+            .setSingleChoiceItems(options, currentIndex) { dialog, which ->
+                userPreferences.setCodeCountdown(values[which])
+                updateCodeCountdownDisplay()
+                com.tv.ball.util.CustomToast.show(requireContext(), "已设置为${options[which]}")
                 dialog.dismiss()
             }
             .setNegativeButton("取消", null)
             .show()
     }
 
-    private fun setupAppearance() {
-        binding.layoutTheme.setOnClickListener {
-            startActivity(Intent(requireContext(), ThemeActivity::class.java))
-        }
-    }
-
-    private fun setupStorage() {
-        updateCacheSize()
-        binding.layoutClearCache.setOnClickListener {
-            showClearCacheDialog()
-        }
-    }
-
-    private fun setupAbout() {
-        binding.tvVersion.text = appVersionName()
-        binding.layoutOpenSourceLicense.setOnClickListener {
-            AlertDialog.Builder(requireContext())
-                .setTitle("开源许可")
-                .setMessage(
-                    "本应用基于 MIT License 开源。\n\n" +
-                        "所用开源软件（均为 Apache-2.0）：\n" +
-                        "· ExoPlayer —— 播放内核\n" +
-                        "· OkHttp —— 网络请求\n" +
-                        "· Glide —— 图片加载\n" +
-                        "· Room —— 本地数据库\n" +
-                        "· Gson —— JSON 解析\n" +
-                        "· Material Components —— Material 3 界面组件\n" +
-                        "· Kotlin Coroutines —— 异步任务"
-                )
-                .setPositiveButton("知道了", null)
-                .show()
-        }
-    }
-
-    private fun appVersionName(): String {
-        return try {
-            requireContext().packageManager
-                .getPackageInfo(requireContext().packageName, 0).versionName ?: "1.0.0"
-        } catch (e: Exception) {
-            "1.0.0"
-        }
-    }
-
-    private fun updateCacheSize() {
-        binding.tvCacheSize.text = formatFileSize(getCacheSize())
-    }
-
-    private fun getCacheSize(): Long {
-        var size = 0L
-        try {
-            size += getFolderSize(requireContext().cacheDir)
-            requireContext().externalCacheDir?.let { size += getFolderSize(it) }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        return size
-    }
-
-    private fun getFolderSize(file: File): Long {
-        var size = 0L
-        try {
-            file.listFiles()?.forEach { f ->
-                size += if (f.isDirectory) getFolderSize(f) else f.length()
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        return size
-    }
-
-    private fun formatFileSize(size: Long): String = when {
-        size < 1024 -> "$size B"
-        size < 1024 * 1024 -> String.format("%.2f KB", size / 1024.0)
-        size < 1024 * 1024 * 1024 -> String.format("%.2f MB", size / (1024.0 * 1024.0))
-        else -> String.format("%.2f GB", size / (1024.0 * 1024.0 * 1024.0))
-    }
-
-    private fun showClearCacheDialog() {
-        AlertDialog.Builder(requireContext())
-            .setTitle("清理缓存")
-            .setMessage("当前缓存：${formatFileSize(getCacheSize())}\n\n确定要清理吗？")
-            .setPositiveButton("确定") { _, _ ->
-                deleteDir(requireContext().cacheDir)
-                requireContext().externalCacheDir?.let { deleteDir(it) }
-                updateCacheSize()
-                com.tv.ball.util.CustomToast.show(requireContext(), "缓存已清理")
-            }
-            .setNegativeButton("取消", null)
-            .show()
-    }
-
-    private fun deleteDir(dir: File?): Boolean {
-        if (dir == null) return false
-        if (dir.isDirectory) {
-            dir.list()?.forEach { deleteDir(File(dir, it)) }
-            return dir.delete()
-        }
-        return if (dir.isFile) dir.delete() else false
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-    }
-
-    companion object {
-        const val PREFS_NAME = "player_settings"
-        const val KEY_PLAYBACK_SPEED = "playback_speed"
-        const val KEY_AUTO_NEXT = "auto_next"
-        const val KEY_SKIP_INTRO = "skip_intro"
     }
 }

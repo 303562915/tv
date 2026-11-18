@@ -2,24 +2,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- 网络：在线视频播放 -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <!-- 本地视频读取 -->
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.VIBRATE" />
-
-    <!-- Android TV：不强制要求触摸屏 -->
-    <uses-feature
-        android:name="android.software.leanback"
-        android:required="false" />
-    <uses-feature
-        android:name="android.hardware.touchscreen"
-        android:required="false" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".VideoPlayerApplication"
@@ -30,47 +27,117 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.TVPlayer"
+        android:theme="@style/Theme.影视星球"
         android:usesCleartextTraffic="true">
-
+        
         <activity
             android:name=".presentation.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
-                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".presentation.login.LoginActivity"
+            android:label="登录注册"
+            android:theme="@style/Theme.影视星球"
+            android:exported="true" />
+        
         <activity
             android:name=".presentation.player.VideoPlayerActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="portrait"
             android:supportsPictureInPicture="true"
-            android:theme="@style/Theme.TVPlayer" />
-
+            android:theme="@style/Theme.影视星球" />
+        
         <activity
             android:name=".presentation.localvideo.LocalVideoActivity"
-            android:exported="true"
             android:label="本地视频"
-            android:theme="@style/Theme.AppCompat.NoActionBar" />
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:exported="true" />
 
         <activity
             android:name=".presentation.localvideo.LocalVideoFolderActivity"
-            android:exported="true"
             android:label="视频文件夹"
-            android:theme="@style/Theme.AppCompat.NoActionBar" />
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:exported="true" />
+
+        <activity
+            android:name=".presentation.detail.VideoDetailActivity"
+            android:label="视频详情"
+            android:exported="true" />
+        
+        <activity
+            android:name=".presentation.search.SearchActivity"
+            android:label="搜索"
+            android:exported="true" />
+        
+        <activity
+            android:name=".presentation.settings.ThemeActivity"
+            android:label="主题设置"
+            android:exported="true" />
+
+        <activity
+            android:name=".presentation.settings.ParserActivity"
+            android:label="聚合解析"
+            android:exported="true" />
+
+        <activity
+            android:name=".presentation.settings.ImagePreviewActivity"
+            android:label="图片预览"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:exported="true" />
+
+        <activity
+            android:name=".presentation.download.DownloadActivity"
+            android:label="下载管理"
+            android:exported="true" />
+
+        <activity
+            android:name=".presentation.download.FilePickerActivity"
+            android:label="选择文件"
+            android:exported="true" />
+
+        <activity
+            android:name=".presentation.shortdrama.ShortDramaDetailActivity"
+            android:label="短剧详情"
+            android:exported="true" />
+
+        <activity
+            android:name=".presentation.shortdrama.ShortDramaActivity"
+            android:label="免费短剧"
+            android:exported="true" />
 
         <activity
             android:name=".presentation.favorite.FavoriteActivity"
-            android:exported="true"
-            android:label="我的收藏" />
+            android:label="我的收藏"
+            android:exported="true" />
 
         <activity
-            android:name=".presentation.settings.ThemeActivity"
-            android:exported="true"
-            android:label="主题设置" />
+            android:name=".presentation.webview.WebViewActivity"
+            android:label="浏览器"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:exported="true" />
+
+        <activity
+            android:name=".presentation.debug.SimpleVideoFlowLogActivity"
+            android:label="视频流程日志"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:exported="true" />
+
+        <activity
+            android:name=".presentation.debug.VideoFlowLogActivity"
+            android:label="视频流程日志"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:exported="true" />
+
+        <service
+            android:name=".service.DownloadService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
 
     </application>
 
