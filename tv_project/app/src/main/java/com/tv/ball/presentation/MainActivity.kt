@@ -62,20 +62,41 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * 悬浮胶囊底栏：选中项展开为浅色胶囊（图标 + 文字），其余只显示图标。
+     * 悬浮胶囊底栏（仿 FlClash NavigationDock）：
+     * 图标 + 文字常显，选中态是一颗在两项目间滑动的胶囊“透镜”，按下时透镜放大凸出胶囊边缘。
      */
     private fun setupBottomNav(initial: Boolean) {
-        binding.navHome.setOnClickListener { selectTab(Tab.HOME) }
-        binding.navHistory.setOnClickListener { selectTab(Tab.HISTORY) }
-        binding.navSource.setOnClickListener { selectTab(Tab.SOURCE) }
-        binding.navProfile.setOnClickListener { selectTab(Tab.PROFILE) }
+        val items = navItems()
+        items.forEachIndexed { index, (container, _, _) ->
+            container.setOnClickListener { selectTab(Tab.entries[index]) }
+            container.setOnTouchListener { view, event ->
+                when (event.actionMasked) {
+                    android.view.MotionEvent.ACTION_DOWN -> {
+                        liftLens(true)
+                        view.animate().scaleX(0.96f).scaleY(0.96f).setDuration(90).start()
+                    }
+                    android.view.MotionEvent.ACTION_UP,
+                    android.view.MotionEvent.ACTION_CANCEL -> {
+                        liftLens(false)
+                        view.animate().scaleX(1f).scaleY(1f).setDuration(160).start()
+                    }
+                }
+                false
+            }
+        }
 
-        if (initial) {
-            selectTab(Tab.HOME)
-        } else {
-            renderTab(currentTab, animate = false)
+        // 首次布局完成后把透镜摆到初始项上
+        binding.navCapsule.post {
+            if (initial) selectTab(Tab.HOME) else renderTab(currentTab, animate = false)
         }
     }
+
+    private fun navItems(): List<Triple<View, android.widget.ImageView, android.widget.TextView>> = listOf(
+        Triple(binding.navHome, binding.iconHome, binding.labelHome),
+        Triple(binding.navHistory, binding.iconHistory, binding.labelHistory),
+        Triple(binding.navSource, binding.iconSource, binding.labelSource),
+        Triple(binding.navProfile, binding.iconProfile, binding.labelProfile)
+    )
 
     private fun selectTab(tab: Tab) {
         val sameTab = tab == currentTab && supportFragmentManager.fragments.isNotEmpty()
@@ -93,33 +114,58 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun renderTab(tab: Tab, animate: Boolean) {
-        val items = listOf(
-            Triple(binding.navHome, binding.iconHome, binding.labelHome),
-            Triple(binding.navHistory, binding.iconHistory, binding.labelHistory),
-            Triple(binding.navSource, binding.iconSource, binding.labelSource),
-            Triple(binding.navProfile, binding.iconProfile, binding.labelProfile)
-        )
-        val selectedIndex = when (tab) {
-            Tab.HOME -> 0
-            Tab.HISTORY -> 1
-            Tab.SOURCE -> 2
-            Tab.PROFILE -> 3
-        }
+        val items = navItems()
+        val selectedIndex = tab.ordinal
+        val activeColor = androidx.core.content.ContextCompat.getColor(this, R.color.theme_primary)
+        val idleColor = androidx.core.content.ContextCompat.getColor(this, R.color.nav_item_idle)
+
         items.forEachIndexed { index, (container, icon, label) ->
             val selected = index == selectedIndex
             container.isSelected = selected
-            icon.isSelected = selected
-            if (selected) {
-                label.animate().cancel()
-                label.alpha = 0f
-                label.visibility = View.VISIBLE
-                label.animate().alpha(1f).setDuration(if (animate) 160 else 0).start()
-            } else {
-                label.animate().cancel()
-                label.alpha = 0f
-                label.visibility = View.GONE
-            }
+            icon.setColorFilter(if (selected) activeColor else idleColor)
+            label.setTextColor(if (selected) activeColor else idleColor)
+            label.alpha = if (selected) 1f else 0.85f
         }
+
+        moveLensTo(items[selectedIndex].first, animate)
+    }
+
+    /** 把选中透镜滑到指定项：宽度 = 项宽 + 8dp，居中于该项。 */
+    private fun moveLensTo(item: View, animate: Boolean) {
+        if (item.width == 0) return
+        val lens = binding.navLens
+        val extra = (8 * resources.displayMetrics.density).toInt()
+        val lensWidth = item.width + extra
+        val lensHeight = ((62 - 8) * resources.displayMetrics.density).toInt()
+        if (lens.width != lensWidth || lens.height != lensHeight) {
+            lens.layoutParams = lens.layoutParams.apply {
+                width = lensWidth
+                height = lensHeight
+            }
+            lens.requestLayout()
+        }
+        val targetX = item.left + (item.width - lensWidth) / 2f
+        val targetY = (binding.navCapsule.height - lensHeight) / 2f
+        if (animate) {
+            lens.animate()
+                .translationX(targetX)
+                .translationY(targetY)
+                .setDuration(280)
+                .setInterpolator(android.view.animation.OvershootInterpolator(1.1f))
+                .start()
+        } else {
+            lens.translationX = targetX
+            lens.translationY = targetY
+        }
+    }
+
+    /** 按下时透镜放大，凸出胶囊上下边缘（FlClash 的 lens lift）。 */
+    private fun liftLens(lifted: Boolean) {
+        binding.navLens.animate()
+            .scaleX(if (lifted) 1.12f else 1f)
+            .scaleY(if (lifted) 1.22f else 1f)
+            .setDuration(if (lifted) 120 else 220)
+            .start()
     }
     
     private fun loadFragment(fragment: Fragment) {

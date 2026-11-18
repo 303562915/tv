@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 仿 FlClash 悬浮胶囊底栏：bar 62dp、内边距 4dp、左右 21dp、iOS 式双层柔和投影 -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -9,7 +10,7 @@
         android:id="@+id/fragmentContainer"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/bottomNav"
+        app:layout_constraintBottom_toTopOf="@+id/navShadowRoom"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -24,170 +25,181 @@
         android:src="@drawable/ic_nav_local_video"
         app:backgroundTint="?attr/colorPrimaryContainer"
         app:elevation="4dp"
-        app:layout_constraintBottom_toTopOf="@+id/bottomNav"
+        app:layout_constraintBottom_toTopOf="@+id/navShadowRoom"
         app:layout_constraintEnd_toEndOf="parent"
         app:rippleColor="?attr/colorPrimary"
         app:tint="?attr/colorOnPrimaryContainer" />
 
-    <!-- 悬浮胶囊底栏：左右留边距、磨砂半透明、柔和弥散投影，选中项用浅色胶囊包住图标+文字 -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/bottomNav"
+    <!-- 阴影预留区（8dp）+ 胶囊 -->
+    <FrameLayout
+        android:id="@+id/navShadowRoom"
         android:layout_width="0dp"
-        android:layout_height="64dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp"
-        android:layout_marginBottom="20dp"
-        app:cardBackgroundColor="@color/nav_capsule"
-        app:cardCornerRadius="32dp"
-        app:cardElevation="12dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="21dp"
+        android:layout_marginEnd="21dp"
+        android:layout_marginBottom="13dp"
+        android:paddingTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:strokeColor="@color/nav_capsule_stroke"
-        app:strokeWidth="0.5dp">
+        app:layout_constraintStart_toStartOf="parent">
 
-        <LinearLayout
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/navCapsule"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:orientation="horizontal">
+            android:layout_height="62dp"
+            app:cardBackgroundColor="@color/nav_capsule"
+            app:cardCornerRadius="31dp"
+            app:cardElevation="8dp"
+            app:strokeColor="@color/nav_capsule_stroke"
+            app:strokeWidth="0.5dp">
 
-            <LinearLayout
-                android:id="@+id/navHome"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:layout_marginStart="2dp"
-                android:layout_marginEnd="2dp"
-                android:background="@drawable/bg_nav_pill"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp">
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-                <ImageView
-                    android:id="@+id/iconHome"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:contentDescription="@string/home"
-                    android:src="@drawable/ic_nav_home"
-                    app:tint="@color/bottom_nav_tint" />
+                <!-- 选中透镜：滑动 + 按下时凸出胶囊上下边缘 -->
+                <View
+                    android:id="@+id/navLens"
+                    android:layout_width="84dp"
+                    android:layout_height="54dp"
+                    android:layout_gravity="center_vertical|start"
+                    android:background="@drawable/bg_nav_lens"
+                    android:elevation="2dp" />
 
-                <TextView
-                    android:id="@+id/labelHome"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:text="@string/home"
-                    android:textColor="?attr/colorPrimary"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:visibility="gone" />
-            </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp">
 
-            <LinearLayout
-                android:id="@+id/navHistory"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:layout_marginStart="2dp"
-                android:layout_marginEnd="2dp"
-                android:background="@drawable/bg_nav_pill"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp">
+                    <LinearLayout
+                        android:id="@+id/navHome"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:orientation="vertical">
 
-                <ImageView
-                    android:id="@+id/iconHistory"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:contentDescription="@string/history"
-                    android:src="@drawable/ic_nav_history"
-                    app:tint="@color/bottom_nav_tint" />
+                        <ImageView
+                            android:id="@+id/iconHome"
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:contentDescription="@string/home"
+                            android:src="@drawable/ic_nav_home"
+                            app:tint="@color/bottom_nav_tint" />
 
-                <TextView
-                    android:id="@+id/labelHistory"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:text="@string/history"
-                    android:textColor="?attr/colorPrimary"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:visibility="gone" />
-            </LinearLayout>
+                        <TextView
+                            android:id="@+id/labelHome"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="@string/home"
+                            android:textColor="@color/bottom_nav_tint"
+                            android:textSize="10sp" />
+                    </LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/navSource"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:layout_marginStart="2dp"
-                android:layout_marginEnd="2dp"
-                android:background="@drawable/bg_nav_pill"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp">
+                    <LinearLayout
+                        android:id="@+id/navHistory"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:orientation="vertical">
 
-                <ImageView
-                    android:id="@+id/iconSource"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:contentDescription="@string/source"
-                    android:src="@drawable/ic_nav_source"
-                    app:tint="@color/bottom_nav_tint" />
+                        <ImageView
+                            android:id="@+id/iconHistory"
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:contentDescription="@string/history"
+                            android:src="@drawable/ic_nav_history"
+                            app:tint="@color/bottom_nav_tint" />
 
-                <TextView
-                    android:id="@+id/labelSource"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:text="@string/source"
-                    android:textColor="?attr/colorPrimary"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:visibility="gone" />
-            </LinearLayout>
+                        <TextView
+                            android:id="@+id/labelHistory"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="@string/history"
+                            android:textColor="@color/bottom_nav_tint"
+                            android:textSize="10sp" />
+                    </LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/navProfile"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:layout_marginStart="2dp"
-                android:layout_marginEnd="2dp"
-                android:background="@drawable/bg_nav_pill"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp">
+                    <LinearLayout
+                        android:id="@+id/navSource"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:orientation="vertical">
 
-                <ImageView
-                    android:id="@+id/iconProfile"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:contentDescription="@string/profile"
-                    android:src="@drawable/ic_nav_profile"
-                    app:tint="@color/bottom_nav_tint" />
+                        <ImageView
+                            android:id="@+id/iconSource"
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:contentDescription="@string/source"
+                            android:src="@drawable/ic_nav_source"
+                            app:tint="@color/bottom_nav_tint" />
 
-                <TextView
-                    android:id="@+id/labelProfile"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:text="@string/profile"
-                    android:textColor="?attr/colorPrimary"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:visibility="gone" />
-            </LinearLayout>
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
+                        <TextView
+                            android:id="@+id/labelSource"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="@string/source"
+                            android:textColor="@color/bottom_nav_tint"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/navProfile"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <ImageView
+                            android:id="@+id/iconProfile"
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:contentDescription="@string/profile"
+                            android:src="@drawable/ic_nav_profile"
+                            app:tint="@color/bottom_nav_tint" />
+
+                        <TextView
+                            android:id="@+id/labelProfile"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="@string/profile"
+                            android:textColor="@color/bottom_nav_tint"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </FrameLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

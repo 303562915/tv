@@ -60,4 +60,7 @@
     <color name="theme_on_secondary_container">#FFE7E5FF</color>
     <color name="nav_capsule">#F21E1E23</color>
     <color name="nav_capsule_stroke">#1FFFFFFF</color>
+    <!-- 底栏透镜（夜间：secondary 色调 4 tone） -->
+    <color name="nav_lens">#D92F2B5E</color>
+    <color name="nav_item_idle">#FF9AA0AC</color>
 </resources>
