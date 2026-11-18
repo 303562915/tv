@@ -298,4 +298,32 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
     </LinearLayout>
+    
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E0E0E0"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"/>
+    
+    <!-- 下载按钮 -->
+    <Button
+        android:id="@+id/downloadButton"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="⬇️ 下载视频"
+        android:textSize="16sp"
+        android:background="@android:color/holo_green_light"
+        android:textColor="@android:color/white"
+        android:layout_marginBottom="8dp"/>
+    
+    <!-- 投屏按钮 -->
+    <Button
+        android:id="@+id/castButton"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="📺 投屏"
+        android:textSize="16sp"
+        android:background="@android:color/holo_blue_light"
+        android:textColor="@android:color/white"/>
 </LinearLayout>

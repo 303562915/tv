@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">TV Player</string>
+    <string name="app_name">影视星球</string>
     <string name="play_pause">播放/暂停</string>
     <string name="fullscreen">全屏</string>
     <string name="home">首页</string>

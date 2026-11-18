@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="80dp"
+    android:background="#FFFFFF">
+
+    <!-- 多段进度背景容器 - 覆盖整个item -->
+    <LinearLayout
+        android:id="@+id/llSegmentedProgress"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:visibility="gone">
+        <!-- 动态添加分段背景 -->
+    </LinearLayout>
+    
+    <!-- 单一进度条背景 - 普通下载使用 -->
+    <View
+        android:id="@+id/progressBackground"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:background="#E8F5E9" />
+
+    <!-- 内容层 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:gravity="center_vertical">
+
+        <!-- 左侧图标容器 - 勾选框和电影胶片图标在同一位置 -->
+        <FrameLayout
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center_vertical">
+
+            <!-- 左侧电影胶片图标 - 始终显示，使用灰色图标 -->
+            <ImageView
+                android:id="@+id/ivIcon"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/ic_film_gray"
+                android:scaleType="fitCenter"
+                android:layout_gravity="center"
+                android:contentDescription="文件图标" />
+
+            <!-- 勾选框 - 选择模式且选中时覆盖显示，使用绿色圆形对勾 -->
+            <ImageView
+                android:id="@+id/ivCheckmark"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_mtrl_checked_circle"
+                android:scaleType="fitCenter"
+                android:layout_gravity="center"
+                android:tint="#4CAF50"
+                android:visibility="gone"
+                android:contentDescription="已选中" />
+        </FrameLayout>
+
+        <!-- 中间内容 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="12dp">
+
+            <!-- 文件名 -->
+            <TextView
+                android:id="@+id/tvFileName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="1920x1040~sOZy9HAUjr.mp4 (继传: 确定)"
+                android:textSize="14sp"
+                android:textColor="#333333"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:singleLine="true" />
+
+            <!-- 状态信息行 -->
+            <TextView
+                android:id="@+id/tvStatusLine"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="10% | 100MB - 第 20 个，共 3238 个"
+                android:textSize="12sp"
+                android:textColor="#666666"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:singleLine="true" />
+
+            <!-- 多线程进度条容器 -->
+            <LinearLayout
+                android:id="@+id/llMultiThreadProgress"
+                android:layout_width="match_parent"
+                android:layout_height="16dp"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                android:visibility="gone">
+                <!-- 动态添加分段进度条 -->
+            </LinearLayout>
+
+            <!-- 错误信息 -->
+            <TextView
+                android:id="@+id/tvErrorMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="错误: HTTP 403 Forbidden"
+                android:textSize="11sp"
+                android:textColor="#F44336"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- 右侧状态和按钮 -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="end|center_vertical"
+            android:layout_marginStart="8dp"
+            android:paddingTop="18dp">
+
+            <!-- 续传状态 - 隐藏 -->
+            <TextView
+                android:id="@+id/tvResumeStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="(续传: 确定)"
+                android:textSize="11sp"
+                android:textColor="#999999"
+                android:gravity="end"
+                android:visibility="gone" />
+
+            <!-- 状态和时间（同一行，和左侧状态行对齐） -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <!-- 状态文字 -->
+                <TextView
+                    android:id="@+id/tvStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="已暂停"
+                    android:textSize="12sp"
+                    android:textColor="#999999" />
+
+                <!-- 剩余时间 -->
+                <TextView
+                    android:id="@+id/tvTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" 3s"
+                    android:textSize="12sp"
+                    android:textColor="#999999"
+                    android:layout_marginStart="4dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 右侧暂停/播放按钮 -->
+        <ImageView
+            android:id="@+id/ivPlayPause"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@drawable/album_pause_btn"
+            android:scaleType="centerInside"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="8dp"
+            android:contentDescription="暂停" />
+
+    </LinearLayout>
+
+    <!-- 底部分隔线 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_gravity="bottom"
+        android:background="#E0E0E0" />
+
+</FrameLayout>

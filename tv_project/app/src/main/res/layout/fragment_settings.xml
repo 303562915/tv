@@ -5,8 +5,8 @@
     android:layout_height="match_parent"
     android:background="#F5F5F5"
     android:fillViewport="true"
-    android:fitsSystemWindows="true"
-    android:overScrollMode="never">
+    android:overScrollMode="never"
+    android:fitsSystemWindows="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -27,10 +27,11 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_centerVertical="true"
-                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_back"
                 android:clickable="true"
                 android:focusable="true"
-                android:src="@drawable/ic_back" />
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:visibility="gone" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -42,14 +43,14 @@
                 android:textStyle="bold" />
         </RelativeLayout>
 
-        <!-- 播放 -->
+        <!-- 通用 -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="8dp"
-            android:text="播放"
+            android:text="通用"
             android:textColor="#999999"
             android:textSize="13sp" />
 
@@ -63,9 +64,9 @@
             android:paddingStart="16dp"
             android:paddingEnd="16dp">
 
-            <!-- 默认倍速 -->
+            <!-- 通知设置 -->
             <LinearLayout
-                android:id="@+id/layoutPlaybackSpeed"
+                android:id="@+id/layoutNotification"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="?attr/selectableItemBackground"
@@ -73,23 +74,261 @@
                 android:focusable="true"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
+                android:paddingStart="0dp"
                 android:paddingTop="14dp"
+                android:paddingEnd="0dp"
+                android:paddingBottom="14dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_pv"
+                    app:tint="#4CAF50" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="通知设置"
+                    android:textColor="#333333"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textColor="#CCCCCC"
+                    android:textSize="20sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:layout_marginStart="36dp"
+                android:background="#EEEEEE" />
+
+            <!-- 关怀模式 -->
+            <LinearLayout
+                android:id="@+id/layoutCareMode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="0dp"
+                android:paddingTop="14dp"
+                android:paddingEnd="0dp"
+                android:paddingBottom="14dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_pv"
+                    app:tint="#9C27B0" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="关怀模式"
+                    android:textColor="#333333"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textColor="#CCCCCC"
+                    android:textSize="20sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:layout_marginStart="36dp"
+                android:background="#EEEEEE" />
+
+            <!-- 抖音直播 -->
+            <LinearLayout
+                android:id="@+id/layoutDouyinLive"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="0dp"
+                android:paddingTop="14dp"
+                android:paddingEnd="0dp"
+                android:paddingBottom="14dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_pv"
+                    app:tint="#000000" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="抖音直播"
+                    android:textColor="#333333"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textColor="#CCCCCC"
+                    android:textSize="20sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:layout_marginStart="36dp"
+                android:background="#EEEEEE" />
+
+            <!-- B站蓝链申请 -->
+            <LinearLayout
+                android:id="@+id/layoutBilibiliBlueLink"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="0dp"
+                android:paddingTop="14dp"
+                android:paddingEnd="0dp"
+                android:paddingBottom="14dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_pv"
+                    app:tint="#FF69B4" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="B站蓝链申请"
+                    android:textColor="#333333"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textColor="#CCCCCC"
+                    android:textSize="20sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:layout_marginStart="36dp"
+                android:background="#EEEEEE" />
+
+            <!-- 群机器人 -->
+            <LinearLayout
+                android:id="@+id/layoutGroupRobot"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="0dp"
+                android:paddingTop="14dp"
+                android:paddingEnd="0dp"
+                android:paddingBottom="14dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_pv"
+                    app:tint="#2196F3" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="群机器人"
+                    android:textColor="#333333"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textColor="#CCCCCC"
+                    android:textSize="20sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 账号 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:text="账号"
+            android:textColor="#999999"
+            android:textSize="13sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/card_bg_rounded"
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
+
+            <!-- 验证码倒计时 -->
+            <LinearLayout
+                android:id="@+id/layoutCodeCountdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="0dp"
+                android:paddingTop="14dp"
+                android:paddingEnd="0dp"
                 android:paddingBottom="14dp">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="默认倍速"
+                    android:text="验证码倒计时"
                     android:textColor="#333333"
                     android:textSize="15sp" />
 
                 <TextView
-                    android:id="@+id/tvPlaybackSpeed"
+                    android:id="@+id/tvCodeCountdown"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
-                    android:text="1.0x"
+                    android:text="60秒"
                     android:textColor="#999999"
                     android:textSize="13sp" />
 
@@ -106,25 +345,27 @@
                 android:layout_height="0.5dp"
                 android:background="#EEEEEE" />
 
-            <!-- 自动连播 -->
+            <!-- 触摸音效 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
+                android:paddingStart="0dp"
                 android:paddingTop="14dp"
+                android:paddingEnd="0dp"
                 android:paddingBottom="14dp">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="播放完自动下一集"
+                    android:text="触摸音效"
                     android:textColor="#333333"
                     android:textSize="15sp" />
 
                 <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/switchAutoNext"
+                    android:id="@+id/switchTouchSound"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checked="true"
@@ -137,56 +378,9 @@
                 android:layout_height="0.5dp"
                 android:background="#EEEEEE" />
 
-            <!-- 跳过片头 -->
+            <!-- 微信号 -->
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingTop="14dp"
-                android:paddingBottom="14dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="自动跳过片头片尾"
-                    android:textColor="#333333"
-                    android:textSize="15sp" />
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/switchSkipIntro"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:checked="false"
-                    app:thumbTint="#2196F3"
-                    app:trackTint="#BBDEFB" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- 外观 -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="8dp"
-            android:text="外观"
-            android:textColor="#999999"
-            android:textSize="13sp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/card_bg_rounded"
-            android:orientation="vertical"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp">
-
-            <LinearLayout
-                android:id="@+id/layoutTheme"
+                android:id="@+id/layoutWechat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="?attr/selectableItemBackground"
@@ -194,14 +388,104 @@
                 android:focusable="true"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
+                android:paddingStart="0dp"
                 android:paddingTop="14dp"
+                android:paddingEnd="0dp"
                 android:paddingBottom="14dp">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="主题设置"
+                    android:text="微信号"
+                    android:textColor="#333333"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="已绑定"
+                    android:textColor="#999999"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textColor="#CCCCCC"
+                    android:textSize="20sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:background="#EEEEEE" />
+
+            <!-- 支付宝 -->
+            <LinearLayout
+                android:id="@+id/layoutAlipay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="0dp"
+                android:paddingTop="14dp"
+                android:paddingEnd="0dp"
+                android:paddingBottom="14dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="支付宝"
+                    android:textColor="#333333"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="未绑定"
+                    android:textColor="#999999"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textColor="#CCCCCC"
+                    android:textSize="20sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:background="#EEEEEE" />
+
+            <!-- 标旗设置 -->
+            <LinearLayout
+                android:id="@+id/layoutFlagSettings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="0dp"
+                android:paddingTop="14dp"
+                android:paddingEnd="0dp"
+                android:paddingBottom="14dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="标旗设置"
                     android:textColor="#333333"
                     android:textSize="15sp" />
 
@@ -212,31 +496,15 @@
                     android:textColor="#CCCCCC"
                     android:textSize="20sp" />
             </LinearLayout>
-        </LinearLayout>
 
-        <!-- 存储 -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="8dp"
-            android:text="存储"
-            android:textColor="#999999"
-            android:textSize="13sp" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:background="#EEEEEE" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/card_bg_rounded"
-            android:orientation="vertical"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp">
-
+            <!-- 店铺设置 -->
             <LinearLayout
-                android:id="@+id/layoutClearCache"
+                android:id="@+id/layoutStoreSettings"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="?attr/selectableItemBackground"
@@ -244,25 +512,126 @@
                 android:focusable="true"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
+                android:paddingStart="0dp"
                 android:paddingTop="14dp"
+                android:paddingEnd="0dp"
                 android:paddingBottom="14dp">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="清理缓存"
+                    android:text="店铺设置"
                     android:textColor="#333333"
                     android:textSize="15sp" />
 
                 <TextView
-                    android:id="@+id/tvCacheSize"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:text="计算中"
-                    android:textColor="#999999"
-                    android:textSize="13sp" />
+                    android:text="›"
+                    android:textColor="#CCCCCC"
+                    android:textSize="20sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:background="#EEEEEE" />
+
+            <!-- 新增代理自动分佣 -->
+            <LinearLayout
+                android:id="@+id/layoutAgentCommission"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="0dp"
+                android:paddingTop="14dp"
+                android:paddingEnd="0dp"
+                android:paddingBottom="14dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="新增代理自动分佣"
+                    android:textColor="#333333"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textColor="#CCCCCC"
+                    android:textSize="20sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:background="#EEEEEE" />
+
+            <!-- 新增产品自动分佣 -->
+            <LinearLayout
+                android:id="@+id/layoutProductCommission"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="0dp"
+                android:paddingTop="14dp"
+                android:paddingEnd="0dp"
+                android:paddingBottom="14dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="新增产品自动分佣"
+                    android:textColor="#333333"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textColor="#CCCCCC"
+                    android:textSize="20sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:background="#EEEEEE" />
+
+            <!-- 注销账号 -->
+            <LinearLayout
+                android:id="@+id/layoutDeleteAccount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="0dp"
+                android:paddingTop="14dp"
+                android:paddingEnd="0dp"
+                android:paddingBottom="14dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="注销账号"
+                    android:textColor="#333333"
+                    android:textSize="15sp" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -294,38 +663,9 @@
             android:paddingStart="16dp"
             android:paddingEnd="16dp">
 
+            <!-- 个人信息收集清单 -->
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingTop="14dp"
-                android:paddingBottom="14dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="版本"
-                    android:textColor="#333333"
-                    android:textSize="15sp" />
-
-                <TextView
-                    android:id="@+id/tvVersion"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="1.0.0"
-                    android:textColor="#999999"
-                    android:textSize="13sp" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0.5dp"
-                android:background="#EEEEEE" />
-
-            <LinearLayout
-                android:id="@+id/layoutOpenSourceLicense"
+                android:id="@+id/layoutPrivacyCollection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="?attr/selectableItemBackground"
@@ -333,23 +673,54 @@
                 android:focusable="true"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
+                android:paddingStart="0dp"
                 android:paddingTop="14dp"
+                android:paddingEnd="0dp"
                 android:paddingBottom="14dp">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="开源许可"
+                    android:text="个人信息收集清单"
                     android:textColor="#333333"
                     android:textSize="15sp" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="MIT"
-                    android:textColor="#999999"
-                    android:textSize="13sp" />
+                    android:text="›"
+                    android:textColor="#CCCCCC"
+                    android:textSize="20sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:background="#EEEEEE" />
+
+            <!-- 第三方信息共享清单 -->
+            <LinearLayout
+                android:id="@+id/layoutThirdPartySharing"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="0dp"
+                android:paddingTop="14dp"
+                android:paddingEnd="0dp"
+                android:paddingBottom="14dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="第三方信息共享清单"
+                    android:textColor="#333333"
+                    android:textSize="15sp" />
 
                 <TextView
                     android:layout_width="wrap_content"

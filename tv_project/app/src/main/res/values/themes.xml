@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme - Day Mode -->
-    <style name="Theme.TVPlayer" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.影视星球" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/theme_primary</item>
         <item name="colorPrimaryVariant">@color/theme_primary</item>
@@ -55,6 +55,44 @@
     <style name="TabTextSmall" parent="TextAppearance.Design.Tab">
         <item name="android:textSize">13sp</item>
         <item name="android:textColor">@color/theme_text_secondary</item>
+    </style>
+
+    <!-- ================= 底栏（Material 3 NavigationBar，参考 FlClash 风格） ================= -->
+    <!-- 选中指示器：全圆角胶囊 -->
+    <style name="Widget.TVPlayer.BottomNav.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/bottom_nav_indicator</item>
+        <item name="android:width">56dp</item>
+        <item name="android:height">30dp</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.TVPlayer.Pill</item>
+    </style>
+
+    <style name="ShapeAppearance.TVPlayer.Pill" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <!-- 底栏主体：紧凑、无涟漪、surface 背景 -->
+    <style name="Widget.TVPlayer.BottomNav" parent="Widget.Material3.BottomNavigationView">
+        <item name="itemActiveIndicatorStyle">@style/Widget.TVPlayer.BottomNav.ActiveIndicator</item>
+        <item name="itemIconTint">@color/bottom_nav_tint</item>
+        <item name="itemTextColor">@color/bottom_nav_tint</item>
+        <item name="itemTextAppearanceActive">@style/TextAppearance.TVPlayer.BottomNav.Active</item>
+        <item name="itemTextAppearanceInactive">@style/TextAppearance.TVPlayer.BottomNav</item>
+        <item name="itemRippleColor">@null</item>
+        <item name="itemPaddingTop">8dp</item>
+        <item name="itemPaddingBottom">8dp</item>
+        <item name="labelVisibilityMode">labeled</item>
+        <item name="android:minHeight">64dp</item>
+        <item name="elevation">0dp</item>
+    </style>
+
+    <style name="TextAppearance.TVPlayer.BottomNav" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:textSize">11sp</item>
+    </style>
+
+    <style name="TextAppearance.TVPlayer.BottomNav.Active" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:textSize">11sp</item>
+        <item name="android:textStyle">bold</item>
     </style>
 
     <!-- Full Width Bottom Sheet Dialog -->
