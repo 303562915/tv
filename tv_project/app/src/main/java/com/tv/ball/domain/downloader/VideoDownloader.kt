@@ -172,8 +172,8 @@ class VideoDownloader private constructor(private val context: Context) {
         
         val taskId = System.currentTimeMillis()
         val isM3u8 = cleanUrl.contains(".m3u8")
-        // M3U8 输出为 TS 格式（分片字节级拼接）
-        val fileName = if (isM3u8) "$title.ts" else "$title.${getFileExtension(cleanUrl)}"
+        // M3U8 输出为 MP4（TS 分片拼接后用 MediaMuxer 重封装）
+        val fileName = if (isM3u8) "$title.mp4" else "$title.${getFileExtension(cleanUrl)}"
         val savePath = getDownloadPath(fileName)
 
         val task = DownloadTask(
@@ -1808,7 +1808,7 @@ class VideoDownloader private constructor(private val context: Context) {
     }
     
     /**
-     * 优化的拼接方式（使用更大的缓冲区，支持 AES-128 解密，输出 TS 文件）
+     * 优化的拼接方式（使用更大的缓冲区，支持 AES-128 解密，重封装为 MP4）
      */
     private suspend fun mergeSegmentsOptimized(
         tempDir: File,
@@ -1954,10 +1954,8 @@ class VideoDownloader private constructor(private val context: Context) {
                 throw IOException("没有成功合并任何分片")
             }
             
-            // 步骤 2: 输出最终文件
-            // 说明：FFmpegKit 已停止维护且制品从 Maven Central 下架，
-            // 改为直接输出拼接好的 TS 文件（ExoPlayer 与主流播放器均可直接播放）。
-            Log.d(TAG, "步骤 2: 输出最终文件")
+            // 步骤 2: 把拼接好的 TS 重封装为 MP4（系统 MediaMuxer，只搬流不重编码）
+            Log.d(TAG, "步骤 2: TS 重封装为 MP4")
 
             if (!tempTsFile.exists()) {
                 throw IOException("临时 TS 文件不存在: ${tempTsFile.absolutePath}")
@@ -1972,12 +1970,21 @@ class VideoDownloader private constructor(private val context: Context) {
                 Log.d(TAG, "删除旧的输出文件")
             }
 
-            try {
-                tempTsFile.renameTo(outputFile)
-            } catch (e: Exception) {
-                Log.w(TAG, "重命名失败，改为复制", e)
-                tempTsFile.copyTo(outputFile, overwrite = true)
+            val remuxed = TsToMp4Remuxer.remux(tempTsFile, outputFile)
+            if (remuxed) {
+                Log.d(TAG, "=== MP4 重封装成功 ===")
                 tempTsFile.delete()
+            } else {
+                // 系统 Muxer 不支持该编码组合时，回退为直接输出 TS
+                Log.w(TAG, "MP4 重封装失败，回退为 TS 输出")
+                try {
+                    if (outputFile.exists()) outputFile.delete()
+                    tempTsFile.renameTo(outputFile)
+                } catch (e: Exception) {
+                    Log.w(TAG, "重命名失败，改为复制", e)
+                    tempTsFile.copyTo(outputFile, overwrite = true)
+                    tempTsFile.delete()
+                }
             }
 
             Log.d(TAG, "输出文件大小: ${outputFile.length() / 1024 / 1024}MB")
