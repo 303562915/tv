@@ -1,0 +1,137 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Debug APK
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tv_project
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('tv_project/**/*.gradle*', 'tv_project/**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Assemble Debug
+        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: tv-player-debug
+          path: tv_project/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload build logs on failure
+        if: failure()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: tv_project/**/build/outputs/logs/*
+          if-no-files-found: ignore
+          retention-days: 7
+
+  release:
+    name: Release APK
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: tv_project
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      # 签名配置说明：
+      # 需在仓库 Settings -> Secrets and variables -> Actions 中配置以下 Secrets：
+      #   KEYSTORE_BASE64    release.keystore 的 base64 编码
+      #                      （生成：base64 -w0 release.keystore > keystore.b64）
+      #   KEYSTORE_PASSWORD  keystore 密码
+      #   KEY_ALIAS          签名密钥别名
+      #   KEY_PASSWORD       密钥别名密码
+      # 未配置签名时，构建脚本会回退使用 debug 签名，release 产物仍可安装但不可发布到应用商店。
+      - name: Decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE_BASE64" | base64 -d > ../release.keystore
+
+      - name: Assemble Release
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/release.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew :app:assembleRelease --no-daemon
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: tv_project/app/build/outputs/apk/release/*.apk
+          generate_release_notes: true
+
+  secret-scan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Scan for hardcoded secrets
+        run: |
+          set -euo pipefail
+          PATTERN='(password\s*=\s*"[^"]{6,}"|passwd\s*=\s*"[^"]{6,}"|api[_-]?key|BEGIN (RSA |EC )?PRIVATE KEY)'
+          if grep -rInE "$PATTERN" \
+              --include='*.kt' \
+              --include='*.xml' \
+              --include='*.gradle*' \
+              --exclude-dir=.git \
+              --exclude-dir=build \
+              --exclude-dir=.gradle \
+              . ; then
+            echo "::error::检测到疑似硬编码密钥或凭据（password / api key / private key）。请改用 GitHub Secrets 或 local.properties，并立即轮换已泄漏的凭据。"
+            exit 1
+          fi
+          echo "未发现疑似硬编码密钥。"

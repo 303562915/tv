@@ -1,0 +1,37 @@
+name: 功能建议
+description: 为 TV Player 提出新功能或改进建议
+title: "[Feature] "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢建议！请说明使用场景，便于判断是否在播放器定位范围内。
+        注意：本项目不接收影视聚合、页面解析、会员登录、下载、投屏、短剧、搜索类需求。
+
+  - type: textarea
+    id: feature
+    attributes:
+      label: 功能描述
+      description: 你希望增加或改进什么功能？
+      placeholder: 希望长按倍速支持自定义倍速档位（如 1.5x / 2x / 3x）。
+    validations:
+      required: true
+
+  - type: textarea
+    id: scenario
+    attributes:
+      label: 使用场景
+      description: 在什么场景下需要它？现在是如何绕过的？
+      placeholder: 看剧时常用 3 倍速过片头，目前只有固定档位。
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 备选方案
+      description: 你考虑过的其他实现方式，或现有可替代的做法。
+      placeholder: 在设置页增加倍速档位多选，默认保持现状。
+    validations:
+      required: true

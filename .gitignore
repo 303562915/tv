@@ -32,3 +32,12 @@ Thumbs.db
 desktop.ini
 *.swp
 *~
+
+# 签名与密钥
+*.jks
+*.keystore
+release.keystore
+
+# 环境变量
+.env
+.env.*

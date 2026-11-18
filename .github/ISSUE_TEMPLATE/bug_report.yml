@@ -1,0 +1,78 @@
+name: Bug 报告
+description: 报告 TV Player 的崩溃、播放异常、手势或 UI 问题
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈！请尽量填全信息，尤其是设备型号、Android 版本与日志。
+        提交前请先搜索是否已有相同 Issue。
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 问题描述
+      description: 简要说明遇到的问题，以及发生在哪个界面/操作。
+      placeholder: 播放本地 MKV 文件时画面黑屏，声音正常。
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 按顺序列出可稳定复现的操作步骤。
+      placeholder: |
+        1. 打开应用，进入「本地视频」
+        2. 选择 test.mkv
+        3. 播放 3 秒后画面卡住
+    validations:
+      required: true
+
+  - type: input
+    id: expected
+    attributes:
+      label: 期望行为
+      description: 你期望发生什么。
+      placeholder: 正常播放画面与声音。
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+      description: 实际发生了什么，是否可稳定复现，是否与特定格式/线路相关。
+      placeholder: 画面黑屏，声音正常，切换画面比例无效。
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: 设备与 Android 版本
+      description: 设备型号 + Android 版本（可在「设置 - 关于」查看）。
+      placeholder: 小米电视 4A / Android 9 (API 28)
+    validations:
+      required: true
+
+  - type: input
+    id: apk_version
+    attributes:
+      label: APK 版本
+      description: 应用版本号与构建来源（GitHub Actions artifact / 自行编译 / 其他）。
+      placeholder: 1.0.0，来自 Build 工作流的 tv-player-debug
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志
+      description: 可用 `adb logcat` 抓取相关日志；请勿粘贴任何令牌、密码或私人地址。
+      render: shell
+      placeholder: |
+        adb logcat -v time | findstr com.tv.ball
+    validations:
+      required: true

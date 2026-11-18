@@ -48,33 +48,6 @@
         android:paddingBottom="16dp"
         android:gravity="center">
 
-        <!-- 下载 -->
-        <LinearLayout
-            android:id="@+id/downloadButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackground">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_file_download_black_24dp"
-                android:tint="#AAAAAA" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="下载"
-                android:textColor="#AAAAAA"
-                android:textSize="11sp" />
-        </LinearLayout>
-
         <!-- 收藏 -->
         <LinearLayout
             android:id="@+id/favoriteButton"
@@ -153,33 +126,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="分享"
-                android:textColor="#AAAAAA"
-                android:textSize="11sp" />
-        </LinearLayout>
-
-        <!-- 解析 -->
-        <LinearLayout
-            android:id="@+id/parseButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackground">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_link_black_24dp"
-                android:tint="#AAAAAA" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="解析"
                 android:textColor="#AAAAAA"
                 android:textSize="11sp" />
         </LinearLayout>
