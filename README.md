@@ -112,7 +112,26 @@ gradlew.bat :app:assembleDebug
 4. 下载 **`tv-player-debug`** 压缩包，解压即得 debug APK。
 
 同一个构建在 `push` 到 `main` / `master` 与提交 `pull_request` 时会自动触发，
-无需本地配置签名；打 tag（`v*`）时会走 `release` 任务生成 Release 附件。
+无需本地配置签名。
+
+## 下载（Releases）
+
+仓库的 **Releases** 页面始终有可直接安装的 APK，不用等发版：
+
+| Release | 触发方式 | 内容 |
+| --- | --- | --- |
+| `latest`（最新构建） | 每次 `push` 到 `main` / `master`，或手动 `Run workflow` | 覆盖更新的 debug 签名 APK `TVPlayer-latest-debug.apk` |
+| `v*`（正式版本） | 推送 `v*` 标签（如 `v1.0.0`） | 有签名 Secrets 时为 release 包，未配置时自动回退 debug 签名包 |
+
+打正式版本：
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+release 包的签名通过 Repository Secrets 注入（`KEYSTORE_BASE64`、`KEYSTORE_PASSWORD`、
+`KEY_ALIAS`、`KEY_PASSWORD`）；四项缺失时 CI 自动改用 debug 签名，保证下载的包一定能安装。
 
 ## 安装
 
@@ -156,8 +175,9 @@ adb install -r app-arm64-v8a-debug.apk
 | [Room](https://developer.android.com/jetpack/androidx/releases/room) | 2.6.1 | Apache-2.0 |
 | [Gson](https://github.com/google/gson) | 随依赖锁定 | Apache-2.0 |
 | [Kotlin Coroutines](https://github.com/Kotlin/kotlinx.coroutines) | 随依赖锁定 | Apache-2.0 |
-| [Material Components](https://github.com/material-components/material-components-android) | 随依赖锁定 | Apache-2.0 |
-| [AndroidX Navigation](https://developer.android.com/jetpack/androidx/releases/navigation) | 随依赖锁定 | Apache-2.0 |
+| [Material Components](https://github.com/material-components/material-components-android) | 1.13.0 | Apache-2.0 |
+| [AndroidX AppCompat](https://developer.android.com/jetpack/androidx/releases/appcompat) | 1.7.1 | Apache-2.0 |
+| [AndroidX ConstraintLayout](https://developer.android.com/jetpack/androidx/releases/constraintlayout) | 2.2.0 | Apache-2.0 |
 
 以上依赖均为 Apache-2.0 协议，与本项目的 MIT 协议兼容。分发本应用时请保留各依赖的许可证与版权声明。
 

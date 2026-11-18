@@ -1674,6 +1674,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         updateFavoriteIcon()
     }
     
+    /**
      * 更新状态文字（显示在进度条下方）
      */
     private fun updateStatusText(message: String) {
@@ -2375,13 +2376,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             
             binding.titleText.text = "$videoTitle - ${episode.name}"
             hasSkippedIntro = false
-            hasStartedRouteTest = false  // 重置线路测试标志
-            
-            // 清空之前的嗅探链接，避免干扰
-            sniffedVideoLinks.clear()
-            currentLinkIndex = 0
-            hasStartedPlaying = false
-            
+
             android.util.Log.d("VideoPlayer", "调用 viewModel.loadVideo")
             viewModel.loadVideo(
                 videoId = videoId,
@@ -2680,22 +2675,10 @@ class VideoPlayerActivity : AppCompatActivity() {
                                 updateStatusText("加载中...")
                             }
                             is PlayerState.LoadingWithMessage -> {
-                                // 检查是否需要嗅探
-                                if (state.message.contains("检测到网页") || state.message.contains("正在解析")) {
-                                    // Activity接管嗅探过程
-                                    binding.loadingView.visibility = View.VISIBLE
-                                    binding.errorText.visibility = View.GONE
-                                    updateStatusText(state.message)
-                                    
-                                    // 开始嗅探
-                                    if (!isSniffing) {
-                                        startSniffing()
-                                    }
-                                } else {
-                                    binding.loadingView.visibility = View.VISIBLE
-                                    binding.errorText.visibility = View.GONE
-                                    updateStatusText(state.message)
-                                }
+                                // 只显示加载提示，不再做网页解析 / 嗅探
+                                binding.loadingView.visibility = View.VISIBLE
+                                binding.errorText.visibility = View.GONE
+                                updateStatusText(state.message)
                             }
                             is PlayerState.Ready, is PlayerState.Playing -> {
                                 binding.loadingView.visibility = View.GONE
@@ -2819,19 +2802,12 @@ class VideoPlayerActivity : AppCompatActivity() {
         val cachedVideoHeaders = intent.getStringExtra("VIDEO_HEADERS")
         val cachedEpisodeName = intent.getStringExtra("CACHED_EPISODE_NAME")  // 缓存对应的集数名称
         
-        // 检查是否是短剧
-        val isShortDrama = intent.getBooleanExtra("IS_SHORT_DRAMA", false)
-        android.util.Log.d("VideoPlayer", "loadVideoFromIntent: isShortDrama=$isShortDrama")
-        
         // 检查是否传入了播放列表
         episodesJson = intent.getStringExtra("EPISODES_JSON")
         val startIndex = intent.getIntExtra("START_INDEX", 0)
         
         android.util.Log.d("VideoPlayer", "episodesJson=$episodesJson")
         android.util.Log.d("VideoPlayer", "startIndex=$startIndex")
-        
-        // 初始化短剧管理器
-        shortDramaManager.initShortDramaMode(isShortDrama, episodesJson, startIndex)
         
         val currentEpisodesJson = episodesJson
         if (!currentEpisodesJson.isNullOrEmpty()) {
@@ -3199,9 +3175,6 @@ class VideoPlayerActivity : AppCompatActivity() {
                 viewModel.updateDuration(duration)
                 viewModel.savePlaybackProgress()
             }
-            
-            // 预加载下一集：在视频快结束前提前获取下一集播放地址
-            checkAndPreloadNextEpisode(position, duration)
         } else {
             binding.durationText.text = "--:--"
         }
@@ -3444,12 +3417,6 @@ class VideoPlayerActivity : AppCompatActivity() {
                 android.util.Log.d("VideoPlayer", "▶️ [生命周期] 恢复播放")
             }
         }
-        
-        // 检查后台播放器状态
-        backgroundPlayer?.let {
-            val bufferedSeconds = it.bufferedPosition / 1000
-            android.util.Log.d("VideoPlayer", "📊 [后台播放器] 已缓冲: ${bufferedSeconds}秒")
-        }
     }
     
     override fun onStop() {
@@ -3463,24 +3430,11 @@ class VideoPlayerActivity : AppCompatActivity() {
             // 尝试进入画中画模式
             tryEnterPictureInPictureMode()
         }
-        
-        // 应用切到后台，暂停后台播放器的缓冲以节省流量
-        backgroundPlayer?.let {
-            if (it.playbackState == com.google.android.exoplayer2.Player.STATE_BUFFERING) {
-                android.util.Log.d("VideoPlayer", "⏸️ [后台播放器] 暂停缓冲以节省流量")
-                // 不释放，只是暂停
-            }
-        }
     }
     
     override fun onStart() {
         super.onStart()
         android.util.Log.d("VideoPlayer", "▶️ [生命周期] onStart")
-        
-        // 应用回到前台，恢复后台播放器的缓冲
-        backgroundPlayer?.let {
-            android.util.Log.d("VideoPlayer", "▶️ [后台播放器] 恢复缓冲")
-        }
     }
     
     /**
@@ -3585,13 +3539,7 @@ class VideoPlayerActivity : AppCompatActivity() {
 
             // 短剧模式：保持滚动，显示下方的集数选择
             // 普通视频：禁用滚动
-            val isShortDrama = intent.getBooleanExtra("IS_SHORT_DRAMA", false)
-            if (!isShortDrama) {
-                scrollView?.isNestedScrollingEnabled = false
-            } else {
-                // 短剧模式：添加竖屏详情视图（包含集数选择）
-                addPortraitDetailView()
-            }
+            scrollView?.isNestedScrollingEnabled = false
         }
     }
     
@@ -3696,7 +3644,6 @@ class VideoPlayerActivity : AppCompatActivity() {
         cancelNextEpisodeCountdown()  // 清理倒计时
         cancelFasterRouteCountdown()  // 清理更快路线倒计时
         networkStatusMonitor.stopMonitoring()
-        releaseBackgroundPlayer()  // 释放后台播放器
 
         // 清理预览缓存
         previewJob?.cancel()
@@ -3816,3 +3763,4 @@ class VideoPlayerActivity : AppCompatActivity() {
         }
     }
 }
+

@@ -140,12 +140,14 @@ class VideoPlayerViewModel(
             val history = historyRepository.getHistoryByTitleAndEpisode(
                 currentVideoTitle, episodeName, videoSource
             )
-            if (!history?.parsedVideoUrl.isNullOrEmpty()) {
-                currentParsedVideoUrl = history.parsedVideoUrl
-                if (history?.videoHeaders != null) {
-                    currentVideoHeaders = parseHeadersFromJson(history.videoHeaders)
+            val savedUrl = history?.parsedVideoUrl
+            if (!savedUrl.isNullOrEmpty()) {
+                currentParsedVideoUrl = savedUrl
+                val savedHeaders = history?.videoHeaders
+                if (!savedHeaders.isNullOrEmpty()) {
+                    currentVideoHeaders = parseHeadersFromJson(savedHeaders)
                 }
-                playUrl(history?.parsedVideoUrl ?: cleanVideoUrl, episodeName)
+                playUrl(savedUrl, episodeName)
                 history?.let { _currentPosition.value = it.watchedPosition }
                 return@launch
             }
