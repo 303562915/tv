@@ -14,7 +14,6 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.tv.ball.databinding.FragmentFavoriteBinding
-import com.tv.ball.presentation.detail.VideoDetailActivity
 import com.tv.ball.presentation.player.VideoPlayerActivity
 import kotlinx.coroutines.launch
 
@@ -48,26 +47,22 @@ class FavoriteFragment : Fragment() {
     private fun setupRecyclerView() {
         adapter = FavoriteAdapter(
             onItemClick = { favoriteItem ->
-                // 如果有播放列表，直接跳转到播放器
-                if (!favoriteItem.episodesJson.isNullOrEmpty()) {
-                    val intent = Intent(requireContext(), com.tv.ball.presentation.player.VideoPlayerActivity::class.java).apply {
+                val playUrl = favoriteItem.detailUrl
+                if (playUrl.isNullOrEmpty()) {
+                    Snackbar.make(binding.root, "该收藏缺少播放地址", Snackbar.LENGTH_SHORT).show()
+                } else {
+                    val intent = Intent(requireContext(), VideoPlayerActivity::class.java).apply {
                         putExtra("VIDEO_ID", favoriteItem.videoId)
                         putExtra("VIDEO_TITLE", favoriteItem.title)
-                        putExtra("VIDEO_URL", favoriteItem.detailUrl)
+                        putExtra("VIDEO_URL", playUrl)
                         putExtra("THUMBNAIL_URL", favoriteItem.thumbnailUrl)
                         putExtra("DETAIL_URL", favoriteItem.detailUrl)
-                        putExtra("EPISODES_JSON", favoriteItem.episodesJson)
-                        putExtra("START_INDEX", 0)
-                        // 传递缓存的解析URL和请求头
+                        favoriteItem.episodesJson?.let {
+                            putExtra("EPISODES_JSON", it)
+                            putExtra("START_INDEX", 0)
+                        }
                         favoriteItem.parsedVideoUrl?.let { putExtra("PARSED_VIDEO_URL", it) }
                         favoriteItem.videoHeaders?.let { putExtra("VIDEO_HEADERS", it) }
-                    }
-                    startActivity(intent)
-                } else {
-                    // 没有播放列表，跳转到详情页重新加载
-                    val intent = Intent(requireContext(), VideoDetailActivity::class.java).apply {
-                        putExtra("DETAIL_URL", favoriteItem.detailUrl)
-                        putExtra("COVER_URL", favoriteItem.thumbnailUrl)
                     }
                     startActivity(intent)
                 }

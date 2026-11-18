@@ -14,8 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.tv.ball.databinding.FragmentHistoryBinding
-import com.tv.ball.presentation.detail.VideoDetailActivity
-import com.tv.ball.presentation.home.VideoItem
+import com.tv.ball.domain.model.HistoryItem
 import kotlinx.coroutines.launch
 
 class HistoryFragment : Fragment() {
@@ -48,42 +47,31 @@ class HistoryFragment : Fragment() {
     private fun setupRecyclerView() {
         adapter = HistoryAdapter(
             onItemClick = { historyItem ->
-                // 如果有播放列表，直接跳转到播放器
-                if (!historyItem.episodesJson.isNullOrEmpty()) {
-                    // 解析播放列表，找到当前集数的索引
-                    val startIndex = try {
-                        val episodes = parseEpisodesFromJson(historyItem.episodesJson)
-                        episodes.indexOfFirst { it.name == historyItem.currentEpisode }.takeIf { it >= 0 } ?: 0
-                    } catch (e: Exception) {
-                        0
-                    }
-                    
-                    val intent = Intent(requireContext(), com.tv.ball.presentation.player.VideoPlayerActivity::class.java).apply {
-                        putExtra("VIDEO_ID", System.currentTimeMillis())
-                        putExtra("VIDEO_TITLE", historyItem.videoItem.title)
-                        putExtra("VIDEO_URL", historyItem.videoItem.detailUrl)
-                        putExtra("THUMBNAIL_URL", historyItem.videoItem.coverUrl)
-                        putExtra("DETAIL_URL", historyItem.detailUrl)
+                val intent = Intent(requireContext(), com.tv.ball.presentation.player.VideoPlayerActivity::class.java).apply {
+                    putExtra("VIDEO_ID", System.currentTimeMillis())
+                    putExtra("VIDEO_TITLE", historyItem.title)
+                    putExtra("VIDEO_URL", historyItem.videoUrl)
+                    putExtra("THUMBNAIL_URL", historyItem.coverUrl)
+                    putExtra("DETAIL_URL", historyItem.detailUrl)
+                    putExtra("SEEK_POSITION", historyItem.watchedPosition)
+
+                    if (!historyItem.episodesJson.isNullOrEmpty()) {
+                        val startIndex = try {
+                            val episodes = parseEpisodesFromJson(historyItem.episodesJson)
+                            episodes.indexOfFirst { it.name == historyItem.currentEpisode }
+                                .takeIf { it >= 0 } ?: 0
+                        } catch (e: Exception) {
+                            0
+                        }
                         putExtra("EPISODES_JSON", historyItem.episodesJson)
-                        putExtra("SEEK_POSITION", historyItem.watchedPosition)
-                        
-                        // 传递缓存的解析URL、请求头和对应的集数名称
-                        historyItem.parsedVideoUrl?.let { putExtra("PARSED_VIDEO_URL", it) }
-                        historyItem.videoHeaders?.let { putExtra("VIDEO_HEADERS", it) }
-                        historyItem.currentEpisode?.let { putExtra("CACHED_EPISODE_NAME", it) }
-                        
-                        // 从上次观看的集数开始播放
                         putExtra("START_INDEX", startIndex)
                     }
-                    startActivity(intent)
-                } else {
-                    // 没有播放列表，跳转到详情页重新加载
-                    val intent = Intent(requireContext(), com.tv.ball.presentation.detail.VideoDetailActivity::class.java).apply {
-                        putExtra("DETAIL_URL", historyItem.detailUrl ?: historyItem.videoItem.detailUrl)
-                        putExtra("COVER_URL", historyItem.videoItem.coverUrl)
-                    }
-                    startActivity(intent)
+
+                    historyItem.parsedVideoUrl?.let { putExtra("PARSED_VIDEO_URL", it) }
+                    historyItem.videoHeaders?.let { putExtra("VIDEO_HEADERS", it) }
+                    historyItem.currentEpisode?.let { putExtra("CACHED_EPISODE_NAME", it) }
                 }
+                startActivity(intent)
             },
             onItemDelete = { historyItem ->
                 deleteHistoryItem(historyItem)
@@ -166,7 +154,7 @@ class HistoryFragment : Fragment() {
     }
     
     private fun deleteHistoryItem(historyItem: HistoryItem) {
-        viewModel.deleteHistory(historyItem.videoItem.title)
+        viewModel.deleteHistory(historyItem.title)
 
         Snackbar.make(binding.root, "已删除", Snackbar.LENGTH_LONG)
             .setAction("撤销") {

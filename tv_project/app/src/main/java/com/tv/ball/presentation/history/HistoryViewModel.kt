@@ -2,34 +2,14 @@ package com.tv.ball.presentation.history
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.tv.ball.presentation.home.VideoItem
-import com.tv.ball.domain.repository.HistoryRepository
 import com.tv.ball.di.Dependencies
+import com.tv.ball.domain.model.HistoryGroup
+import com.tv.ball.domain.model.HistoryItem
+import com.tv.ball.domain.repository.HistoryRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.*
-
-data class HistoryItem(
-    val videoItem: VideoItem,
-    val detailUrl: String?,
-    val episodesJson: String?,
-    val currentEpisode: String?,
-    val watchedPosition: Long,
-    val duration: Long,
-    val parsedVideoUrl: String?,
-    val videoHeaders: String?,
-    val lastWatchedAt: Long = System.currentTimeMillis()
-)
-
-/**
- * 历史记录分组
- */
-data class HistoryGroup(
-    val title: String,
-    val items: List<HistoryItem>
-)
+import java.util.Calendar
 
 class HistoryViewModel(
     private val historyRepository: HistoryRepository = Dependencies.historyRepository
@@ -49,16 +29,12 @@ class HistoryViewModel(
 
     fun loadHistory() {
         viewModelScope.launch {
-            historyRepository.getAllHistory().collect { historyEntities ->
-                val items = historyEntities.map { entity ->
+            historyRepository.getAllHistory().collect { entities ->
+                val items = entities.map { entity ->
                     HistoryItem(
-                        videoItem = VideoItem(
-                            title = entity.videoTitle,
-                            coverUrl = entity.thumbnailUrl ?: "",
-                            detailUrl = entity.detailUrl ?: entity.videoUrl,
-                            quality = "HD",
-                            sourceKey = ""
-                        ),
+                        title = entity.videoTitle,
+                        coverUrl = entity.thumbnailUrl ?: "",
+                        videoUrl = entity.videoUrl,
                         detailUrl = entity.detailUrl,
                         episodesJson = entity.episodesJson,
                         currentEpisode = entity.currentEpisode,
@@ -70,45 +46,36 @@ class HistoryViewModel(
                     )
                 }
                 _historyList.value = items
-
-                // 分组处理
                 _groupedHistory.value = groupHistoryByDate(items)
             }
         }
     }
 
-    /**
-     * 按日期分组历史记录
-     */
     private fun groupHistoryByDate(items: List<HistoryItem>): List<HistoryGroup> {
-        val calendar = Calendar.getInstance()
-        val today = calendar.apply {
+        val calendar = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
-        }.timeInMillis
+        }
+        val today = calendar.timeInMillis
 
-        val yesterday = calendar.apply {
-            add(Calendar.DAY_OF_YEAR, -1)
-        }.timeInMillis
+        calendar.add(Calendar.DAY_OF_YEAR, -1)
+        val yesterday = calendar.timeInMillis
 
         val groups = mutableListOf<HistoryGroup>()
 
-        val todayItems = items.filter { it.lastWatchedAt >= today }
-        if (todayItems.isNotEmpty()) {
-            groups.add(HistoryGroup("今天", todayItems))
-        }
+        items.filter { it.lastWatchedAt >= today }
+            .takeIf { it.isNotEmpty() }
+            ?.let { groups.add(HistoryGroup("今天", it)) }
 
-        val yesterdayItems = items.filter { it.lastWatchedAt >= yesterday && it.lastWatchedAt < today }
-        if (yesterdayItems.isNotEmpty()) {
-            groups.add(HistoryGroup("昨天", yesterdayItems))
-        }
+        items.filter { it.lastWatchedAt >= yesterday && it.lastWatchedAt < today }
+            .takeIf { it.isNotEmpty() }
+            ?.let { groups.add(HistoryGroup("昨天", it)) }
 
-        val olderItems = items.filter { it.lastWatchedAt < yesterday }
-        if (olderItems.isNotEmpty()) {
-            groups.add(HistoryGroup("更早", olderItems))
-        }
+        items.filter { it.lastWatchedAt < yesterday }
+            .takeIf { it.isNotEmpty() }
+            ?.let { groups.add(HistoryGroup("更早", it)) }
 
         return groups
     }
@@ -128,11 +95,11 @@ class HistoryViewModel(
     fun addHistory(historyItem: HistoryItem) {
         viewModelScope.launch {
             historyRepository.addOrUpdateHistory(
-                videoTitle = historyItem.videoItem.title,
-                videoUrl = historyItem.videoItem.detailUrl,
+                videoTitle = historyItem.title,
+                videoUrl = historyItem.videoUrl,
                 parsedVideoUrl = historyItem.parsedVideoUrl,
                 videoHeaders = historyItem.videoHeaders,
-                thumbnailUrl = historyItem.videoItem.coverUrl,
+                thumbnailUrl = historyItem.coverUrl,
                 watchedPosition = historyItem.watchedPosition,
                 duration = historyItem.duration,
                 detailUrl = historyItem.detailUrl,
@@ -143,9 +110,6 @@ class HistoryViewModel(
         }
     }
 
-    /**
-     * 切换选择模式
-     */
     fun toggleSelectionMode() {
         _isSelectionMode.value = !_isSelectionMode.value
         if (!_isSelectionMode.value) {
@@ -153,29 +117,16 @@ class HistoryViewModel(
         }
     }
 
-    /**
-     * 切换项目选择状态
-     */
-    fun toggleItemSelection(videoTitle: String) {
+    fun toggleItemSelection(title: String) {
         val current = _selectedItems.value.toMutableSet()
-        if (current.contains(videoTitle)) {
-            current.remove(videoTitle)
-        } else {
-            current.add(videoTitle)
-        }
+        if (current.contains(title)) current.remove(title) else current.add(title)
         _selectedItems.value = current
     }
 
-    /**
-     * 全选
-     */
     fun selectAll() {
-        _selectedItems.value = _historyList.value.map { it.videoItem.title }.toSet()
+        _selectedItems.value = _historyList.value.map { it.title }.toSet()
     }
 
-    /**
-     * 删除选中的项目
-     */
     fun deleteSelected() {
         viewModelScope.launch {
             _selectedItems.value.forEach { title ->
@@ -186,4 +137,3 @@ class HistoryViewModel(
         }
     }
 }
-
