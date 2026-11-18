@@ -18,13 +18,37 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // 签名配置：优先使用 CI 注入的正式密钥；
+    // 未提供密钥时回退 debug 签名，保证 Release 产物仍可安装
+    val releaseStorePath = System.getenv("TVPLAYER_STORE_FILE")
+    val hasReleaseKey = !releaseStorePath.isNullOrBlank() && File(releaseStorePath).exists()
+
+    signingConfigs {
+        if (hasReleaseKey) {
+            create("release") {
+                storeFile = file(releaseStorePath!!)
+                storePassword = System.getenv("TVPLAYER_STORE_PASSWORD")
+                keyAlias = System.getenv("TVPLAYER_KEY_ALIAS")
+                keyPassword = System.getenv("TVPLAYER_KEY_PASSWORD")
+                enableV1Signing = true
+                enableV2Signing = true
+                enableV3Signing = true
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = true
+            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = if (hasReleaseKey) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
         debug {
             isMinifyEnabled = false
