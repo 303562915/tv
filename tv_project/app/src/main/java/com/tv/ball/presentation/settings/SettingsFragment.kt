@@ -111,12 +111,14 @@ class SettingsFragment : Fragment() {
                 .setTitle("开源许可")
                 .setMessage(
                     "本应用基于 MIT License 开源。\n\n" +
-                        "第三方组件：\n" +
-                        "· ExoPlayer（Apache-2.0）\n" +
-                        "· OkHttp（Apache-2.0）\n" +
-                        "· Glide（Apache-2.0）\n" +
-                        "· Room（Apache-2.0）\n" +
-                        "· Gson（Apache-2.0）"
+                        "所用开源软件（均为 Apache-2.0）：\n" +
+                        "· ExoPlayer —— 播放内核\n" +
+                        "· OkHttp —— 网络请求\n" +
+                        "· Glide —— 图片加载\n" +
+                        "· Room —— 本地数据库\n" +
+                        "· Gson —— JSON 解析\n" +
+                        "· Material Components —— Material 3 界面组件\n" +
+                        "· Kotlin Coroutines —— 异步任务"
                 )
                 .setPositiveButton("知道了", null)
                 .show()
