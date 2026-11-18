@@ -33,6 +33,7 @@ import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
 import com.tv.ball.R
 import com.tv.ball.VideoPlayerApplication
+import com.tv.ball.data.VideoSourceManager
 import com.tv.ball.databinding.ActivityVideoPlayerBinding
 import com.tv.ball.di.Dependencies
 import com.tv.ball.domain.model.Episode
@@ -75,10 +76,16 @@ class VideoPlayerActivity : AppCompatActivity() {
     }
     private val skipIntroManager by lazy { SkipIntroManager(this) }
     private val aspectRatioManager by lazy { AspectRatioManager(this) }
-
-    // 开源本地播放器：只按 Intent 传入的地址播放，不再有视频源/嗅探概念
-    private val videoSource = "local"
+    private val shortDramaManager by lazy { ShortDramaManager(this) }
+    
+    // 嗅探到的视频链接
+    private val sniffedVideoLinks = mutableListOf<String>()
     private var currentPlayingUrl: String = ""
+    private var currentLinkIndex: Int = 0  // 当前播放的链接索引
+    private var isAutoSwitchingLink: Boolean = false  // 是否正在自动切换链接
+    private var isSniffing: Boolean = false  // 是否正在嗅探
+    private var hasStartedPlaying: Boolean = false  // 是否已经开始播放第一个链接
+    private var hasStartedRouteTest: Boolean = false  // 是否已经开始线路测试
     
     private lateinit var gestureDetector: GestureDetector
     private val hideControlsHandler = Handler(Looper.getMainLooper())
@@ -119,8 +126,15 @@ class VideoPlayerActivity : AppCompatActivity() {
     private var detailUrl: String? = null
     private var episodesJson: String? = null
     
-    // 下一集提示阈值（剩余秒数）
-    private val nextEpisodeHintThresholdSeconds = 5
+    // 预加载下一集相关
+    private var isPreloadingNextEpisode = false  // 是否正在预加载
+    private var preloadedNextEpisodeUrl: String? = null  // 预加载的下一集URL
+    private var hasTriggeredPreload = false  // 是否已触发预加载（避免重复）
+    private val preloadThresholdSeconds = 10  // 提前10秒开始预加载
+    
+    // 后台播放器预加载
+    private var backgroundPlayer: ExoPlayer? = null  // 后台预加载播放器
+    private var isBackgroundPlayerReady = false  // 后台播放器是否准备好
     
     // 下一集倒计时相关
     private var nextEpisodeCountdown = 5  // 倒计时秒数
@@ -1181,6 +1195,9 @@ class VideoPlayerActivity : AppCompatActivity() {
                         // 横屏视频，根据视频尺寸自动切换横竖屏
                         autoAdjustOrientation()
                     }
+                    
+                    // 短剧管理器检查
+                    shortDramaManager.checkVideoOrientation(videoWidth, videoHeight)
                 }
             }
             
@@ -1195,13 +1212,34 @@ class VideoPlayerActivity : AppCompatActivity() {
             override fun onEnded() {
                 android.util.Log.d("VideoPlayer", "播放结束 onEnded 被调用")
                 viewModel.savePlaybackProgress()
-
+                
                 // 隐藏下一集提示
                 hideNextEpisodeHint()
-
-                // 播放列表自动播放下一集
-                if (playlistManager.hasNext()) {
-                    android.util.Log.d("VideoPlayer", "准备自动播放下一集")
+                
+                // 重置预加载标志，为下一个视频做准备
+                hasTriggeredPreload = false
+                preloadedNextEpisodeUrl = null
+                releaseBackgroundPlayer()  // 释放后台播放器
+                
+                // 短剧自动播放下一集
+                val isShortDrama = intent.getBooleanExtra("IS_SHORT_DRAMA", false)
+                android.util.Log.d("VideoPlayer", "isShortDrama=$isShortDrama, hasNextEpisode=${shortDramaManager.hasNextEpisode()}")
+                
+                if (isShortDrama && shortDramaManager.hasNextEpisode()) {
+                    android.util.Log.d("VideoPlayer", "准备自动播放短剧下一集")
+                    shortDramaManager.onPlaybackEnded { episode ->
+                        android.util.Log.d("VideoPlayer", "收到下一集回调: ${episode.name}")
+                        
+                        // 如果已经预加载了URL，直接使用
+                        if (!episode.url.isEmpty()) {
+                            android.util.Log.d("VideoPlayer", "使用预加载的URL播放")
+                        }
+                        
+                        playShortDramaEpisode(episode)
+                    }
+                } else if (playlistManager.hasNext()) {
+                    // 普通视频自动播放下一集
+                    android.util.Log.d("VideoPlayer", "准备自动播放普通视频下一集")
                     playNextEpisode()
                 } else {
                     android.util.Log.d("VideoPlayer", "没有下一集可播放")
@@ -1210,9 +1248,38 @@ class VideoPlayerActivity : AppCompatActivity() {
             
             override fun onError(message: String) {
                 viewModel.onPlaybackError(message)
-                runOnUiThread {
-                    updateStatusText("播放失败: $message")
-                    binding.loadingView.visibility = View.GONE
+                
+                // 如果有多个解析链接，自动尝试下一个
+                if (!isAutoSwitchingLink && sniffedVideoLinks.size > 1 && currentLinkIndex < sniffedVideoLinks.size - 1) {
+                    isAutoSwitchingLink = true
+                    currentLinkIndex++
+                    
+                    runOnUiThread {
+                        val nextUrl = sniffedVideoLinks[currentLinkIndex]
+                        updateStatusText("链接 ${currentLinkIndex} 播放失败，切换到链接 ${currentLinkIndex + 1}...")
+                        
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            playUrl(nextUrl)
+                            isAutoSwitchingLink = false
+                        }, 1000)
+                    }
+                } else if (!isAutoSwitchingLink && isSniffing) {
+                    // 正在嗅探中，等待新链接
+                    runOnUiThread {
+                        updateStatusText("当前链接播放失败，等待嗅探新链接...")
+                    }
+                } else if (!isSniffing && sniffedVideoLinks.isEmpty()) {
+                    // 没有链接且不在嗅探，显示错误
+                    runOnUiThread {
+                        updateStatusText("未检测到视频链接")
+                        binding.loadingView.visibility = View.GONE
+                    }
+                } else {
+                    // 所有链接都失败了
+                    runOnUiThread {
+                        updateStatusText("所有链接播放失败")
+                        binding.loadingView.visibility = View.GONE
+                    }
                 }
             }
             
@@ -1231,8 +1298,17 @@ class VideoPlayerActivity : AppCompatActivity() {
                 // 只更新 UI
                 if (isPlaying) {
                     binding.loadingView.visibility = View.GONE
+                    
+                    // 播放开始后，延迟3秒启动线路测试（避免影响初始播放）
+                    if (!hasStartedRouteTest) {
+                        hasStartedRouteTest = true
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            android.util.Log.d("VideoPlayer", "触发线路速度测试")
+                            viewModel.testAndSwitchToFastestRoute()
+                        }, 3000)
+                    }
                 }
-
+                
                 updatePlayPauseButton()
             }
         })
@@ -1275,6 +1351,16 @@ class VideoPlayerActivity : AppCompatActivity() {
             showEpisodeDialog()
         }
         
+        // 下载按钮
+        binding.downloadButton.setOnClickListener {
+            showDownloadDialog()
+        }
+        
+        // 解析记录按钮
+        binding.parseRecordButton.setOnClickListener {
+            showParseRecordDialog()
+        }
+        
         // 下一集按钮
         binding.nextButton.setOnClickListener {
             playNextEpisode()
@@ -1288,6 +1374,11 @@ class VideoPlayerActivity : AppCompatActivity() {
         // 分享按钮
         binding.shareButton.setOnClickListener {
             shareVideo()
+        }
+        
+        // 投屏按钮
+        binding.castButton.setOnClickListener {
+            showCastDeviceDialog()
         }
         
         // 截屏按钮
@@ -1473,10 +1564,13 @@ class VideoPlayerActivity : AppCompatActivity() {
         // 更新集数统计文字
         detailSection.findViewById<TextView>(R.id.episodeCountText)?.setTextColor(secondaryTextColor)
         
-        // 更新功能按钮下方的文字（收藏、分享）
+        // 更新功能按钮下方的文字（下载、收藏、投屏、分享、解析）
         val buttonTextViews = listOf(
+            detailSection.findViewById<LinearLayout>(R.id.downloadButton),
             detailSection.findViewById<LinearLayout>(R.id.favoriteButton),
-            detailSection.findViewById<LinearLayout>(R.id.shareButton)
+            detailSection.findViewById<LinearLayout>(R.id.castButton),
+            detailSection.findViewById<LinearLayout>(R.id.shareButton),
+            detailSection.findViewById<LinearLayout>(R.id.parseButton)
         )
         
         buttonTextViews.forEach { buttonLayout ->
@@ -1493,8 +1587,11 @@ class VideoPlayerActivity : AppCompatActivity() {
         
         // 更新图标颜色
         val iconViews = listOf(
+            detailSection.findViewById<LinearLayout>(R.id.downloadButton),
             detailSection.findViewById<LinearLayout>(R.id.favoriteButton),
-            detailSection.findViewById<LinearLayout>(R.id.shareButton)
+            detailSection.findViewById<LinearLayout>(R.id.castButton),
+            detailSection.findViewById<LinearLayout>(R.id.shareButton),
+            detailSection.findViewById<LinearLayout>(R.id.parseButton)
         )
         
         iconViews.forEach { buttonLayout ->
@@ -1583,7 +1680,16 @@ class VideoPlayerActivity : AppCompatActivity() {
                 // 忽略
             }
             binding.episodeButton.visibility = View.VISIBLE
-
+            
+            // 本地视频时隐藏下载和解析按钮
+            if (isLocalVideo) {
+                binding.downloadButton.visibility = View.GONE
+                binding.parseRecordButton.visibility = View.GONE
+            } else {
+                binding.downloadButton.visibility = View.VISIBLE
+                binding.parseRecordButton.visibility = View.VISIBLE
+            }
+            
             binding.speedButton.visibility = View.VISIBLE
 
             // 移除竖屏详情视图
@@ -1601,13 +1707,15 @@ class VideoPlayerActivity : AppCompatActivity() {
             playerParams.height = playerHeight
             binding.root.layoutParams = playerParams
 
-            // 竖屏：隐藏高清、选集、倍速按钮
+            // 竖屏：隐藏高清、选集、下载、解析、倍速按钮
             try {
                 binding.qualityButton?.visibility = View.GONE
             } catch (e: Exception) {
                 // 忽略
             }
             binding.episodeButton.visibility = View.GONE
+            binding.downloadButton.visibility = View.GONE
+            binding.parseRecordButton.visibility = View.GONE
             binding.speedButton.visibility = View.GONE
 
             // 添加竖屏详情视图
@@ -1655,14 +1763,29 @@ class VideoPlayerActivity : AppCompatActivity() {
     }
 
     private fun setupPortraitButtons() {
+        // 下载按钮
+        portraitDetailView?.findViewById<LinearLayout>(R.id.downloadButton)?.setOnClickListener {
+            showDownloadDialog()
+        }
+        
         // 收藏按钮
         portraitDetailView?.findViewById<LinearLayout>(R.id.favoriteButton)?.setOnClickListener {
             toggleFavorite()
         }
 
+        // 投屏按钮
+        portraitDetailView?.findViewById<LinearLayout>(R.id.castButton)?.setOnClickListener {
+            showCastDeviceDialog()
+        }
+
         // 分享按钮
         portraitDetailView?.findViewById<LinearLayout>(R.id.shareButton)?.setOnClickListener {
             shareVideo()
+        }
+
+        // 解析按钮
+        portraitDetailView?.findViewById<LinearLayout>(R.id.parseButton)?.setOnClickListener {
+            showParseRecordDialog()
         }
 
         // 全25集按钮
@@ -1672,6 +1795,588 @@ class VideoPlayerActivity : AppCompatActivity() {
 
         // 更新收藏状态
         updateFavoriteIcon()
+    }
+    
+    private fun showDownloadDialog() {
+        android.util.Log.d("VideoPlayer", "showDownloadDialog called")
+        
+        val playlist = playlistManager.getPlaylist()
+        
+        if (playlist.isEmpty()) {
+            // 如果没有播放列表，直接显示下载配置对话框
+            val currentEpisode = playlistManager.getCurrentEpisode()
+            val downloadUrl = currentEpisode?.url ?: intent.getStringExtra("VIDEO_URL") ?: ""
+            val downloadTitle = if (currentEpisode != null) {
+                "$videoTitle - ${currentEpisode.name}"
+            } else {
+                videoTitle
+            }
+            
+            showDownloadConfigDialog(downloadUrl, downloadTitle)
+            return
+        }
+        
+        // 有播放列表，显示选择BottomSheet
+        val currentIndex = playlistManager.getCurrentIndex()
+        val bottomSheet = DownloadEpisodeBottomSheet.newInstance(
+            episodes = playlist,
+            currentIndex = currentIndex,
+            onEpisodeClick = { episode ->
+                val downloadUrl = episode.url
+                val downloadTitle = "$videoTitle - ${episode.name}"
+                showDownloadConfigDialog(downloadUrl, downloadTitle)
+            },
+            onDownloadCurrent = {
+                val currentEpisode = playlistManager.getCurrentEpisode()
+                if (currentEpisode != null) {
+                    showDownloadConfigDialog(currentEpisode.url, "$videoTitle - ${currentEpisode.name}")
+                }
+            },
+            onBatchDownload = { selectedEpisodes ->
+                // 批量下载
+                batchDownloadEpisodes(selectedEpisodes)
+            }
+        )
+        bottomSheet.show(supportFragmentManager, DownloadEpisodeBottomSheet.TAG)
+    }
+    
+    /**
+     * 批量下载剧集
+     */
+    private fun batchDownloadEpisodes(episodes: List<com.tv.ball.domain.model.Episode>) {
+        if (episodes.isEmpty()) {
+            Toast.makeText(this, "请选择要下载的剧集", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // 检查第一个剧集的URL类型
+        val firstEpisode = episodes.first()
+        val isDirectVideoUrl = isVideoUrl(firstEpisode.url)
+        
+        if (isDirectVideoUrl) {
+            // 直接视频链接（m3u8等），可以批量下载
+            android.util.Log.d("VideoPlayer", "检测到直接视频链接，开始批量下载 ${episodes.size} 个剧集")
+            Toast.makeText(this, "开始批量下载 ${episodes.size} 个剧集", Toast.LENGTH_SHORT).show()
+            
+            episodes.forEach { episode ->
+                val downloadUrl = episode.url
+                val downloadTitle = "$videoTitle - ${episode.name}"
+                
+                // 直接添加到下载队列
+                startDownloadTask(downloadUrl, downloadTitle, emptyMap())
+            }
+        } else {
+            // 网页链接，需要逐个嗅探解析
+            android.util.Log.d("VideoPlayer", "检测到网页链接，需要逐个解析后下载")
+            Toast.makeText(this, "检测到网页链接，将逐个解析后下载（共${episodes.size}集）", Toast.LENGTH_LONG).show()
+            
+            // 显示进度对话框
+            val progressDialog = android.app.AlertDialog.Builder(this)
+                .setTitle("批量下载")
+                .setMessage("正在解析第1/${episodes.size}集...")
+                .setCancelable(false)
+                .create()
+            progressDialog.show()
+            
+            // 逐个解析并下载
+            parseAndDownloadEpisodesSequentially(episodes, 0, progressDialog)
+        }
+    }
+    
+    /**
+     * 逐个解析并下载剧集
+     */
+    private fun parseAndDownloadEpisodesSequentially(
+        episodes: List<com.tv.ball.domain.model.Episode>,
+        currentIndex: Int,
+        progressDialog: android.app.AlertDialog
+    ) {
+        if (currentIndex >= episodes.size) {
+            // 全部完成
+            progressDialog.dismiss()
+            Toast.makeText(this, "批量下载任务已全部添加", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val episode = episodes[currentIndex]
+        val downloadTitle = "$videoTitle - ${episode.name}"
+        
+        // 更新进度
+        progressDialog.setMessage("正在解析第${currentIndex + 1}/${episodes.size}集: ${episode.name}")
+        
+        android.util.Log.d("VideoPlayer", "开始解析第${currentIndex + 1}集: ${episode.name}")
+        
+        // 临时播放该集以触发嗅探
+        lifecycleScope.launch {
+            try {
+                // 加载该集的URL
+                viewModel.loadVideo(
+                    videoId = videoId,
+                    videoTitle = videoTitle,
+                    videoUrl = episode.url,
+                    thumbnailUrl = thumbnailUrl,
+                    detailUrl = detailUrl,
+                    episodesJson = episodesJson,
+                    episodeName = episode.name,
+                    videoSource = VideoSourceManager.getCurrentSource(),
+                    allEpisodesList = episodes,  // 传入完整剧集列表
+                    episodeIndex = currentIndex  // 传入当前集数索引
+                )
+                
+                // 等待嗅探完成（最多等待10秒）
+                var waitTime = 0
+                while (sniffedVideoLinks.isEmpty() && waitTime < 10000) {
+                    kotlinx.coroutines.delay(500)
+                    waitTime += 500
+                }
+                
+                if (sniffedVideoLinks.isNotEmpty()) {
+                    // 找到视频链接
+                    val videoUrl = sniffedVideoLinks.firstOrNull { isVideoUrl(it) }
+                    if (videoUrl != null) {
+                        android.util.Log.d("VideoPlayer", "解析成功，添加到下载队列: $videoUrl")
+                        startDownloadTask(videoUrl, downloadTitle, emptyMap())
+                    } else {
+                        android.util.Log.w("VideoPlayer", "未找到有效视频链接，跳过: ${episode.name}")
+                    }
+                } else {
+                    android.util.Log.w("VideoPlayer", "解析超时，跳过: ${episode.name}")
+                }
+                
+                // 清空嗅探链接，准备下一个
+                sniffedVideoLinks.clear()
+                currentLinkIndex = 0
+                
+                // 继续下一个
+                parseAndDownloadEpisodesSequentially(episodes, currentIndex + 1, progressDialog)
+                
+            } catch (e: Exception) {
+                android.util.Log.e("VideoPlayer", "解析失败: ${episode.name}, ${e.message}")
+                // 继续下一个
+                parseAndDownloadEpisodesSequentially(episodes, currentIndex + 1, progressDialog)
+            }
+        }
+    }
+    
+    private fun startDownloadTask(url: String, title: String, customHeaders: Map<String, String>) {
+        val videoDownloader = com.tv.ball.domain.downloader.VideoDownloader.getInstance(this)
+        val taskId = videoDownloader.addDownloadTask(url, title, customHeaders)
+        videoDownloader.startDownload(taskId)
+    }
+    
+    private fun showDownloadConfigDialog(url: String, title: String) {
+        // 优先使用当前正在播放的链接（已验证可用）
+        val actualVideoUrl = if (currentPlayingUrl.isNotEmpty() && isVideoUrl(currentPlayingUrl)) {
+            // 第一优先：当前正在播放的URL（已验证可播放）
+            android.util.Log.d("VideoPlayer", "使用当前播放链接: $currentPlayingUrl")
+            currentPlayingUrl
+        } else if (sniffedVideoLinks.isNotEmpty()) {
+            // 第二优先：从嗅探到的链接中找到第一个真实的视频链接
+            val validVideoLink = sniffedVideoLinks.firstOrNull { isVideoUrl(it) }
+            if (validVideoLink != null) {
+                android.util.Log.d("VideoPlayer", "使用嗅探到的视频链接: $validVideoLink")
+                validVideoLink
+            } else {
+                // 嗅探到的链接都不是视频链接
+                Toast.makeText(this, "未找到有效的视频链接，请先播放视频", Toast.LENGTH_LONG).show()
+                return
+            }
+        } else if (isVideoUrl(url)) {
+            // 第三优先：如果传入的URL本身就是视频链接
+            android.util.Log.d("VideoPlayer", "使用传入的视频链接: $url")
+            url
+        } else {
+            // 没有可用的视频链接，提示用户
+            Toast.makeText(this, "请先播放视频以获取下载链接", Toast.LENGTH_LONG).show()
+            return
+        }
+        
+        android.util.Log.d("VideoPlayer", "准备下载，使用URL: $actualVideoUrl")
+        
+        // 获取请求头，用于下载
+        val headers = viewModel.getVideoHeaders() ?: emptyMap()
+        android.util.Log.d("VideoPlayer", "从ViewModel获取的请求头: $headers")
+        android.util.Log.d("VideoPlayer", "请求头数量: ${headers.size}")
+        
+        // 获取当前页面URL作为引用页面
+        val currentPageUrl = intent.getStringExtra("VIDEO_URL") ?: url
+        android.util.Log.d("VideoPlayer", "当前页面URL（引用页面）: $currentPageUrl")
+        
+        val dialog = com.tv.ball.presentation.download.DownloadConfigDialog.newInstance(actualVideoUrl, title, currentPageUrl)
+        dialog.setOnStartDownloadListener { downloadUrl, downloadTitle, wifiOnly, customHeaders, threadCount ->
+            android.util.Log.d("VideoPlayer", "对话框返回的自定义请求头: $customHeaders")
+            android.util.Log.d("VideoPlayer", "线程数: $threadCount")
+            
+            // 合并ViewModel中的请求头和用户自定义的请求头
+            val mergedHeaders = headers.toMutableMap().apply {
+                putAll(customHeaders)
+            }
+            
+            android.util.Log.d("VideoPlayer", "合并后的请求头: $mergedHeaders")
+            startDownloadWithParams(downloadUrl, downloadTitle, mergedHeaders, threadCount)
+        }
+        dialog.show(supportFragmentManager, "DownloadConfig")
+    }
+    
+    private fun startDownloadWithParams(url: String, title: String, customHeaders: Map<String, String> = emptyMap(), threadCount: Int = 10) {
+        android.util.Log.d("VideoPlayer", "startDownloadWithParams: $title, headers: $customHeaders, threadCount: $threadCount")
+        
+        if (url.isEmpty()) {
+            Toast.makeText(this, "无法获取下载地址", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        if (!isVideoUrl(url)) {
+            Toast.makeText(this, "无效的视频链接", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // Android 10+ 不需要存储权限
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q) {
+            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) 
+                != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(
+                    arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                    REQUEST_STORAGE_PERMISSION
+                )
+                return
+            }
+        }
+        
+        // 创建下载任务
+        lifecycleScope.launch {
+            try {
+                val downloader = com.tv.ball.domain.downloader.VideoDownloader.getInstance(this@VideoPlayerActivity)
+                val taskId = downloader.addDownloadTask(url, title, customHeaders, threadCount)
+                downloader.startDownload(taskId)
+                
+                val format = if (url.contains(".m3u8")) "M3U8" else "MP4"
+                Toast.makeText(
+                    this@VideoPlayerActivity, 
+                    "已添加到下载列表\n格式: $format\n线程数: $threadCount", 
+                    Toast.LENGTH_LONG
+                ).show()
+                
+                // 跳转到下载管理页面
+                try {
+                    val intent = Intent(this@VideoPlayerActivity, com.tv.ball.presentation.download.DownloadActivity::class.java)
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    android.util.Log.e("VideoPlayer", "Failed to open download activity", e)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("VideoPlayer", "Download failed", e)
+                Toast.makeText(this@VideoPlayerActivity, "添加下载失败: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+    
+    /**
+     * 判断是否是视频URL
+     */
+    private fun isVideoUrl(url: String): Boolean {
+        val lowerUrl = url.lowercase()
+        return lowerUrl.contains(".m3u8") || 
+               lowerUrl.contains(".mp4") || 
+               lowerUrl.contains(".flv") || 
+               lowerUrl.contains(".mkv") ||
+               lowerUrl.contains("/video/") ||
+               lowerUrl.contains("/stream/")
+    }
+    
+    /**
+     * 显示解析记录对话框（使用 BottomSheet）
+     */
+    private fun showParseRecordDialog() {
+        if (sniffedVideoLinks.isEmpty()) {
+            // 如果还没有嗅探记录，开始嗅探
+            showLoadingLog("正在嗅探视频链接...")
+            startSniffing()
+            return
+        }
+        
+        // 过滤掉 TS 分片文件，只显示真正的视频链接
+        val filteredLinks = sniffedVideoLinks.filter { url ->
+            val lowerUrl = url.lowercase()
+            // 排除 TS 分片（更严格的过滤）
+            val isTs = lowerUrl.endsWith(".ts") || 
+                       lowerUrl.matches(Regex(".*\\d+\\.ts(\\?.*)?$")) ||
+                       lowerUrl.contains("/ts/") ||
+                       lowerUrl.contains("segment") ||
+                       lowerUrl.contains("chunk")
+            !isTs
+        }.sortedByDescending { url ->
+            // 对链接进行排序，优先级：纯净.m3u8 > 带参数.m3u8 > 纯净.mp4 > 带参数.mp4
+            val lowerUrl = url.lowercase()
+            when {
+                lowerUrl.endsWith(".m3u8") -> 10000  // 纯净.m3u8最高优先级
+                lowerUrl.matches(Regex(".*\\.m3u8\\?.*")) -> 9500  // 带参数.m3u8
+                lowerUrl.endsWith(".mp4") -> 9000  // 纯净.mp4
+                lowerUrl.matches(Regex(".*\\.mp4\\?.*")) -> 8500  // 带参数.mp4
+                else -> 0
+            }
+        }
+        
+        if (filteredLinks.isEmpty()) {
+            Toast.makeText(this, "未找到有效的视频链接", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // 准备链接数据
+        val parsedLinks = filteredLinks.mapIndexed { index, url ->
+            val type = when {
+                url.contains(".m3u8", ignoreCase = true) -> "M3U8"
+                url.contains(".mp4", ignoreCase = true) -> "MP4"
+                url.contains(".flv", ignoreCase = true) -> "FLV"
+                url.contains(".mkv", ignoreCase = true) -> "MKV"
+                else -> "视频"
+            }
+            ParsedLink(
+                url = url,
+                type = type,
+                isCurrent = url == currentPlayingUrl  // 使用 URL 判断是否是当前播放的链接
+            )
+        }
+        
+        android.util.Log.d("VideoPlayer", "显示解析记录: 总共 ${sniffedVideoLinks.size} 个链接，过滤后 ${filteredLinks.size} 个")
+        filteredLinks.forEachIndexed { index, link ->
+            android.util.Log.d("VideoPlayer", "链接 ${index + 1}: $link")
+        }
+        
+        // 显示 BottomSheet
+        val bottomSheet = ParseLinksBottomSheet.newInstance(
+            links = parsedLinks,
+            onLinkClick = { link ->
+                // 直接播放，不弹窗选择
+                playUrl(link.url)
+            },
+            onRefresh = {
+                showLoadingLog("重新解析中...")
+                startSniffing()
+            }
+        )
+        
+        bottomSheet.show(supportFragmentManager, ParseLinksBottomSheet.TAG)
+    }
+    
+    /**
+     * 显示链接操作对话框
+     */
+    private fun showLinkActionDialog(url: String) {
+        val options = arrayOf("播放此链接", "下载此链接", "复制链接")
+        
+        // 显示链接类型
+        val linkType = when {
+            url.contains(".m3u8", ignoreCase = true) -> "M3U8"
+            url.contains(".mp4", ignoreCase = true) -> "MP4"
+            url.contains(".flv", ignoreCase = true) -> "FLV"
+            url.contains(".mkv", ignoreCase = true) -> "MKV"
+            else -> "视频"
+        }
+        
+        AlertDialog.Builder(this)
+            .setTitle("选择操作 ($linkType)")
+            .setMessage(url)
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> {
+                        // 播放前显示提示
+                        if (isVideoUrl(url)) {
+                            showLoadingLog("准备播放视频资源...")
+                        } else {
+                            showLoadingLog("检测到网页，正在解析...")
+                        }
+                        playUrl(url)
+                    }
+                    1 -> downloadUrl(url)
+                    2 -> copyUrlToClipboard(url)
+                }
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+    
+    /**
+     * 播放指定URL（带请求头支持）
+     */
+    private fun playUrl(url: String) {
+        currentPlayingUrl = url
+        
+        // 更新当前链接索引
+        val index = sniffedVideoLinks.indexOf(url)
+        if (index >= 0) {
+            currentLinkIndex = index
+        }
+        
+        // 显示状态提示
+        if (isVideoUrl(url)) {
+            updateStatusText("正在播放链接 ${currentLinkIndex + 1}/${sniffedVideoLinks.size}")
+        } else {
+            updateStatusText("正在解析链接 ${currentLinkIndex + 1}...")
+        }
+        
+        // 使用ExoPlayer播放，传递请求头
+        try {
+            binding.loadingView.visibility = View.VISIBLE
+            val headers = viewModel.getVideoHeaders()
+            exoPlayerManager.prepareMedia(url, headers)
+            exoPlayerManager.play()
+            hasStartedPlaying = true
+        } catch (e: Exception) {
+            updateStatusText("播放失败: ${e.message}")
+            binding.loadingView.visibility = View.GONE
+        }
+    }
+    
+    /**
+     * 下载指定URL
+     */
+    private fun downloadUrl(url: String) {
+        val currentEpisode = playlistManager.getCurrentEpisode()
+        val title = if (currentEpisode != null) {
+            "$videoTitle - ${currentEpisode.name}"
+        } else {
+            videoTitle
+        }
+        val headers = viewModel.getVideoHeaders() ?: emptyMap()
+        startDownloadWithParams(url, title, headers)
+    }
+    
+    /**
+     * 复制URL到剪贴板
+     */
+    private fun copyUrlToClipboard(url: String) {
+        val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        val clip = android.content.ClipData.newPlainText("视频链接", url)
+        clipboard.setPrimaryClip(clip)
+        Toast.makeText(this, "链接已复制到剪贴板", Toast.LENGTH_SHORT).show()
+    }
+    
+    /**
+     * 开始嗅探视频链接（实时播放第一个找到的链接）
+     */
+    private fun startSniffing() {
+        if (isSniffing) {
+            android.util.Log.d("VideoPlayer", "已经在嗅探中，跳过")
+            return
+        }
+        
+        val currentEpisode = playlistManager.getCurrentEpisode()
+        val pageUrl = currentEpisode?.url ?: intent.getStringExtra("VIDEO_URL") ?: ""
+        
+        if (pageUrl.isEmpty()) {
+            updateStatusText("无法获取视频地址")
+            binding.loadingView.visibility = View.GONE
+            return
+        }
+        
+        // 如果已经是视频URL，直接添加并播放
+        if (isVideoUrl(pageUrl)) {
+            sniffedVideoLinks.clear()
+            sniffedVideoLinks.add(pageUrl)
+            currentLinkIndex = 0
+            hasStartedPlaying = false
+            updateStatusText("检测到视频链接")
+            playUrl(pageUrl)
+            return
+        }
+        
+        // 重置状态
+        sniffedVideoLinks.clear()
+        currentLinkIndex = 0
+        hasStartedPlaying = false
+        isSniffing = true
+        
+        // 显示开始嗅探
+        updateStatusText("正在嗅探视频链接...")
+        binding.loadingView.visibility = View.VISIBLE
+        
+        lifecycleScope.launch {
+            try {
+                val sniffer = com.tv.ball.domain.parser.VideoLinkSniffer(
+                    context = this@VideoPlayerActivity,
+                    onProgressUpdate = { progress ->
+                        // 实时更新进度
+                        runOnUiThread {
+                            updateStatusText(progress)
+                        }
+                    },
+                    onLinkFound = { link ->
+                        // 找到链接立即回调
+                        runOnUiThread {
+                            android.util.Log.d("VideoPlayer", "实时发现链接: $link")
+                            
+                            // 检查是否是 TS 分片文件，如果是则跳过
+                            val lowerUrl = link.lowercase()
+                            val isTs = lowerUrl.endsWith(".ts") || 
+                                       lowerUrl.matches(Regex(".*\\d+\\.ts(\\?.*)?$")) ||
+                                       lowerUrl.contains("/ts/") ||
+                                       lowerUrl.contains("segment") ||
+                                       lowerUrl.contains("chunk")
+                            
+                            if (isTs) {
+                                android.util.Log.d("VideoPlayer", "✗ 跳过 TS 分片文件: $link")
+                                return@runOnUiThread
+                            }
+                            
+                            sniffedVideoLinks.add(link)
+                            android.util.Log.d("VideoPlayer", "✓ 添加有效链接: $link")
+                            
+                            // 如果还没开始播放，选择优先级最高的链接播放
+                            if (!hasStartedPlaying) {
+                                // 对当前所有链接排序，选择最优的
+                                val bestLink = sniffedVideoLinks.maxByOrNull { url ->
+                                    val lower = url.lowercase()
+                                    when {
+                                        lower.endsWith(".m3u8") -> 10000  // 纯净.m3u8最高优先级
+                                        lower.matches(Regex(".*\\.m3u8\\?.*")) -> 9500
+                                        lower.endsWith(".mp4") -> 9000
+                                        lower.matches(Regex(".*\\.mp4\\?.*")) -> 8500
+                                        else -> 0
+                                    }
+                                }
+                                
+                                if (bestLink != null) {
+                                    android.util.Log.d("VideoPlayer", "选择最优链接播放: $bestLink")
+                                    updateStatusText("检测到视频链接，开始播放...")
+                                    // 保存解析后的链接到ViewModel
+                                    viewModel.setParsedVideoUrl(bestLink)
+                                    Handler(Looper.getMainLooper()).postDelayed({
+                                        playUrl(bestLink)
+                                    }, 500)
+                                }
+                            } else {
+                                // 已经在播放，只更新状态
+                                updateStatusText("已发现 ${sniffedVideoLinks.size} 个链接")
+                            }
+                        }
+                    }
+                )
+                
+                // 开始嗅探（异步进行）
+                val allLinks = sniffer.sniffVideoLinks(pageUrl)
+                
+                // 嗅探完成
+                isSniffing = false
+                
+                runOnUiThread {
+                    if (sniffedVideoLinks.isEmpty()) {
+                        updateStatusText("未检测到视频链接")
+                        binding.loadingView.visibility = View.GONE
+                    } else {
+                        updateStatusText("嗅探完成，共 ${sniffedVideoLinks.size} 个链接")
+                    }
+                }
+                
+            } catch (e: Exception) {
+                isSniffing = false
+                runOnUiThread {
+                    updateStatusText("嗅探失败: ${e.message}")
+                    binding.loadingView.visibility = View.GONE
+                }
+                android.util.Log.e("VideoPlayer", "Sniffing failed", e)
+            }
+        }
     }
     
     /**
@@ -1703,6 +2408,45 @@ class VideoPlayerActivity : AppCompatActivity() {
     
     private val hideStatusTextRunnable = Runnable {
         binding.statusText?.visibility = View.GONE
+    }
+    
+    private fun startDownload() {
+        android.util.Log.d("VideoPlayer", "startDownload called")
+        
+        val currentEpisode = playlistManager.getCurrentEpisode()
+        val downloadUrl = currentEpisode?.url ?: intent.getStringExtra("VIDEO_URL")
+        val downloadTitle = if (currentEpisode != null) {
+            "$videoTitle - ${currentEpisode.name}"
+        } else {
+            videoTitle
+        }
+        
+        android.util.Log.d("VideoPlayer", "Download URL: $downloadUrl")
+        android.util.Log.d("VideoPlayer", "Download Title: $downloadTitle")
+        
+        if (downloadUrl.isNullOrEmpty()) {
+            Toast.makeText(this, "无法获取下载地址", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // 获取请求头
+        val headers = viewModel.getVideoHeaders() ?: emptyMap()
+        startDownloadWithParams(downloadUrl, downloadTitle, headers)
+    }
+    
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_STORAGE_PERMISSION) {
+            if (grantResults.isNotEmpty() && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                startDownload()
+            } else {
+                Toast.makeText(this, "需要存储权限才能下载视频", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    
+    companion object {
+        private const val REQUEST_STORAGE_PERMISSION = 1001
     }
 
     private fun toggleFavorite() {
@@ -2376,7 +3120,13 @@ class VideoPlayerActivity : AppCompatActivity() {
             
             binding.titleText.text = "$videoTitle - ${episode.name}"
             hasSkippedIntro = false
-
+            hasStartedRouteTest = false  // 重置线路测试标志
+            
+            // 清空之前的嗅探链接，避免干扰
+            sniffedVideoLinks.clear()
+            currentLinkIndex = 0
+            hasStartedPlaying = false
+            
             android.util.Log.d("VideoPlayer", "调用 viewModel.loadVideo")
             viewModel.loadVideo(
                 videoId = videoId,
@@ -2386,7 +3136,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                 detailUrl = detailUrl,
                 episodesJson = episodesJson,
                 episodeName = episode.name,
-                videoSource = null,
+                videoSource = VideoSourceManager.getCurrentSource(),
                 allEpisodesList = playlistManager.getPlaylist(),  // 传递完整剧集列表
                 episodeIndex = index  // 传递当前索引
             )
@@ -2431,7 +3181,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                 detailUrl = detailUrl,
                 episodesJson = episodesJson,
                 episodeName = nextEpisode.name,
-                videoSource = null,
+                videoSource = VideoSourceManager.getCurrentSource(),
                 allEpisodesList = playlistManager.getPlaylist(),  // 传递完整剧集列表
                 episodeIndex = playlistManager.getCurrentIndex()  // 传递当前索引
             )
@@ -2484,6 +3234,90 @@ class VideoPlayerActivity : AppCompatActivity() {
             Toast.makeText(this, "分享失败: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
+    
+    private fun showCastDeviceDialog() {
+        val currentEpisode = playlistManager.getCurrentEpisode()
+        val videoUrl = currentEpisode?.url ?: currentPlayingUrl.ifEmpty {
+            intent.getStringExtra("VIDEO_URL") ?: ""
+        }
+        val videoTitle = if (currentEpisode != null) {
+            "$videoTitle - ${currentEpisode.name}"
+        } else {
+            videoTitle
+        }
+
+        if (videoUrl.isEmpty()) {
+            Toast.makeText(this, "无法获取视频地址", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // 获取剧集列表
+        val episodes = playlistManager.getPlaylist().map { episode ->
+            com.tv.ball.domain.webserver.LocalWebServer.Episode(
+                title = episode.name,
+                url = episode.url
+            )
+        }
+        val currentIndex = playlistManager.getCurrentIndex()
+
+        // 显示DLNA投屏底部弹窗
+        val bottomSheet = if (episodes.isNotEmpty()) {
+            DLNACastBottomSheet.newInstanceWithEpisodes(
+                videoUrl, videoTitle, episodes, currentIndex
+            )
+        } else {
+            DLNACastBottomSheet.newInstance(videoUrl, videoTitle)
+        }
+
+        bottomSheet.setOnDeviceSelectedListener { device ->
+            // 投屏到选中的设备
+            lifecycleScope.launch {
+                try {
+                    Toast.makeText(this@VideoPlayerActivity, "正在投屏到 ${device.name}...", Toast.LENGTH_SHORT).show()
+
+                    val dlnaManager = com.tv.ball.domain.dlna.DLNAManager(this@VideoPlayerActivity)
+                    val success = dlnaManager.castVideo(device, videoUrl, videoTitle)
+
+                    if (success) {
+                        Toast.makeText(this@VideoPlayerActivity, "投屏成功", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(this@VideoPlayerActivity, "投屏失败，请重试", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(this@VideoPlayerActivity, "投屏失败: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        bottomSheet.show(supportFragmentManager, DLNACastBottomSheet.TAG)
+    }
+    
+    private fun tryOpenCastApps() {
+        val castPackages = listOf(
+            "com.hpplay.happyplay.aw",  // 乐播投屏
+            "com.lebo.airplay",          // 快点投屏
+            "com.xiaomi.mitv.smartshare", // 小米投屏
+            "tv.danmaku.bili"            // 哔哩哔哩（支持投屏）
+        )
+        
+        var appOpened = false
+        for (packageName in castPackages) {
+            try {
+                val intent = packageManager.getLaunchIntentForPackage(packageName)
+                if (intent != null) {
+                    startActivity(intent)
+                    appOpened = true
+                    break
+                }
+            } catch (e: Exception) {
+                // 继续尝试下一个
+            }
+        }
+        
+        if (!appOpened) {
+            Toast.makeText(this, "未安装投屏应用，请手动打开", Toast.LENGTH_LONG).show()
+        }
+    }
+    
     
     private fun captureScreenshot() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
@@ -2554,10 +3388,12 @@ class VideoPlayerActivity : AppCompatActivity() {
         }
 
         try {
-            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
+            val intent = android.content.Intent(this, com.tv.ball.presentation.webview.WebViewActivity::class.java)
+            intent.putExtra("url", url)
             startActivity(intent)
+            Toast.makeText(this, "已在内置浏览器中打开", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
-            Toast.makeText(this, "无法打开链接: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "无法打开页面: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
     
@@ -2675,10 +3511,22 @@ class VideoPlayerActivity : AppCompatActivity() {
                                 updateStatusText("加载中...")
                             }
                             is PlayerState.LoadingWithMessage -> {
-                                // 只显示加载提示，不再做网页解析 / 嗅探
-                                binding.loadingView.visibility = View.VISIBLE
-                                binding.errorText.visibility = View.GONE
-                                updateStatusText(state.message)
+                                // 检查是否需要嗅探
+                                if (state.message.contains("检测到网页") || state.message.contains("正在解析")) {
+                                    // Activity接管嗅探过程
+                                    binding.loadingView.visibility = View.VISIBLE
+                                    binding.errorText.visibility = View.GONE
+                                    updateStatusText(state.message)
+                                    
+                                    // 开始嗅探
+                                    if (!isSniffing) {
+                                        startSniffing()
+                                    }
+                                } else {
+                                    binding.loadingView.visibility = View.VISIBLE
+                                    binding.errorText.visibility = View.GONE
+                                    updateStatusText(state.message)
+                                }
                             }
                             is PlayerState.Ready, is PlayerState.Playing -> {
                                 binding.loadingView.visibility = View.GONE
@@ -2802,12 +3650,19 @@ class VideoPlayerActivity : AppCompatActivity() {
         val cachedVideoHeaders = intent.getStringExtra("VIDEO_HEADERS")
         val cachedEpisodeName = intent.getStringExtra("CACHED_EPISODE_NAME")  // 缓存对应的集数名称
         
+        // 检查是否是短剧
+        val isShortDrama = intent.getBooleanExtra("IS_SHORT_DRAMA", false)
+        android.util.Log.d("VideoPlayer", "loadVideoFromIntent: isShortDrama=$isShortDrama")
+        
         // 检查是否传入了播放列表
         episodesJson = intent.getStringExtra("EPISODES_JSON")
         val startIndex = intent.getIntExtra("START_INDEX", 0)
         
         android.util.Log.d("VideoPlayer", "episodesJson=$episodesJson")
         android.util.Log.d("VideoPlayer", "startIndex=$startIndex")
+        
+        // 初始化短剧管理器
+        shortDramaManager.initShortDramaMode(isShortDrama, episodesJson, startIndex)
         
         val currentEpisodesJson = episodesJson
         if (!currentEpisodesJson.isNullOrEmpty()) {
@@ -2837,7 +3692,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                         episodeName = episode.name,
                         parsedVideoUrl = if (useCachedUrl) cachedParsedVideoUrl else null,
                         videoHeaders = if (useCachedUrl) cachedVideoHeaders else null,
-                        videoSource = null,
+                        videoSource = VideoSourceManager.getCurrentSource(),
                         allEpisodesList = episodes,  // 传入完整剧集列表
                         episodeIndex = startIndex  // 传入当前集数索引
                     )
@@ -2850,7 +3705,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                 if (videoUrl.isNotEmpty()) {
                     viewModel.loadVideo(videoId, videoTitle, videoUrl, thumbnailUrl, 
                         parsedVideoUrl = cachedParsedVideoUrl, videoHeaders = cachedVideoHeaders,
-                        videoSource = null)
+                        videoSource = VideoSourceManager.getCurrentSource())
                 }
             }
         } else {
@@ -2861,7 +3716,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             if (videoUrl.isNotEmpty()) {
                 viewModel.loadVideo(videoId, videoTitle, videoUrl, thumbnailUrl,
                     parsedVideoUrl = cachedParsedVideoUrl, videoHeaders = cachedVideoHeaders,
-                    videoSource = null)
+                    videoSource = VideoSourceManager.getCurrentSource())
             }
         }
     }
@@ -3119,6 +3974,14 @@ class VideoPlayerActivity : AppCompatActivity() {
             Toast.makeText(this, "播放速度: ${String.format("%.2fx", speed)}", Toast.LENGTH_SHORT).show()
         }
         
+        menuSheet.setOnCastClickedListener {
+            showCastDeviceDialog()
+        }
+        
+        menuSheet.setOnDownloadClickedListener {
+            startDownload()
+        }
+        
         menuSheet.setOnSkipIntroToggledListener { enabled ->
             skipIntroManager.setSkipIntroEnabled(enabled)
         }
@@ -3175,6 +4038,9 @@ class VideoPlayerActivity : AppCompatActivity() {
                 viewModel.updateDuration(duration)
                 viewModel.savePlaybackProgress()
             }
+            
+            // 预加载下一集：在视频快结束前提前获取下一集播放地址
+            checkAndPreloadNextEpisode(position, duration)
         } else {
             binding.durationText.text = "--:--"
         }
@@ -3417,6 +4283,12 @@ class VideoPlayerActivity : AppCompatActivity() {
                 android.util.Log.d("VideoPlayer", "▶️ [生命周期] 恢复播放")
             }
         }
+        
+        // 检查后台播放器状态
+        backgroundPlayer?.let {
+            val bufferedSeconds = it.bufferedPosition / 1000
+            android.util.Log.d("VideoPlayer", "📊 [后台播放器] 已缓冲: ${bufferedSeconds}秒")
+        }
     }
     
     override fun onStop() {
@@ -3430,48 +4302,331 @@ class VideoPlayerActivity : AppCompatActivity() {
             // 尝试进入画中画模式
             tryEnterPictureInPictureMode()
         }
+        
+        // 应用切到后台，暂停后台播放器的缓冲以节省流量
+        backgroundPlayer?.let {
+            if (it.playbackState == com.google.android.exoplayer2.Player.STATE_BUFFERING) {
+                android.util.Log.d("VideoPlayer", "⏸️ [后台播放器] 暂停缓冲以节省流量")
+                // 不释放，只是暂停
+            }
+        }
     }
     
     override fun onStart() {
         super.onStart()
         android.util.Log.d("VideoPlayer", "▶️ [生命周期] onStart")
+        
+        // 应用回到前台，恢复后台播放器的缓冲
+        backgroundPlayer?.let {
+            android.util.Log.d("VideoPlayer", "▶️ [后台播放器] 恢复缓冲")
+        }
     }
     
     /**
-     * 检查是否需要显示下一集提示（播放列表存在下一集时）
+     * 播放短剧剧集（带自动解析嗅探）
      */
-    private fun checkNextEpisodeHint(currentPosition: Long, duration: Long) {
-        if (duration <= 0 || isShowingNextEpisodeHint) return
-        if (!playlistManager.hasNext()) return
-
-        val remainingSeconds = (duration - currentPosition) / 1000
-        if (remainingSeconds in 1..nextEpisodeHintThresholdSeconds.toLong()) {
-            showNextEpisodeHint()
+    private fun playShortDramaEpisode(episode: ShortDramaEpisode, retryCount: Int = 0) {
+        android.util.Log.d("VideoPlayer", "播放短剧剧集: ${episode.name}, url=${episode.url}, videoId=${episode.videoId}, retryCount=$retryCount")
+        
+        binding.titleText.text = "$videoTitle - ${episode.name}"
+        hasSkippedIntro = false
+        
+        // 检查是否有预加载的URL
+        if (preloadedNextEpisodeUrl != null && preloadedNextEpisodeUrl!!.isNotEmpty()) {
+            android.util.Log.d("VideoPlayer", "✅ 使用预加载的URL: $preloadedNextEpisodeUrl")
+            episode.url = preloadedNextEpisodeUrl!!
+            // 清空预加载URL，避免重复使用
+            preloadedNextEpisodeUrl = null
+        }
+        
+        // 如果URL为空但有videoId，需要先获取播放地址
+        if (episode.url.isEmpty() && episode.videoId.isNotEmpty()) {
+            android.util.Log.d("VideoPlayer", "URL为空，开始获取播放地址: videoId=${episode.videoId}")
+            Toast.makeText(this, "正在获取播放地址...", Toast.LENGTH_SHORT).show()
+            
+            // 显示加载状态
+            binding.loadingView.visibility = View.VISIBLE
+            
+            // 使用短剧API获取播放地址
+            lifecycleScope.launch {
+                try {
+                    val realUrl = fetchShortDramaVideoUrl(episode.videoId)
+                    
+                    if (realUrl.isNotEmpty()) {
+                        episode.url = realUrl
+                        android.util.Log.d("VideoPlayer", "获取播放地址成功: $realUrl")
+                        
+                        // 加载并播放视频（会自动嗅探）
+                        viewModel.loadVideo(
+                            videoId, 
+                            videoTitle, 
+                            realUrl, 
+                            thumbnailUrl, 
+                            detailUrl = detailUrl, 
+                            episodesJson = episodesJson, 
+                            episodeName = episode.name,
+                            videoSource = VideoSourceManager.getCurrentSource()
+                        )
+                    } else {
+                        android.util.Log.e("VideoPlayer", "获取播放地址失败，retryCount=$retryCount")
+                        binding.loadingView.visibility = View.GONE
+                        
+                        // 限制重试次数，避免无限循环
+                        if (retryCount < 3) {
+                            // 重试当前集
+                            Toast.makeText(this@VideoPlayerActivity, "获取播放地址失败，${3 - retryCount}秒后重试...", Toast.LENGTH_SHORT).show()
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                playShortDramaEpisode(episode, retryCount + 1)
+                            }, 3000)
+                        } else {
+                            // 重试次数用完，尝试下一集
+                            Toast.makeText(this@VideoPlayerActivity, "获取播放地址失败，尝试下一集", Toast.LENGTH_SHORT).show()
+                            
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                if (shortDramaManager.hasNextEpisode()) {
+                                    shortDramaManager.playNextEpisode { nextEpisode ->
+                                        playShortDramaEpisode(nextEpisode, 0)
+                                    }
+                                } else {
+                                    Toast.makeText(this@VideoPlayerActivity, "已经是最后一集了", Toast.LENGTH_SHORT).show()
+                                }
+                            }, 1000)
+                        }
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("VideoPlayer", "获取播放地址异常: ${e.message}", e)
+                    binding.loadingView.visibility = View.GONE
+                    Toast.makeText(this@VideoPlayerActivity, "获取播放地址异常: ${e.message}", Toast.LENGTH_SHORT).show()
+                    
+                    // 异常时也尝试下一集
+                    if (retryCount >= 2 && shortDramaManager.hasNextEpisode()) {
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            shortDramaManager.playNextEpisode { nextEpisode ->
+                                playShortDramaEpisode(nextEpisode, 0)
+                            }
+                        }, 1000)
+                    }
+                }
+            }
+        } else if (episode.url.isNotEmpty()) {
+            // URL已存在，直接播放（会自动嗅探）
+            android.util.Log.d("VideoPlayer", "URL已存在，直接播放")
+            viewModel.loadVideo(
+                videoId, 
+                videoTitle, 
+                episode.url, 
+                thumbnailUrl, 
+                detailUrl = detailUrl, 
+                episodesJson = episodesJson, 
+                episodeName = episode.name,
+                videoSource = VideoSourceManager.getCurrentSource()
+            )
         }
     }
-
+    
     /**
-     * 显示下一集倒计时提示（只依赖 EPISODES_JSON 播放列表）
+     * 检查并预加载下一集
+     * 在视频快结束前（默认10秒）提前在后台获取下一集播放地址
+     */
+    private fun checkAndPreloadNextEpisode(currentPosition: Long, duration: Long) {
+        // 计算剩余时间（秒）
+        val remainingSeconds = (duration - currentPosition) / 1000
+        
+        val isShortDrama = intent.getBooleanExtra("IS_SHORT_DRAMA", false)
+        
+        // 如果剩余时间小于等于5秒，显示倒计时提示
+        if (remainingSeconds <= 5 && remainingSeconds > 0 && !isShowingNextEpisodeHint) {
+            if (isShortDrama && shortDramaManager.hasNextEpisode()) {
+                showNextEpisodeHint()
+            }
+        }
+        
+        // 如果已经触发过预加载，或者正在预加载，跳过
+        if (hasTriggeredPreload || isPreloadingNextEpisode) {
+            return
+        }
+        
+        // 如果剩余时间小于阈值，开始预加载
+        if (remainingSeconds <= preloadThresholdSeconds && remainingSeconds > 0) {
+            if (isShortDrama && shortDramaManager.hasNextEpisode()) {
+                android.util.Log.d("VideoPlayer", "触发预加载：剩余 $remainingSeconds 秒，开始预加载下一集")
+                hasTriggeredPreload = true
+                preloadNextShortDramaEpisode()  // 启用预加载功能
+            }
+        }
+    }
+    
+    /**
+     * 预加载下一集短剧的播放地址和播放器
+     */
+    private fun preloadNextShortDramaEpisode() {
+        isPreloadingNextEpisode = true
+        
+        // 在后台线程预加载
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                // 获取下一集信息（不改变当前索引）
+                val nextEpisodeIndex = shortDramaManager.getCurrentEpisodeIndex() + 1
+                val nextEpisode = shortDramaManager.getEpisodeAt(nextEpisodeIndex)
+                
+                if (nextEpisode != null) {
+                    android.util.Log.d("VideoPlayer", "⏳ [预加载] 开始预加载下一集: ${nextEpisode.name}, videoId=${nextEpisode.videoId}")
+                    val startTime = System.currentTimeMillis()
+                    
+                    // 如果URL为空，需要获取
+                    val videoUrl = if (nextEpisode.url.isEmpty() && nextEpisode.videoId.isNotEmpty()) {
+                        val url = fetchShortDramaVideoUrl(nextEpisode.videoId)
+                        if (url.isNotEmpty()) {
+                            nextEpisode.url = url
+                            preloadedNextEpisodeUrl = url
+                            android.util.Log.d("VideoPlayer", "✅ [预加载] URL获取成功: $url (耗时: ${System.currentTimeMillis() - startTime}ms)")
+                            url
+                        } else {
+                            android.util.Log.e("VideoPlayer", "❌ [预加载] URL获取失败")
+                            null
+                        }
+                    } else {
+                        preloadedNextEpisodeUrl = nextEpisode.url
+                        android.util.Log.d("VideoPlayer", "✅ [预加载] URL已存在: ${nextEpisode.url}")
+                        nextEpisode.url
+                    }
+                    
+                    // 如果获取到URL，创建后台播放器并开始缓冲
+                    if (!videoUrl.isNullOrEmpty()) {
+                        withContext(Dispatchers.Main) {
+                            prepareBackgroundPlayer(videoUrl)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("VideoPlayer", "❌ [预加载] 异常: ${e.message}", e)
+            } finally {
+                isPreloadingNextEpisode = false
+            }
+        }
+    }
+    
+    /**
+     * 准备后台播放器并开始缓冲
+     */
+    private fun prepareBackgroundPlayer(videoUrl: String) {
+        try {
+            android.util.Log.d("VideoPlayer", "🎬 [后台播放器] 开始准备播放器")
+            
+            // 释放旧的后台播放器
+            releaseBackgroundPlayer()
+            
+            // 创建后台播放器（使用相同的配置）
+            val loadControl = com.google.android.exoplayer2.DefaultLoadControl.Builder()
+                .setBufferDurationsMs(
+                    15000,  // 最小缓冲15秒
+                    120000, // 最大缓冲120秒
+                    1,      // 立即播放
+                    1       // seek后立即播放
+                )
+                .setTargetBufferBytes(com.google.android.exoplayer2.C.LENGTH_UNSET)
+                .setPrioritizeTimeOverSizeThresholds(false)
+                .setBackBuffer(0, false)
+                .build()
+            
+            backgroundPlayer = com.google.android.exoplayer2.ExoPlayer.Builder(this)
+                .setLoadControl(loadControl)
+                .build()
+                .apply {
+                    playWhenReady = false  // 不自动播放，只缓冲
+                    volume = 0f  // 静音
+                    
+                    // 监听缓冲状态
+                    addListener(object : com.google.android.exoplayer2.Player.Listener {
+                        override fun onPlaybackStateChanged(playbackState: Int) {
+                            when (playbackState) {
+                                com.google.android.exoplayer2.Player.STATE_READY -> {
+                                    isBackgroundPlayerReady = true
+                                    val bufferedMs = bufferedPosition
+                                    android.util.Log.d("VideoPlayer", "✅ [后台播放器] 准备完成，已缓冲: ${bufferedMs / 1000}秒")
+                                }
+                                com.google.android.exoplayer2.Player.STATE_BUFFERING -> {
+                                    val bufferedMs = bufferedPosition
+                                    android.util.Log.d("VideoPlayer", "⏳ [后台播放器] 正在缓冲: ${bufferedMs / 1000}秒")
+                                }
+                                com.google.android.exoplayer2.Player.STATE_ENDED -> {
+                                    android.util.Log.d("VideoPlayer", "⏹️ [后台播放器] 缓冲结束")
+                                }
+                            }
+                        }
+                        
+                        override fun onPlayerError(error: com.google.android.exoplayer2.PlaybackException) {
+                            android.util.Log.e("VideoPlayer", "❌ [后台播放器] 错误: ${error.message}")
+                            isBackgroundPlayerReady = false
+                        }
+                    })
+                }
+            
+            // 创建数据源工厂（使用自定义的OkHttp数据源）
+            val dataSourceFactory = OkHttpDataSourceFactory.createFactory()
+            
+            // 根据URL类型创建MediaSource
+            val mediaSource = if (videoUrl.contains(".m3u8")) {
+                com.google.android.exoplayer2.source.hls.HlsMediaSource.Factory(dataSourceFactory)
+                    .createMediaSource(com.google.android.exoplayer2.MediaItem.fromUri(videoUrl))
+            } else {
+                com.google.android.exoplayer2.source.ProgressiveMediaSource.Factory(dataSourceFactory)
+                    .createMediaSource(com.google.android.exoplayer2.MediaItem.fromUri(videoUrl))
+            }
+            
+            // 准备播放器（开始缓冲）
+            backgroundPlayer?.setMediaSource(mediaSource)
+            backgroundPlayer?.prepare()
+            
+            android.util.Log.d("VideoPlayer", "🎬 [后台播放器] 已开始缓冲: $videoUrl")
+            
+        } catch (e: Exception) {
+            android.util.Log.e("VideoPlayer", "❌ [后台播放器] 创建失败: ${e.message}", e)
+            isBackgroundPlayerReady = false
+        }
+    }
+    
+    /**
+     * 释放后台播放器
+     */
+    private fun releaseBackgroundPlayer() {
+        backgroundPlayer?.let {
+            android.util.Log.d("VideoPlayer", "🗑️ [后台播放器] 释放播放器")
+            it.stop()
+            it.release()
+            backgroundPlayer = null
+            isBackgroundPlayerReady = false
+        }
+    }
+    
+    /**
+     * 显示下一集倒计时提示（小按钮样式）
      */
     private fun showNextEpisodeHint() {
-        val nextEpisode = playlistManager.getPlaylist()
-            .getOrNull(playlistManager.getCurrentIndex() + 1) ?: return
-
         isShowingNextEpisodeHint = true
         nextEpisodeCountdown = 5
-
-        binding.nextEpisodeHintButton.visibility = View.VISIBLE
-        binding.nextEpisodeHintButton.text = "${nextEpisodeCountdown}秒后播放 ${nextEpisode.name}"
-
-        binding.nextEpisodeHintButton.setOnClickListener {
-            android.util.Log.d("VideoPlayer", "用户点击立即播放下一集")
-            hideNextEpisodeHint()
-            playNextEpisode()
+        
+        // 获取下一集信息
+        val nextEpisodeIndex = shortDramaManager.getCurrentEpisodeIndex() + 1
+        val nextEpisode = shortDramaManager.getEpisodeAt(nextEpisodeIndex)
+        
+        if (nextEpisode != null) {
+            // 显示按钮
+            binding.nextEpisodeHintButton.visibility = View.VISIBLE
+            binding.nextEpisodeHintButton.text = "${nextEpisodeCountdown}秒后播放下一集"
+            
+            // 设置点击事件：立即播放下一集
+            binding.nextEpisodeHintButton.setOnClickListener {
+                android.util.Log.d("VideoPlayer", "用户点击立即播放下一集")
+                cancelNextEpisodeCountdown()
+                playNextEpisodeImmediately()
+            }
+            
+            // 开始倒计时
+            startNextEpisodeCountdown()
         }
-
-        startNextEpisodeCountdown()
     }
-
+    
     /**
      * 开始倒计时
      */
@@ -3483,14 +4638,15 @@ class VideoPlayerActivity : AppCompatActivity() {
                     nextEpisodeCountdown--
                     countdownHandler.postDelayed(this, 1000)
                 } else {
-                    // 倒计时结束：交给 onEnded 自动切换下一集
+                    // 倒计时结束，自动播放下一集
                     hideNextEpisodeHint()
+                    // 不需要手动播放，onEnded会自动处理
                 }
             }
         }
-        countdownRunnable?.let { countdownHandler.post(it) }
+        countdownHandler.post(countdownRunnable!!)
     }
-
+    
     /**
      * 取消倒计时
      */
@@ -3500,7 +4656,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         }
         countdownRunnable = null
     }
-
+    
     /**
      * 隐藏下一集提示
      */
@@ -3508,6 +4664,192 @@ class VideoPlayerActivity : AppCompatActivity() {
         binding.nextEpisodeHintButton.visibility = View.GONE
         isShowingNextEpisodeHint = false
         cancelNextEpisodeCountdown()
+    }
+    
+    /**
+     * 立即播放下一集
+     */
+    private fun playNextEpisodeImmediately() {
+        android.util.Log.d("VideoPlayer", "🚀 [立即播放] 开始播放下一集")
+        
+        // 如果后台播放器已准备好，直接切换
+        if (isBackgroundPlayerReady && backgroundPlayer != null) {
+            android.util.Log.d("VideoPlayer", "⚡ [立即播放] 使用预加载的播放器，无缝切换")
+            switchToBackgroundPlayer()  // 启用后台播放器无缝切换
+        } else {
+            android.util.Log.d("VideoPlayer", "⏳ [立即播放] 后台播放器未就绪，使用常规方式")
+            // 停止当前播放
+            exoPlayerManager.pause()
+            
+            // 触发播放下一集
+            shortDramaManager.onPlaybackEnded { episode ->
+                android.util.Log.d("VideoPlayer", "收到下一集回调: ${episode.name}")
+                
+                // 如果已经预加载了URL，直接使用
+                if (!episode.url.isEmpty()) {
+                    android.util.Log.d("VideoPlayer", "使用预加载的URL播放")
+                }
+                
+                playShortDramaEpisode(episode)
+            }
+        }
+    }
+    
+    /**
+     * 切换到后台播放器（无缝切换）
+     */
+    private fun switchToBackgroundPlayer() {
+        try {
+            android.util.Log.d("VideoPlayer", "🔄 [切换播放器] 开始切换")
+            
+            // 1. 停止并释放当前播放器
+            exoPlayerManager.pause()
+            exoPlayerManager.releasePlayer()
+            
+            // 2. 将后台播放器设置为主播放器
+            backgroundPlayer?.let { bgPlayer ->
+                // 恢复音量
+                bgPlayer.volume = 1f
+                bgPlayer.playWhenReady = true
+                
+                // 绑定到PlayerView
+                binding.playerView.player = bgPlayer
+                
+                // 重新初始化ExoPlayerManager使用这个播放器
+                // 注意：这里需要修改ExoPlayerManager支持传入已有播放器
+                // 暂时使用直接操作的方式
+                
+                android.util.Log.d("VideoPlayer", "✅ [切换播放器] 切换成功，开始播放")
+                
+                // 更新UI
+                updatePlayPauseButton()
+                
+                // 移动到下一集
+                shortDramaManager.moveToNextEpisode()
+                val currentEpisode = shortDramaManager.getCurrentEpisode()
+                currentEpisode?.let { episode ->
+                    // 更新标题（如果有标题视图）
+                    try {
+                        binding.titleText?.text = episode.name
+                    } catch (e: Exception) {
+                        android.util.Log.w("VideoPlayer", "更新标题失败: ${e.message}")
+                    }
+                }
+                
+                // 清空后台播放器引用（已经成为主播放器）
+                backgroundPlayer = null
+                isBackgroundPlayerReady = false
+                
+                // 重置预加载标志
+                hasTriggeredPreload = false
+                preloadedNextEpisodeUrl = null
+            }
+            
+        } catch (e: Exception) {
+            android.util.Log.e("VideoPlayer", "❌ [切换播放器] 切换失败: ${e.message}", e)
+            // 失败时使用常规方式
+            releaseBackgroundPlayer()
+            shortDramaManager.onPlaybackEnded { episode ->
+                playShortDramaEpisode(episode)
+            }
+        }
+    }
+
+    /**
+     * 获取短剧视频播放地址
+     */
+    private suspend fun fetchShortDramaVideoUrl(videoId: String): String {
+        return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                android.util.Log.d("VideoPlayer", "========== 开始获取播放地址 ==========")
+                android.util.Log.d("VideoPlayer", "videoId: $videoId")
+                
+                // 使用正确的短剧 API 地址
+                val apiBase = "https://api-v2.cenguigui.cn/api/duanju/api.php"
+                val url = "$apiBase?video_id=$videoId"
+                android.util.Log.d("VideoPlayer", "请求URL: $url")
+                
+                val headers = mapOf(
+                    "User-Agent" to "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Mobile Safari/537.36",
+                    "Accept" to "application/json, text/plain, */*",
+                    "Accept-Language" to "zh-CN,zh;q=0.9",
+                    "Referer" to "https://api-v2.cenguigui.cn/"
+                )
+                
+                // 使用NetworkDataSource获取数据
+                val networkDataSource = Dependencies.networkDataSource
+                when (val result = networkDataSource.get(url, headers)) {
+                    is com.tv.ball.data.remote.NetworkResult.Success -> {
+                        android.util.Log.d("VideoPlayer", "API响应成功")
+                        android.util.Log.d("VideoPlayer", "响应数据: ${result.data}")
+                        val parsedUrl = parseVideoUrl(result.data)
+                        android.util.Log.d("VideoPlayer", "解析后的URL: $parsedUrl")
+                        android.util.Log.d("VideoPlayer", "========== 获取播放地址结束 ==========")
+                        parsedUrl
+                    }
+                    is com.tv.ball.data.remote.NetworkResult.Error -> {
+                        android.util.Log.e("VideoPlayer", "API调用失败: ${result.message}")
+                        android.util.Log.d("VideoPlayer", "========== 获取播放地址失败 ==========")
+                        ""
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("VideoPlayer", "API调用异常: ${e.message}", e)
+                android.util.Log.e("VideoPlayer", "异常堆栈: ${e.stackTraceToString()}")
+                android.util.Log.d("VideoPlayer", "========== 获取播放地址异常 ==========")
+                ""
+            }
+        }
+    }
+    
+    /**
+     * 解析视频URL
+     */
+    private fun parseVideoUrl(json: String): String {
+        return try {
+            android.util.Log.d("VideoPlayer", "开始解析视频URL")
+            android.util.Log.d("VideoPlayer", "JSON长度: ${json.length}")
+            
+            // 方法1: 尝试从 "url":"xxx" 获取
+            android.util.Log.d("VideoPlayer", "尝试方法1: 直接匹配 url 字段")
+            val urlPattern1 = """"url"\s*:\s*"([^"]+)"""".toRegex()
+            val match1 = urlPattern1.find(json)
+            if (match1 != null) {
+                val url = match1.groupValues[1].replace("\\/", "/")
+                android.util.Log.d("VideoPlayer", "方法1找到URL: $url")
+                if (url.isNotEmpty() && url.startsWith("http")) {
+                    android.util.Log.d("VideoPlayer", "方法1成功，返回URL")
+                    return url
+                } else {
+                    android.util.Log.w("VideoPlayer", "方法1找到的URL无效: $url")
+                }
+            } else {
+                android.util.Log.d("VideoPlayer", "方法1未找到匹配")
+            }
+            
+            // 方法2: 尝试从 data 对象中的 url 获取
+            android.util.Log.d("VideoPlayer", "尝试方法2: 从 data 对象中匹配")
+            val urlPattern2 = """"data"\s*:\s*\{[^}]*"url"\s*:\s*"([^"]+)"""".toRegex(RegexOption.DOT_MATCHES_ALL)
+            val match2 = urlPattern2.find(json)
+            if (match2 != null) {
+                val url = match2.groupValues[1].replace("\\/", "/")
+                android.util.Log.d("VideoPlayer", "方法2找到URL: $url")
+                if (url.isNotEmpty() && url.startsWith("http")) {
+                    android.util.Log.d("VideoPlayer", "方法2成功，返回URL")
+                    return url
+                } else {
+                    android.util.Log.w("VideoPlayer", "方法2找到的URL无效: $url")
+                }
+            } else {
+                android.util.Log.d("VideoPlayer", "方法2未找到匹配")
+            }
+            
+            android.util.Log.w("VideoPlayer", "所有解析方法都失败，返回空字符串")
+            ""
+        } catch (e: Exception) {
+            android.util.Log.e("VideoPlayer", "解析URL异常: ${e.message}", e)
+            ""
+        }
     }
     
     /**
@@ -3539,7 +4881,13 @@ class VideoPlayerActivity : AppCompatActivity() {
 
             // 短剧模式：保持滚动，显示下方的集数选择
             // 普通视频：禁用滚动
-            scrollView?.isNestedScrollingEnabled = false
+            val isShortDrama = intent.getBooleanExtra("IS_SHORT_DRAMA", false)
+            if (!isShortDrama) {
+                scrollView?.isNestedScrollingEnabled = false
+            } else {
+                // 短剧模式：添加竖屏详情视图（包含集数选择）
+                addPortraitDetailView()
+            }
         }
     }
     
@@ -3644,6 +4992,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         cancelNextEpisodeCountdown()  // 清理倒计时
         cancelFasterRouteCountdown()  // 清理更快路线倒计时
         networkStatusMonitor.stopMonitoring()
+        releaseBackgroundPlayer()  // 释放后台播放器
 
         // 清理预览缓存
         previewJob?.cancel()
@@ -3763,4 +5112,3 @@ class VideoPlayerActivity : AppCompatActivity() {
         }
     }
 }
-

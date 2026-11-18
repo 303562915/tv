@@ -48,8 +48,7 @@
     <color name="episode_normal_bg">#FFFFFF</color><!-- 普通影视背景 - 白色 (<60分钟) -->
     <color name="episode_movie_text">#FFD700</color><!-- 电影文字 - 金黄色 -->
     <color name="episode_normal_text">#000000</color><!-- 普通影视文字 - 黑色 -->
-
-    <!-- ===== Material 3 表面色（FlClash 风格底栏 / 卡片） ===== -->
+    <!-- ===== Material 3 表面色 / 悬浮胶囊底栏 ===== -->
     <color name="theme_surface">#FFFFFFFF</color>
     <color name="theme_surface_container">#FFF7F7FA</color>
     <color name="theme_surface_container_low">#FFFFFFFF</color>
@@ -58,7 +57,6 @@
     <color name="theme_on_primary_container">#FF2A2570</color>
     <color name="theme_secondary_container">#FFEDEBFF</color>
     <color name="theme_on_secondary_container">#FF2A2570</color>
-    <!-- 悬浮胶囊底栏 -->
     <color name="nav_capsule">#F2FFFFFF</color>
-    <color name="nav_capsule_stroke">#14000000</color></resources>
-
+    <color name="nav_capsule_stroke">#14000000</color>
+</resources>

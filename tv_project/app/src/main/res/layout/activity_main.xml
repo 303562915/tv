@@ -29,7 +29,7 @@
         app:rippleColor="?attr/colorPrimary"
         app:tint="?attr/colorOnPrimaryContainer" />
 
-    <!-- 悬浮胶囊底栏：左右留边距、圆角胶囊、柔和投影、选中态用浅色胶囊包住图标+文字 -->
+    <!-- 悬浮胶囊底栏：左右留边距、磨砂半透明、柔和弥散投影，选中项用浅色胶囊包住图标+文字 -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/bottomNav"
         android:layout_width="0dp"
@@ -53,11 +53,45 @@
             android:orientation="horizontal">
 
             <LinearLayout
+                android:id="@+id/navHome"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
+                android:background="@drawable/bg_nav_pill"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp">
+
+                <ImageView
+                    android:id="@+id/iconHome"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:contentDescription="@string/home"
+                    android:src="@drawable/ic_nav_home"
+                    app:tint="@color/bottom_nav_tint" />
+
+                <TextView
+                    android:id="@+id/labelHome"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:text="@string/home"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/navHistory"
                 android:layout_width="wrap_content"
                 android:layout_height="48dp"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
                 android:background="@drawable/bg_nav_pill"
                 android:clickable="true"
                 android:focusable="true"
@@ -87,11 +121,11 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/navFavorite"
+                android:id="@+id/navSource"
                 android:layout_width="wrap_content"
                 android:layout_height="48dp"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
                 android:background="@drawable/bg_nav_pill"
                 android:clickable="true"
                 android:focusable="true"
@@ -101,19 +135,19 @@
                 android:paddingEnd="14dp">
 
                 <ImageView
-                    android:id="@+id/iconFavorite"
+                    android:id="@+id/iconSource"
                     android:layout_width="22dp"
                     android:layout_height="22dp"
-                    android:contentDescription="@string/favorite"
-                    android:src="@drawable/ic_nav_favorite"
+                    android:contentDescription="@string/source"
+                    android:src="@drawable/ic_nav_source"
                     app:tint="@color/bottom_nav_tint" />
 
                 <TextView
-                    android:id="@+id/labelFavorite"
+                    android:id="@+id/labelSource"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="6dp"
-                    android:text="@string/favorite"
+                    android:text="@string/source"
                     android:textColor="?attr/colorPrimary"
                     android:textSize="13sp"
                     android:textStyle="bold"
@@ -124,8 +158,8 @@
                 android:id="@+id/navProfile"
                 android:layout_width="wrap_content"
                 android:layout_height="48dp"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
                 android:background="@drawable/bg_nav_pill"
                 android:clickable="true"
                 android:focusable="true"

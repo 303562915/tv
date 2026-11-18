@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- 应用主题：Material 3（Day Night），底栏与弹层都使用 M3 组件 -->
-    <style name="Theme.TVPlayer" parent="Theme.Material3.DayNight.NoActionBar">
+    <!-- 应用主题：Material 3（Day / Night），底栏为自绘悬浮胶囊 -->
+    <style name="Theme.影视星球" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- 品牌色 -->
         <item name="colorPrimary">@color/theme_primary</item>
         <item name="colorOnPrimary">@color/white</item>
@@ -23,17 +23,17 @@
         <item name="colorOutline">@color/theme_outline</item>
         <item name="colorOutlineVariant">@color/theme_outline</item>
 
-        <!-- 状态栏 -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
         <item name="android:navigationBarColor">@color/white</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o">true</item>
 
-        <!-- 字体 -->
         <item name="android:fontFamily">@font/custom_font</item>
         <item name="fontFamily">@font/custom_font</item>
         <item name="android:textColorPrimary">@color/theme_text_primary</item>
         <item name="android:textColorSecondary">@color/theme_text_secondary</item>
+    </style>
+
     <!-- 弹层动画 -->
     <style name="DialogSlideAnimation">
         <item name="android:windowEnterAnimation">@anim/slide_in_right</item>

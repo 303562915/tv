@@ -1,7 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- 应用主题：Material 3（夜间模式） -->
-    <style name="Theme.TVPlayer" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- 品牌色 -->
+    <!-- 应用主题：Material 3（夜间） -->
+    <style name="Theme.影视星球" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/theme_primary</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/theme_primary_container</item>
@@ -11,7 +10,6 @@
         <item name="colorSecondaryContainer">@color/theme_secondary_container</item>
         <item name="colorOnSecondaryContainer">@color/theme_on_secondary_container</item>
 
-        <!-- 背景与表面 -->
         <item name="android:colorBackground">@color/theme_background</item>
         <item name="colorOnBackground">@color/theme_text_primary</item>
         <item name="colorSurface">@color/theme_surface</item>
@@ -23,24 +21,22 @@
         <item name="colorOutline">@color/theme_outline</item>
         <item name="colorOutlineVariant">@color/theme_outline</item>
 
-        <!-- 状态栏 -->
         <item name="android:statusBarColor">@color/theme_background</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
         <item name="android:navigationBarColor">@color/theme_background</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o">false</item>
 
-        <!-- 字体 -->
         <item name="android:fontFamily">@font/custom_font</item>
         <item name="fontFamily">@font/custom_font</item>
         <item name="android:textColorPrimary">@color/theme_text_primary</item>
         <item name="android:textColorSecondary">@color/theme_text_secondary</item>
-    <!-- 弹层动画 -->
+    </style>
+
     <style name="DialogSlideAnimation">
         <item name="android:windowEnterAnimation">@anim/slide_in_right</item>
         <item name="android:windowExitAnimation">@anim/slide_out_right</item>
     </style>
 
-    <!-- 透明弹窗 -->
     <style name="TransparentDialog" parent="android:Theme.Dialog">
         <item name="android:windowFrame">@null</item>
         <item name="android:windowBackground">@android:color/transparent</item>
@@ -51,7 +47,6 @@
         <item name="android:backgroundDimEnabled">false</item>
     </style>
 
-    <!-- Tab 文字 -->
     <style name="TabTextAppearance" parent="TextAppearance.Design.Tab">
         <item name="android:textSize">16sp</item>
         <item name="android:textStyle">bold</item>
@@ -63,7 +58,6 @@
         <item name="android:textColor">@color/theme_text_secondary</item>
     </style>
 
-    <!-- 全宽底部弹层 -->
     <style name="FullWidthBottomSheetDialog" parent="Theme.Design.Light.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/FullWidthBottomSheet</item>
         <item name="android:windowIsFloating">false</item>
@@ -76,7 +70,6 @@
         <item name="android:background">@color/theme_surface</item>
     </style>
 
-    <!-- 我的页面列表项 -->
     <style name="Widget.TVPlayer.ListRow" parent="">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
