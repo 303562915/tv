@@ -34,45 +34,6 @@
         <item name="fontFamily">@font/custom_font</item>
         <item name="android:textColorPrimary">@color/theme_text_primary</item>
         <item name="android:textColorSecondary">@color/theme_text_secondary</item>
-    </style>
-
-    <!-- ================= 底栏（FlClash 同款 Material 3 NavigationBar） ================= -->
-    <style name="Widget.TVPlayer.BottomNav.Indicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
-        <item name="android:width">64dp</item>
-        <item name="android:height">32dp</item>
-        <item name="android:color">@color/theme_secondary_container</item>
-        <item name="shapeAppearance">@style/ShapeAppearance.TVPlayer.BottomNavIndicator</item>
-    </style>
-
-    <style name="ShapeAppearance.TVPlayer.BottomNavIndicator" parent="">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">50%</item>
-    </style>
-
-    <style name="Widget.TVPlayer.BottomNav" parent="Widget.Material3.BottomNavigationView">
-        <item name="itemActiveIndicatorStyle">@style/Widget.TVPlayer.BottomNav.Indicator</item>
-        <item name="itemIconTint">@color/bottom_nav_tint</item>
-        <item name="itemTextColor">@color/bottom_nav_tint</item>
-        <item name="itemTextAppearanceActive">@style/TextAppearance.TVPlayer.BottomNav.Active</item>
-        <item name="itemTextAppearanceInactive">@style/TextAppearance.TVPlayer.BottomNav</item>
-        <item name="itemIconSize">24dp</item>
-        <item name="itemRippleColor">@null</item>
-        <item name="itemPaddingTop">10dp</item>
-        <item name="itemPaddingBottom">12dp</item>
-        <item name="labelVisibilityMode">labeled</item>
-        <item name="elevation">0dp</item>
-        <item name="backgroundTint">@color/theme_surface_container</item>
-    </style>
-
-    <style name="TextAppearance.TVPlayer.BottomNav" parent="TextAppearance.Material3.LabelMedium">
-        <item name="android:textSize">12sp</item>
-    </style>
-
-    <style name="TextAppearance.TVPlayer.BottomNav.Active" parent="TextAppearance.Material3.LabelMedium">
-        <item name="android:textSize">12sp</item>
-        <item name="android:textStyle">bold</item>
-    </style>
-
     <!-- 弹层动画 -->
     <style name="DialogSlideAnimation">
         <item name="android:windowEnterAnimation">@anim/slide_in_right</item>
