@@ -59,4 +59,7 @@
     <color name="theme_on_secondary_container">#FF2A2570</color>
     <color name="nav_capsule">#F2FFFFFF</color>
     <color name="nav_capsule_stroke">#14000000</color>
+    <!-- 底栏透镜（FlClash：secondary 色调 90 tone，85% 不透明） -->
+    <color name="nav_lens">#D9EDEBFF</color>
+    <color name="nav_item_idle">#FF6B7280</color>
 </resources>
