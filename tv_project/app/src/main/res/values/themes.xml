@@ -1,39 +1,86 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme - Day Mode -->
-    <style name="Theme.影视星球" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Primary brand color. -->
+    <!-- 应用主题：Material 3（Day Night），底栏与弹层都使用 M3 组件 -->
+    <style name="Theme.TVPlayer" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- 品牌色 -->
         <item name="colorPrimary">@color/theme_primary</item>
-        <item name="colorPrimaryVariant">@color/theme_primary</item>
         <item name="colorOnPrimary">@color/white</item>
-        <!-- Secondary brand color. -->
+        <item name="colorPrimaryContainer">@color/theme_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/theme_on_primary_container</item>
         <item name="colorSecondary">@color/theme_accent</item>
-        <item name="colorSecondaryVariant">@color/theme_accent</item>
-        <item name="colorOnSecondary">@color/black</item>
-        <!-- Background colors -->
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondaryContainer">@color/theme_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/theme_on_secondary_container</item>
+
+        <!-- 背景与表面 -->
         <item name="android:colorBackground">@color/theme_background</item>
-        <item name="colorSurface">@color/theme_card_background</item>
+        <item name="colorOnBackground">@color/theme_text_primary</item>
+        <item name="colorSurface">@color/theme_surface</item>
         <item name="colorOnSurface">@color/theme_text_primary</item>
-        <!-- Status bar color - 透明 -->
+        <item name="colorSurfaceVariant">@color/theme_surface_container</item>
+        <item name="colorOnSurfaceVariant">@color/theme_text_secondary</item>
+        <item name="colorSurfaceContainer">@color/theme_surface_container</item>
+        <item name="colorSurfaceContainerLow">@color/theme_surface_container_low</item>
+        <item name="colorOutline">@color/theme_outline</item>
+        <item name="colorOutlineVariant">@color/theme_outline</item>
+
+        <!-- 状态栏 -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
-        <!-- Navigation bar color -->
         <item name="android:navigationBarColor">@color/white</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o">true</item>
-        <!-- Font family -->
+
+        <!-- 字体 -->
         <item name="android:fontFamily">@font/custom_font</item>
         <item name="fontFamily">@font/custom_font</item>
-        <!-- Text colors -->
         <item name="android:textColorPrimary">@color/theme_text_primary</item>
         <item name="android:textColorSecondary">@color/theme_text_secondary</item>
     </style>
 
-    <!-- Dialog slide animation -->
+    <!-- ================= 底栏（FlClash 同款 Material 3 NavigationBar） ================= -->
+    <!-- 选中态胶囊指示器：64x32 全圆角 -->
+    <style name="Widget.TVPlayer.BottomNav.Indicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:width">64dp</item>
+        <item name="android:height">32dp</item>
+        <item name="android:color">@color/theme_secondary_container</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.TVPlayer.BottomNavIndicator</item>
+    </style>
+
+    <style name="ShapeAppearance.TVPlayer.BottomNavIndicator" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <style name="Widget.TVPlayer.BottomNav" parent="Widget.Material3.BottomNavigationView">
+        <item name="itemActiveIndicatorStyle">@style/Widget.TVPlayer.BottomNav.Indicator</item>
+        <item name="itemIconTint">@color/bottom_nav_tint</item>
+        <item name="itemTextColor">@color/bottom_nav_tint</item>
+        <item name="itemTextAppearanceActive">@style/TextAppearance.TVPlayer.BottomNav.Active</item>
+        <item name="itemTextAppearanceInactive">@style/TextAppearance.TVPlayer.BottomNav</item>
+        <item name="itemIconSize">24dp</item>
+        <item name="itemRippleColor">@null</item>
+        <item name="itemPaddingTop">10dp</item>
+        <item name="itemPaddingBottom">12dp</item>
+        <item name="labelVisibilityMode">labeled</item>
+        <item name="elevation">0dp</item>
+        <item name="backgroundTint">@color/theme_surface_container</item>
+    </style>
+
+    <style name="TextAppearance.TVPlayer.BottomNav" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="TextAppearance.TVPlayer.BottomNav.Active" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- 弹层动画 -->
     <style name="DialogSlideAnimation">
         <item name="android:windowEnterAnimation">@anim/slide_in_right</item>
         <item name="android:windowExitAnimation">@anim/slide_out_right</item>
     </style>
 
-    <!-- Transparent Dialog -->
+    <!-- 透明弹窗 -->
     <style name="TransparentDialog" parent="android:Theme.Dialog">
         <item name="android:windowFrame">@null</item>
         <item name="android:windowBackground">@android:color/transparent</item>
@@ -44,67 +91,43 @@
         <item name="android:backgroundDimEnabled">false</item>
     </style>
 
-    <!-- Tab Text Appearance - 放大文字 -->
+    <!-- Tab 文字 -->
     <style name="TabTextAppearance" parent="TextAppearance.Design.Tab">
         <item name="android:textSize">16sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">@color/theme_text_primary</item>
     </style>
 
-    <!-- Tab Text Appearance - 小号文字 -->
     <style name="TabTextSmall" parent="TextAppearance.Design.Tab">
         <item name="android:textSize">13sp</item>
         <item name="android:textColor">@color/theme_text_secondary</item>
     </style>
 
-    <!-- ================= 底栏（Material 3 NavigationBar，参考 FlClash 风格） ================= -->
-    <!-- 选中指示器：全圆角胶囊 -->
-    <style name="Widget.TVPlayer.BottomNav.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
-        <item name="android:color">@color/bottom_nav_indicator</item>
-        <item name="android:width">56dp</item>
-        <item name="android:height">30dp</item>
-        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.TVPlayer.Pill</item>
-    </style>
-
-    <style name="ShapeAppearance.TVPlayer.Pill" parent="">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">50%</item>
-    </style>
-
-    <!-- 底栏主体：紧凑、无涟漪、surface 背景 -->
-    <style name="Widget.TVPlayer.BottomNav" parent="Widget.Material3.BottomNavigationView">
-        <item name="itemActiveIndicatorStyle">@style/Widget.TVPlayer.BottomNav.ActiveIndicator</item>
-        <item name="itemIconTint">@color/bottom_nav_tint</item>
-        <item name="itemTextColor">@color/bottom_nav_tint</item>
-        <item name="itemTextAppearanceActive">@style/TextAppearance.TVPlayer.BottomNav.Active</item>
-        <item name="itemTextAppearanceInactive">@style/TextAppearance.TVPlayer.BottomNav</item>
-        <item name="itemRippleColor">@null</item>
-        <item name="itemPaddingTop">8dp</item>
-        <item name="itemPaddingBottom">8dp</item>
-        <item name="labelVisibilityMode">labeled</item>
-        <item name="android:minHeight">64dp</item>
-        <item name="elevation">0dp</item>
-    </style>
-
-    <style name="TextAppearance.TVPlayer.BottomNav" parent="TextAppearance.Material3.LabelMedium">
-        <item name="android:textSize">11sp</item>
-    </style>
-
-    <style name="TextAppearance.TVPlayer.BottomNav.Active" parent="TextAppearance.Material3.LabelMedium">
-        <item name="android:textSize">11sp</item>
-        <item name="android:textStyle">bold</item>
-    </style>
-
-    <!-- Full Width Bottom Sheet Dialog -->
+    <!-- 全宽底部弹层 -->
     <style name="FullWidthBottomSheetDialog" parent="Theme.Design.Light.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/FullWidthBottomSheet</item>
         <item name="android:windowIsFloating">false</item>
         <item name="android:windowSoftInputMode">adjustResize</item>
-        <item name="android:colorBackground">@color/theme_card_background</item>
+        <item name="android:colorBackground">@color/theme_surface</item>
     </style>
 
     <style name="FullWidthBottomSheet" parent="Widget.Design.BottomSheet.Modal">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:background">@color/theme_card_background</item>
+        <item name="android:background">@color/theme_surface</item>
+    </style>
+
+    <!-- 我的页面列表项 -->
+    <style name="Widget.TVPlayer.ListRow" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:paddingTop">14dp</item>
+        <item name="android:paddingBottom">14dp</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
     </style>
 </resources>

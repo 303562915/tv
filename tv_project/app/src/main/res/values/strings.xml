@@ -1,20 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">影视星球</string>
-    <string name="play_pause">播放/暂停</string>
-    <string name="fullscreen">全屏</string>
-    <string name="home">首页</string>
+    <string name="app_name">TV Player</string>
     <string name="history">历史</string>
-    <string name="playlist">播放列表</string>
-    <string name="settings">设置</string>
-    <string name="video_quality">视频质量</string>
-    <string name="auto_play_next">自动播放下一集</string>
-    <string name="danmaku_enabled">弹幕显示</string>
-    <string name="gesture_control">手势控制</string>
-    <string name="loading">加载中...</string>
-    <string name="error_occurred">发生错误</string>
-    <string name="retry">重试</string>
-    <string name="clear_history">清空历史</string>
-    <string name="clear_playlist">清空播放列表</string>
-    <string name="local_video">项目列表</string>
+    <string name="favorite">收藏</string>
+    <string name="profile">我的</string>
+    <string name="open_local_video">打开本地视频</string>
+
+    <!-- 我的页面 -->
+    <string name="profile_subtitle">本地播放器 · 无需登录</string>
+    <string name="section_content">内容</string>
+    <string name="section_settings">设置</string>
+    <string name="section_about">关于</string>
+    <string name="local_video">本地视频</string>
+    <string name="my_favorite">我的收藏</string>
+    <string name="theme_setting">主题</string>
+    <string name="playback_setting">播放设置</string>
+    <string name="clear_cache">清理缓存</string>
+    <string name="version">版本</string>
+    <string name="about_desc">开源 Android TV 视频播放器，所有数据保存在本机</string>
+    <string name="clear_cache_title">清理缓存</string>
+    <string name="clear_cache_message">当前缓存：%1$s\n\n确定要清理吗？</string>
+    <string name="confirm">确定</string>
+    <string name="cancel">取消</string>
+    <string name="cache_cleared">缓存已清理</string>
 </resources>

@@ -49,4 +49,14 @@
     <color name="episode_normal_bg">#2C2C2C</color><!-- 普通影视背景 - 深灰色 -->
     <color name="episode_movie_text">#FFD700</color><!-- 电影文字 - 金黄色 -->
     <color name="episode_normal_text">#E0E0E0</color><!-- 普通影视文字 - 浅色 -->
+
+    <!-- ===== Material 3 表面色（夜间） ===== -->
+    <color name="theme_surface">#FF1B1B1F</color>
+    <color name="theme_surface_container">#FF1F1F24</color>
+    <color name="theme_surface_container_low">#FF17171B</color>
+    <color name="theme_outline">#FF33333A</color>
+    <color name="theme_primary_container">#FF322D7A</color>
+    <color name="theme_on_primary_container">#FFE7E5FF</color>
+    <color name="theme_secondary_container">#FF2F2B5E</color>
+    <color name="theme_on_secondary_container">#FFE7E5FF</color>
 </resources>

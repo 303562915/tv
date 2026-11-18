@@ -2,7 +2,6 @@ package com.tv.ball
 
 import android.app.Application
 import androidx.room.Room
-import com.tv.ball.data.VideoSourceManager
 import com.tv.ball.data.local.AppDatabase
 import okhttp3.Cookie
 import okhttp3.CookieJar
@@ -73,19 +72,8 @@ class VideoPlayerApplication : Application() {
         Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
-            "video_player_database"
+            "tv_player_database"
         )
-            .addMigrations(
-                AppDatabase.MIGRATION_1_2, 
-                AppDatabase.MIGRATION_2_3, 
-                AppDatabase.MIGRATION_3_4,
-                AppDatabase.MIGRATION_4_5,
-                AppDatabase.MIGRATION_5_6,
-                AppDatabase.MIGRATION_6_7,
-                AppDatabase.MIGRATION_7_8,
-                AppDatabase.MIGRATION_8_9,
-                AppDatabase.MIGRATION_9_10
-            )
             .fallbackToDestructiveMigration()
             .build()
     }
@@ -99,8 +87,6 @@ class VideoPlayerApplication : Application() {
 
         // 尽早应用夜间模式设置
         applyNightModeFromPreferences()
-
-        VideoSourceManager.init(this)
     }
     
     private fun applyNightModeFromPreferences() {
