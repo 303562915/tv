@@ -20,6 +20,7 @@
         <item name="colorOnSurfaceVariant">@color/theme_text_secondary</item>
         <item name="colorSurfaceContainer">@color/theme_surface_container</item>
         <item name="colorSurfaceContainerLow">@color/theme_surface_container_low</item>
+        <item name="colorSurfaceContainerHigh">@color/theme_surface_container_high</item>
         <item name="colorOutline">@color/theme_outline</item>
         <item name="colorOutlineVariant">@color/theme_outline</item>
 
@@ -91,3 +92,4 @@
         <item name="android:focusable">true</item>
     </style>
 </resources>
+

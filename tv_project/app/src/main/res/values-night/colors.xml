@@ -60,4 +60,5 @@
     <color name="nav_capsule_stroke">#00FFFFFF</color>
     <color name="nav_lens">#FF4A4458</color>
     <color name="nav_item_idle">#FFCAC4D0</color>
+    <color name="theme_surface_container_high">#FF2B2930</color>
 </resources>

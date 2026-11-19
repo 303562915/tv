@@ -48,8 +48,7 @@ class MainActivity : AppCompatActivity() {
         // 设置透明沉浸式状态栏
         StatusBarUtils.setupTransparentStatusBar(this)
 
-        // 请求存储权限
-        requestStoragePermission()
+        // 权限改为按需申请（本地视频 / 下载时），启动时不再弹系统授权框跳出去
 
         // 加载云端视频源配置
         loadCloudVideoSources()
@@ -166,6 +165,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
+
 
 
 
