@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>TV Player · 下载</title>
+<meta name="description" content="TV Player — 开源 Android TV 播放器，无账号、无广告。直接下载最新版 APK。">
+<meta name="theme-color" content="#0a0a0d">
+<meta property="og:title" content="TV Player · 下载最新版">
+<meta property="og:description" content="开源 Android TV 播放器，本地与直链随点随播，记录只存本机。">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%233ee0b4'/%3E%3Cpath d='M11 20l7-4-7-4z' fill='%230a0a0d'/%3E%3Crect x='9' y='8' width='14' height='11' rx='2' fill='none' stroke='%230a0a0d' stroke-width='1.8'/%3E%3C/svg%3E">
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  :root{
+    --bg:#0a0a0d;
+    --panel:rgba(255,255,255,.035);
+    --line:rgba(255,255,255,.08);
+    --line-strong:rgba(255,255,255,.14);
+    --fg:#f2f2f4;
+    --muted:#9a9aa6;
+    --dim:#6b6b78;
+    --acc:#3ee0b4;
+    --acc-soft:rgba(62,224,180,.12);
+    --radius:18px;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:2rem}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--fg);
+    font-family:system-ui,-apple-system,"Segoe UI","Noto Sans SC","PingFang SC",sans-serif;
+    font-size:16px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  /* 背景光晕 + 网格 */
+  .bg{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+  .bg::before{
+    content:"";position:absolute;inset:-20% -10% auto -10%;height:70vh;
+    background:
+      radial-gradient(50% 60% at 50% 0%,rgba(62,224,180,.20),transparent 70%),
+      radial-gradient(30% 40% at 80% 10%,rgba(90,160,255,.10),transparent 70%);
+    filter:blur(10px);
+  }
+  .bg::after{
+    content:"";position:absolute;inset:0;
+    background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:64px 64px;
+    mask-image:radial-gradient(circle at 50% 0%,#000 0%,transparent 65%);
+    -webkit-mask-image:radial-gradient(circle at 50% 0%,#000 0%,transparent 65%);
+    opacity:.5;
+  }
+
+  .wrap{width:min(760px,100% - 2.5rem);margin-inline:auto}
+
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:1.5rem 0 0;
+  }
+  .brand{display:flex;align-items:center;gap:.6rem;font-weight:650;letter-spacing:.01em;text-decoration:none;color:var(--fg)}
+  .brand svg{width:26px;height:26px;border-radius:7px;display:block}
+  .brand span small{display:block;font-weight:450;font-size:.7rem;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;line-height:1.2}
+  header nav{display:flex;gap:1.2rem;font-size:.875rem}
+  header nav a{color:var(--muted);text-decoration:none;transition:color .18s}
+  header nav a:hover{color:var(--fg)}
+  @media (max-width:560px){header nav{display:none}}
+
+  main{padding:clamp(3rem,10vw,5.5rem) 0 5rem}
+
+  .pill{
+    display:inline-flex;align-items:center;gap:.5rem;
+    padding:.35rem .8rem .35rem .6rem;
+    border:1px solid var(--line-strong);border-radius:999px;
+    background:var(--panel);backdrop-filter:blur(8px);
+    font-size:.8125rem;color:var(--muted);
+  }
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 3px var(--acc-soft)}
+  .pill b{color:var(--fg);font-weight:600;font-variant-numeric:tabular-nums}
+
+  h1{
+    margin:1.25rem 0 0;
+    font-size:clamp(3.2rem,13vw,5.4rem);
+    line-height:.95;letter-spacing:-.045em;font-weight:700;
+    background:linear-gradient(170deg,#fff 20%,#b8fff0 60%,#2ee6b3 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .tagline{margin:.9rem 0 0;font-size:clamp(1rem,3.6vw,1.2rem);color:var(--muted);max-width:34ch}
+  .tagline strong{color:var(--fg);font-weight:600}
+
+  /* 下载按钮 */
+  .dl{
+    display:flex;align-items:center;gap:1rem;
+    margin-top:2.2rem;padding:1.05rem 1.4rem;
+    max-width:440px;
+    border-radius:var(--radius);border:1px solid rgba(62,224,180,.35);
+    background:linear-gradient(180deg,rgba(62,224,180,.16),rgba(62,224,180,.06));
+    color:var(--fg);text-decoration:none;
+    box-shadow:0 16px 44px -18px rgba(62,224,180,.65),inset 0 1px 0 rgba(255,255,255,.09);
+    transition:transform .2s cubic-bezier(.2,.8,.3,1),box-shadow .2s,border-color .2s;
+    position:relative;overflow:hidden;
+  }
+  .dl::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.16) 48%,transparent 58%);
+    transform:translateX(-120%);transition:transform .7s ease;
+  }
+  .dl:hover{transform:translateY(-2px);box-shadow:0 22px 54px -18px rgba(62,224,180,.85),inset 0 1px 0 rgba(255,255,255,.12)}
+  .dl:hover::after{transform:translateX(120%)}
+  .dl[aria-disabled="true"]{opacity:.55;pointer-events:none;filter:saturate(.4)}
+  .dl svg{flex:none;width:30px;height:30px;color:var(--acc)}
+  .dl .txt{display:flex;flex-direction:column;min-width:0}
+  .dl .t{font-weight:650;font-size:1.0625rem;letter-spacing:.01em}
+  .dl .s{font-size:.8125rem;color:#a8f5e0;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dl .arrow{margin-left:auto;color:#a8f5e0;flex:none;transition:transform .2s}
+  .dl:hover .arrow{transform:translateX(3px)}
+
+  .alt{display:flex;flex-wrap:wrap;gap:1.1rem;margin-top:1.1rem;font-size:.875rem}
+  .alt a,.alt button{
+    color:var(--muted);text-decoration:none;background:none;border:0;padding:0;
+    font:inherit;cursor:pointer;border-bottom:1px solid transparent;transition:.18s;
+  }
+  .alt a:hover,.alt button:hover{color:var(--fg);border-bottom-color:var(--line-strong)}
+
+  /* 元信息 */
+  .meta{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:1px;margin-top:2.4rem;
+    border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--line);
+  }
+  .meta div{background:#0d0d11;padding:.85rem 1rem}
+  .meta dt{font-size:.6875rem;color:var(--dim);letter-spacing:.09em;text-transform:uppercase;margin:0 0 .2rem}
+  .meta dd{margin:0;font-size:.875rem;color:var(--fg);font-variant-numeric:tabular-nums;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .meta dd.mono{font-family:var(--mono);font-size:.75rem;letter-spacing:-.01em;color:var(--muted)}
+
+  /* 区块 */
+  section.block{margin-top:4.5rem}
+  h2{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:0 0 1.1rem;font-weight:600}
+
+  ol.steps{list-style:none;margin:0;padding:0;display:grid;gap:.6rem;counter-reset:s}
+  ol.steps li{
+    counter-increment:s;
+    display:grid;grid-template-columns:auto 1fr;gap:1rem;align-items:start;
+    padding:1rem 1.15rem;
+    border:1px solid var(--line);border-radius:14px;
+    background:var(--panel);
+    font-size:.9375rem;color:var(--muted);
+  }
+  ol.steps li::before{
+    content:"0" counter(s);
+    font-family:var(--mono);font-size:.75rem;color:var(--acc);
+    padding-top:.25rem;
+  }
+  ol.steps b{color:var(--fg);font-weight:600}
+  ol.steps a{color:#8ff0d6;text-decoration:none;border-bottom:1px solid rgba(143,240,214,.3)}
+  ol.steps a:hover{border-bottom-color:#8ff0d6}
+
+  details{
+    border:1px solid var(--line);border-radius:14px;background:var(--panel);
+    padding:.95rem 1.15rem;margin-top:.6rem;
+  }
+  details+details{margin-top:.6rem}
+  summary{cursor:pointer;font-weight:550;font-size:.9375rem;list-style:none;display:flex;justify-content:space-between;gap:1rem}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";color:var(--dim);font-family:var(--mono)}
+  details[open] summary::after{content:"−"}
+  details p{margin:.75rem 0 0;color:var(--muted);font-size:.9rem}
+  details code,code{font-family:var(--mono);font-size:.82em;background:rgba(255,255,255,.06);padding:.12em .4em;border-radius:5px;color:#b6f5e3}
+
+  .warn{
+    display:flex;gap:.85rem;margin-top:2.6rem;padding:1rem 1.15rem;
+    border:1px solid rgba(255,180,60,.22);border-radius:14px;
+    background:rgba(255,180,60,.06);font-size:.875rem;color:#e8cf9f;
+  }
+  .warn svg{flex:none;width:18px;height:18px;margin-top:.18rem;color:#ffb43c}
+
+  footer{
+    margin-top:4rem;padding-top:1.6rem;border-top:1px solid var(--line);
+    display:flex;flex-wrap:wrap;gap:.8rem 1.5rem;align-items:center;justify-content:space-between;
+    font-size:.8125rem;color:var(--dim);
+  }
+  footer a{color:var(--muted);text-decoration:none}
+  footer a:hover{color:var(--fg)}
+
+  .toast{
+    position:fixed;left:50%;bottom:2rem;transform:translate(-50%,1.5rem);
+    padding:.6rem 1.1rem;border-radius:999px;
+    background:#1a1a20;border:1px solid var(--line-strong);
+    font-size:.8125rem;opacity:0;pointer-events:none;transition:.25s;z-index:9;
+    box-shadow:0 12px 30px -12px #000;
+  }
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+
+  #history{display:none;margin-top:.9rem;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  #history.on{display:block}
+  #history a{
+    display:flex;justify-content:space-between;gap:1rem;padding:.75rem 1rem;
+    font-size:.875rem;color:var(--muted);text-decoration:none;
+    border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;
+  }
+  #history a:last-child{border-bottom:0}
+  #history a:hover{background:rgba(255,255,255,.03);color:var(--fg)}
+  #history time{color:var(--dim);font-size:.78rem;white-space:nowrap}
+
+  /* 更新说明 */
+  #notes{display:none;margin-top:.9rem;padding:1rem 1.15rem;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+  #notes.on{display:block}
+  #notes h3{margin:0 0 .6rem;font-size:.6875rem;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);font-weight:600}
+  #notes .body{font-size:.875rem;color:var(--muted);max-height:18rem;overflow:auto;white-space:pre-wrap;word-break:break-word;font-family:inherit}
+  #notes .body:empty::before{content:"该版本没有填写更新说明";color:var(--dim)}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+
+<div class="wrap">
+  <header>
+    <a class="brand" href="./">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#3ee0b4"/><rect x="9" y="8" width="14" height="11" rx="2" fill="none" stroke="#0a0a0d" stroke-width="1.8"/><path d="M12 22h8" stroke="#0a0a0d" stroke-width="1.8" stroke-linecap="round"/><path d="M11 20l7-4-7-4z" fill="#0a0a0d"/></svg>
+      <span>TV Player<small>com.tv.ball</small></span>
+    </a>
+    <nav>
+      <a href="#install">安装</a>
+      <a href="#faq">常见问题</a>
+      <a href="https://github.com/303562915/tv" rel="noopener noreferrer">源码仓库</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="pill"><span class="dot"></span><span id="pillText">正在读取最新版本…</span></div>
+
+    <h1>TV Player</h1>
+    <p class="tagline">开源，<strong>在电视上放自己的片</strong>。Kotlin + ExoPlayer，本地文件与网络直链随点随播。</p>
+
+    <a class="dl" id="dl" href="#" aria-disabled="true" download>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 20h16"/>
+      </svg>
+      <span class="txt">
+        <span class="t">下载 APK</span>
+        <span class="s" id="dlSub">正在获取…</span>
+      </span>
+      <svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+    </a>
+
+    <div class="alt">
+      <button id="historyBtn" type="button">全部版本</button>
+      <button id="shaBtn" type="button">复制 SHA-256</button>
+      <a id="checksumLink" href="#" hidden>校验文件</a>
+    </div>
+
+    <div id="history"></div>
+
+    <section id="notes">
+      <h3>更新说明</h3>
+      <div class="body" id="notesBody"></div>
+    </section>
+
+    <dl class="meta">
+      <div><dt>版本</dt><dd id="mVersion">—</dd></div>
+      <div><dt>体积</dt><dd id="mSize">—</dd></div>
+      <div><dt>更新于</dt><dd id="mDate">—</dd></div>
+      <div><dt>SHA-256</dt><dd class="mono" id="mSha">—</dd></div>
+    </dl>
+
+    <section class="block" id="install">
+      <h2>安装</h2>
+      <ol class="steps">
+        <li><span>下载上面的 APK，用电视 / 盒子上的文件管理器安装。若被拦截，在系统设置里允许「安装未知应用」。</span></li>
+        <li><span>或者用 <b>adb</b> 远程安装：<code>adb connect 192.168.1.50:5555</code> 之后 <code>adb install -r TVPlayer-latest-debug.apk</code>。</span></li>
+        <li><span>打开 TV Player，选本地视频，或粘贴你自备的 <b>HLS / MP4 直链</b>开始播放。应用不内置任何内容。</span></li>
+      </ol>
+    </section>
+
+    <section class="block" id="faq">
+      <h2>常见问题</h2>
+
+      <details>
+        <summary>这个页面为什么要自己托管下载？</summary>
+        <p>GitHub Releases 的下载地址在国内时常连不上，所以 APK 由 CI 同步到 Pages 这边做镜像；版本、体积、SHA-256 与 Releases 完全一致。</p>
+      </details>
+
+      <details>
+        <summary>APK 是怎么构建的？可信吗？</summary>
+        <p>由 GitHub Actions 在云端从本仓库源码构建、签名并上传，本页面与 APK 来自同一条流水线。你可以用上面的 SHA-256 与自己下载到的文件比对。</p>
+      </details>
+
+      <details>
+        <summary>自带影视内容或视频源吗？</summary>
+        <p>不带。应用不提供、不聚合、不分发任何影视内容，也没有内置源。播放内容由你自己提供：本地文件，或你自备的网络地址。</p>
+      </details>
+
+      <details>
+        <summary>支持哪些 Android 版本与设备？</summary>
+        <p>最低 Android 7.0（API 24）。面向 Android TV 与电视盒子，遥控器 D-Pad 操作优先；手机也能装，触摸同样可用。</p>
+      </details>
+
+      <details>
+        <summary>为什么只发 arm64-v8a？</summary>
+        <p>电视与盒子基本都是 64 位 ARM 芯片，只打一个 ABI 能显著减小安装包体积。32 位设备（armeabi-v7a / x86）装不上。</p>
+      </details>
+
+      <details>
+        <summary>播放卡顿怎么办？</summary>
+        <p>先换线路（多线路会自动测速），再确认网络；本地文件卡顿多半是编码过重，试试切换画面比例，或换兼容编码的版本。</p>
+      </details>
+    </section>
+
+    <div class="warn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v5"/><path d="M12 17h.01"/><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+      <span>仅发布 arm64-v8a 构建；应用不提供任何影视内容，使用后果由使用者自行承担。</span>
+    </div>
+
+    <footer>
+      <span>© <span id="year">2026</span> TV Player · <a href="https://github.com/303562915/tv/blob/main/LICENSE" rel="noopener noreferrer">MIT</a></span>
+      <span>包名 <code>com.tv.ball</code></span>
+    </footer>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var state = { data: null, sha: "" };
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  function fmtSize(bytes) {
+    if (!bytes || bytes < 0) return "—";
+    var mb = bytes / 1048576;
+    return (mb >= 100 ? mb.toFixed(0) : mb.toFixed(1)) + " MB";
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return "—";
+    var d = new Date(iso);
+    if (isNaN(d)) return "—";
+    var p = function (n) { return String(n).padStart(2, "0"); };
+    return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+  }
+
+  function toast(msg) {
+    var t = $("toast");
+    t.textContent = msg;
+    t.classList.add("on");
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function () { t.classList.remove("on"); }, 1800);
+  }
+
+  function render(data) {
+    state.data = data;
+    state.sha = data.sha256 || "";
+
+    if (!data.file) {
+      $("pillText").textContent = "暂无发布版本";
+      $("dlSub").textContent = "等待首次构建";
+      return;
+    }
+
+    var label = data.version_name ? "v" + data.version_name : "最新构建";
+    $("pillText").innerHTML = "最新版 <b>" + label + "</b>";
+    $("mVersion").textContent = label + (data.version_code ? " (" + data.version_code + ")" : "");
+    $("mSize").textContent = fmtSize(data.size);
+    $("mDate").textContent = fmtDate(data.published_at);
+    $("mSha").textContent = state.sha ? state.sha.slice(0, 16) + "…" : "未提供";
+    $("mSha").title = state.sha || "";
+
+    $("dlSub").textContent = [data.file_name, fmtSize(data.size)].filter(Boolean).join(" · ");
+
+    var dl = $("dl");
+    dl.href = data.file;
+    dl.setAttribute("download", data.file_name || "");
+    dl.removeAttribute("aria-disabled");
+
+    if (data.checksum_file) {
+      var c = $("checksumLink");
+      c.href = data.checksum_file;
+      c.hidden = false;
+    }
+
+    if (data.history && data.history.length) {
+      var box = $("history");
+      box.innerHTML = "";
+      data.history.forEach(function (h) {
+        var a = document.createElement("a");
+        a.href = h.file;
+        a.setAttribute("download", "");
+        var name = document.createElement("span");
+        var label = h.version_name || h.file_name || "构建";
+        name.textContent = /^[\d.]+\S*$/.test(label) ? "v" + label : label;
+        var tm = document.createElement("time");
+        tm.textContent = fmtDate(h.published_at) + " · " + fmtSize(h.size);
+        a.appendChild(name);
+        a.appendChild(tm);
+        box.appendChild(a);
+      });
+    }
+
+    var notes = $("notes");
+    if (data.notes && data.notes.trim()) {
+      $("notesBody").textContent = data.notes.trim();
+      notes.classList.add("on");
+    } else {
+      $("notesBody").textContent = "";
+      notes.classList.remove("on");
+    }
+  }
+
+  function fail() {
+    $("pillText").textContent = "暂时无法读取版本信息";
+    $("dlSub").textContent = "镜像未生成，请稍后刷新";
+  }
+
+  fetch("latest.json", { cache: "no-store" })
+    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(render)
+    .catch(fail);
+
+  $("shaBtn").addEventListener("click", function () {
+    if (!state.sha) { toast("该版本未提供校验值"); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(state.sha).then(
+        function () { toast("SHA-256 已复制"); },
+        function () { toast("复制失败，请手动选择"); }
+      );
+    } else {
+      toast("当前浏览器不支持自动复制");
+    }
+  });
+
+  $("historyBtn").addEventListener("click", function () {
+    $("history").classList.toggle("on");
+  });
+
+  $("year").textContent = new Date().getFullYear();
+})();
+</script>
+</body>
+</html>
