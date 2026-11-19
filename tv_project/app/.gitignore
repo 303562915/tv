@@ -1,1 +1,5 @@
 /build
+
+# 固定 debug 签名（公开的 debug 密钥，用于本地/CI 一致签名）
+!debug-signing.p12
+

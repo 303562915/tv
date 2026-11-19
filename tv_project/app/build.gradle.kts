@@ -50,6 +50,18 @@ android {
     // 签名配置：优先使用 CI 注入的正式密钥（环境变量或 Gradle 属性）；
     // 未提供密钥时回退 debug 签名，保证 Release 产物仍然可安装。
     signingConfigs {
+        // 固定 debug 签名：本地与 CI 用同一把密钥，APK 可直接覆盖安装，
+        // 不再出现"每次 CI 构建签名都不一样导致无法覆盖安装"的问题。
+        getByName("debug") {
+            storeFile = file("debug-signing.p12")
+            storeType = "PKCS12"
+            val DEBUG_STORE_PASSWORD = "android"
+            val DEBUG_KEY_ALIAS = "androiddebugkey"
+            val DEBUG_KEY_PASSWORD = "android"
+            storePassword = DEBUG_STORE_PASSWORD
+            keyAlias = DEBUG_KEY_ALIAS
+            keyPassword = DEBUG_KEY_PASSWORD
+        }
         if (hasReleaseSigning) {
             create("release") {
                 storeFile = file(releaseStoreFile!!)
