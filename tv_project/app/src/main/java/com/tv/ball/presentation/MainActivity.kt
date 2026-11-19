@@ -69,7 +69,6 @@ class MainActivity : AppCompatActivity() {
         binding.navDock.setDestinations(
             listOf(
                 FloatingNavDock.Destination(R.drawable.ic_nav_home, getString(R.string.home)),
-                FloatingNavDock.Destination(R.drawable.ic_nav_history, getString(R.string.history)),
                 FloatingNavDock.Destination(R.drawable.ic_nav_source, getString(R.string.source)),
                 FloatingNavDock.Destination(R.drawable.ic_nav_profile, getString(R.string.profile))
             )
