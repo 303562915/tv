@@ -10,12 +10,12 @@
 [![compileSdk](https://img.shields.io/badge/compileSdk-36-blue.svg)](https://developer.android.com)
 [![ABI](https://img.shields.io/badge/ABI-arm64--v8a-orange.svg)](tv_project)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![Download](https://img.shields.io/badge/download-latest-3ee0b4.svg)](https://303562915.github.io/tv/)
+[![Download](https://img.shields.io/badge/download-latest-3ee0b4.svg)](https://303562915.github.io/TVPlayer/)
 
 TV Player 面向电视大屏与遥控器操作，基于 Kotlin + ExoPlayer，专注**本地播放与网络直链播放**，
 不内置任何影视内容、不做页面解析、不需要账号登录。所有观看数据只保存在本机。
 
-> 下载页：<https://303562915.github.io/tv/>（CI 自动同步最新 APK 与校验值）
+> 下载页：<https://303562915.github.io/TVPlayer/>（与 Releases 同源的 APK 镜像与 SHA-256）
 
 ---
 
@@ -138,13 +138,16 @@ release 包的签名通过 Repository Secrets 注入（`KEYSTORE_BASE64`、`KEYS
 
 ## 下载页（GitHub Pages）
 
-站点源码在 `docs/`，由 `Pages` 工作流发布：<https://303562915.github.io/tv/>
+**<https://303562915.github.io/TVPlayer/>**
 
-- 每次 `Build` 结束后自动刷新：用 `GITHUB_TOKEN` 读取本仓库 Releases，把最近 3 个 APK
-  镜像到站点根目录的 `apk/`（私有仓库的 Release 资产对外 404，所以需要镜像），
-  并把版本、体积、更新日期与 SHA-256 写入 `docs/latest.json`。
-- 首次启用：仓库 **Settings → Pages → Build and deployment → Source** 选择 **GitHub Actions**，
-  再手动跑一次 **Pages** 工作流（或等下一次 `Build` 完成）。
+- 下载页托管在公开仓库 [303562915/TVPlayer](https://github.com/303562915/TVPlayer)：
+  免费账户的私有仓库不支持 Pages，所以站点单独发布（源码仍在本私有仓库）。
+- 页面源文件在本仓库 `docs/`，站点仓库只放页面与构建产物镜像。
+- 私有仓库的 Release 资产对外返回 404，站点仓库运行 `Sync & Deploy` 时用
+  `SOURCE_TOKEN`（对 `303562915/tv` 有 `repo` 读权限的 PAT）拉取 Releases，
+  镜像最近 3 个 APK 到 `apk/`，并把版本、体积、更新日期与 SHA-256 写入 `latest.json`。
+- 未配置 `SOURCE_TOKEN` 时站点照样部署，只是数据不刷新。定时任务每天 04:23 UTC 同步一次，
+  也可以在站点仓库 Actions 里手动 Run workflow。
 
 ## 安装
 
