@@ -19,6 +19,7 @@ import com.tv.ball.databinding.ActivityMainBinding
 import com.tv.ball.presentation.history.HistoryFragment
 import com.tv.ball.presentation.home.HomeFragment
 import com.tv.ball.presentation.localvideo.LocalVideoActivity
+import com.tv.ball.presentation.nav.FloatingNavDock
 import com.tv.ball.presentation.profile.ProfileFragment
 import com.tv.ball.presentation.videosource.VideoSourceFragment
 import com.tv.ball.utils.StatusBarUtils
@@ -62,46 +63,29 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * 悬浮胶囊底栏（仿 FlClash NavigationDock）：
-     * 图标 + 文字常显，选中态是一颗在两项目间滑动的胶囊“透镜”，按下时透镜放大凸出胶囊边缘。
+     * 悬浮胶囊底栏（移植 FlClash NavigationDock）：
+     * 图标+文字常显；选中态是滑动的胶囊透镜，按下吸到该项并抬起，松手到位后落下。
      */
     private fun setupBottomNav(initial: Boolean) {
-        val items = navItems()
-        items.forEachIndexed { index, (container, _, _) ->
-            container.setOnClickListener { selectTab(Tab.entries[index]) }
-            container.setOnTouchListener { view, event ->
-                when (event.actionMasked) {
-                    android.view.MotionEvent.ACTION_DOWN -> {
-                        liftLens(true)
-                        view.animate().scaleX(0.96f).scaleY(0.96f).setDuration(90).start()
-                    }
-                    android.view.MotionEvent.ACTION_UP,
-                    android.view.MotionEvent.ACTION_CANCEL -> {
-                        liftLens(false)
-                        view.animate().scaleX(1f).scaleY(1f).setDuration(160).start()
-                    }
-                }
-                false
-            }
+        binding.navDock.setDestinations(
+            listOf(
+                FloatingNavDock.Destination(R.drawable.ic_nav_home, getString(R.string.home)),
+                FloatingNavDock.Destination(R.drawable.ic_nav_history, getString(R.string.history)),
+                FloatingNavDock.Destination(R.drawable.ic_nav_source, getString(R.string.source)),
+                FloatingNavDock.Destination(R.drawable.ic_nav_profile, getString(R.string.profile))
+            )
+        )
+        binding.navDock.onSelected = { index -> selectTab(Tab.entries[index], fromDock = true) }
+        binding.navDock.post {
+            binding.navDock.setSelected(if (initial) Tab.HOME.ordinal else currentTab.ordinal, animate = false)
         }
-
-        // 首次布局完成后把透镜摆到初始项上
-        binding.navCapsule.post {
-            if (initial) selectTab(Tab.HOME) else renderTab(currentTab, animate = false)
-        }
+        if (initial) selectTab(Tab.HOME, fromDock = false)
     }
 
-    private fun navItems(): List<Triple<View, android.widget.ImageView, android.widget.TextView>> = listOf(
-        Triple(binding.navHome, binding.iconHome, binding.labelHome),
-        Triple(binding.navHistory, binding.iconHistory, binding.labelHistory),
-        Triple(binding.navSource, binding.iconSource, binding.labelSource),
-        Triple(binding.navProfile, binding.iconProfile, binding.labelProfile)
-    )
-
-    private fun selectTab(tab: Tab) {
+    private fun selectTab(tab: Tab, fromDock: Boolean) {
         val sameTab = tab == currentTab && supportFragmentManager.fragments.isNotEmpty()
         currentTab = tab
-        renderTab(tab, animate = true)
+        if (!fromDock) binding.navDock.setSelected(tab.ordinal, animate = true)
         if (sameTab) return
         loadFragment(
             when (tab) {
@@ -112,61 +96,6 @@ class MainActivity : AppCompatActivity() {
             }
         )
     }
-
-    private fun renderTab(tab: Tab, animate: Boolean) {
-        val items = navItems()
-        val selectedIndex = tab.ordinal
-        val activeColor = androidx.core.content.ContextCompat.getColor(this, R.color.theme_primary)
-        val idleColor = androidx.core.content.ContextCompat.getColor(this, R.color.nav_item_idle)
-
-        items.forEachIndexed { index, (container, icon, label) ->
-            val selected = index == selectedIndex
-            container.isSelected = selected
-            icon.setColorFilter(if (selected) activeColor else idleColor)
-            label.setTextColor(if (selected) activeColor else idleColor)
-            label.alpha = if (selected) 1f else 0.85f
-        }
-
-        moveLensTo(items[selectedIndex].first, animate)
-    }
-
-    /** 把选中透镜滑到指定项：宽度 = 项宽 + 8dp，居中于该项。 */
-    private fun moveLensTo(item: View, animate: Boolean) {
-        if (item.width == 0) return
-        val lens = binding.navLens
-        val extra = (8 * resources.displayMetrics.density).toInt()
-        val lensWidth = item.width + extra
-        val lensHeight = ((62 - 8) * resources.displayMetrics.density).toInt()
-        if (lens.width != lensWidth || lens.height != lensHeight) {
-            lens.layoutParams = lens.layoutParams.apply {
-                width = lensWidth
-                height = lensHeight
-            }
-            lens.requestLayout()
-        }
-        val targetX = item.left + (item.width - lensWidth) / 2f
-        val targetY = (binding.navCapsule.height - lensHeight) / 2f
-        if (animate) {
-            lens.animate()
-                .translationX(targetX)
-                .translationY(targetY)
-                .setDuration(280)
-                .setInterpolator(android.view.animation.OvershootInterpolator(1.1f))
-                .start()
-        } else {
-            lens.translationX = targetX
-            lens.translationY = targetY
-        }
-    }
-
-    /** 按下时透镜放大，凸出胶囊上下边缘（FlClash 的 lens lift）。 */
-    private fun liftLens(lifted: Boolean) {
-        binding.navLens.animate()
-            .scaleX(if (lifted) 1.12f else 1f)
-            .scaleY(if (lifted) 1.22f else 1f)
-            .setDuration(if (lifted) 120 else 220)
-            .start()
-    }
     
     private fun loadFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction()
@@ -176,7 +105,7 @@ class MainActivity : AppCompatActivity() {
 
     /** 供首页「历史」图标调用，切换到历史标签页。 */
     fun switchToHistory() {
-        selectTab(Tab.HISTORY)
+        selectTab(Tab.HISTORY, fromDock = false)
     }
 
     private fun loadCloudVideoSources() {
@@ -240,3 +169,4 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
+
