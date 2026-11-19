@@ -30,7 +30,11 @@
         android:theme="@style/Theme.影视星球"
         android:usesCleartextTraffic="true">
         
-        <activity
+                <activity
+            android:name=".presentation.history.HistoryActivity"
+            android:label="@string/watch_history"
+            android:theme="@style/Theme.影视星球" />
+<activity
             android:name=".presentation.MainActivity"
             android:exported="true">
             <intent-filter>
@@ -142,3 +146,4 @@
     </application>
 
 </manifest>
+

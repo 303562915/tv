@@ -1,65 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  配色取自 FlClash：prism_ui/lib/theme_data.dart 里 _baselineSeed = Color(0xFF6750A4)，
+  ColorStyle.soft 对应 Material 3 tonalSpot 变体。
+  下面就是这套种子在浅色下的标准 M3 结果，命名沿用本项目旧称。
+-->
 <resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="transparent">#00000000</color>
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="primary">#FF6B9EFF</color>
-    
-    <!-- 主题配色 - 从 Lua 版本迁移 -->
-    <color name="theme_primary">#6C63FF</color><!-- 紫罗兰色 -->
-    <color name="theme_accent">#FF6584</color><!-- 粉红色 -->
-    <color name="theme_text_primary">#212121</color><!-- 深色文本 -->
-    <color name="theme_text_secondary">#757575</color><!-- 浅灰色文本 -->
-    <color name="theme_background">#F0F0F0</color><!-- 浅灰色背景 -->
-    <color name="theme_card">#4ECDC4</color><!-- 青绿色 -->
-    
-    <!-- 扩展配色 -->
-    <color name="theme_success">#00C853</color>
-    <color name="theme_warning">#FFB300</color>
-    <color name="theme_error">#D32F2F</color>
-    <color name="theme_info">#0288D1</color>
-    <color name="theme_gradient_start">#667EEA</color>
-    <color name="theme_gradient_end">#764BA2</color>
-    <color name="theme_selected_bg">#E8F5E9</color>
-    <color name="theme_selected_border">#4CAF50</color>
-    <color name="theme_divider">#E0E0E0</color>
+
+    <!-- M3 主色 / 次色 -->
+    <color name="primary">#FF6750A4</color>
+    <color name="theme_primary">#FF6750A4</color>
+    <color name="theme_accent">#FF625B71</color>
+    <color name="theme_primary_container">#FFEADDFF</color>
+    <color name="theme_on_primary_container">#FF21005D</color>
+    <color name="theme_secondary_container">#FFE8DEF8</color>
+    <color name="theme_on_secondary_container">#FF1D192B</color>
+
+    <!-- 表面与背景 -->
+    <color name="theme_background">#FFFEF7FF</color>
+    <color name="theme_surface">#FFFEF7FF</color>
+    <color name="theme_surface_container">#FFF3EDF7</color>
+    <color name="theme_surface_container_low">#FFF7F2FA</color>
+    <color name="theme_outline">#FF79747E</color>
+    <color name="theme_text_primary">#FF1D1B20</color>
+    <color name="theme_text_secondary">#FF49454F</color>
+    <color name="theme_card">#FFECE6F0</color>
+    <color name="theme_card_background">#FFF3EDF7</color>
+    <color name="theme_card_elevated">#FFFFFFFF</color>
+    <color name="search_box_background">#FFECE6F0</color>
+
+    <!-- 状态色 -->
+    <color name="theme_success">#FF00C853</color>
+    <color name="theme_warning">#FFFFB300</color>
+    <color name="theme_error">#FFBA1A1A</color>
+    <color name="theme_info">#FF0288D1</color>
+    <color name="theme_gradient_start">#FF6750A4</color>
+    <color name="theme_gradient_end">#FF625B71</color>
+    <color name="theme_selected_bg">#FFE8DEF8</color>
+    <color name="theme_selected_border">#FF6750A4</color>
+    <color name="theme_divider">#FFCAC4D0</color>
     <color name="theme_overlay">#80000000</color>
-    <color name="theme_highlight">#FFF9C4</color>
-    <color name="theme_disabled">#BDBDBD</color>
-    <color name="theme_card_background">#F0F0F0</color><!-- 卡片背景色 - 与整体背景一致 -->
-    <color name="theme_card_elevated">#FFFFFF</color><!-- 卡片凸起背景 - 白色，有层次感 -->
-    <color name="search_box_background">#E0E0E0</color><!-- 搜索框背景 - 日间模式 -->
-    
-    <!-- 视频源列表颜色 -->
-    <color name="unselected_bg">#F5F5F5</color><!-- 未选中项背景 - 浅灰色 -->
-    <color name="unselected_text">#757575</color><!-- 未选中项文字 - 灰色 -->
-    
-    <!-- 播放器进度条颜色 - 腾讯视频风格 -->
-    <color name="player_progress_played">#00D7D0</color><!-- 已播放进度 - 青色 -->
-    <color name="player_progress_buffered">#4D00D7D0</color><!-- 已缓冲进度 - 半透明青色 -->
-    <color name="player_progress_unplayed">#33FFFFFF</color><!-- 未播放进度 - 半透明白色 -->
-    
-    <!-- 选集背景颜色 - 根据时长区分 -->
-    <color name="episode_movie_bg">#1A237E</color><!-- 电影背景 - 更深的蓝色 (≥60分钟) -->
-    <color name="episode_normal_bg">#FFFFFF</color><!-- 普通影视背景 - 白色 (<60分钟) -->
-    <color name="episode_movie_text">#FFD700</color><!-- 电影文字 - 金黄色 -->
-    <color name="episode_normal_text">#000000</color><!-- 普通影视文字 - 黑色 -->
-    <!-- ===== Material 3 表面色 / 悬浮胶囊底栏 ===== -->
-    <color name="theme_surface">#FFFFFFFF</color>
-    <color name="theme_surface_container">#FFF7F7FA</color>
-    <color name="theme_surface_container_low">#FFFFFFFF</color>
-    <color name="theme_outline">#FFE3E3E8</color>
-    <color name="theme_primary_container">#FFE7E5FF</color>
-    <color name="theme_on_primary_container">#FF2A2570</color>
-    <color name="theme_secondary_container">#FFEDEBFF</color>
-    <color name="theme_on_secondary_container">#FF2A2570</color>
-    <color name="nav_capsule">#F2FFFFFF</color>
-    <color name="nav_capsule_stroke">#14000000</color>
-    <!-- 底栏透镜（FlClash：secondary 色调 90 tone，85% 不透明） -->
-    <color name="nav_lens">#D9EDEBFF</color>
-    <color name="nav_item_idle">#FF6B7280</color>
+    <color name="theme_highlight">#FFFFF9C4</color>
+    <color name="theme_disabled">#FFBDBDBD</color>
+
+    <!-- 列表未选中态 -->
+    <color name="unselected_bg">#FFF7F2FA</color>
+    <color name="unselected_text">#FF49454F</color>
+
+    <!-- 播放器进度条：主色系 -->
+    <color name="player_progress_played">#FF6750A4</color>
+    <color name="player_progress_buffered">#4D6750A4</color>
+    <color name="player_progress_unplayed">#33FFFFFF</color>
+
+    <!-- 选集背景（按时长区分） -->
+    <color name="episode_movie_bg">#FFEADDFF</color>
+    <color name="episode_normal_bg">#FFF7F2FA</color>
+    <color name="episode_movie_text">#FF21005D</color>
+    <color name="episode_normal_text">#FF1D1B20</color>
+
+    <!-- ===== 悬浮胶囊底栏（FlClash NavigationDock） ===== -->
+    <color name="nav_capsule">#FFF3EDF7</color>
+    <color name="nav_capsule_stroke">#00FFFFFF</color>
+    <color name="nav_lens">#FFE7E0EC</color>
+    <color name="nav_item_idle">#FF49454F</color>
 </resources>

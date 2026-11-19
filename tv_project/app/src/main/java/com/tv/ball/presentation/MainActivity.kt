@@ -16,7 +16,6 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.tv.ball.R
 import com.tv.ball.databinding.ActivityMainBinding
-import com.tv.ball.presentation.history.HistoryFragment
 import com.tv.ball.presentation.home.HomeFragment
 import com.tv.ball.presentation.localvideo.LocalVideoActivity
 import com.tv.ball.presentation.nav.FloatingNavDock
@@ -28,7 +27,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
-    private enum class Tab { HOME, HISTORY, SOURCE, PROFILE }
+    private enum class Tab { HOME, SOURCE, PROFILE }
 
     private var currentTab: Tab = Tab.HOME
 
@@ -90,7 +89,6 @@ class MainActivity : AppCompatActivity() {
         loadFragment(
             when (tab) {
                 Tab.HOME -> HomeFragment()
-                Tab.HISTORY -> HistoryFragment()
                 Tab.SOURCE -> VideoSourceFragment()
                 Tab.PROFILE -> ProfileFragment()
             }
@@ -103,9 +101,9 @@ class MainActivity : AppCompatActivity() {
             .commit()
     }
 
-    /** 供首页「历史」图标调用，切换到历史标签页。 */
+    /** 供首页「历史」图标调用：打开独立的观看历史页面。 */
     fun switchToHistory() {
-        selectTab(Tab.HISTORY, fromDock = false)
+        startActivity(Intent(this, com.tv.ball.presentation.history.HistoryActivity::class.java))
     }
 
     private fun loadCloudVideoSources() {
@@ -169,4 +167,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
+
+
 
