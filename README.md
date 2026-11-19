@@ -10,9 +10,12 @@
 [![compileSdk](https://img.shields.io/badge/compileSdk-36-blue.svg)](https://developer.android.com)
 [![ABI](https://img.shields.io/badge/ABI-arm64--v8a-orange.svg)](tv_project)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Download](https://img.shields.io/badge/download-latest-3ee0b4.svg)](https://303562915.github.io/tv/)
 
 TV Player 面向电视大屏与遥控器操作，基于 Kotlin + ExoPlayer，专注**本地播放与网络直链播放**，
 不内置任何影视内容、不做页面解析、不需要账号登录。所有观看数据只保存在本机。
+
+> 下载页：<https://303562915.github.io/tv/>（CI 自动同步最新 APK 与校验值）
 
 ---
 
@@ -132,6 +135,16 @@ git push origin v1.0.0
 
 release 包的签名通过 Repository Secrets 注入（`KEYSTORE_BASE64`、`KEYSTORE_PASSWORD`、
 `KEY_ALIAS`、`KEY_PASSWORD`）；四项缺失时 CI 自动改用 debug 签名，保证下载的包一定能安装。
+
+## 下载页（GitHub Pages）
+
+站点源码在 `docs/`，由 `Pages` 工作流发布：<https://303562915.github.io/tv/>
+
+- 每次 `Build` 结束后自动刷新：用 `GITHUB_TOKEN` 读取本仓库 Releases，把最近 3 个 APK
+  镜像到站点根目录的 `apk/`（私有仓库的 Release 资产对外 404，所以需要镜像），
+  并把版本、体积、更新日期与 SHA-256 写入 `docs/latest.json`。
+- 首次启用：仓库 **Settings → Pages → Build and deployment → Source** 选择 **GitHub Actions**，
+  再手动跑一次 **Pages** 工作流（或等下一次 `Build` 完成）。
 
 ## 安装
 
