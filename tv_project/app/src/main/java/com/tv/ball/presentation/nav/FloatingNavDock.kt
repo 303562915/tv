@@ -151,12 +151,9 @@ class FloatingNavDock @JvmOverloads constructor(
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 ).apply { topMargin = dp(2) }
             )
-            column.setOnClickListener {
-                if (index != selectedIndex) {
-                    setSelected(index, animate = true)
-                    onSelected?.invoke(index)
-                }
-            }
+            // 触摸由 dock 统一处理（onInterceptTouchEvent 拦截），
+            // 这里的点击只服务键盘 / 遥控器确认键。
+            column.setOnClickListener { commitSelection(index) }
             itemsContainer.addView(
                 column,
                 LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
@@ -186,7 +183,9 @@ class FloatingNavDock @JvmOverloads constructor(
 
     // ---------------------------------------------------------------- 手势
 
-    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean = false
+    // FlClash 在整条 bar 上挂原始 pointer 监听，子项不参与手势仲裁，
+    // 否则按下的抬起、拖动跟手都会被 Clickable 子 View 吃掉。
+    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean = destinations.isNotEmpty()
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (destinations.isEmpty()) return false
@@ -244,12 +243,14 @@ class FloatingNavDock @JvmOverloads constructor(
 
     private fun commitSelection(index: Int) {
         dropping = true
-        moveLensTo(index.toFloat(), animate = true)
-        if (index != selectedIndex) {
-            setSelected(index, animate = true)
-        } else {
-            liftThenDrop()
+        val changed = index != selectedIndex
+        if (changed) {
+            selectedIndex = index
+            renderItems()
+            onSelected?.invoke(index)
         }
+        moveLensTo(index.toFloat(), animate = true)
+        liftThenDrop()
     }
 
     /** 对应 _dropLift()：等透镜到位后才允许抬起的透镜落下。 */
@@ -284,11 +285,7 @@ class FloatingNavDock @JvmOverloads constructor(
     }
 
     private fun layoutItems() {
-        // itemsContainer 由 LinearLayout 自行布局，这里只需保证高度撑满
-        itemsContainer.layout(
-            barPadding, 0,
-            width - barPadding, height
-        )
+        // itemsContainer 由 FrameLayout + LinearLayout 自行布局（padding 由容器负责）
     }
 
     private fun layoutLens() {
@@ -367,4 +364,5 @@ class FloatingNavDock @JvmOverloads constructor(
         }
     }
 }
+
 
