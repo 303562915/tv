@@ -42,7 +42,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="多选"
-            android:textColor="#1E88E5"
+            android:textColor="@color/theme_primary"
             android:textSize="14sp"
             android:padding="8dp"
             android:clickable="true"
@@ -124,7 +124,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="下载当前"
-            android:textColor="#1E88E5"
+            android:textColor="@color/theme_primary"
             android:textSize="14sp"
             android:padding="12dp"
             android:layout_marginStart="8dp"
@@ -137,7 +137,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="批量下载"
-            android:textColor="#1E88E5"
+            android:textColor="@color/theme_primary"
             android:textSize="14sp"
             android:textStyle="bold"
             android:padding="12dp"
@@ -149,3 +149,4 @@
     </LinearLayout>
 
 </LinearLayout>
+

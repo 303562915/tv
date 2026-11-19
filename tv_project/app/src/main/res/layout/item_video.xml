@@ -33,7 +33,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="top|end"
                 android:layout_margin="4dp"
-                android:background="#CCFF5722"
+                android:background="@color/theme_primary"
                 android:paddingStart="6dp"
                 android:paddingTop="2dp"
                 android:paddingEnd="6dp"
@@ -60,3 +60,4 @@
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>
+

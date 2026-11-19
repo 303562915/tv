@@ -43,7 +43,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="重新解析"
-            android:textColor="#1E88E5"
+            android:textColor="@color/theme_primary"
             android:textSize="13sp"
             android:padding="8dp"
             android:clickable="true"
@@ -95,3 +95,4 @@
     </LinearLayout>
 
 </LinearLayout>
+
