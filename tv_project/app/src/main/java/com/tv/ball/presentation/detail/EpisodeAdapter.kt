@@ -79,12 +79,7 @@ class EpisodeAdapter(
             
             binding.episodeNumber.text = episodeNumber
             binding.episodeNameText.text = episode.name
-            
-            // 判断是否为VIP集数（假设第5集及以后为VIP）
-            val isVip = position >= 4
-            
-            // 显示/隐藏VIP标签
-            binding.vipBadge.visibility = if (isVip) android.view.View.VISIBLE else android.view.View.GONE
+            binding.vipBadge.visibility = android.view.View.GONE
             
             // 高亮当前播放的集数（使用腾讯风格）
             if (isSelected) {
@@ -132,3 +127,4 @@ class EpisodeAdapter(
         }
     }
 }
+

@@ -50,12 +50,7 @@ class EpisodeSelectorAdapter(
             val episodeNumber = episode.name.replace("第", "").replace("集", "")
             binding.episodeNumber.text = episodeNumber
             binding.episodeNameText.text = episode.name
-
-            // 判断是否为VIP集数（假设第5集及以后为VIP）
-            val isVip = position >= 4
-            
-            // 显示/隐藏VIP标签
-            binding.vipBadge.visibility = if (isVip) android.view.View.VISIBLE else android.view.View.GONE
+            binding.vipBadge.visibility = android.view.View.GONE
 
             // 使用 adapterPosition 而不是 position 参数来判断选中状态
             val currentPosition = bindingAdapterPosition
@@ -122,3 +117,4 @@ class EpisodeSelectorAdapter(
         }
     }
 }
+
