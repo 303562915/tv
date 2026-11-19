@@ -23,14 +23,7 @@
                 android:layout_height="?attr/actionBarSize"
                 android:background="@android:color/transparent">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="观看历史"
-                    android:textColor="?android:attr/textColorPrimary"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
+                <!-- 标题由 HistoryActivity 提供，这里只保留「清空」操作 -->
                 <Button
                     android:id="@+id/btnClearAll"
                     android:layout_width="wrap_content"
@@ -38,7 +31,8 @@
                     android:layout_gravity="end"
                     android:layout_marginEnd="8dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:text="清空"
+                    android:text="@string/clear_history"
+                    android:textColor="?attr/colorPrimary"
                     android:textSize="14sp" />
 
             </androidx.appcompat.widget.Toolbar>
@@ -64,3 +58,4 @@
         android:visibility="gone" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
+

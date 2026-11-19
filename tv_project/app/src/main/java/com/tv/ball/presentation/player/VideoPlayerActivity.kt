@@ -1205,7 +1205,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                 // 显示缓冲提示（无论是否正在播放）
                 runOnUiThread {
                     binding.loadingView.visibility = View.VISIBLE
-                    updateStatusText("正在缓冲...")
+                    updateStatusText("缓冲中")
                 }
             }
             
@@ -1256,7 +1256,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                     
                     runOnUiThread {
                         val nextUrl = sniffedVideoLinks[currentLinkIndex]
-                        updateStatusText("链接 ${currentLinkIndex} 播放失败，切换到链接 ${currentLinkIndex + 1}...")
+                        updateStatusText("切换线路")
                         
                         Handler(Looper.getMainLooper()).postDelayed({
                             playUrl(nextUrl)
@@ -1266,18 +1266,18 @@ class VideoPlayerActivity : AppCompatActivity() {
                 } else if (!isAutoSwitchingLink && isSniffing) {
                     // 正在嗅探中，等待新链接
                     runOnUiThread {
-                        updateStatusText("当前链接播放失败，等待嗅探新链接...")
+                        updateStatusText("切换线路")
                     }
                 } else if (!isSniffing && sniffedVideoLinks.isEmpty()) {
                     // 没有链接且不在嗅探，显示错误
                     runOnUiThread {
-                        updateStatusText("未检测到视频链接")
+                        updateStatusText("解析失败")
                         binding.loadingView.visibility = View.GONE
                     }
                 } else {
                     // 所有链接都失败了
                     runOnUiThread {
-                        updateStatusText("所有链接播放失败")
+                        updateStatusText("播放失败")
                         binding.loadingView.visibility = View.GONE
                     }
                 }
@@ -2210,9 +2210,9 @@ class VideoPlayerActivity : AppCompatActivity() {
         
         // 显示状态提示
         if (isVideoUrl(url)) {
-            updateStatusText("正在播放链接 ${currentLinkIndex + 1}/${sniffedVideoLinks.size}")
+            updateStatusText("${currentLinkIndex + 1}/${sniffedVideoLinks.size}")
         } else {
-            updateStatusText("正在解析链接 ${currentLinkIndex + 1}...")
+            updateStatusText("解析中")
         }
         
         // 使用ExoPlayer播放，传递请求头
@@ -2223,7 +2223,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             exoPlayerManager.play()
             hasStartedPlaying = true
         } catch (e: Exception) {
-            updateStatusText("播放失败: ${e.message}")
+            updateStatusText("播放失败")
             binding.loadingView.visibility = View.GONE
         }
     }
@@ -2265,7 +2265,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         val pageUrl = currentEpisode?.url ?: intent.getStringExtra("VIDEO_URL") ?: ""
         
         if (pageUrl.isEmpty()) {
-            updateStatusText("无法获取视频地址")
+            updateStatusText("解析失败")
             binding.loadingView.visibility = View.GONE
             return
         }
@@ -2276,7 +2276,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             sniffedVideoLinks.add(pageUrl)
             currentLinkIndex = 0
             hasStartedPlaying = false
-            updateStatusText("检测到视频链接")
+            updateStatusText("准备播放")
             playUrl(pageUrl)
             return
         }
@@ -2288,7 +2288,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         isSniffing = true
         
         // 显示开始嗅探
-        updateStatusText("正在嗅探视频链接...")
+        updateStatusText("解析中")
         binding.loadingView.visibility = View.VISIBLE
         
         lifecycleScope.launch {
@@ -2338,7 +2338,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                                 
                                 if (bestLink != null) {
                                     android.util.Log.d("VideoPlayer", "选择最优链接播放: $bestLink")
-                                    updateStatusText("检测到视频链接，开始播放...")
+                                    updateStatusText("准备播放")
                                     // 保存解析后的链接到ViewModel
                                     viewModel.setParsedVideoUrl(bestLink)
                                     Handler(Looper.getMainLooper()).postDelayed({
@@ -2347,7 +2347,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                                 }
                             } else {
                                 // 已经在播放，只更新状态
-                                updateStatusText("已发现 ${sniffedVideoLinks.size} 个链接")
+                                updateStatusText("解析完成")
                             }
                         }
                     }
@@ -2361,17 +2361,17 @@ class VideoPlayerActivity : AppCompatActivity() {
                 
                 runOnUiThread {
                     if (sniffedVideoLinks.isEmpty()) {
-                        updateStatusText("未检测到视频链接")
+                        updateStatusText("解析失败")
                         binding.loadingView.visibility = View.GONE
                     } else {
-                        updateStatusText("嗅探完成，共 ${sniffedVideoLinks.size} 个链接")
+                        updateStatusText("解析完成")
                     }
                 }
                 
             } catch (e: Exception) {
                 isSniffing = false
                 runOnUiThread {
-                    updateStatusText("嗅探失败: ${e.message}")
+                    updateStatusText("解析失败")
                     binding.loadingView.visibility = View.GONE
                 }
                 android.util.Log.e("VideoPlayer", "Sniffing failed", e)
@@ -2385,6 +2385,12 @@ class VideoPlayerActivity : AppCompatActivity() {
     private fun updateStatusText(message: String) {
         runOnUiThread {
             binding.statusText?.apply {
+                if (message.isBlank()) {
+                    // 空文案表示“无需提示”，直接隐藏
+                    removeCallbacks(hideStatusTextRunnable)
+                    visibility = View.GONE
+                    return@apply
+                }
                 text = message
                 visibility = View.VISIBLE
                 
@@ -3508,7 +3514,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                             is PlayerState.Loading -> {
                                 binding.loadingView.visibility = View.VISIBLE
                                 binding.errorText.visibility = View.GONE
-                                updateStatusText("加载中...")
+                                updateStatusText("加载中")
                             }
                             is PlayerState.LoadingWithMessage -> {
                                 // 检查是否需要嗅探
@@ -3534,7 +3540,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                                 
                                 // 显示播放器就绪提示
                                 if (state is PlayerState.Ready) {
-                                    updateStatusText("播放器就绪")
+                                    updateStatusText("")
                                 }
                                 
                                 // 播放器准备好或开始播放后，如果有待恢复的位置且还没恢复过，则恢复播放位置
@@ -3553,7 +3559,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                                 binding.loadingView.visibility = View.GONE
                                 binding.errorText.visibility = View.VISIBLE
                                 binding.errorText.text = state.message
-                                updateStatusText("播放失败: ${state.message}")
+                                updateStatusText("播放失败")
                             }
                             else -> {}
                         }
@@ -5112,3 +5118,5 @@ class VideoPlayerActivity : AppCompatActivity() {
         }
     }
 }
+
+

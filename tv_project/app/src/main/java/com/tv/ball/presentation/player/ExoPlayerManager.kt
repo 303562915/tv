@@ -24,7 +24,7 @@ class ExoPlayerManager constructor(
         private const val TAG = "ExoPlayerManager"
         
         // 缓存配置 - 30MB 缓存（约30秒视频）
-        private const val CACHE_SIZE = 30 * 1024 * 1024L // 30MB 缓存
+        private const val CACHE_SIZE = 2L * 1024 * 1024 * 1024 // 2GB 播放缓存（边看边缓存，可离线回看）
     }
     
     private var player: ExoPlayer? = null
@@ -369,10 +369,15 @@ class ExoPlayerManager constructor(
                 Log.d(TAG, "HTTP数据源工厂类型: ${httpDataSourceFactory.javaClass.name}")
 
                 // 创建带缓存的 DataSource.Factory
+                // 关键修复：之前 setCacheWriteDataSinkFactory(null) 等于「只读不写」，
+                // 播完什么都没缓存下来；这里显式给出 CacheDataSink，边播边写盘。
+                val cacheSinkFactory = com.google.android.exoplayer2.upstream.cache.CacheDataSink.Factory()
+                    .setCache(cache)
+                    .setFragmentSize(5 * 1024 * 1024L)
                 val cacheDataSourceFactory = com.google.android.exoplayer2.upstream.cache.CacheDataSource.Factory()
                     .setCache(cache)
                     .setUpstreamDataSourceFactory(httpDataSourceFactory)
-                    .setCacheWriteDataSinkFactory(null)
+                    .setCacheWriteDataSinkFactory(cacheSinkFactory)
                     .setFlags(com.google.android.exoplayer2.upstream.cache.CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
                 
                 Log.d(TAG, "缓存数据源工厂创建完成")
@@ -589,3 +594,5 @@ class ExoPlayerManager constructor(
         fun onPlayingChanged(isPlaying: Boolean)
     }
 }
+
+

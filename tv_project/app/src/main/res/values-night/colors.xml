@@ -1,66 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- FlClash 同款种子色 0xFF6750A4（tonalSpot）在深色下的 M3 结果 -->
 <resources>
-    <!-- 夜间模式基础颜色 -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="transparent">#00000000</color>
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="primary">#FF6B9EFF</color>
 
-    <!-- 夜间模式主题配色 -->
-    <color name="theme_primary">#6C63FF</color><!-- 紫罗兰色 -->
-    <color name="theme_accent">#FF6584</color><!-- 粉红色 -->
-    <color name="theme_text_primary">#E0E0E0</color><!-- 浅色文本 - 夜间模式 -->
-    <color name="theme_text_secondary">#B0B0B0</color><!-- 灰色文本 - 夜间模式 -->
-    <color name="theme_background">#121212</color><!-- 深色背景 - 夜间模式 -->
-    <color name="theme_card">#1E1E1E</color><!-- 卡片背景 - 夜间模式 -->
+    <color name="primary">#FFD0BCFF</color>
+    <color name="theme_primary">#FFD0BCFF</color>
+    <color name="theme_accent">#FFCCC2DC</color>
+    <color name="theme_primary_container">#FF4F378B</color>
+    <color name="theme_on_primary_container">#FFEADDFF</color>
+    <color name="theme_secondary_container">#FF4A4458</color>
+    <color name="theme_on_secondary_container">#FFE8DEF8</color>
 
-    <!-- 夜间模式扩展配色 -->
-    <color name="theme_success">#00C853</color>
-    <color name="theme_warning">#FFB300</color>
-    <color name="theme_error">#D32F2F</color>
-    <color name="theme_info">#0288D1</color>
-    <color name="theme_gradient_start">#667EEA</color>
-    <color name="theme_gradient_end">#764BA2</color>
-    <color name="theme_selected_bg">#2C3E2F</color><!-- 深色选中背景 -->
-    <color name="theme_selected_border">#4CAF50</color>
-    <color name="theme_divider">#2C2C2C</color><!-- 深色分割线 -->
+    <color name="theme_background">#FF141218</color>
+    <color name="theme_surface">#FF141218</color>
+    <color name="theme_surface_container">#FF211F26</color>
+    <color name="theme_surface_container_low">#FF1D1B20</color>
+    <color name="theme_outline">#FF938F99</color>
+    <color name="theme_text_primary">#FFE6E0E9</color>
+    <color name="theme_text_secondary">#FFCAC4D0</color>
+    <color name="theme_card">#FF2B2930</color>
+    <color name="theme_card_background">#FF211F26</color>
+    <color name="theme_card_elevated">#FF2B2930</color>
+    <color name="search_box_background">#FF2B2930</color>
+
+    <color name="theme_success">#FF00C853</color>
+    <color name="theme_warning">#FFFFB300</color>
+    <color name="theme_error">#FFFFB4AB</color>
+    <color name="theme_info">#FF0288D1</color>
+    <color name="theme_gradient_start">#FFD0BCFF</color>
+    <color name="theme_gradient_end">#FFCCC2DC</color>
+    <color name="theme_selected_bg">#FF4A4458</color>
+    <color name="theme_selected_border">#FFD0BCFF</color>
+    <color name="theme_divider">#FF49454F</color>
     <color name="theme_overlay">#80000000</color>
-    <color name="theme_highlight">#3E3A1F</color><!-- 深色高亮 -->
-    <color name="theme_disabled">#5C5C5C</color><!-- 深色禁用状态 -->
-    <color name="theme_card_background">#2C2C2C</color><!-- 深色卡片背景 - 更深的灰色 -->
-    <color name="theme_card_elevated">#3A3A3A</color><!-- 卡片凸起背景 - 夜间模式 -->
-    <color name="search_box_background">#3A3A3A</color><!-- 搜索框背景 - 夜间模式 -->
+    <color name="theme_highlight">#FF3E3A1F</color>
+    <color name="theme_disabled">#FF5C5C5C</color>
 
-    <!-- 夜间模式视频源列表颜色 -->
-    <color name="unselected_bg">#2C2C2C</color><!-- 未选中项背景 - 深灰色 -->
-    <color name="unselected_text">#9E9E9E</color><!-- 未选中项文字 - 灰色 -->
+    <color name="unselected_bg">#FF1D1B20</color>
+    <color name="unselected_text">#FFCAC4D0</color>
 
-    <!-- 播放器进度条颜色 - 腾讯视频风格 -->
-    <color name="player_progress_played">#00D7D0</color><!-- 已播放进度 - 青色 -->
-    <color name="player_progress_buffered">#4D00D7D0</color><!-- 已缓冲进度 - 半透明青色 -->
-    <color name="player_progress_unplayed">#33FFFFFF</color><!-- 未播放进度 - 半透明白色 -->
+    <color name="player_progress_played">#FFD0BCFF</color>
+    <color name="player_progress_buffered">#4DD0BCFF</color>
+    <color name="player_progress_unplayed">#33FFFFFF</color>
 
-    <!-- 夜间模式选集背景颜色 -->
-    <color name="episode_movie_bg">#1A237E</color><!-- 电影背景 - 深蓝色 -->
-    <color name="episode_normal_bg">#2C2C2C</color><!-- 普通影视背景 - 深灰色 -->
-    <color name="episode_movie_text">#FFD700</color><!-- 电影文字 - 金黄色 -->
-    <color name="episode_normal_text">#E0E0E0</color><!-- 普通影视文字 - 浅色 -->
-    <!-- ===== Material 3 表面色 / 悬浮胶囊底栏（夜间） ===== -->
-    <color name="theme_surface">#FF1B1B1F</color>
-    <color name="theme_surface_container">#FF1F1F24</color>
-    <color name="theme_surface_container_low">#FF17171B</color>
-    <color name="theme_outline">#FF33333A</color>
-    <color name="theme_primary_container">#FF322D7A</color>
-    <color name="theme_on_primary_container">#FFE7E5FF</color>
-    <color name="theme_secondary_container">#FF2F2B5E</color>
-    <color name="theme_on_secondary_container">#FFE7E5FF</color>
-    <color name="nav_capsule">#F21E1E23</color>
-    <color name="nav_capsule_stroke">#1FFFFFFF</color>
-    <!-- 底栏透镜（夜间：secondary 色调 4 tone） -->
-    <color name="nav_lens">#D92F2B5E</color>
-    <color name="nav_item_idle">#FF9AA0AC</color>
+    <color name="episode_movie_bg">#FF4F378B</color>
+    <color name="episode_normal_bg">#FF1D1B20</color>
+    <color name="episode_movie_text">#FFEADDFF</color>
+    <color name="episode_normal_text">#FFE6E0E9</color>
+
+    <!-- ===== 悬浮胶囊底栏（夜间） ===== -->
+    <color name="nav_capsule">#FF211F26</color>
+    <color name="nav_capsule_stroke">#00FFFFFF</color>
+    <color name="nav_lens">#FF4A4458</color>
+    <color name="nav_item_idle">#FFCAC4D0</color>
 </resources>

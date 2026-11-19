@@ -418,7 +418,7 @@
         android:layout_gravity="center_horizontal|top"
         android:layout_marginTop="100dp"
         android:visibility="gone"
-        app:cardBackgroundColor="#E01E88E5"
+        app:cardBackgroundColor="?attr/colorPrimary"
         app:cardCornerRadius="24dp"
         app:cardElevation="8dp">
 
@@ -696,3 +696,4 @@
     </LinearLayout>
 
 </FrameLayout>
+

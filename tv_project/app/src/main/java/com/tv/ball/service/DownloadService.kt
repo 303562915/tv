@@ -54,7 +54,18 @@ class DownloadService : Service() {
         createNotificationChannel()
         
         // 启动前台服务
-        startForeground(NOTIFICATION_ID, createNotification("准备下载...", 0, 0))
+        // Android 14+ 必须显式带上 foregroundServiceType，否则抛 MissingForegroundServiceTypeException
+        val startNotification = createNotification("准备下载...", 0, 0)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            androidx.core.app.ServiceCompat.startForeground(
+                this,
+                NOTIFICATION_ID,
+                startNotification,
+                android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+            )
+        } else {
+            startForeground(NOTIFICATION_ID, startNotification)
+        }
         
         // 监听下载任务变化
         observeDownloadTasks()
