@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F070「Range 请求与流式传输」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f070_title">Range 请求与流式传输</string>
+    <string name="f070_desc">解析 bytes 区间给出 206 / 200 / 416，并按 64 KB 分块往外发，大文件不整读内存</string>
+
+    <!-- 请求参数卡片 -->
+    <string name="f070_section_request">请求参数</string>
+    <string name="f070_label_size">文件总大小（字节）</string>
+    <string name="f070_hint_size">例：10485760</string>
+    <string name="f070_default_size">10485760</string>
+    <string name="f070_label_range">Range 请求头</string>
+    <string name="f070_hint_range">留空表示没有 Range 头</string>
+    <string name="f070_default_range">bytes=0-</string>
+    <string name="f070_hint_range_forms">认三种写法：bytes=0-（从 0 到末尾）、bytes=100-200（闭区间）、bytes=-500（最后 500 字节）；其它单位或不认识的语法按「整份」处理</string>
+    <string name="f070_label_mime">Content-Type</string>
+    <string name="f070_hint_mime">例：video/mp4</string>
+    <string name="f070_default_mime">video/mp4</string>
+    <string name="f070_action_parse">解析</string>
+    <string name="f070_action_parse_hint">按上面三个值算</string>
+    <string name="f070_action_back">返回</string>
+
+    <!-- 示例卡片 -->
+    <string name="f070_section_sample">三类示例</string>
+    <string name="f070_sample_partial">示例 · 206 Partial Content</string>
+    <string name="f070_sample_partial_hint">bytes=100-200</string>
+    <string name="f070_sample_full">示例 · 200 OK</string>
+    <string name="f070_sample_full_hint">不带 Range 头</string>
+    <string name="f070_sample_invalid">示例 · 416 Range Not Satisfiable</string>
+    <string name="f070_sample_invalid_hint">bytes 起点越过文件末尾</string>
+
+    <!-- 响应卡片 -->
+    <string name="f070_section_response">将返回的响应</string>
+    <string name="f070_status_idle">—</string>
+    <string name="f070_decision_idle">在上面填好总大小与 Range 头，点「解析」看状态码和响应头；也可以直接点下面的示例按钮</string>
+    <string name="f070_label_range_value">返回区间</string>
+    <string name="f070_label_length_value">Content-Length</string>
+    <string name="f070_label_chunk_value">分块发送</string>
+    <string name="f070_value_empty">—</string>
+    <string name="f070_header_label">响应头</string>
+    <string name="f070_header_hint">解析之后这里会出现真实会发出去的头字段，可以选中复制</string>
+
+    <!-- 结果文案 -->
+    <string name="f070_decision_partial">区间合法：回 206，只发这一段，播放器拖动进度条时不必重下前半段</string>
+    <string name="f070_decision_full">没有分段要求：回 200，整份发送</string>
+    <string name="f070_decision_unsatisfiable">区间不可满足：回 416，并在 Content-Range 里告知文件总长度</string>
+    <string name="f070_range_value">%1$d - %2$d</string>
+    <string name="f070_length_value">%1$d 字节</string>
+    <string name="f070_chunk_value">%1$d 块 × %2$d KB</string>
+    <string name="f070_chunk_none">不分块（空响应体）</string>
+    <string name="f070_parse_error">总大小要是大于 0 的整数</string>
+
+    <!-- Toast -->
+    <string name="f070_toast_size_invalid">总大小填一个大于 0 的整数，单位是字节</string>
+
+    <string name="f070_engine_note">接线：F070Engine.parseRange(header, totalSize) 得 Partial(start, end, length) / Full / Unsatisfiable，headersFor(range, totalSize, mime) 出响应头，statusFor(range) 出 206 / 200 / 416，shouldServeFull(range) 判整份分支；真正发数据走 streamChunk(file, start, len, chunkSize, sink)，用 RandomAccessFile 逐块读，峰值堆占用只有一块缓冲区。</string>
+</resources>
