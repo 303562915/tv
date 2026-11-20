@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F057「缓冲与并发策略」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f057_title">缓冲与并发策略</string>
+    <string name="f057_desc">弱网下默认缓冲容易卡：挑一个档位或自己填四项数字，改完立刻给出等效的 DefaultLoadControl 参数与并发连接数说明</string>
+
+    <!-- 档位预设 -->
+    <string name="f057_section_preset">档位预设</string>
+    <string name="f057_preset_saver">省流</string>
+    <string name="f057_preset_balanced">均衡</string>
+    <string name="f057_preset_aggressive">激进</string>
+    <string name="f057_preset_custom">自定义</string>
+    <string name="f057_preset_hint">点一下卡片即套用并保存；卡片下方是本档实际数值（最小 / 最大缓冲 · 起播阈值 · 并发条数）</string>
+
+    <!-- 自定义四项 -->
+    <string name="f057_section_custom">自定义参数</string>
+    <string name="f057_label_buffer">缓冲时长（毫秒）</string>
+    <string name="f057_hint_buffer">例如 18000</string>
+    <string name="f057_label_min">最小缓冲（毫秒）</string>
+    <string name="f057_hint_min">例如 15000</string>
+    <string name="f057_label_max">最大缓冲（毫秒）</string>
+    <string name="f057_hint_max">例如 50000</string>
+    <string name="f057_label_conn">并发连接数（1~8）</string>
+    <string name="f057_hint_conn">例如 2</string>
+    <string name="f057_range_note">缓冲 1000~120000、最小 1000~60000、最大 2000~180000，且最大必须大于最小、缓冲时长要落在最小~最大之间；越界会按区间夹回来再保存</string>
+    <string name="f057_input_invalid">四项都要填数字，先补全再保存</string>
+
+    <!-- 等效参数 -->
+    <string name="f057_section_preview">等效参数</string>
+    <string name="f057_current">当前生效</string>
+    <string name="f057_active_preset">档位 %1$s</string>
+    <string name="f057_preview_label">粘进播放器的参数</string>
+    <string name="f057_preview_empty">填完四项后这里显示等效参数</string>
+    <string name="f057_status_ok">参数都在范围内，可以保存</string>
+    <string name="f057_status_issues">有 %1$d 处需要修正：\n%2$s</string>
+
+    <!-- 动作与提示 -->
+    <string name="f057_action_back">返回</string>
+    <string name="f057_action_save">保存这组参数</string>
+    <string name="f057_action_reset">恢复默认（均衡）</string>
+    <string name="f057_action_hint">确认键</string>
+    <string name="f057_saved">已保存：%1$s</string>
+    <string name="f057_saved_toast">缓冲参数已保存</string>
+    <string name="f057_saved_fixed">已按上下界纠正后保存：\n%1$s</string>
+    <string name="f057_saved_fixed_toast">有参数越界，已纠正后保存</string>
+    <string name="f057_preset_applied">已套用「%1$s」并保存</string>
+    <string name="f057_preset_status">已套用「%1$s」：%2$s</string>
+    <string name="f057_reset_done">已恢复默认（均衡）</string>
+    <string name="f057_reset_status">已恢复默认：%1$s</string>
+
+    <string name="f057_engine_note">接线：播放器建 LoadControl 时读 F057Engine.current(context)（无界面也能读，值已纠偏），把 minBufferMs / maxBufferMs / bufferForPlaybackMs / bufferForPlaybackAfterRebufferMs 四个数喂给 DefaultLoadControl.Builder().setBufferDurationsMs；并发数落在 OkHttpDataSourceFactory 的 ConnectionPool 与音视频轨 / MergingMediaSource 的编排上，LoadControl 本身没有并发参数。</string>
+</resources>
