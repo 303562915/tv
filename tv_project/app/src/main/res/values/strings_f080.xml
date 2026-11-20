@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f080_action_back">action_back</string>
+    <string name="f080_action_play">action_play</string>
+    <string name="f080_action_play_hint">action_play_hint</string>
+    <string name="f080_demo_current">demo_current</string>
+    <string name="f080_demo_idle">点「模拟播放一条」看看会不会留下记录</string>
+    <string name="f080_demo_none">demo_none</string>
+    <string name="f080_demo_now_label">demo_now_label</string>
+    <string name="f080_demo_now_recorded">demo_now_recorded</string>
+    <string name="f080_demo_now_skipped">demo_now_skipped</string>
+    <string name="f080_demo_would_label">若未开启隐私模式会写入：</string>
+    <string name="f080_demo_would_write">demo_would_write</string>
+    <string name="f080_desc">开启后不写播放历史与续播进度，公共场合观看不留下痕迹</string>
+    <string name="f080_engine_note">engine_note</string>
+    <string name="f080_hint_history">hint_history</string>
+    <string name="f080_hint_mask">hint_mask</string>
+    <string name="f080_hint_master">hint_master</string>
+    <string name="f080_hint_progress">hint_progress</string>
+    <string name="f080_label_history">label_history</string>
+    <string name="f080_label_mask">label_mask</string>
+    <string name="f080_label_master">label_master</string>
+    <string name="f080_label_progress">label_progress</string>
+    <string name="f080_mask_changed">mask_changed</string>
+    <string name="f080_mask_sample_body">mask_sample_body</string>
+    <string name="f080_section_demo">section_demo</string>
+    <string name="f080_section_master">section_master</string>
+    <string name="f080_section_scope">section_scope</string>
+    <string name="f080_status_hint_off">status_hint_off</string>
+    <string name="f080_status_hint_on">status_hint_on</string>
+    <string name="f080_status_idle">status_idle</string>
+    <string name="f080_sub_state_off">sub_state_off</string>
+    <string name="f080_sub_state_on">sub_state_on</string>
+    <string name="f080_title">隐私模式</string>
+    <string name="f080_toast_recorded">toast_recorded</string>
+    <string name="f080_toast_skipped">toast_skipped</string>
+</resources>
