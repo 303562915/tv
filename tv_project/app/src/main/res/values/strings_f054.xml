@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f054_title">线路测速缓存</string>
+    <string name="f054_desc">测完的速度带时间戳存下来，按速度排序展示；有效期内的结果直接复用，过期了再重测，不用每次都从头测一遍</string>
+
+    <string name="f054_ttl_section">缓存有效期（TTL）</string>
+    <string name="f054_ttl_1">1 分钟</string>
+    <string name="f054_ttl_5">5 分钟</string>
+    <string name="f054_ttl_30">30 分钟</string>
+    <string name="f054_measure">测速</string>
+    <string name="f054_remeasure">重新测速</string>
+    <string name="f054_measuring">正在测速 · %1$d 条线路</string>
+
+    <string name="f054_status_ready">还没测过 · 点「测速」一次性测 4 条线路，结果按速度排序并缓存</string>
+    <string name="f054_status_ttl">缓存有效期改为 %1$d 分钟 · 已按新 TTL 重新判定过期</string>
+    <string name="f054_status_done">刚测完 %1$d 条线路 · 缓存里 %2$d 条有效 / 共 %3$d 条 · %4$s</string>
+
+    <string name="f054_results_title">测速结果（按速度降序）</string>
+    <string name="f054_summary_placeholder">缓存为空 · 还没测过</string>
+    <string name="f054_summary_empty">缓存为空 · 当前 TTL %1$d 分钟</string>
+    <string name="f054_summary">有效 %1$d 条 / 共 %2$d 条 · 当前 TTL %3$d 分钟</string>
+    <string name="f054_results_empty">还没有缓存 · 测一次速度就会出现在这里</string>
+
+    <string name="f054_row_title">%1$d. %2$s · %3$s</string>
+    <string name="f054_row_valid">%1$s 测量 · 有效，还剩 %2$s</string>
+    <string name="f054_row_stale">%1$s 测量 · 已过期，点「重新测速」刷新</string>
+    <string name="f054_remaining_min">%1$d 分 %2$d 秒</string>
+    <string name="f054_remaining_sec">%1$d 秒</string>
+    <string name="f054_remaining_none">已到 TTL</string>
+
+    <string name="f054_hint_sample">速度用固定种子按线路生成，同一条线路每次测都是同一个值，重测只刷新时间戳；缓存按测量时间戳判过期，所以重测不会因为随机抖动把排序搅乱</string>
+</resources>
