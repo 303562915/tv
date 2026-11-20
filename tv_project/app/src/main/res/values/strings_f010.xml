@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F010「手势灵敏度配置」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f010_title">手势灵敏度配置</string>
+    <string name="f010_desc">调滑动阈值与增益，预览区实时看亮度/音量变化手感</string>
+
+    <!-- 参数卡片 -->
+    <string name="f010_section_params">手势参数</string>
+    <string name="f010_threshold_label">触发阈值</string>
+    <string name="f010_threshold_value">%1$d dp</string>
+    <string name="f010_threshold_hint">手指竖直滑动超过这个距离才开始调亮度/音量，越大越不容易误触</string>
+    <string name="f010_gain_label">滑动增益</string>
+    <string name="f010_gain_value">%1$.1f x</string>
+    <string name="f010_gain_hint">同样一段滑动距离折算出的变化量倍数，越大手感越灵敏</string>
+    <string name="f010_dpad_tip">遥控器：左右键微调当前滑杆，确认键恢复默认</string>
+
+    <!-- 预览卡片 -->
+    <string name="f010_section_preview">实时预览</string>
+    <string name="f010_preview_tip">拖下面这条预览条模拟一次竖直滑动，亮度/音量按当前参数实时算出来</string>
+    <string name="f010_preview_drag_hint">左右键微调 10dp，模拟上滑为正</string>
+    <string name="f010_preview_drag_value">模拟滑动 %1$d dp</string>
+    <string name="f010_preview_drag_none">还没滑动：拖动或按左右键试试</string>
+    <string name="f010_preview_status_none">还没越过阈值：竖直滑动要超过 %1$d dp 才有反应</string>
+    <string name="f010_preview_status_waiting">还差 %1$d dp 才越过阈值，这段距离不会有任何反应</string>
+    <string name="f010_preview_status_active">已越过阈值，亮度 %1$s · 音量 %2$s</string>
+    <string name="f010_hit_yes">已越过阈值</string>
+    <string name="f010_hit_no">未越过阈值</string>
+    <string name="f010_preview_brightness">亮度</string>
+    <string name="f010_preview_volume">音量</string>
+    <string name="f010_preview_delta_up">+%1$.1f%%</string>
+    <string name="f010_preview_delta_down">-%1$.1f%%</string>
+    <string name="f010_preview_delta_zero">0.0%</string>
+    <string name="f010_preview_note">亮度按整屏高度换算（和播放页手势一致），音量按 480dp 全程换算；阈值只决定什么时候开始响应，不改换算结果。</string>
+
+    <!-- 恢复默认 -->
+    <string name="f010_reset">恢复默认</string>
+    <string name="f010_reset_hint">确认键恢复</string>
+    <string name="f010_reset_done">已恢复默认参数</string>
+    <string name="f010_reset_already">当前已是默认参数</string>
+    <string name="f010_default_summary">默认：阈值 %1$d dp · 增益 %2$.1f x</string>
+
+    <!-- 播放页接线说明 -->
+    <string name="f010_player_note">播放页接线：把 GestureHandler 里写死的 abs(deltaY) &gt; 50 换成 F010Engine.applyThreshold(dyDp)，亮度用 deltaToBrightness(dyDp, 屏高dp)，音量用 deltaToVolume(dyDp) 再乘 maxVolume。参数存在 video_player_prefs，改完立即生效。</string>
+</resources>
