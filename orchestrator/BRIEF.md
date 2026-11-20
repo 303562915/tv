@@ -23,12 +23,13 @@
 3. 用 read 工具读 manifest 里列出的**现有文件**（读就够，不要扩大范围）。项目里有大量历史风格，**跟随现有风格，不要重构别人的代码**。
 4. 把要交付的**完整文件**写到：
    `G:\trae\tv\orchestrator\staging\<TASK_ID>\files\<相对路径>`
-   相对路径规则：
-   - Kotlin → `java/com/tv/ball/xxx/YourFile.kt`
-   - 布局 → `res/layout/your_layout.xml`
-   - 字符串 → `res/values/strings.xml`（**整文件全量**，见 §3）
-   - 清单 → `app/src/main/AndroidManifest.xml`（**整文件全量**）
-   - 构建脚本 → `app/build.gradle.kts`（整文件全量，慎用）
+   相对路径规则（**短路径，与 tasks.json 的 touch_files 完全一致**）：
+   - Kotlin → `java/feature/f001/F001Activity.kt`（`java/` 之后直接接 `feature/...`，**不要**再写 `com/tv/ball`）
+   - 布局 → `res/layout/activity_f001.xml`
+   - 字符串 → `res/values/strings_f001.xml`
+   - 单测 → `test/java/com/tv/ball/feature/f095/XxxTest.kt`
+   - 文档/脚本 → 相对仓库根，如 `docs/QUALITY.md`、`orchestrator/scripts/quality_gate.ps1`
+   路径写错会被落到错误目录（历史上出现过 `com/tv/ball/com/tv/ball/...` 的嵌套事故），务必自查。
 5. 写 `G:\trae\tv\orchestrator\staging\<TASK_ID>\notes\report.md`，格式：
    ```
    # <TASK_ID> <标题>
@@ -56,14 +57,14 @@
 - 中文注释、中文 UI 文案，风格与既有代码一致（`//` 说明"为什么"，不要复述代码）。
 - minSdk 24，用到 `VERSION_CODES` 判断必须带版本守卫。TV 设备**没有触摸屏**，涉及焦点的地方必须考虑 D-Pad 可达。
 
-## 3. 全量文件的合并纪律
+## 3. 共享文件：一律不许碰
 
-`strings.xml`、`AndroidManifest.xml`、`colors.xml`、`dimens.xml`、`build.gradle.kts` 这类共享文件必须**整文件交付**，并且：
-- 先 read 当前完整内容；
-- 只在合适位置**追加/插入**你需要的条目，**保留其它所有既有条目原样**（一个字都不许删改）；
-- 新字符串名加你的任务前缀避免撞名（如 `search_suggest_*`、`dlna_*`）。
-- 你只能看到 prepare 时的快照，主智能体会做合并冲突检查；若你的文件比当前版本少了条目，主智能体会退单。
+下面这些是全站共享文件，多个功能并行时会互相覆盖，**你一个字都不许改**：
+`AndroidManifest.xml`、`res/values/strings.xml`、`res/values/colors.xml`、`res/values-night/colors.xml`、`res/values/dimens.xml`、`res/values/themes.xml`、`app/build.gradle.kts`、`libs.versions.toml`、`FeatureCatalog.kt`。
 
+你的字符串全部写进自己的 `res/values/strings_<小写id>.xml`（例如 `strings_f001.xml`），键名一律用 `<小写id>_` 前缀。Activity 的 manifest 声明与功能注册行由主智能体统一接线，你不需要写。
+
+确实需要动共享文件时：写进 `notes/extra_files.txt`（一行一个短路径）并在 report 里说明理由，主智能体决定是否采纳。
 ## 4. 验收门槛（主智能体会做）
 
 1. apply 到仓库
@@ -72,3 +73,5 @@
 4. 通过 → 主智能体 commit（`feat(scope): 标题`）
 
 做不到就**在 notes 里写清卡在哪**，交一个能编译的最小可用实现，别交编译不过的东西。
+
+

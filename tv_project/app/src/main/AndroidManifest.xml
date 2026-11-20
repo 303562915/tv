@@ -143,6 +143,11 @@
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
+        <activity
+            android:name=".feature.f001.F001Activity"
+            android:label="@string/f001_title"
+            android:exported="false" />
+
     </application>
 
 </manifest>

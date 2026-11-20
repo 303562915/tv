@@ -9,6 +9,7 @@ package com.tv.ball.feature
 object FeatureCatalog {
 
     val entries: List<FeatureModule> = listOf(
+        com.tv.ball.feature.f001.F001Module,
         // WIRE:CATALOG
     )
 

@@ -103,8 +103,16 @@ def cmd_show(args) -> int:
 
 
 def resolve_target(rel: str) -> Path:
-    """把任务里的短路径（java/… / res/… / test/…）解析成仓库绝对路径。"""
+    """把任务里的短路径（java/… / res/… / test/…）解析成仓库绝对路径。
+
+    子智能体常写成 java/com/tv/ball/feature/f001/X.kt，这里把多写的包路径归一化掉，
+    避免出现 com/tv/ball/com/tv/ball 的嵌套事故。
+    """
     rel = rel.replace("\\", "/").lstrip("/")
+    if rel.startswith("java/com/tv/ball/"):
+        rel = "java/" + rel[len("java/com/tv/ball/"):]
+    if rel.startswith("test/java/com/tv/ball/"):
+        rel = "test/java/" + rel[len("test/java/com/tv/ball/"):]
     if rel.startswith("java/"):
         return PKG / rel[5:]
     if rel.startswith("res/"):
@@ -130,36 +138,50 @@ def extra_files(tid: str) -> list[str]:
     return [ln.strip() for ln in raw.splitlines() if ln.strip() and not ln.strip().startswith("#")]
 
 
+def _read_raw(p: Path) -> str:
+    """按原样读，保留 CRLF，避免整份 manifest 被改成 LF。"""
+    with p.open("r", encoding="utf-8", newline="") as fh:
+        return fh.read()
+
+
+def _write_raw(p: Path, text: str) -> None:
+    with p.open("w", encoding="utf-8", newline="") as fh:
+        fh.write(text)
+
+
 def wire_one(tid: str) -> list[str]:
-    """把一个 ui 类功能的注册行与 manifest 声明补进去（幂等）。"""
+    """把一个 ui 类功能的注册行与 manifest 声明补进去（幂等，保留既有换行风格）。"""
     t = task_of(tid)
     if t["kind"] != "ui":
         return []
     low = tid.lower()
     touched = []
-    cat = CATALOG.read_text(encoding="utf-8")
+    cat = _read_raw(CATALOG)
     entry = f"        com.tv.ball.feature.{low}.{tid}Module,"
     if entry not in cat:
         if CATALOG_MARK not in cat:
             raise SystemExit("[wire] FeatureCatalog 缺少 WIRE:CATALOG 标记")
         cat = cat.replace(CATALOG_MARK, entry + "\n" + CATALOG_MARK, 1)
-        CATALOG.write_text(cat, encoding="utf-8")
-        touched.append(str(CATALOG.relative_to(ROOT)))
-    man = MANIFEST.read_text(encoding="utf-8")
+        _write_raw(CATALOG, cat)
+        touched.append(str(CATALOG.relative_to(ROOT)).replace("\\", "/"))
+    man = _read_raw(MANIFEST)
     cls = f".feature.{low}.{tid}Activity"
     if cls not in man:
-        block = (
-            f'        <activity\n'
-            f'            android:name="{cls}"\n'
-            f'            android:label="@string/{low}_title"\n'
-            f'            android:exported="false" />\n\n'
-        )
-        anchor = '        <activity\n            android:name=".presentation.MainActivity"'
+        nl = "\r\n" if "\r\n" in man else "\n"
+        block = nl.join([
+            '        <activity',
+            f'            android:name="{cls}"',
+            f'            android:label="@string/{low}_title"',
+            '            android:exported="false" />',
+            '',
+            '',
+        ])
+        anchor = '    </application>'
         if anchor not in man:
-            raise SystemExit("[wire] manifest 缺少锚点")
+            raise SystemExit("[wire] manifest 缺少 </application> 锚点")
         man = man.replace(anchor, block + anchor, 1)
-        MANIFEST.write_text(man, encoding="utf-8")
-        touched.append(str(MANIFEST.relative_to(ROOT)))
+        _write_raw(MANIFEST, man)
+        touched.append(str(MANIFEST.relative_to(ROOT)).replace("\\", "/"))
     print(f"[wire] {tid} 补注册 {len(touched)} 处")
     return touched
 
