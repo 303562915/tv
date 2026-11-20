@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F067「内置媒体服务器」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f067_title">内置媒体服务器</string>
+    <string name="f067_desc">把本机视频通过 HTTP 提供给同一局域网里的手机 / 平板 / 电脑：NanoHTTPD 起一个端口可配的 Web 服务，浏览器里点开就是文件列表</string>
+
+    <!-- 服务卡片 -->
+    <string name="f067_section_server">服务</string>
+    <string name="f067_port_label">监听端口</string>
+    <string name="f067_port_hint">1024–65535，默认 8080</string>
+    <string name="f067_action_start">启动</string>
+    <string name="f067_action_restart">重启</string>
+    <string name="f067_action_stop">停止</string>
+    <string name="f067_action_back">返回</string>
+    <string name="f067_action_hint">确认键</string>
+    <string name="f067_state_idle">尚未启动。填好端口点「启动」，这里会显示可以直接点开的地址</string>
+    <string name="f067_state_starting">正在启动…</string>
+    <string name="f067_state_listening">端口就绪，等客户端连进来</string>
+    <string name="f067_state_running">运行中</string>
+    <string name="f067_state_not_running">未运行</string>
+    <string name="f067_state_stopped">已停止</string>
+    <string name="f067_state_failed">启动失败：%1$s</string>
+    <string name="f067_status_line">%1$s · %2$s</string>
+    <string name="f067_address_label">访问地址</string>
+    <string name="f067_address_empty">未启动</string>
+    <string name="f067_hint_lan">手机 / 平板连同一个 Wi-Fi，浏览器打开这条地址即可；点目录里的文件就能播放</string>
+    <string name="f067_hint_no_lan">没取到局域网 IPv4：先确认本机已连上 Wi-Fi（或网线），再用 设置 → 网络 里显示的地址访问</string>
+    <string name="f067_hint_port_shifted">端口 %1$d 被占用，已自动改到 %2$d</string>
+
+    <!-- 媒体目录 -->
+    <string name="f067_section_root">媒体目录</string>
+    <string name="f067_root_label">根目录</string>
+    <string name="f067_root_hint">这是应用自己的外部目录（Android/data/包名/files），不需要存储权限，卸载应用会连目录一起清掉；用文件管理器或 adb push 把视频拷进来，子目录会自动变成目录页里的一层。</string>
+
+    <!-- 请求日志 -->
+    <string name="f067_section_log">请求日志</string>
+    <string name="f067_log_empty">还没有请求。启动后用浏览器打开访问地址，这里会按「时间 + 方法 + 路径 + 状态码」倒序记录。</string>
+    <string name="f067_log_clear">清空</string>
+    <string name="f067_log_line">%1$s  %2$s</string>
+    <string name="f067_log_started">服务已启动，实际端口 %1$d</string>
+    <string name="f067_log_stopped">服务已停止</string>
+    <string name="f067_log_start_failed">启动失败：%1$s</string>
+
+    <string name="f067_err_port">端口要填 1024 到 65535 之间的整数</string>
+    <string name="f067_err_root">媒体目录建不出来，检查一下存储是否可用</string>
+    <string name="f067_toast_started">已启动：%1$s</string>
+    <string name="f067_toast_start_failed">没起来，看状态行里的原因</string>
+
+    <string name="f067_engine_note">接线：F067Activity 把「启动 / 停止」交给 MediaServer.startServer() / stopServer()；startServer() 从输入框端口开始连续试 5 个，第一个 bind 成功的就是实际端口，并返回 StartResult(address, actualPort, error)。请求进来后由 MediaServer.serve() 处理：目录返回 HTML 列表（目录在前、文件名转义、显示大小），文件按扩展名给 MIME 并支持 Range 实现拖动进度，每个请求通过 onLog 回调一行「方法 + 路径 + 状态码」。根目录是 getExternalFilesDir(null)，删除应用会被清空。</string>
+</resources>
