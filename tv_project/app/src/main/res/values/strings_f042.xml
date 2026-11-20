@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f042_title">焦点记忆</string>
+    <string name="f042_desc">记住每个列表最后停留的那一条，切页返回时焦点自动落回去</string>
+
+    <string name="f042_section_pages">页面与列表</string>
+    <string name="f042_tab_a">页面 A</string>
+    <string name="f042_tab_b">页面 B</string>
+    <string name="f042_page_stat">当前页面 %1$s · 共 %2$d 条 · 当前焦点第 %3$d 条</string>
+    <string name="f042_page_stat_placeholder">当前页面 页面 A · 共 0 条 · 当前焦点第 1 条</string>
+    <string name="f042_focus_none">还没有焦点，按方向键开始浏览</string>
+    <string name="f042_focus_restored">已回到上次位置：%1$s 的第 %2$d 条</string>
+    <string name="f042_focus_saved">已记住 %1$s 停在第 %2$d 条</string>
+    <string name="f042_focus_fallback">上次那条已不在列表里，已回退到首项</string>
+    <string name="f042_row_title">第 %1$d 条 · %2$s</string>
+    <string name="f042_row_hint">按方向键切换焦点，切换页面后返回会落回这一条</string>
+
+    <string name="f042_section_memory">记忆表</string>
+    <string name="f042_memory_empty">还没有任何记忆</string>
+    <string name="f042_memory_stat">共记忆 %1$d 个页面</string>
+    <string name="f042_memory_row">%1$s → %2$s · 第 %3$d 条</string>
+    <string name="f042_memory_row_stale">%1$s → %2$s · 第 %3$d 条（已失效）</string>
+    <string name="f042_clear_action">清空记忆</string>
+    <string name="f042_toast_cleared">已清空 %1$d 条记忆</string>
+    <string name="f042_toast_cleared_empty">记忆本来就是空的</string>
+
+    <string name="f042_hint_persistence">记忆以 JSON 存在本机，重启应用后仍然能回到上次停留的那一条；条目下架导致记忆失效时会自动退回首项</string>
+</resources>
