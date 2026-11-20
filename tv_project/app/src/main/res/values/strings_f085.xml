@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F085「崩溃捕获与本地报告」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f085_title">崩溃捕获与本地报告</string>
+    <string name="f085_desc">挂上全局未捕获异常处理器，崩溃时把设备信息与完整堆栈写成本地报告，下次启动逐条查看、删除或清空</string>
+    <string name="f085_action_back">返回</string>
+
+    <!-- 捕获开关 -->
+    <string name="f085_section_capture">捕获开关</string>
+    <string name="f085_action_toggle">捕获未处理异常</string>
+    <string name="f085_state_on">已开启</string>
+    <string name="f085_state_off">已关闭</string>
+    <string name="f085_capture_note">开启后接管系统的默认未捕获异常处理器：崩溃时先把设备信息、版本与完整堆栈写到 filesDir/crash/，写完再把异常交还给原来的处理器，系统照样弹「应用已停止」并结束进程——不会因为装了本功能就静默卡死</string>
+    <string name="f085_status_idle">开关只影响之后发生的崩溃；已经写在盘上的报告不受影响</string>
+    <string name="f085_status_installed">已开启捕获：下次未捕获异常会先落盘，再交给系统原来的处理器</string>
+    <string name="f085_status_uninstalled">已关闭捕获：默认处理器已恢复成接管前那一个，崩溃不会再写报告</string>
+    <string name="f085_status_error">操作失败：%1$s</string>
+
+    <!-- 最近一次 -->
+    <string name="f085_section_latest">最近一次</string>
+    <string name="f085_summary_empty">还没有崩溃记录</string>
+    <string name="f085_count_empty">报告目录还不存在，等第一次写入</string>
+    <string name="f085_count">%1$d 条报告 · 共 %2$s</string>
+    <string name="f085_action_test">制造一次测试异常</string>
+    <string name="f085_action_test_hint">确认键</string>
+    <string name="f085_test_note">这里走的是 try/catch：手动抛一个异常当场接住，再调 saveReport 写盘，进程不会崩，页面也不会退；真正的崩溃路径由上面的开关接管，两者写出来的报告格式完全一样，只有报告头「来源」那一行不同（manual / uncaught）</string>
+    <string name="f085_toast_test_saved">已写入测试报告：%1$s</string>
+    <string name="f085_test_exception_message">这是本页「制造一次测试异常」抛出的示例异常，用来验证崩溃报告能正常落盘</string>
+    <string name="f085_toast_test_failed">测试报告没写成功，见上方状态行</string>
+    <string name="f085_status_test_saved">测试异常已被 catch，报告写好了：%1$s；进程继续运行，这与真崩溃的区别见下方说明</string>
+
+    <!-- 历史报告 -->
+    <string name="f085_section_history">历史报告</string>
+    <string name="f085_history_note">最新的在最上面；每行显示写入时间、文件大小与报告头里的异常。点一行看全文，行内「删除」只删这一条</string>
+    <string name="f085_history_empty">这个目录里还没有报告。要么从来没崩过，要么报告已经被清空了</string>
+    <string name="f085_report_meta">%1$s · %2$s</string>
+    <string name="f085_report_detail_title">崩溃报告 · %1$s</string>
+    <string name="f085_report_detail_note">全文按写入时的原样显示；设备信息、版本、堆栈与因果链都在里面</string>
+    <string name="f085_action_view">查看全文</string>
+    <string name="f085_action_delete">删除</string>
+    <string name="f085_action_close">关闭</string>
+    <string name="f085_toast_deleted">已删除：%1$s</string>
+    <string name="f085_toast_delete_failed">删除失败：文件可能已被别的进程移走</string>
+    <string name="f085_action_clear_all">全部清空</string>
+    <string name="f085_action_clear_all_hint">不可恢复</string>
+    <string name="f085_clear_confirm_title">清空全部崩溃报告？</string>
+    <string name="f085_clear_confirm_message">要删掉 %1$d 个文件，删完不可恢复；单条报告可以只删那一条</string>
+    <string name="f085_clear_confirm_ok">全部清空</string>
+    <string name="f085_clear_confirm_cancel">取消</string>
+    <string name="f085_status_cleared">已清空 %1$d 条报告，报告目录保留</string>
+    <string name="f085_status_nothing_to_clear">没有可清空的报告</string>
+
+    <string name="f085_engine_note">接线：F085Engine.install(previous, context) 返回被接管的旧 handler 并挂上 CrashHandler（其 uncaughtException 先 saveReport(context, throwable, TAG_UNCAUGHT) 同步写盘，再 previous?.uncaughtException(thread, throwable) 交回系统）；saveReport 写 filesDir/crash/crash-yyyyMMdd-HHmmss-SSS.txt，正文含应用/包名/版本/时间/来源/线程/异常、机型与 Android 版本、完整堆栈（超过 400 行截断并注明总行数）与因果链；listReports 按文件名倒序给出 timeText/sizeText/summary，readReport 读全文，deleteReport 只删 crash- 开头的 .txt，最后一条摘要走 lastCrashSummary。</string>
+</resources>
