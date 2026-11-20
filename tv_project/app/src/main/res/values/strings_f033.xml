@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f033_title">队列编辑</string>
+    <string name="f033_desc">播放队列的顺序在这里调整：上移/下移搬条目、删掉不要的那条，正在播放的那一项始终跟着原来那条走</string>
+
+    <string name="f033_section_actions">编辑动作</string>
+    <string name="f033_hint_dpad">电视没有触摸屏，长按拖动在这里行不通：先用遥控器把焦点停在目标行上，长按 OK 锁定它，再按上移/下移把它挪到想要的位置，长按第二次解锁；不锁定时，上移/下移作用在焦点所在行</string>
+    <string name="f033_action_up">上移</string>
+    <string name="f033_action_down">下移</string>
+    <string name="f033_action_delete">删除</string>
+    <string name="f033_action_reset">重置为示例队列</string>
+
+    <string name="f033_section_queue">播放队列</string>
+    <string name="f033_current_value">正在播放：%1$s</string>
+    <string name="f033_current_none">当前还没有在播项</string>
+    <string name="f033_summary">队列 %1$d 条 · 在播第 %2$d 位</string>
+    <string name="f033_summary_no_current">队列 %1$d 条 · 没有在播项</string>
+    <string name="f033_summary_init">队列顺序与在播项在这里实时刷新</string>
+    <string name="f033_lock_value">移动锁定：%1$s（再长按一次解锁）</string>
+    <string name="f033_lock_none">移动目标：跟随焦点所在行，长按某行可锁定</string>
+    <string name="f033_position">第 %1$d 位</string>
+    <string name="f033_tag_current">在播</string>
+    <string name="f033_tag_locked">移动中</string>
+    <string name="f033_empty">队列已空，按「重置为示例队列」恢复一批条目再试</string>
+    <string name="f033_hint_persist">每次上移、下移、删除都会立刻写进本地存储（SharedPreferences 里的队列 JSON），退出再进来顺序和在播项都不变</string>
+
+    <string name="f033_toast_locked">已锁定《%1$s》，用上移/下移搬动它</string>
+    <string name="f033_toast_unlocked">已解锁，移动目标改回焦点所在行</string>
+    <string name="f033_toast_top">已经在队首，没法再上移</string>
+    <string name="f033_toast_bottom">已经在队尾，没法再下移</string>
+    <string name="f033_toast_deleted">已删除《%1$s》</string>
+    <string name="f033_toast_deleted_current">删掉了正在播放的《%1$s》，在播项顺延到第 %2$d 位</string>
+    <string name="f033_toast_queue_empty">队列已清空</string>
+    <string name="f033_toast_reset">已重置为示例队列</string>
+    <string name="f033_toast_no_target">先选中一行再操作</string>
+</resources>
