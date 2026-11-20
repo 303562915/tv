@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 播放失败自动重试与线路降级（F006）文案，统一 f006_ 前缀，避免与全站文案撞名 -->
+<resources>
+    <string name="f006_title">播放失败自动重试与线路降级</string>
+    <string name="f006_desc">网络抖动导致的连接 / 解码失败不再让人手动重来：按 1 秒、2 秒、4 秒退避自动重试，3 次仍失败就建议切换线路</string>
+
+    <string name="f006_section_control">模拟失败</string>
+    <string name="f006_section_status">当前重试状态</string>
+    <string name="f006_section_timeline">重试时间线</string>
+
+    <string name="f006_label_fail">模拟本次播放失败</string>
+    <string name="f006_label_abort">终止重试</string>
+    <string name="f006_label_abort_desc">终止后不会再有下一次自动重试，需要点「重置」才能重新开始</string>
+    <string name="f006_label_reset">重置</string>
+
+    <string name="f006_status_idle">当前没有重试任务</string>
+    <string name="f006_status_waiting">等待重试：第 %1$d / %2$d 次，%3$s 后发起</string>
+    <string name="f006_status_retrying">已重试 %1$d / %2$d 次</string>
+    <string name="f006_status_aborted">已手动终止重试</string>
+    <string name="f006_status_exhausted">3 次重试均失败，已停止自动重试</string>
+
+    <string name="f006_attempt_empty">重试 0 / 3 次</string>
+    <string name="f006_attempt_value">重试 %1$d / %2$d 次</string>
+    <string name="f006_remaining_value">剩余可重试 %1$d 次</string>
+    <string name="f006_remaining_empty">已无剩余重试次数</string>
+
+    <string name="f006_timeline_empty">还没有发生失败，点「模拟本次播放失败」开始演示</string>
+    <string name="f006_timeline_fail">%1$s 播放失败</string>
+    <string name="f006_timeline_schedule">%1$s 第 %2$d 次重试已排队，等待 %3$s 后发起</string>
+    <string name="f006_timeline_give_up">%1$s 第 %2$d 次重试仍失败，不再自动重试</string>
+    <string name="f006_timeline_give_up_fast">%1$s 连续 %2$d 次失败，不再自动重试</string>
+    <string name="f006_timeline_abort">%1$s 手动终止，已排队与剩余的重试全部取消</string>
+    <string name="f006_timeline_reset">%1$s 重置重试计数</string>
+
+    <string name="f006_degrade_idle">还没有得出线路结论</string>
+    <string name="f006_degrade_advice">建议切换线路：3 次自动重试均失败，当前线路大概率不可用，换一条线路后再试</string>
+    <string name="f006_degrade_aborted">已终止自动重试，可手动切换到其他线路再播放</string>
+
+    <string name="f006_toast_failed">已模拟一次播放失败</string>
+    <string name="f006_toast_aborted">已终止自动重试</string>
+    <string name="f006_toast_reset">已重置重试计数</string>
+    <string name="f006_toast_exhausted">3 次重试已用尽，请切换线路</string>
+</resources>
