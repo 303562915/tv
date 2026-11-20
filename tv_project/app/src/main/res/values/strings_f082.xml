@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F082「界面缩放与字号」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f082_title">界面缩放与字号</string>
+    <string name="f082_desc">电视尺寸不同，字号与间距要整体缩放：五档 90% ~ 130%，选中即时预览，重启应用后全站生效</string>
+
+    <!-- 缩放档位卡片 -->
+    <string name="f082_section_scale">缩放档位</string>
+    <string name="f082_scale_hint">选中哪一档就立刻存下来，不用再点保存；屏幕上电视越小越往低档调，越远看越往高档调</string>
+    <string name="f082_scale_90">90% · 更紧凑</string>
+    <string name="f082_scale_100">100% · 出厂字号</string>
+    <string name="f082_scale_110">110% · 稍大一点</string>
+    <string name="f082_scale_120">120% · 沙发距离</string>
+    <string name="f082_scale_130">130% · 大客厅远看</string>
+
+    <!-- 预览卡片 -->
+    <string name="f082_section_preview">字号预览</string>
+    <string name="f082_preview_base_label">基准 · 100%</string>
+    <string name="f082_preview_scaled_label">当前档位</string>
+    <string name="f082_preview_sample">示例文案：倚天照海花无数，流水高山心自知——列表标题、说明文字、按钮文字都按这一档缩放。</string>
+    <string name="f082_preview_size">示例字号：基准 %1$s sp × %2$s = %3$s sp</string>
+
+    <!-- 生效方式卡片 -->
+    <string name="f082_section_effect">生效方式</string>
+    <string name="f082_restart_note">重启应用后全站生效：档位现在已经写入并即时更新上面两行对比，但整站的字号与间距要等下一次启动应用才会整体换过来。</string>
+    <string name="f082_player_note">播放器全屏控件（进度条、播放按钮、浮层标题）尺寸固定为屏幕比例，不随这里缩放，避免放大后挡住画面。</string>
+
+    <!-- 动作卡片 -->
+    <string name="f082_section_action">动作</string>
+    <string name="f082_action_reset">恢复 100%</string>
+    <string name="f082_action_reset_hint">回到出厂字号</string>
+    <string name="f082_action_back">返回</string>
+
+    <!-- 状态行 -->
+    <string name="f082_status_loaded">已载入 %1$s。选档位会立即保存并刷新上面的对比，重启应用后全站生效。</string>
+    <string name="f082_status_saved">已保存 %1$s，上面的对比已按该档刷新；重启应用后全站生效。</string>
+    <string name="f082_status_reset">已恢复 100% 并保存，上面的对比回到出厂字号；重启应用后全站回到出厂字号。</string>
+    <string name="f082_status_error">保存失败：%1$s</string>
+
+    <!-- Toast -->
+    <string name="f082_toast_saved">已保存，重启应用后全站生效</string>
+    <string name="f082_toast_reset">已恢复 100%</string>
+
+    <string name="f082_engine_note">接线：F082Engine.TIERS 给出五档（P90 ~ P130），scale(level) 返回尺寸系数、fontScale(level) 返回字号系数（两者现在同值，字号将来可单独夹下限），describeKey(level) 返回稳定标识 scale_90 ~ scale_130，scaledSp(baseSp, level) 就是预览区的换算，load(context) 读 f082_ui_scale 里的 ui_scale_percent 并吸附到最近档位，save(context, level) 校验后落盘并发布成当前档位，current() 取进程内最近一次读写的档位。</string>
+</resources>
