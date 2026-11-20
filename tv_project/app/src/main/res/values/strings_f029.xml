@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f029_title">收藏标签与分组</string>
+    <string name="f029_desc">给收藏打多个自定义标签，按标签筛选归档；标签可重命名、可删除，改动立即落盘</string>
+
+    <string name="f029_section_tags">标签</string>
+    <string name="f029_tags_hint">标签只挂在收藏条目上：改名会同步到所有条目，删除只摘标签、不动收藏本身</string>
+    <string name="f029_tag_count">共 %1$d 个标签</string>
+    <string name="f029_tags_empty">还没有任何标签，在下面的收藏条目上点「打标签」添加</string>
+    <string name="f029_tag_row">%1$s · %2$d 条</string>
+    <string name="f029_action_rename">重命名</string>
+    <string name="f029_action_delete">删除</string>
+
+    <string name="f029_section_favorites">收藏</string>
+    <string name="f029_favorites_hint">点条目的标签块可把它从这个收藏上摘掉，点「打标签」再加一个</string>
+    <string name="f029_filter_all">全部</string>
+    <string name="f029_filter_chip">%1$s · %2$d</string>
+    <string name="f029_filter_status_all">当前显示全部 %1$d 条收藏</string>
+    <string name="f029_filter_status_tag">标签「%1$s」下 %2$d 条收藏</string>
+    <string name="f029_fav_empty">这个标签下还没有收藏，换个标签或选「全部」</string>
+    <string name="f029_item_no_tag">暂无标签</string>
+    <string name="f029_action_add_tag">打标签</string>
+    <string name="f029_chip_tag">%1$s ×</string>
+
+    <string name="f029_dialog_add_title">给「%1$s」打标签</string>
+    <string name="f029_dialog_rename_title">重命名标签「%1$s」</string>
+    <string name="f029_dialog_tag_hint">标签名，最多 %1$d 个字</string>
+    <string name="f029_dialog_ok">确定</string>
+    <string name="f029_dialog_cancel">取消</string>
+
+    <string name="f029_toast_tag_empty">标签名不能为空</string>
+    <string name="f029_toast_tag_added">已加标签「%1$s」</string>
+    <string name="f029_toast_tag_exists">「%1$s」已经在这个收藏上了</string>
+    <string name="f029_toast_tag_removed">已从收藏移除标签「%1$s」</string>
+    <string name="f029_toast_tag_renamed">标签「%1$s」改名为「%2$s」</string>
+    <string name="f029_toast_tag_merged">「%1$s」已合并进已有的「%2$s」</string>
+    <string name="f029_toast_tag_deleted">已删除标签「%1$s」，%2$d 条收藏受影响</string>
+
+    <string name="f029_confirm_delete_title">删除标签</string>
+    <string name="f029_confirm_delete_message">删除标签「%1$s」后，它会从 %2$d 条收藏上一起摘掉，收藏本身保留。</string>
+    <string name="f029_confirm_delete_ok">删除</string>
+    <string name="f029_confirm_cancel">取消</string>
+</resources>
