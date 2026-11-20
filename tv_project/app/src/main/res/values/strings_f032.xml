@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f032_title">播放偏好学习</string>
+    <string name="f032_desc">记住常选的线路与清晰度：次数最多的那一项（次数打平时取最近用过的），下次进入自动选中它</string>
+
+    <string name="f032_section_choose">模拟选择</string>
+    <string name="f032_section_entry">本次进入的默认</string>
+    <string name="f032_section_live">实时推荐</string>
+
+    <string name="f032_line_label">线路</string>
+    <string name="f032_quality_label">清晰度</string>
+
+    <string name="f032_line_1">线路一 · 直连</string>
+    <string name="f032_line_2">线路二 · 备用</string>
+    <string name="f032_line_3">线路三 · 中转镜像</string>
+
+    <string name="f032_quality_1">蓝光 4K</string>
+    <string name="f032_quality_2">超清 1080P</string>
+    <string name="f032_quality_3">高清 720P</string>
+    <string name="f032_quality_4">标清 480P</string>
+
+    <string name="f032_hint_choose">每点一次就累加一次计数，并立刻写进 SharedPreferences，重进页面依然在</string>
+
+    <string name="f032_badge_default">默认</string>
+    <string name="f032_row_never">尚未选过</string>
+    <string name="f032_row_count">已选 %1$d 次</string>
+    <string name="f032_row_meta">%1$s · 最近 %2$s</string>
+
+    <string name="f032_entry_line">线路：%1$s</string>
+    <string name="f032_entry_quality">清晰度：%1$s</string>
+    <string name="f032_entry_fallback_value">第一项（暂无记录）</string>
+    <string name="f032_entry_caption">这两项取自上一次保存的学习结果；有记录的项会带「默认」标记。改过线路文案后旧记录对不上选项时，退回第一项</string>
+
+    <string name="f032_live_line">线路：%1$s（已选 %2$d 次）</string>
+    <string name="f032_live_quality">清晰度：%1$s（已选 %2$d 次）</string>
+    <string name="f032_live_empty_line">线路：还没有选择记录</string>
+    <string name="f032_live_empty_quality">清晰度：还没有选择记录</string>
+    <string name="f032_live_caption">「默认」标记 = 下次进入时会被自动选中的那一项；次数最多者胜，次数打平则最近用过的胜，随每次点选实时重算</string>
+    <string name="f032_summary">累计 %1$d 次选择 · 线路 %2$d 项 · 清晰度 %3$d 项</string>
+    <string name="f032_summary_empty">还没有学习记录，先在上面点几次线路和清晰度</string>
+
+    <string name="f032_reset_action">清除学习结果</string>
+    <string name="f032_reset_toast">已清除学习结果，下次进入回到第一项</string>
+    <string name="f032_select_toast">已记录：%1$s</string>
+    <string name="f032_toast_auto">已按学习结果默认选中：%1$s / %2$s</string>
+</resources>
