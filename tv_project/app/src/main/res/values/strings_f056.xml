@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f056_title">代理配置</string>
+    <string name="f056_desc">公司网或机房出口连不上时，在这里填 HTTP / SOCKS5 代理：先点「测试连接」确认出口通不通，再把开关打开让请求走代理</string>
+
+    <string name="f056_type_section">代理类型</string>
+    <string name="f056_type_http_label">HTTP 代理（CONNECT 隧道）</string>
+    <string name="f056_type_socks_label">SOCKS5 代理</string>
+    <string name="f056_type_hint">HTTP 代理走 CONNECT 隧道，明文与 HTTPS 都能过；SOCKS5 走系统 SOCKS 协议，不支持用户名口令认证，需要认证的代理请改填 HTTP</string>
+
+    <string name="f056_server_section">代理服务器</string>
+    <string name="f056_host_hint">主机或 IP，例如 10.0.0.8</string>
+    <string name="f056_port_hint">端口，例如 8080</string>
+    <string name="f056_switch_label">启用代理</string>
+    <string name="f056_switch_hint">开关拨动即刻生效并落盘；主机、端口、类型改动需要点「保存配置」才会被记住</string>
+
+    <string name="f056_action_section">测试与保存</string>
+    <string name="f056_test">测试连接</string>
+    <string name="f056_testing">正在测试…</string>
+    <string name="f056_save">保存配置</string>
+
+    <string name="f056_status_ready">还没测试 · 填好主机与端口后先测一次，确认代理出口可用再启用</string>
+    <string name="f056_status_type_changed">已切换到 %1$s，端口已按该协议的默认值填好（也可以手改）</string>
+    <string name="f056_status_enabled">代理已启用 · 走代理的请求会立刻用上新配置</string>
+    <string name="f056_status_disabled">代理已关闭 · 请求直接连目标，不经过代理</string>
+    <string name="f056_status_saved">已保存 %1$s · %2$s:%3$d</string>
+    <string name="f056_status_testing">正在测 %1$s · %2$s:%3$d · 目标 https://www.gstatic.com/generate_204，超时 5 秒</string>
+    <string name="f056_status_busy">上一次测试还在跑，等它出结果</string>
+    <string name="f056_status_invalid">配置还没填对：%1$s</string>
+    <string name="f056_problem_sep"> · </string>
+    <string name="f056_problem_host_empty">主机不能为空</string>
+    <string name="f056_problem_port_range">端口要在 1~65535</string>
+
+    <string name="f056_test_ok">测试通过 · HTTP %1$d · 耗时 %2$dms</string>
+    <string name="f056_test_fail">代理有回应但结果不对 · HTTP %1$d · 耗时 %2$dms</string>
+    <string name="f056_test_error">测试失败 · %1$s</string>
+
+    <string name="f056_summary_none">当前没有保存过配置 · 填一组主机与端口后点「保存配置」</string>
+    <string name="f056_summary">已保存 %1$s · %2$s:%3$d · %4$s</string>
+    <string name="f056_switch_on">已启用</string>
+    <string name="f056_switch_off">已关闭</string>
+    <string name="f056_type_http">HTTP</string>
+    <string name="f056_type_socks">SOCKS5</string>
+
+    <string name="f056_hint_sample">测试连接直接请求 https://www.gstatic.com/generate_204，正常应拿到 204；状态码会连同耗时一起显示，连不上代理、SOCKS 握手被拒、超时都会把异常原因原样写出来</string>
+</resources>
