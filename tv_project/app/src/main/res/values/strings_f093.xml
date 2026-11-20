@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F093「数据库迁移校验」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f093_title">数据库迁移校验</string>
+    <string name="f093_desc">升级后表结构不一致时，Room 一打开库就抛异常，堆栈里看不出是哪张表哪一列。这里按代码里的期望结构逐表逐列比对设备上那份库，列出缺的表、缺的列和类型不符的列</string>
+
+    <!-- 库信息 -->
+    <string name="f093_section_db">库信息</string>
+    <string name="f093_path_label">库文件路径</string>
+    <string name="f093_path_unknown">（还拿不到路径）</string>
+    <string name="f093_version_label">库版本（user_version）</string>
+    <string name="f093_version_value">实际 %1$d · 代码期望 %2$d</string>
+    <string name="f093_db_missing">库未创建</string>
+    <string name="f093_db_error">读取失败：%1$s</string>
+    <string name="f093_db_note">以只读方式打开同一份库文件，不触发 Room 迁移、不改任何数据；库文件不存在时直接报「库未创建」，不会崩</string>
+
+    <!-- 状态行 -->
+    <string name="f093_status_checking">正在校验…</string>
+    <string name="f093_status_ok">结构一致：%1$d 张表 / %2$d 个期望列都对得上，无需修复</string>
+    <string name="f093_status_issues">发现 %1$d 处差异（校验范围 %2$d 张表 / %3$d 个期望列）</string>
+    <string name="f093_status_absent">库未创建：应用还没写过数据，首次启动或首次访问数据库时才会建表，此时无需修复</string>
+    <string name="f093_status_error">读取失败：%1$s</string>
+
+    <!-- 差异清单 -->
+    <string name="f093_section_issues">差异清单</string>
+    <string name="f093_issue_head_table">表</string>
+    <string name="f093_issue_head_column">列</string>
+    <string name="f093_issue_head_kind">类型</string>
+    <string name="f093_issue_none">未发现缺失的表或列，声明类型与可空性也和代码一致</string>
+    <string name="f093_issue_skip">本次没有差异清单：库未创建或读取失败，先看上面的状态行</string>
+    <string name="f093_issue_row">表 %1$s · 列 %2$s · %3$s</string>
+    <string name="f093_issue_detail">期望 %1$s · 实际 %2$s · %3$s</string>
+    <string name="f093_issue_sql">SQL：%1$s</string>
+    <string name="f093_issue_more">还有 %1$d 处差异的修复 SQL 在导出报告里（页面只铺前几条，避免变成长墙）</string>
+
+    <!-- 建议修复 SQL -->
+    <string name="f093_section_sql">建议修复 SQL</string>
+    <string name="f093_sql_note">这里只生成、不执行。改库前先把库文件和它的 -wal / -shm 拷一份出来；整表重建那段要在事务里跑完，中途别退</string>
+    <string name="f093_sql_placeholder">按「校验」后这里给出建议 SQL</string>
+
+    <!-- 操作 -->
+    <string name="f093_section_action">操作</string>
+    <string name="f093_action_verify">校验</string>
+    <string name="f093_action_export">导出报告</string>
+    <string name="f093_action_back">返回</string>
+    <string name="f093_export_ok">报告已导出：%1$s</string>
+    <string name="f093_export_failed">报告导出失败：外部目录和内部目录都写不进去</string>
+
+    <!-- 差异分类与原因 -->
+    <string name="f093_kind_missing">缺失</string>
+    <string name="f093_kind_low_version">版本偏低</string>
+    <string name="f093_detail_table_missing">整张表不存在</string>
+    <string name="f093_detail_column_missing">列不存在</string>
+    <string name="f093_detail_version_low">库版本低于代码期望，迁移没跑完</string>
+    <string name="f093_detail_version_high">库版本高于代码期望，可能装过更高版本</string>
+    <string name="f093_detail_type_changed">声明类型与代码不一致</string>
+    <string name="f093_detail_nullability_changed">可空性与代码不一致</string>
+    <string name="f093_table_database">库文件</string>
+    <string name="f093_column_none">—</string>
+
+    <!-- 库状态（导出报告与页面共用） -->
+    <string name="f093_state_ok">已创建</string>
+    <string name="f093_state_absent">未创建</string>
+    <string name="f093_state_error">读取失败</string>
+
+    <!-- 导出报告 -->
+    <string name="f093_report_title">数据库迁移校验报告</string>
+    <string name="f093_report_time">生成时间：%1$s</string>
+    <string name="f093_report_path">库路径：%1$s</string>
+    <string name="f093_report_state">库状态：%1$s</string>
+    <string name="f093_report_version">库版本：实际 %1$d · 代码期望 %2$d</string>
+    <string name="f093_report_counts">校验范围：%1$d 张表 / %2$d 个期望列</string>
+    <string name="f093_report_conclusion">结论</string>
+    <string name="f093_report_conclusion_ok">结构一致：期望的表与列都在，声明类型也对得上，无需修复。</string>
+    <string name="f093_report_conclusion_issues">发现 %1$d 处差异：按下面的建议 SQL 修复；改库前先把库文件和它的 -wal / -shm 拷出来备份。</string>
+    <string name="f093_report_conclusion_absent">库未创建：应用还没写过 Room 数据，建表发生在首次访问数据库时，此时不需要任何修复。</string>
+    <string name="f093_report_conclusion_error">读取失败：%1$s（库文件可能被其它进程独占，或者已经损坏）</string>
+    <string name="f093_report_issues_head">差异清单</string>
+    <string name="f093_report_sql_head">建议修复 SQL</string>
+    <string name="f093_report_empty">（无）</string>
+    <string name="f093_report_na">—</string>
+    <string name="f093_report_issue_line">[%1$s] %2$s.%3$s · 期望 %4$s · 实际 %5$s · %6$s</string>
+
+    <!-- 其它 -->
+    <string name="f093_engine_note">接线：F093Engine.expectedSchema() 是代码里的期望结构（五张表逐列抄自 data/model 下的实体）；verify(db) 对着已打开的库返回 Issue 列表（MISSING 缺表缺列 / LOW_VERSION 版本或类型不对）；fixSql(issue) 产出只读的建议 SQL（整表 CREATE、ALTER TABLE ADD COLUMN、整表重建）；exportText(context) 出一份纯文本报告，writeReport 落盘到外部私有目录的 report/ 下。库名以 VideoPlayerApplication 里 Room.databaseBuilder 的第三个参数为准；文件不存在时返回状态 ABSENT，页面显示「库未创建」。</string>
+</resources>
