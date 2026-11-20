@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f024_title">SAF 目录授权管理</string>
+    <string name="f024_desc">选一个目录后申请持久授权，重启 App 或设备后仍可直接访问，不用每次重新手动挑</string>
+    <string name="f024_pick_action">选择目录</string>
+    <string name="f024_section_granted">已授权目录</string>
+    <string name="f024_grant_count">共 %1$d 个已持久化授权</string>
+    <string name="f024_empty">还没有已授权的目录，点上面按钮挑一个</string>
+    <string name="f024_hint_persist">持久授权记在系统侧而不是进程内：只要不点「移除」，App 升级、进程被回收、设备重启之后授权都还在。</string>
+    <string name="f024_remove_action">移除</string>
+    <string name="f024_flag_read_write">读写</string>
+    <string name="f024_flag_read_only">只读</string>
+    <string name="f024_flag_write_only">只写</string>
+    <string name="f024_grant_line">%1$s · %2$s</string>
+    <string name="f024_toast_persist_ok">已持久化授权：%1$s</string>
+    <string name="f024_toast_persist_fail">授权失败：%1$s</string>
+    <string name="f024_toast_released">已移除授权：%1$s</string>
+    <string name="f024_toast_release_fail">移除失败：%1$s</string>
+    <string name="f024_toast_cancelled">已取消选择目录</string>
+</resources>
