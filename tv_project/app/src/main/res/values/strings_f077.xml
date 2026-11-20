@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F077「设置项搜索」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f077_title">设置项搜索</string>
+    <string name="f077_desc">设置散在各功能页里，输入「倍速」「清缓存」「代理」这类词就直接定位到该进哪一页</string>
+    <string name="f077_action_back">返回</string>
+
+    <!-- 搜索卡片 -->
+    <string name="f077_search_label">搜索设置项</string>
+    <string name="f077_search_hint">输入关键词：标题、别名都能搜，忽略大小写、空格与分隔符</string>
+    <string name="f077_action_clear">清除</string>
+    <string name="f077_count">结果 %1$d 项 · 索引 %2$d 项</string>
+
+    <!-- 状态行 -->
+    <string name="f077_status_idle">索引里 %1$d 项设置可直接搜；排序按「标题前缀 &gt; 标题包含 &gt; 别名」</string>
+    <string name="f077_status_match">命中 %1$d 项，排序按「标题前缀 &gt; 标题包含 &gt; 别名」</string>
+    <string name="f077_status_empty">没有匹配的设置项：换个说法试试，比如「缓存」「倍速」「代理」</string>
+    <string name="f077_status_target">将进入 %1$s 功能页：%2$s</string>
+
+    <!-- 结果列表 -->
+    <string name="f077_section_results">结果</string>
+    <string name="f077_row_meta">分组 · %1$s · 别名 %2$s</string>
+    <string name="f077_row_a11y">%1$s，分组 %2$s，对应功能 %3$s</string>
+    <string name="f077_footer_note">本页只做索引与定位，不改动任何设置；点一行只提示该进哪一页，真正的开关在对应功能页里</string>
+</resources>
