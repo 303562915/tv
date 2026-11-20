@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  「地址连通性预检」页 · 沿用外观主题页 / 功能页的 FlClash 视觉语言：
+  卡片层 + 16dp 圆角，焦点态靠 bg_card_surface 的 surface_inset 填充表达，不额外描边。
+  颜色只走 colors.xml 的 theme_* / surface_* 语义 token，这里不出现任何十六进制。
+  电视没有触摸屏：返回、地址输入、示例块、两个动作行都可聚焦，
+  nextFocus* 串成 返回 → 地址输入 → 示例 → 预检 → 重新预检。
+-->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:fitsSystemWindows="true"
+    android:overScrollMode="never">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/page_margin"
+        android:paddingTop="@dimen/page_margin"
+        android:paddingEnd="@dimen/page_margin"
+        android:paddingBottom="96dp">
+
+        <!-- 标题行：返回 + 页标题 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_secondary_button"
+                android:contentDescription="@string/f060_action_back"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:nextFocusDown="@id/f060UrlInput"
+                android:padding="12dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_back"
+                app:tint="@color/theme_text_primary" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:text="@string/f060_title"
+                android:textAppearance="@style/TextAppearance.TVPlayer.PageTitle" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/f060_desc"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+        <!-- 小节：播放地址 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:text="@string/f060_section_input"
+            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/card_padding">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/f060_label_url"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
+
+                <EditText
+                    android:id="@+id/f060UrlInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_dialog_input"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:hint="@string/f060_hint_url"
+                    android:imeOptions="actionGo"
+                    android:inputType="textUri|textNoSuggestions"
+                    android:maxLines="1"
+                    android:nextFocusDown="@id/f060SampleRow"
+                    android:padding="12dp"
+                    android:singleLine="true"
+                    android:textColor="@color/theme_text_primary"
+                    android:textColorHint="@color/theme_text_secondary"
+                    android:textSize="14sp" />
+
+                <!-- 示例地址：代码按 F060Engine.SAMPLES 顺序动态填充 -->
+                <LinearLayout
+                    android:id="@+id/f060SampleRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/card_gap"
+                    android:orientation="horizontal" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/f060_hint_sample"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- 小节：动作 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:text="@string/f060_section_action"
+            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/card_padding">
+
+                <!-- 预检：主动作，正文用主题色 -->
+                <LinearLayout
+                    android:id="@+id/f060CheckButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_card_surface"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/list_row_min_height"
+                    android:nextFocusDown="@id/f060RecheckButton"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/f060_action_check"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Body"
+                        android:textColor="@color/theme_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/f060_action_hint"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+                </LinearLayout>
+
+                <!-- 重新预检：跳过缓存强制刷新 -->
+                <LinearLayout
+                    android:id="@+id/f060RecheckButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/card_gap"
+                    android:background="@drawable/bg_card_surface"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/list_row_min_height"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/f060_action_recheck"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
+
+                    <!-- 命中缓存时这行提示变主题色，由 Activity 切换 -->
+                    <TextView
+                        android:id="@+id/f060RecheckHint"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/f060_action_recheck_hint"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                        android:textColor="@color/theme_text_secondary" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- 小节：预检结果 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:text="@string/f060_section_result"
+            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/card_padding">
+
+                <!-- 可达性 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/f060_label_verdict"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
+
+                    <TextView
+                        android:id="@+id/f060ResultVerdict"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/theme_text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- 状态码 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/f060_label_code"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
+
+                    <TextView
+                        android:id="@+id/f060ResultCode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                        android:textColor="@color/theme_text_primary" />
+                </LinearLayout>
+
+                <!-- 耗时 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/f060_label_elapsed"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
+
+                    <TextView
+                        android:id="@+id/f060ResultElapsed"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                        android:textColor="@color/theme_text_primary" />
+                </LinearLayout>
+
+                <!-- 是否命中缓存 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/f060_label_cached"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
+
+                    <TextView
+                        android:id="@+id/f060ResultCached"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                        android:textColor="@color/theme_text_primary" />
+                </LinearLayout>
+
+                <!-- 状态行：可达 / 命中缓存 / 不可达，颜色由代码按结果切换 -->
+                <TextView
+                    android:id="@+id/f060ResultStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/card_gap"
+                    android:lineSpacingExtra="3dp"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Body"
+                    android:textColor="@color/theme_text_secondary" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="@dimen/card_gap"
+                    android:layout_marginBottom="@dimen/card_gap"
+                    android:background="@color/theme_divider" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/f060_label_error"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                <!-- 错误原因：等宽字体，排障时方便对照日志 -->
+                <TextView
+                    android:id="@+id/f060ResultError"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_dialog_input"
+                    android:fontFamily="monospace"
+                    android:lineSpacingExtra="4dp"
+                    android:minHeight="56dp"
+                    android:padding="12dp"
+                    android:text="@string/f060_result_idle"
+                    android:textColor="@color/theme_text_primary"
+                    android:textIsSelectable="true"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/section_gap"
+            android:text="@string/f060_engine_note"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F060「地址连通性预检」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f060_title">地址连通性预检</string>
+    <string name="f060_desc">点播前先探一下地址通不通：HEAD 探不到再回落到 GET + Range 只取一个字节，5 秒超时直接判不可达，结论缓存 5 分钟</string>
+
+    <!-- 输入卡片 -->
+    <string name="f060_section_input">播放地址</string>
+    <string name="f060_label_url">要预检的地址</string>
+    <string name="f060_hint_url">http(s)://host/path.m3u8 或 .mp4</string>
+    <string name="f060_hint_sample">点示例可一键填入；不写 http(s) 时按 http 处理</string>
+    <string name="f060_url_empty">先填一个要预检的播放地址</string>
+
+    <!-- 动作卡片 -->
+    <string name="f060_section_action">预检</string>
+    <string name="f060_action_check">预检连通性</string>
+    <string name="f060_action_recheck">重新预检</string>
+    <string name="f060_action_recheck_hint">忽略缓存</string>
+    <string name="f060_action_hint">确认键</string>
+    <string name="f060_action_back">返回</string>
+    <string name="f060_checking">正在预检 %1$s…</string>
+    <string name="f060_rechecking">正在重新预检 %1$s（已跳过缓存）…</string>
+
+    <!-- 结果卡片 -->
+    <string name="f060_section_result">预检结果</string>
+    <string name="f060_label_verdict">结论</string>
+    <string name="f060_label_code">状态码</string>
+    <string name="f060_label_elapsed">耗时</string>
+    <string name="f060_label_cached">是否命中缓存</string>
+    <string name="f060_label_error">错误原因</string>
+
+    <string name="f060_verdict_reachable">地址可达</string>
+    <string name="f060_verdict_reachable_cached">地址可达（缓存结论）</string>
+    <string name="f060_verdict_unreachable">地址不可达</string>
+    <string name="f060_verdict_invalid">地址不合法</string>
+
+    <string name="f060_code_value">HTTP %1$d</string>
+    <string name="f060_elapsed_value">%1$d ms</string>
+    <string name="f060_cached_value">命中（%1$d 分钟前的结论）</string>
+    <string name="f060_cached_no">未命中（实时检测）</string>
+    <string name="f060_not_requested">未发起请求</string>
+    <string name="f060_value_none">—</string>
+
+    <string name="f060_result_idle">还没预检</string>
+    <string name="f060_result_idle_hint">填好地址后点「预检连通性」，结论在 5 分钟内复用，想复测就点「重新预检」</string>
+    <string name="f060_status_reachable">地址可用：%1$s</string>
+    <string name="f060_status_cached">命中 5 分钟缓存，结果是 %1$d 分钟前的；要看当前状态请点「重新预检」</string>
+    <string name="f060_status_unreachable">不可达：%1$s。换源或稍后再试，直接点播多半会卡在加载</string>
+    <string name="f060_toast_cached">用的是 5 分钟内的缓存结论，点「重新预检」可强制刷新</string>
+
+    <string name="f060_engine_note">接线：点播链路在 open 播放器之前调用 F060Engine.cached(url)（不发请求，只翻 5 分钟缓存，可用 fresh(result, nowMs) 自行判断），拿不到再异步跑 preflight(url)；返回 ok=false 时直接把 error 提示给用户，不要再走播放器。</string>
+</resources>
