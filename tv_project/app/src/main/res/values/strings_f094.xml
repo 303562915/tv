@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F094「缓存分类清理」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f094_title">缓存分类清理</string>
+    <string name="f094_desc">把缓存按图片、视频、日志、其他分开统计，可以只清某一类，也可以一次清空</string>
+
+    <!-- 标题行 / 通用 -->
+    <string name="f094_action_back">返回</string>
+    <string name="f094_action_confirm">清理</string>
+    <string name="f094_action_cancel">取消</string>
+    <string name="f094_action_clear">清理</string>
+    <string name="f094_action_clear_all">清理全部缓存</string>
+
+    <!-- 合计 -->
+    <string name="f094_section_total">当前缓存占用</string>
+    <string name="f094_total_idle">—</string>
+    <string name="f094_total_value">%1$s · %2$d 个文件</string>
+
+    <!-- 状态行 -->
+    <string name="f094_status_idle">还没开始统计</string>
+    <string name="f094_status_scanning">正在统计缓存…</string>
+    <string name="f094_status_clearing">正在清理…</string>
+    <string name="f094_status_ready">统计完成，可以按分类清理</string>
+    <string name="f094_status_empty">缓存已经是空的，没有可清理的文件</string>
+    <string name="f094_status_error">统计失败：%1$s</string>
+
+    <!-- 分类明细 -->
+    <string name="f094_section_categories">分类明细</string>
+    <string name="f094_cat_image">图片</string>
+    <string name="f094_cat_image_hint">缩略图缓存 thumbnail_cache</string>
+    <string name="f094_cat_video">视频</string>
+    <string name="f094_cat_video_hint">播放与下载留下的临时视频、分片</string>
+    <string name="f094_cat_log">日志</string>
+    <string name="f094_cat_log_hint">*.log 与 logs 目录</string>
+    <string name="f094_cat_other">其他</string>
+    <string name="f094_cat_other_hint">不属于上面三类的缓存文件</string>
+    <string name="f094_row_idle">—</string>
+    <string name="f094_row_value">%1$s · %2$d 个文件</string>
+
+    <!-- 二次确认 -->
+    <string name="f094_clear_confirm_title">清理%1$s缓存</string>
+    <string name="f094_clear_confirm_message">将删除%1$s缓存里的 %2$d 个文件（共 %3$s）。删除后不能恢复，确定要清吗？</string>
+    <string name="f094_clear_confirm_all_title">清理全部缓存</string>
+    <string name="f094_clear_confirm_all_message">将删除四类缓存共 %1$d 个文件（合计 %2$s）。数据库、收藏、历史不受影响，但删掉的缓存不能恢复，确定要清吗？</string>
+
+    <!-- 清理回执 -->
+    <string name="f094_label_all">全部缓存</string>
+    <string name="f094_clear_done">已清理%1$s：删除 %2$d 个文件，释放 %3$s</string>
+    <string name="f094_clear_partial">已清理%1$s：删除 %2$d 个文件，释放 %3$s，另有 %4$d 个删不掉（可能正被占用）</string>
+    <string name="f094_clear_failed">清理%1$s失败：一个文件都没能删掉（%2$d 个失败），可能正被播放器占用或权限不足</string>
+    <string name="f094_clear_none">%1$s缓存里没有可清理的文件</string>
+    <string name="f094_clear_all_nothing">缓存已经是空的，没有可清理的文件</string>
+    <string name="f094_last_clear">上次清理：%1$s，删除 %2$d 个文件，释放 %3$s</string>
+
+    <!-- 清理边界 -->
+    <string name="f094_section_safe">哪些不会被删</string>
+    <string name="f094_safe_body">只删缓存目录 cacheDir 里的文件。数据库（收藏、历史、播放记录）、应用文件目录 filesDir、已下载完成的影视文件都不在清理范围内，清理不会影响你的收藏和历史。</string>
+    <string name="f094_safe_scope">按分类清理只动这一类：图片类只清缩略图缓存，日志类只清 *.log 与 logs，视频类只清缓存里的临时视频与分片。删不掉的文件会单独计数，并在回执里写清楚。</string>
+
+    <string name="f094_engine_note">接线：F094Engine.scan(context) 遍历 cacheDir，按「thumbnail_cache 目录 → logs 目录或 *.log → 视频扩展名 → 其余」的优先级归类，返回四类 Bucket(category, bytes, files)；F094Engine.clear(context, category) 只删该类的普通文件，逐个 File.delete() 并把失败数记进 ClearResult(files, bytes, failed)；clearAll(context) 逐类复用 clear 后相加；formatBytes(bytes) 出人读大小。删完立刻在同一个 IO 块里重扫，页面显示的是清理之后的真实状态。</string>
+</resources>
