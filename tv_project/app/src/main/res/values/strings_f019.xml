@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f019_title">媒体库增量索引</string>
+    <string name="f019_desc">对比旧索引与当前快照，只列出新增、变更、消失的条目，未动的文件跳过</string>
+
+    <string name="f019_section_old">旧索引</string>
+    <string name="f019_old_desc">页面内置的上一轮扫描结果</string>
+    <string name="f019_old_count">已载入 %1$d 条旧索引</string>
+
+    <string name="f019_section_snapshot">当前快照</string>
+    <string name="f019_snapshot_hint">点选一条后可编辑或删除；新增条目填写路径、字节数与修改时间</string>
+    <string name="f019_snapshot_count">当前快照 %1$d 条</string>
+
+    <string name="f019_btn_add">新增条目</string>
+    <string name="f019_btn_edit">编辑选中</string>
+    <string name="f019_btn_delete">删除选中</string>
+    <string name="f019_btn_reset">重置快照</string>
+    <string name="f019_btn_scan">增量扫描</string>
+
+    <string name="f019_section_result">扫描结果</string>
+    <string name="f019_result_hint">点「增量扫描」后显示四类计数与明细</string>
+    <string name="f019_result_summary">合并后索引 %1$d 条</string>
+
+    <string name="f019_count_added">新增 %1$d</string>
+    <string name="f019_count_updated">变更 %1$d</string>
+    <string name="f019_count_removed">消失 %1$d</string>
+    <string name="f019_count_unchanged">未变 %1$d</string>
+
+    <string name="f019_detail_added">新增明细</string>
+    <string name="f019_detail_updated">变更明细</string>
+    <string name="f019_detail_removed">消失明细</string>
+    <string name="f019_detail_unchanged">未变明细</string>
+
+    <string name="f019_entry_line">%1$s · %2$d B · %3$d</string>
+    <string name="f019_empty_item">—</string>
+
+    <string name="f019_label_path">路径</string>
+    <string name="f019_label_size">字节数</string>
+    <string name="f019_label_mtime">修改时间（毫秒）</string>
+    <string name="f019_dialog_add_title">新增条目</string>
+    <string name="f019_dialog_edit_title">编辑条目</string>
+    <string name="f019_action_ok">确定</string>
+    <string name="f019_action_cancel">取消</string>
+
+    <string name="f019_toast_selected">已选中 %1$s</string>
+    <string name="f019_toast_need_selection">先在上面的列表里点一条</string>
+    <string name="f019_toast_bad_input">路径为空或数值不合法</string>
+    <string name="f019_toast_saved">已保存 %1$s</string>
+    <string name="f019_toast_deleted">已删除 %1$s</string>
+    <string name="f019_toast_empty_snapshot">当前快照为空，先加一条再扫</string>
+    <string name="f019_toast_scanned">扫描完成，%1$d 条有变化</string>
+</resources>
