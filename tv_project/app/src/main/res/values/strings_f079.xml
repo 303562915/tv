@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F079「首启动引导」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f079_title">首启动引导</string>
+    <string name="f079_desc">第一次打开不知道权限要干什么、功能散在哪：五页讲清无账号、只读权限、遥控器手势、功能中心与本地数据</string>
+    <string name="f079_action_back">返回</string>
+    <string name="f079_page_icon_a11y">当前页图示</string>
+
+    <!-- 第 1 页：不用注册 -->
+    <string name="f079_page1_title">不用注册，打开就能用</string>
+    <string name="f079_page1_body">没有账号、没有登录、没有绑定手机号。打开 App 直接就是首页，想看什么点进去看，不存在「先注册再使用」。你的片源、收藏、播放进度都记在本机，换设备不会同步，也不需要用同一个账号把设备串起来。</string>
+
+    <!-- 第 2 页：只读权限 -->
+    <string name="f079_page2_title">权限只有「读」，不改你的文件</string>
+    <string name="f079_page2_body">扫描本地视频时只申请「读取」权限：读得到有什么视频，才能列出来给你看。App 不会改、不会删、不会移动你自己的文件。播放器自身的缓存、截图、导出的日志写在 App 私有目录里，卸载即一并清掉。不想给读权限也能用在线片源，只是本地视频列表会是空的。</string>
+
+    <!-- 第 3 页：遥控器手势 -->
+    <string name="f079_page3_title">遥控器与手势都按「确定」为主</string>
+    <string name="f079_page3_body">方向键移动焦点，确定键就是正文里那句「点一下」。播放页：左右键快进快退，连按加长步长，上下键切集或调音量，返回键回上一级。长按确定可以在播放/暂停与倍速之间切换。屏幕上带白色高亮的那一块就是当前焦点，看不清时先按一下方向键确认自己在哪。</string>
+
+    <!-- 第 4 页：功能中心 -->
+    <string name="f079_page4_title">功能都在功能中心，按分组排好</string>
+    <string name="f079_page4_body">设置、字幕、播放核心、网络、存储、诊断、无障碍这些分组，全部落在功能中心里。找不到某项设置时，用设置项搜索输入「倍速」「清缓存」「代理」这类词，它会告诉你在哪个功能页。功能中心的每一项都只改自己那一块，改坏了可以在对应的页面里恢复默认。</string>
+
+    <!-- 第 5 页：数据仅本机 -->
+    <string name="f079_page5_title">数据只留在本机</string>
+    <string name="f079_page5_body">播放记录、收藏、搜索历史、设置项都存在本机的偏好文件与数据库里，不上传、不联网比对、不做用户画像。App 只在你要播放时去请求片源地址，请求里不带你的身份标识。想彻底清掉：清缓存会删临时文件，清除应用数据等于回到出厂状态——包括这几页引导，下次打开还会再出现一次。</string>
+
+    <!-- 翻页与收尾 -->
+    <string name="f079_action_prev">上一条</string>
+    <string name="f079_action_next">下一条</string>
+    <string name="f079_action_start">开始使用</string>
+    <string name="f079_action_skip">跳过 · 以后可在功能中心再看</string>
+    <string name="f079_action_reset">重新查看引导</string>
+    <string name="f079_page_index">%1$d / %2$d</string>
+
+    <!-- 页码圆点 -->
+    <string name="f079_dot_a11y">第 %1$d 页，共 %2$d 页</string>
+    <string name="f079_dot_a11y_current">当前第 %1$d 页，共 %2$d 页</string>
+
+    <!-- 状态行 -->
+    <string name="f079_status_first">共 %1$d 页，大概一分钟。看完点「开始使用」，中途点「跳过」也不会再自动弹出</string>
+    <string name="f079_status_done_before">你已经看过这份引导：这次是从功能中心重新打开的，翻完或退出都不会影响之前的记录</string>
+    <string name="f079_status_skipped_before">上次是跳过的：这次可以补看，退出后仍然不会自动弹出</string>
+    <string name="f079_status_reset">已重置引导状态：回到第一页，下次启动会重新自动弹出</string>
+
+    <!-- 页脚 -->
+    <string name="f079_footer_note">引导只解释「为什么」与「在哪」，不改动任何设置；返回键等同于跳过，同样不会重复弹出</string>
+</resources>
