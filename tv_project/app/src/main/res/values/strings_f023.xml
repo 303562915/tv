@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f023_title">忽略目录与扩展名规则</string>
+    <string name="f023_desc">按目录前缀与扩展名黑名单跳过不该扫的路径，改完当场试算一条路径是否被忽略</string>
+
+    <string name="f023_section_dir">目录规则</string>
+    <string name="f023_dir_hint">按路径分段匹配，大小写不敏感；写 Android/data 即可命中任意存储盘下的同路径，写 .thumbnails 命中任意层级的同名目录</string>
+    <string name="f023_hint_dir_input">例如 Android/data 或 DCIM/.thumbnails</string>
+    <string name="f023_dir_count_zero">还没有目录规则</string>
+    <string name="f023_dir_count">共 %1$d 条目录规则</string>
+    <string name="f023_empty_dir">— 暂无目录规则，点上方添加或恢复默认</string>
+    <string name="f023_badge_dir">目录</string>
+
+    <string name="f023_section_ext">扩展名规则</string>
+    <string name="f023_ext_hint">只看文件名最后一段，大小写不敏感；输入 mp4 与 .mp4 等价</string>
+    <string name="f023_hint_ext_input">例如 .tmp 或 .part</string>
+    <string name="f023_ext_count_zero">还没有扩展名规则</string>
+    <string name="f023_ext_count">共 %1$d 条扩展名规则</string>
+    <string name="f023_empty_ext">— 暂无扩展名规则，按自己的片源习惯添加</string>
+    <string name="f023_badge_ext">扩展</string>
+
+    <string name="f023_action_add">添加</string>
+    <string name="f023_action_remove">删除</string>
+    <string name="f023_action_test">试算</string>
+    <string name="f023_action_restore_default">恢复默认目录</string>
+
+    <string name="f023_section_test">路径试算</string>
+    <string name="f023_test_hint">粘一条完整路径或相对路径，立刻给出是否忽略以及命中的规则</string>
+    <string name="f023_hint_test_path">例如 /storage/emulated/0/Android/data/com.foo/cache</string>
+    <string name="f023_test_path_hint">尚未输入路径</string>
+    <string name="f023_test_path_echo">测试路径：%1$s</string>
+    <string name="f023_verdict_idle">等待试算</string>
+    <string name="f023_verdict_skip">会被忽略</string>
+    <string name="f023_verdict_keep">不会被忽略</string>
+    <string name="f023_rule_none">命中规则：无</string>
+    <string name="f023_rule_dir_hit">命中规则：目录 %1$s</string>
+    <string name="f023_rule_ext_hit">命中规则：扩展名 %1$s</string>
+    <string name="f023_advice_idle">输入路径后点「试算」</string>
+    <string name="f023_advice_skip">扫描时会跳过这个路径，不进媒体库</string>
+    <string name="f023_advice_keep">扫描时会把这条路径纳入媒体库</string>
+
+    <string name="f023_toast_bad_dir">目录前缀为空或全是斜杠</string>
+    <string name="f023_toast_bad_ext">扩展名为空</string>
+    <string name="f023_toast_duplicate">这条规则已经存在</string>
+    <string name="f023_toast_dir_added">已添加目录规则 %1$s</string>
+    <string name="f023_toast_dir_removed">已删除目录规则 %1$s</string>
+    <string name="f023_toast_ext_added">已添加扩展名规则 %1$s</string>
+    <string name="f023_toast_ext_removed">已删除扩展名规则 %1$s</string>
+    <string name="f023_toast_default_restored">已恢复默认目录规则</string>
+    <string name="f023_toast_need_path">先输入一条路径</string>
+</resources>
