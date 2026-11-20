@@ -203,6 +203,11 @@
             android:label="@string/f012_title"
             android:exported="false" />
 
+        <activity
+            android:name=".feature.f013.F013Activity"
+            android:label="@string/f013_title"
+            android:exported="false" />
+
     </application>
 
 </manifest>

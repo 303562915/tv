@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F013「字幕轨道切换与延迟」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f013_title">字幕轨道切换与延迟</string>
+    <string name="f013_desc">在多条内嵌字幕轨之间切换，并对字幕时间轴做 ±100ms 校正</string>
+
+    <!-- 轨道 -->
+    <string name="f013_section_tracks">字幕轨道</string>
+    <string name="f013_track_hint">选中即生效；列表来自当前片源的字幕流，内嵌轨道随片源一起加载</string>
+    <string name="f013_track_meta">语言 %1$s · %2$s</string>
+    <string name="f013_track_embedded">内嵌</string>
+    <string name="f013_track_external">外挂</string>
+    <string name="f013_track_current">当前轨道：%1$s</string>
+    <string name="f013_track_empty">当前片源没有字幕轨</string>
+    <string name="f013_track_selected">当前选中</string>
+    <string name="f013_track_switched">已切到 %1$s</string>
+
+    <!-- 延迟 -->
+    <string name="f013_section_delay">字幕延迟</string>
+    <string name="f013_delay_label">时间轴偏移</string>
+    <string name="f013_delay_plus">+%1$d ms</string>
+    <string name="f013_delay_minus">-%1$d ms</string>
+    <string name="f013_delay_zero">0 ms</string>
+    <string name="f013_delay_minus_btn">-100 ms</string>
+    <string name="f013_delay_plus_btn">+100 ms</string>
+    <string name="f013_delay_reset_btn">归零</string>
+    <string name="f013_delay_hint">每档 100ms，范围 -5000 ~ +5000 ms；正数让字幕晚出现，负数让它早出现，到界后按钮自动禁用</string>
+    <string name="f013_delay_limit_low">已到下限 -5000 ms，不能再提前</string>
+    <string name="f013_delay_limit_high">已到上限 +5000 ms，不能再推后</string>
+    <string name="f013_delay_reset_done">延迟已归零</string>
+    <string name="f013_delay_reset_already">延迟本来就是 0 ms</string>
+    <string name="f013_dpad_tip">遥控器：上下键选轨道、进出各小节，左右键调延迟档位</string>
+
+    <!-- 可见性演示 -->
+    <string name="f013_section_preview">可见性演示</string>
+    <string name="f013_preview_tip">一条 12.0 秒 ~ 15.0 秒的模拟字幕，用播放头扫过它，就能看到延迟把出现时刻整体平移了多少</string>
+    <string name="f013_cue_text">这是一条模拟字幕：延迟平移的是它出现和消失的时刻</string>
+    <string name="f013_cue_visible">显示中</string>
+    <string name="f013_cue_hidden">未显示</string>
+    <string name="f013_playhead_value">播放头 %1$s</string>
+    <string name="f013_cue_window">生效区间 %1$s ~ %2$s（原始 %3$s ~ %4$s）</string>
+    <string name="f013_cue_verdict_before">还没到显示时间，%1$s 才出现</string>
+    <string name="f013_cue_verdict_inside">字幕可见，还剩 %1$s 后消失</string>
+    <string name="f013_cue_verdict_after">已经播完，%1$s 就消失了</string>
+    <string name="f013_seconds">%1$.1f 秒</string>
+
+    <!-- 播放页接线说明 -->
+    <string name="f013_player_note">播放页接线：轨道列表换成 player.currentTracks 里 type 为字幕的分组，切换时 player.selectTrack 后立即生效；延迟用 F013Engine.effectiveTime / isVisibleAt 平移 cue 时间戳，参数存在 video_player_prefs，改完无需重建字幕源。</string>
+</resources>
