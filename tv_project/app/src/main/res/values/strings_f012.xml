@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 「字幕样式设置」功能私有文案；键名一律 f012_ 前缀，避免与共享 strings.xml 撞名。 -->
+<resources>
+    <string name="f012_title">字幕样式设置</string>
+    <string name="f012_desc">字号、颜色、描边、背景四项独立可调，改完立刻在预览区生效并记住</string>
+
+    <string name="f012_section_preview">预览</string>
+    <string name="f012_preview_text">这一行是字幕预览</string>
+    <string name="f012_summary">%1$dsp · %2$s · %3$s · %4$s</string>
+    <string name="f012_summary_outline">%1$ddp 描边</string>
+    <string name="f012_summary_outline_off">无描边</string>
+
+    <string name="f012_section_size">字号</string>
+    <string name="f012_size_minus">−2</string>
+    <string name="f012_size_plus">+2</string>
+    <string name="f012_size_value">%1$d sp</string>
+    <string name="f012_size_default">18 sp</string>
+
+    <string name="f012_section_color">文字颜色</string>
+    <string name="f012_color_white">白色</string>
+    <string name="f012_color_yellow">淡黄</string>
+    <string name="f012_color_cyan">青色</string>
+    <string name="f012_color_green">绿色</string>
+    <string name="f012_color_pink">粉色</string>
+    <string name="f012_color_black">黑色</string>
+
+    <string name="f012_section_outline">描边</string>
+    <string name="f012_outline_label">文字描边</string>
+    <string name="f012_outline_on">已开启</string>
+    <string name="f012_outline_off">已关闭</string>
+    <string name="f012_outline_width_label">宽度</string>
+    <string name="f012_outline_width_value">%1$d dp</string>
+    <string name="f012_outline_width_default">2 dp</string>
+
+    <string name="f012_section_background">背景</string>
+    <string name="f012_bg_none">无背景</string>
+    <string name="f012_bg_none_desc">纯文字压画面</string>
+    <string name="f012_bg_translucent">半透明</string>
+    <string name="f012_bg_translucent_desc">50% 黑底</string>
+    <string name="f012_bg_opaque">不透明</string>
+    <string name="f012_bg_opaque_desc">纯黑底</string>
+
+    <string name="f012_reset">恢复默认</string>
+    <string name="f012_toast_reset">已恢复默认字幕样式</string>
+    <string name="f012_note">样式保存在本机，播放页读取同一份设置，重进或重启后沿用。</string>
+</resources>
