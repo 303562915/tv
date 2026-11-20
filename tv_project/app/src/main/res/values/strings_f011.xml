@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 外挂字幕加载（F011） -->
+<resources>
+    <string name="f011_title">外挂字幕加载</string>
+    <string name="f011_desc">选一个本地 srt / ass / vtt 文件，解析出时间轴与文本，失败会说清哪一行有问题</string>
+    <string name="f011_action_back">返回</string>
+    <string name="f011_action_pick">选择字幕文件</string>
+    <string name="f011_file_none">尚未选择文件</string>
+    <string name="f011_file_selected">已选：%1$s</string>
+    <string name="f011_summary">格式 %1$s · 共 %2$d 条字幕 · %3$s → %4$s</string>
+    <string name="f011_summary_empty">暂无解析结果</string>
+    <string name="f011_error_empty">文件是空的，读不到任何内容</string>
+    <string name="f011_error_timecode">第 %1$d 行的时间轴格式不对（应为 00:00:01,000 --&gt; 00:00:03,000）</string>
+    <string name="f011_error_no_cues">没解析出任何字幕条目，确认文件格式与内容</string>
+    <string name="f011_error_io">读文件失败：%1$s</string>
+    <string name="f011_preview_empty">解析成功后这里会列出前几条字幕</string>
+    <string name="f011_preview_line">%1$s → %2$s  %3$s</string>
+    <string name="f011_reading">正在读取…</string>
+</resources>
