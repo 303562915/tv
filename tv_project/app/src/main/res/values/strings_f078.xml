@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F078「设置分组重置」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f078_title">设置分组重置</string>
+    <string name="f078_desc">某项调乱了需要恢复默认：按分组把设置一键重置回默认值，重置前二次确认</string>
+    <string name="f078_action_back">返回</string>
+
+    <!-- 汇总卡片 -->
+    <string name="f078_summary_label">当前状态</string>
+    <string name="f078_summary">已改 %1$d 项 · 共 %2$d 项 · %3$d 个分组</string>
+    <string name="f078_summary_hint">已改的项会在下面标黄；重置只清掉这几项的存储值，不改动收藏、历史与已下载的文件。</string>
+    <string name="f078_action_reset_all">全部重置</string>
+
+    <!-- 分组明细 -->
+    <string name="f078_section_groups">分组明细</string>
+    <string name="f078_group_header">%1$s · %2$d 项 · 已改 %3$d</string>
+    <string name="f078_action_reset_group">重置本组</string>
+    <string name="f078_row_value">当前 %1$s · 默认 %2$s</string>
+    <string name="f078_row_key">%1$s / %2$s</string>
+    <string name="f078_row_a11y">%1$s，当前值 %2$s，默认值 %3$s，状态 %4$s</string>
+    <string name="f078_state_default">默认</string>
+    <string name="f078_state_changed">已改</string>
+
+    <!-- 状态行 -->
+    <string name="f078_status_idle">共 %1$d 项设置按分组列出，可以按组重置，也可以全部重置</string>
+    <string name="f078_status_group_done">已重置「%1$s」：%2$d 项恢复默认值，回到对应功能页即是默认状态</string>
+    <string name="f078_status_group_none">「%1$s」本来就是默认值，没有需要重置的项</string>
+    <string name="f078_status_all_done">已全部重置：%1$d 项恢复默认值</string>
+    <string name="f078_status_all_none">全部设置都已经是默认值，没有需要重置的项</string>
+
+    <!-- 二次确认 -->
+    <string name="f078_confirm_group_title">重置「%1$s」</string>
+    <string name="f078_confirm_group_message">「%1$s」分组里有 %2$d 项不是默认值（共 %3$d 项）。重置后立刻回到默认值，存储值被清掉且不能撤销，确定要重置吗？</string>
+    <string name="f078_confirm_all_title">重置全部设置</string>
+    <string name="f078_confirm_all_message">%1$d 项设置里有 %2$d 项不是默认值。重置后全部立刻回到默认值，不能撤销，确定要全部重置吗？</string>
+    <string name="f078_action_confirm">重置</string>
+    <string name="f078_action_cancel">取消</string>
+
+    <!-- 页脚 -->
+    <string name="f078_footer_note">重置的做法是把这些键从各自的 SharedPreferences 文件里删掉，读设置的代码随之回落到各功能自己声明的默认值——所以不需要重启，回到对应功能页看到的就是默认状态。</string>
+</resources>
