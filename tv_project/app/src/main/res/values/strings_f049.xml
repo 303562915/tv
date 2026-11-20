@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f049_title">热词与最近查询排序</string>
+    <string name="f049_desc">首页热词按点击次数排、同数按最近；最近查询按时间倒序且同一句只留一条，点任意一条直接搜</string>
+
+    <string name="f049_section_search">搜索</string>
+    <string name="f049_search_hint">输入要搜的内容</string>
+    <string name="f049_search_action">搜索</string>
+    <string name="f049_search_body_hint">输入后回车或点「搜索」，这次查询会记进下面的最近查询</string>
+    <string name="f049_search_status_empty">还没有搜索过，点热词或最近查询也能直接搜</string>
+    <string name="f049_search_status_last">上一次搜索：%1$s</string>
+    <string name="f049_search_blank">先输入要搜的内容再点搜索</string>
+
+    <string name="f049_section_hot">热词</string>
+    <string name="f049_hot_empty">还没有热词，点一次热词就会开始计数</string>
+    <string name="f049_hot_stat">共 %1$d 个热词 · 按点击次数降序，同数按最近点击</string>
+    <string name="f049_hot_rank">%1$d</string>
+    <string name="f049_hot_count_badge">%1$d 次</string>
+    <string name="f049_hot_hint">点热词会累加一次点击并直接搜索，榜单立刻重排；角标就是累计点击数</string>
+
+    <string name="f049_section_recent">最近查询</string>
+    <string name="f049_recent_empty">还没有最近查询</string>
+    <string name="f049_recent_stat">共 %1$d 条 · 按时间倒序，同一句只留最近一次</string>
+    <string name="f049_clear_recent">清空最近查询</string>
+    <string name="f049_recent_hint">点一条最近查询会把它重新搜一次，时间刷新并回到列表最前</string>
+
+    <string name="f049_toast_clicked">「%1$s」已计一次点击，共 %2$d 次</string>
+    <string name="f049_toast_searched">已搜索：%1$s</string>
+    <string name="f049_cleared">已清空 %1$d 条最近查询</string>
+    <string name="f049_cleared_empty">最近查询本来就是空的</string>
+
+    <string name="f049_hint_storage">热词与最近查询保存在 files/f049_hot_search.json，退出重进沿用；最近查询最多保留 30 条</string>
+</resources>
