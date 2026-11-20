@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F015「字幕编码探测」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f015_title">字幕编码探测</string>
+    <string name="f015_desc">GBK / Big5 字幕按 UTF-8 读会乱码，先探测编码，一次性尝试 BOM、UTF-8、UTF-16、GBK、Big5</string>
+
+    <!-- 样本文本卡片 -->
+    <string name="f015_section_input">样本文本</string>
+    <string name="f015_input_hint">可直接粘贴字幕内容，或点上面的示例装入已知编码的真实字节</string>
+    <string name="f015_sample_utf8">UTF-8 中文</string>
+    <string name="f015_sample_gbk">GBK 中文</string>
+    <string name="f015_sample_utf16">UTF-16 带 BOM</string>
+    <string name="f015_sample_size">样本 %1$d 字节</string>
+
+    <!-- 探测结果卡片 -->
+    <string name="f015_section_result">探测结果</string>
+    <string name="f015_result_charset">探测编码</string>
+    <string name="f015_result_source">判定依据</string>
+    <string name="f015_result_confidence">可信度</string>
+    <string name="f015_result_tried">尝试顺序</string>
+    <string name="f015_source_bom">BOM 声明</string>
+    <string name="f015_source_auto">自动探测</string>
+    <string name="f015_source_manual">人工指定</string>
+    <string name="f015_confidence_value">%1$d%%</string>
+    <string name="f015_confidence_manual">人工指定（不参与打分）</string>
+    <string name="f015_tried_value">%1$s</string>
+    <string name="f015_tried_none">还没开始尝试</string>
+    <string name="f015_value_none">—</string>
+
+    <!-- 候选编码：探测不准时人工覆盖 -->
+    <string name="f015_section_candidates">候选编码（可人工覆盖）</string>
+    <string name="f015_candidate_active">✓ %1$s</string>
+    <string name="f015_override_done">已改用 %1$s 重新解码</string>
+    <string name="f015_auto_detect">回到自动探测</string>
+    <string name="f015_auto_hint">确认键</string>
+    <string name="f015_back_to_auto">已回到自动探测</string>
+
+    <!-- 解码预览 -->
+    <string name="f015_section_preview">解码预览</string>
+    <string name="f015_preview_lines">共 %1$d 行，已全部显示</string>
+    <string name="f015_preview_more">共 %1$d 行，只显示前 %2$d 行</string>
+    <string name="f015_garbled_hint">疑似乱码：按 %1$s 解出来的内容有大量替换字符或异常控制字符，换成别的候选编码再试</string>
+    <string name="f015_empty_hint">样本为空：先粘一段字幕或点上面的示例</string>
+    <string name="f015_preview_note">预览会剥掉开头的 BOM；乱码判定看替换字符、控制字符、私用区字符的占比，超过 5% 就不显示正文。</string>
+    <string name="f015_engine_note">接线：字幕加载处把原始字节交给 F015Engine.detect(bytes)，用返回的 charset 调 decode(bytes, charset)；判定不可靠或 looksGarbled 为真时提示用户切换编码，别直接渲染。</string>
+</resources>
