@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f050_title">模糊匹配容错</string>
+    <string name="f050_desc">错字、简繁、空格差异不该让结果消失：先把查询和标题归一化，再按容错级别给出近似结果，并说清为什么命中</string>
+
+    <string name="f050_section_search">查询</string>
+    <string name="f050_search_hint">输入要搜的片名</string>
+    <string name="f050_search_action">匹配</string>
+    <string name="f050_demo_action">演示：luse hai yang → 蓝色海洋</string>
+    <string name="f050_search_body_hint">输入后回车或点「匹配」，下面 8 条演示标题会按命中分从高到低排；空格、标点、全角字符在比较前都会被丢掉</string>
+    <string name="f050_blank_query">先输入要搜的内容再点匹配</string>
+    <string name="f050_toast_searched">已按「%1\$s」匹配</string>
+    <string name="f050_toast_row">%1\$s · %2\$s · 编辑距离 %3\$d</string>
+
+    <string name="f050_section_tolerance">容错级别</string>
+    <string name="f050_tolerance_0">0 级 · 精确</string>
+    <string name="f050_tolerance_1">1 级 · 容 1 字</string>
+    <string name="f050_tolerance_2">2 级 · 容 2 字</string>
+    <string name="f050_tolerance_hint">级别就是允许的编辑距离上限，只作用在「错字近似」和「拼音近似」两步；完全一致、前缀、包含、拼音一致这几步不受级别影响</string>
+    <string name="f050_normalize_idle">归一化结果：（还没有查询）</string>
+    <string name="f050_normalize_stat">归一化结果：%1\$s</string>
+
+    <string name="f050_section_result">匹配结果</string>
+    <string name="f050_status_idle">还没开始匹配，输入片名或点上面的演示按钮</string>
+    <string name="f050_status_hit">命中 %1\$d 条 · 容错级别 %2\$d</string>
+    <string name="f050_result_meta">%1\$d 分 · 距离 %2\$d</string>
+    <string name="f050_result_empty">没有命中</string>
+    <string name="f050_empty_hit">「%1\$s」在容错 %2\$d 级下没有找到任何标题。试试把级别调高，或者只留关键字的一部分。</string>
+    <string name="f050_result_hint">贴在一起的两个数字分别是命中分和编辑距离；右侧角标说明命中原因，点一行会把判定细节再报一次</string>
+
+    <string name="f050_reason_exact">完全一致</string>
+    <string name="f050_reason_prefix">前缀命中</string>
+    <string name="f050_reason_contains">包含命中</string>
+    <string name="f050_reason_pinyin">拼音一致</string>
+    <string name="f050_reason_pinyin_part">拼音包含</string>
+    <string name="f050_reason_typo">错字近似</string>
+    <string name="f050_reason_pinyin_typo">拼音近似</string>
+
+    <string name="f050_section_demo">演示标题</string>
+    <string name="f050_demo_titles">蓝色海洋 · 深海迷航 · 漫长的季节 · 三体 第二季 · 流浪地球 · 繁花 · 隐秘的角落 · 狂飙\n演示：把查询写成 luse hai yang（lan se 拼错一个音节、空格也不规范），容错 2 级下仍能命中「蓝色海洋」，原因标为「拼音近似」。</string>
+</resources>
