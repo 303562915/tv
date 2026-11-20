@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F074「收藏导入导出」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f074_title">收藏导入导出</string>
+    <string name="f074_desc">把收藏单独导出成 JSON，也能从导出的文件或粘贴文本导回来，按标题+封面去重、相同的标签取并集</string>
+    <string name="f074_action_back">返回</string>
+    <string name="f074_action_hint">确认键执行</string>
+
+    <!-- 导出 -->
+    <string name="f074_section_export">导出</string>
+    <string name="f074_export_label">导出为 JSON 文件</string>
+    <string name="f074_export_idle">还没导出</string>
+    <string name="f074_export_done">已写入 %1$s（%2$s，共 %3$d 条收藏）</string>
+    <string name="f074_export_failed">导出失败：%1$s</string>
+    <string name="f074_export_note">文件落在应用专属外部目录 export/ 下，接电脑直接拷走即可；结构是 version 为 1 的对象，items 数组里每条带 title、coverUrl、addedAtMs、tags。</string>
+
+    <!-- 导入 -->
+    <string name="f074_section_import">导入</string>
+    <string name="f074_import_pick">选择 JSON 文件</string>
+    <string name="f074_import_paste">粘贴剪贴板</string>
+    <string name="f074_paste_label">收藏 JSON</string>
+    <string name="f074_paste_hint">这里粘贴导出的 JSON，也可以直接手写一段</string>
+    <string name="f074_import_text">导入下面的文本</string>
+    <string name="f074_import_idle">还没有导入</string>
+    <string name="f074_import_stats">新增 %1$d 条 · 跳过 %2$d 条 · 非法 %3$d 条</string>
+    <string name="f074_import_stats_with_error">新增 %1$d 条 · 跳过 %2$d 条 · 非法 %3$d 条（%4$s）</string>
+    <string name="f074_import_total">当前共 %1$d 条</string>
+    <string name="f074_import_read_failed">这个文件读不出来：%1$s</string>
+    <string name="f074_import_empty_text">文本框是空的，先粘贴或选个文件</string>
+    <string name="f074_clipboard_empty">剪贴板里没有文本</string>
+    <string name="f074_clipboard_pasted">已从剪贴板填入文本框</string>
+
+    <!-- 收藏一览 -->
+    <string name="f074_section_list">收藏一览</string>
+    <string name="f074_list_count">当前共 %1$d 条收藏</string>
+    <string name="f074_list_empty">还没有收藏条目</string>
+    <string name="f074_row_meta">收藏于 %1$s · 封面 %2$s</string>
+    <string name="f074_row_tags">标签：%1$s</string>
+
+    <!-- 提示 -->
+    <string name="f074_toast_exported">已导出收藏</string>
+    <string name="f074_toast_imported">导入完成</string>
+</resources>

@@ -598,6 +598,11 @@
             android:label="@string/f069_title"
             android:exported="false" />
 
+        <activity
+            android:name=".feature.f074.F074Activity"
+            android:label="@string/f074_title"
+            android:exported="false" />
+
     </application>
 
 </manifest>

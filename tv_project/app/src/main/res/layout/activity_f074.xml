@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  「收藏导入导出」页 · 沿用功能页既有的视觉语言：
+  卡片层 + 16dp 圆角，焦点态靠 bg_card_surface 的 surface_inset 填充表达，不额外描边。
+  颜色只走 colors.xml 的 theme_* / surface_* 语义 token，这里不出现任何十六进制。
+  电视没有触摸屏：返回、导出、选文件、粘贴、文本框、导入文本都可聚焦，
+  nextFocus* 串成 返回 → 导出 → 选文件 → 粘贴 → 文本框 → 导入文本 一条从上到下的线。
+-->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:fitsSystemWindows="true"
+    android:overScrollMode="never">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/page_margin"
+        android:paddingTop="@dimen/page_margin"
+        android:paddingEnd="@dimen/page_margin"
+        android:paddingBottom="96dp">
+
+        <!-- 标题行：返回 + 页标题 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_secondary_button"
+                android:contentDescription="@string/f074_action_back"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:nextFocusDown="@id/f074ExportButton"
+                android:padding="12dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_back"
+                app:tint="@color/theme_text_primary" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:text="@string/f074_title"
+                android:textAppearance="@style/TextAppearance.TVPlayer.PageTitle" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/f074_desc"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+        <!-- 小节：导出 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:text="@string/f074_section_export"
+            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/card_padding">
+
+                <!-- 导出：主动作，确认键执行 -->
+                <LinearLayout
+                    android:id="@+id/f074ExportButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_primary_button"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/list_row_min_height"
+                    android:nextFocusDown="@id/f074ImportPickButton"
+                    android:nextFocusUp="@id/btnBack"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/f074_export_label"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Body"
+                        android:textColor="@color/theme_on_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/f074_action_hint"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                        android:textColor="@color/theme_on_primary" />
+                </LinearLayout>
+
+                <!-- 导出结果：路径 + 字节数，颜色由代码切（成功绿 / 失败红） -->
+                <TextView
+                    android:id="@+id/f074ExportResult"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/card_gap"
+                    android:lineSpacingExtra="3dp"
+                    android:text="@string/f074_export_idle"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Body"
+                    android:textColor="@color/theme_text_secondary" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:lineSpacingExtra="3dp"
+                    android:text="@string/f074_export_note"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- 小节：导入 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:text="@string/f074_section_import"
+            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/card_padding">
+
+                <!-- 两条入口并排：选文件 / 从剪贴板粘贴 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:id="@+id/f074ImportPickButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_secondary_button"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:gravity="center_vertical"
+                        android:minHeight="@dimen/list_row_min_height"
+                        android:nextFocusDown="@id/f074ImportPasteButton"
+                        android:nextFocusUp="@id/f074ExportButton"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/f074_import_pick"
+                            android:textAppearance="@style/TextAppearance.TVPlayer.Body"
+                            android:textColor="@color/theme_text_primary" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/f074ImportPasteButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/card_gap"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_secondary_button"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:gravity="center_vertical"
+                        android:minHeight="@dimen/list_row_min_height"
+                        android:nextFocusDown="@id/f074PasteInput"
+                        android:nextFocusUp="@id/f074ImportPickButton"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/f074_import_paste"
+                            android:textAppearance="@style/TextAppearance.TVPlayer.Body"
+                            android:textColor="@color/theme_text_primary" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/card_gap"
+                    android:text="@string/f074_paste_label"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Body"
+                    android:textColor="@color/theme_text_primary" />
+
+                <EditText
+                    android:id="@+id/f074PasteInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_dialog_input"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="top|start"
+                    android:hint="@string/f074_paste_hint"
+                    android:inputType="textMultiLine|textNoSuggestions"
+                    android:lineSpacingExtra="2dp"
+                    android:maxLines="8"
+                    android:minLines="3"
+                    android:nextFocusDown="@id/f074ImportTextButton"
+                    android:nextFocusUp="@id/f074ImportPasteButton"
+                    android:padding="12dp"
+                    android:scrollbars="vertical"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Body"
+                    android:textColor="@color/theme_text_primary"
+                    android:textColorHint="@color/theme_text_secondary" />
+
+                <!-- 导入文本框里的内容 -->
+                <LinearLayout
+                    android:id="@+id/f074ImportTextButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/card_gap"
+                    android:background="@drawable/bg_primary_button"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/list_row_min_height"
+                    android:nextFocusUp="@id/f074PasteInput"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/f074_import_text"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Body"
+                        android:textColor="@color/theme_on_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/f074_action_hint"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                        android:textColor="@color/theme_on_primary" />
+                </LinearLayout>
+
+                <!-- 统计：新增 / 跳过 / 非法，颜色由代码切 -->
+                <TextView
+                    android:id="@+id/f074ImportStats"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/card_gap"
+                    android:lineSpacingExtra="3dp"
+                    android:text="@string/f074_import_idle"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Body"
+                    android:textColor="@color/theme_text_secondary" />
+
+                <TextView
+                    android:id="@+id/f074ImportTotal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                    android:textColor="@color/theme_text_secondary" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- 小节：收藏一览（合并后的列表，每行带标签） -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:text="@string/f074_section_list"
+            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+        <TextView
+            android:id="@+id/f074ListCount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/card_padding">
+
+                <TextView
+                    android:id="@+id/f074ListEmpty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/f074_list_empty"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                <LinearLayout
+                    android:id="@+id/f074ListContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
