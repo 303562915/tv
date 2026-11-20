@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f051_title">结果关键字高亮</string>
+    <string name="f051_desc">关键词按空格拆成多个分别命中，重叠区间自动合并，命中片段用主题色加粗标出，扫读结果更快</string>
+
+    <string name="f051_input_hint">输入关键词，多个词用空格分隔</string>
+    <string name="f051_sample">示例词</string>
+    <string name="f051_clear">清空</string>
+    <string name="f051_case_on">区分大小写：关</string>
+    <string name="f051_case_off">区分大小写：开</string>
+
+    <string name="f051_stats_zero">关键词 0 · 命中 0 行 · 高亮 0 段</string>
+    <string name="f051_stats">关键词 %1$d · 命中 %2$d 行 · 高亮 %3$d 段</string>
+
+    <string name="f051_result_title">结果列表</string>
+    <string name="f051_result_empty">没有结果可高亮</string>
+
+    <string name="f051_sample_keywords">流浪地球 播客 4K</string>
+    <string name="f051_sample_line_1">流浪地球2 · 4K 蓝光原盘 · 2023</string>
+    <string name="f051_sample_line_2">流浪地球1 与 流浪地球2 连播合集</string>
+    <string name="f051_sample_line_3">科幻播客 第 12 期：为什么流浪地球的分镜值得反复看</string>
+    <string name="f051_sample_line_4">纪录片 · 4K 修复 · 地球脉动 第二季</string>
+    <string name="f051_sample_line_5">三部曲马拉松播放列表 · 4K 字幕已内嵌</string>
+
+    <string name="f051_hint_sample">示例词里「流浪地球」和「地球」是嵌套命中，区间会合并成一段；「4K」与「播客」分别命中不同行，统计里分开计数</string>
+</resources>
