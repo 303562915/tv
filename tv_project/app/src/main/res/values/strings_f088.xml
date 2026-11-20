@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F088「遥控器按键自定义」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f088_title">遥控器按键自定义</string>
+    <string name="f088_desc">不同遥控器上同一个功能发出来的键值往往不一样：运营商盒子的「下一集」可能是 87，电视自带遥控器可能根本没有这个键。这里先把你的键认下来，再绑给播放/暂停、上下集等动作</string>
+
+    <!-- 学习模式 -->
+    <string name="f088_section_learn">学习模式</string>
+    <string name="f088_learn_note">打开学习模式后，在列表里选中一个动作，然后按遥控器上任意一个键——这个键就归那个动作。学习模式下除「返回」外的按键都会被当样本收下，不会再移动焦点</string>
+    <string name="f088_learn_off">学习模式：关</string>
+    <string name="f088_learn_on">学习模式：开 · 按一个键来绑定</string>
+    <string name="f088_learn_mark">点击切换</string>
+    <string name="f088_learn_hint_off">当前选中「%1$s」：点这一行打开学习模式，随后按下的那个键就会绑给它</string>
+    <string name="f088_learn_hint_on">正在学习「%1$s」：按遥控器上要做这件事的键；按「返回」退出学习模式</string>
+    <string name="f088_captured_none">最近按下的键：—</string>
+    <string name="f088_key_captured">最近按下的键：%1$s · 键值 %2$d</string>
+    <string name="f088_status_learning">学习模式中：选中「%1$s」，等一个按键</string>
+    <string name="f088_status_last_key">学习模式中 · %1$s 已绑定到当前选中动作</string>
+    <string name="f088_status_bound">已绑定 %1$d / %2$d 个动作</string>
+    <string name="f088_status_bound_placeholder">读表中…</string>
+
+    <!-- 映射表 -->
+    <string name="f088_section_map">映射表</string>
+    <string name="f088_map_head_action">动作</string>
+    <string name="f088_map_head_key">键名</string>
+    <string name="f088_map_head_code">键值</string>
+    <string name="f088_map_head_unbind">操作</string>
+    <string name="f088_action_play_pause">播放 / 暂停</string>
+    <string name="f088_action_next">下一集</string>
+    <string name="f088_action_prev">上一集</string>
+    <string name="f088_action_menu">菜单 / 信息</string>
+    <string name="f088_action_seek_forward">快进</string>
+    <string name="f088_action_seek_backward">快退</string>
+    <string name="f088_key_unbound">未绑定</string>
+    <string name="f088_key_unbound_code">—</string>
+    <string name="f088_key_code_value">%1$d</string>
+    <string name="f088_action_unbind">解绑</string>
+    <string name="f088_action_reset">恢复默认映射</string>
+    <string name="f088_summary_default">当前是默认映射：播放/暂停、上下集、菜单、快进、快退都挂在 Android 标准媒体键上。你的遥控器按不出反应时，用学习模式重新认一遍</string>
+    <string name="f088_summary_custom">当前是自定义映射：映射表的改动已保存，下一次进页面、以及播放器里都按这张表生效</string>
+
+    <!-- 提示 -->
+    <string name="f088_toast_bound">「%1$s」已绑定到 %2$s（键值 %3$d），已保存</string>
+    <string name="f088_toast_bound_with_conflict">「%1$s」已绑定到 %2$s（键值 %3$d）；这个键原来归「%4$s」，已自动解绑</string>
+    <string name="f088_toast_unbind">已解绑「%1$s」（原 %2$s · 键值 %3$d）</string>
+    <string name="f088_toast_unbind_none">「%1$s」本来就没有绑定</string>
+    <string name="f088_toast_reset">已恢复默认映射</string>
+
+    <!-- 其它 -->
+    <string name="f088_action_back">返回</string>
+    <string name="f088_engine_note">接线：F088Engine.bind(context, action, keyCode) 把动作绑到键上并落盘，返回被挤掉的动作（键冲突自动解绑旧动作）；actionOf(context, keyCode) 给播放器一句「这个键归谁」；keyName(keyCode) 是 KeyEvent.keyCodeToString 去掉 KEYCODE_ 前缀；load/save/reset 走 SharedPreferences（f088_key_map · map，格式 play_pause:85;next:87）。表为空串表示用户解绑了全部动作，这时不回退默认。注意：部分盒子的媒体键会被系统或厂商服务先截走，学习模式下按不出来就说明这个键到不了应用，只能换一个键映射。</string>
+</resources>

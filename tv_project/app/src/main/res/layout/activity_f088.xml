@@ -1,0 +1,595 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  「遥控器按键自定义」页 · 沿用功能页的视觉语言：
+  卡片层 + 16dp 圆角，焦点/选中态靠行底色表达（bg_mode_card_selected），不额外描边。
+  颜色只走 colors.xml 的 theme_* / surface_* 语义 token，这里不出现任何十六进制。
+
+  为什么映射表是六行写死的 XML 而不是代码里动态拼：
+  电视遥控器只有方向键 + 确认，焦点顺序必须逐行声明 nextFocusDown 才能保证上下推不越界；
+  动态创建的 View 没有资源 id，nextFocusDown 无处可指。动作清单本身是固定的六个
+  （见 F088Engine.Action），枚举加项时这里补一行即可。
+
+  每行四段：动作名（权重 1）+ 键名 + 键值 + 「解绑」。
+  键名与键值分两列显示是有意的：键名给认出这是什么键，键值给去论坛/客服对暗号
+  （不同遥控器同一个功能发出来的键值常常不一样，这正是本功能存在的理由）。
+  没绑的动作显示「未绑定 / —」，并把「解绑」藏成 INVISIBLE（保留站位，行宽不跳）。
+
+  焦点顺序：返回 → 学习模式开关 → 六个动作行 → 恢复默认 → 返回（首尾相接）。
+-->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:fitsSystemWindows="true"
+    android:overScrollMode="never">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/page_margin"
+        android:paddingTop="@dimen/page_margin"
+        android:paddingEnd="@dimen/page_margin"
+        android:paddingBottom="96dp">
+
+        <!-- 标题行：返回 + 页标题 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_secondary_button"
+                android:contentDescription="@string/f088_action_back"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:nextFocusDown="@id/f088LearnToggle"
+                android:padding="12dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_back"
+                app:tint="@color/theme_text_primary" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:text="@string/f088_title"
+                android:textAppearance="@style/TextAppearance.TVPlayer.PageTitle" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/f088_desc"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+        <!-- 小节：学习模式 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:text="@string/f088_section_learn"
+            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/card_padding">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/f088_learn_note"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                <!-- 学习模式开关：整行可点，开时行底色变选中态 -->
+                <LinearLayout
+                    android:id="@+id/f088LearnToggle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_card_surface"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/list_row_min_height"
+                    android:nextFocusDown="@id/f088RowPlayPause"
+                    android:nextFocusUp="@id/btnBack"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp">
+
+                    <TextView
+                        android:id="@+id/f088LearnToggleLabel"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/f088_learn_off"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/f088_learn_mark"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                        android:textColor="@color/theme_text_secondary" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/f088LearnHint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/f088_learn_hint_off"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                <!-- 最近捕获的键：学习模式里按下按键后写进来，含键名与键值 -->
+                <TextView
+                    android:id="@+id/f088CapturedKey"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="monospace"
+                    android:text="@string/f088_captured_none"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Body"
+                    android:textColor="@color/theme_text_secondary" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- 小节：映射表 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:text="@string/f088_section_map"
+            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/card_padding">
+
+                <TextView
+                    android:id="@+id/f088Status"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/f088_status_bound_placeholder"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Body"
+                    android:textColor="@color/theme_text_secondary" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/f088_map_head_action"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                    <TextView
+                        android:layout_width="120dp"
+                        android:layout_height="wrap_content"
+                        android:text="@string/f088_map_head_key"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                    <TextView
+                        android:layout_width="72dp"
+                        android:layout_height="wrap_content"
+                        android:text="@string/f088_map_head_code"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                    <TextView
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:text="@string/f088_map_head_unbind"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginBottom="6dp"
+                    android:background="@color/theme_divider" />
+
+                <!--
+                  六个动作行。行可聚焦也可点击：点/确认 = 选中这个动作，之后学习模式绑的就是它。
+                  行内「解绑」是独立的可聚焦 TextView（不在 Tab 链里横跳，靠点击或代码调用即可）。
+                -->
+
+                <!-- 播放 / 暂停 -->
+                <LinearLayout
+                    android:id="@+id/f088RowPlayPause"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_card_surface"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/list_row_min_height"
+                    android:nextFocusDown="@id/f088RowNext"
+                    android:nextFocusUp="@id/f088LearnToggle"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp">
+
+                    <TextView
+                        android:id="@+id/f088LabelPlayPause"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/f088_action_play_pause"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
+
+                    <TextView
+                        android:id="@+id/f088KeyPlayPause"
+                        android:layout_width="120dp"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:fontFamily="monospace"
+                        android:maxLines="1"
+                        android:text="@string/f088_key_unbound"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                    <TextView
+                        android:id="@+id/f088CodePlayPause"
+                        android:layout_width="72dp"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="monospace"
+                        android:text="@string/f088_key_unbound_code"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                    <TextView
+                        android:id="@+id/f088UnbindPlayPause"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:text="@string/f088_action_unbind"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                        android:textColor="@color/theme_text_secondary" />
+                </LinearLayout>
+
+                <!-- 下一集 -->
+                <LinearLayout
+                    android:id="@+id/f088RowNext"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/bg_card_surface"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/list_row_min_height"
+                    android:nextFocusDown="@id/f088RowPrev"
+                    android:nextFocusUp="@id/f088RowPlayPause"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp">
+
+                    <TextView
+                        android:id="@+id/f088LabelNext"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/f088_action_next"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
+
+                    <TextView
+                        android:id="@+id/f088KeyNext"
+                        android:layout_width="120dp"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:fontFamily="monospace"
+                        android:maxLines="1"
+                        android:text="@string/f088_key_unbound"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                    <TextView
+                        android:id="@+id/f088CodeNext"
+                        android:layout_width="72dp"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="monospace"
+                        android:text="@string/f088_key_unbound_code"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                    <TextView
+                        android:id="@+id/f088UnbindNext"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:text="@string/f088_action_unbind"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                        android:textColor="@color/theme_text_secondary" />
+                </LinearLayout>
+
+                <!-- 上一集 -->
+                <LinearLayout
+                    android:id="@+id/f088RowPrev"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/bg_card_surface"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/list_row_min_height"
+                    android:nextFocusDown="@id/f088RowMenu"
+                    android:nextFocusUp="@id/f088RowNext"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp">
+
+                    <TextView
+                        android:id="@+id/f088LabelPrev"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/f088_action_prev"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
+
+                    <TextView
+                        android:id="@+id/f088KeyPrev"
+                        android:layout_width="120dp"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:fontFamily="monospace"
+                        android:maxLines="1"
+                        android:text="@string/f088_key_unbound"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                    <TextView
+                        android:id="@+id/f088CodePrev"
+                        android:layout_width="72dp"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="monospace"
+                        android:text="@string/f088_key_unbound_code"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                    <TextView
+                        android:id="@+id/f088UnbindPrev"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:text="@string/f088_action_unbind"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                        android:textColor="@color/theme_text_secondary" />
+                </LinearLayout>
+
+                <!-- 菜单 -->
+                <LinearLayout
+                    android:id="@+id/f088RowMenu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/bg_card_surface"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/list_row_min_height"
+                    android:nextFocusDown="@id/f088RowSeekForward"
+                    android:nextFocusUp="@id/f088RowPrev"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp">
+
+                    <TextView
+                        android:id="@+id/f088LabelMenu"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/f088_action_menu"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
+
+                    <TextView
+                        android:id="@+id/f088KeyMenu"
+                        android:layout_width="120dp"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:fontFamily="monospace"
+                        android:maxLines="1"
+                        android:text="@string/f088_key_unbound"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                    <TextView
+                        android:id="@+id/f088CodeMenu"
+                        android:layout_width="72dp"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="monospace"
+                        android:text="@string/f088_key_unbound_code"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                    <TextView
+                        android:id="@+id/f088UnbindMenu"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:text="@string/f088_action_unbind"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                        android:textColor="@color/theme_text_secondary" />
+                </LinearLayout>
+
+                <!-- 快进 -->
+                <LinearLayout
+                    android:id="@+id/f088RowSeekForward"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/bg_card_surface"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/list_row_min_height"
+                    android:nextFocusDown="@id/f088RowSeekBackward"
+                    android:nextFocusUp="@id/f088RowMenu"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp">
+
+                    <TextView
+                        android:id="@+id/f088LabelSeekForward"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/f088_action_seek_forward"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
+
+                    <TextView
+                        android:id="@+id/f088KeySeekForward"
+                        android:layout_width="120dp"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:fontFamily="monospace"
+                        android:maxLines="1"
+                        android:text="@string/f088_key_unbound"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                    <TextView
+                        android:id="@+id/f088CodeSeekForward"
+                        android:layout_width="72dp"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="monospace"
+                        android:text="@string/f088_key_unbound_code"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                    <TextView
+                        android:id="@+id/f088UnbindSeekForward"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:text="@string/f088_action_unbind"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                        android:textColor="@color/theme_text_secondary" />
+                </LinearLayout>
+
+                <!-- 快退 -->
+                <LinearLayout
+                    android:id="@+id/f088RowSeekBackward"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/bg_card_surface"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/list_row_min_height"
+                    android:nextFocusDown="@id/f088ResetButton"
+                    android:nextFocusUp="@id/f088RowSeekForward"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp">
+
+                    <TextView
+                        android:id="@+id/f088LabelSeekBackward"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/f088_action_seek_backward"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
+
+                    <TextView
+                        android:id="@+id/f088KeySeekBackward"
+                        android:layout_width="120dp"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:fontFamily="monospace"
+                        android:maxLines="1"
+                        android:text="@string/f088_key_unbound"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                    <TextView
+                        android:id="@+id/f088CodeSeekBackward"
+                        android:layout_width="72dp"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="monospace"
+                        android:text="@string/f088_key_unbound_code"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                    <TextView
+                        android:id="@+id/f088UnbindSeekBackward"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:text="@string/f088_action_unbind"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                        android:textColor="@color/theme_text_secondary" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="@dimen/card_gap"
+                    android:layout_marginBottom="@dimen/card_gap"
+                    android:background="@color/theme_divider" />
+
+                <!-- 恢复默认：整表覆盖回标准媒体键 -->
+                <LinearLayout
+                    android:id="@+id/f088ResetButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_card_surface"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/list_row_min_height"
+                    android:nextFocusDown="@id/btnBack"
+                    android:nextFocusUp="@id/f088RowSeekBackward"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/f088_action_reset"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Body"
+                        android:textColor="@color/theme_primary" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/f088Summary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/f088_summary_default"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/section_gap"
+            android:text="@string/f088_engine_note"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
