@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F072「备份恢复与校验」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f072_title">备份恢复与校验</string>
+    <string name="f072_desc">从备份 zip 恢复前先读 manifest 并逐条核对 sha256，版本不兼容或校验不过一律不写文件；恢复前把现有文件复制到回滚目录，中途失败自动回滚</string>
+    <string name="f072_back">← 返回</string>
+
+    <!-- 备份来源 -->
+    <string name="f072_section_source">备份来源</string>
+    <string name="f072_action_pick">选择备份 zip</string>
+    <string name="f072_file_empty">还没有选择备份</string>
+    <string name="f072_status_idle">选一个备份包，先看清单与校验结论</string>
+    <string name="f072_status_inspecting">正在校验清单与 sha256…</string>
+    <string name="f072_status_ready">校验完成</string>
+    <string name="f072_pick_hint">校验在本地缓存副本上做，不改动原始备份；清单缺失、sha256 对不上、版本超出支持区间都会拦在恢复之前</string>
+
+    <!-- 清单 -->
+    <string name="f072_section_manifest">清单</string>
+    <string name="f072_label_version">数据版本</string>
+    <string name="f072_label_created">生成时间</string>
+    <string name="f072_label_entries">条目数</string>
+    <string name="f072_label_checksum">校验结论</string>
+    <string name="f072_label_compat">版本兼容</string>
+    <string name="f072_value_unknown">未知</string>
+    <string name="f072_checksum_ok">全部通过</string>
+    <string name="f072_checksum_bad">未通过</string>
+    <string name="f072_compat_ok">兼容（本机支持 %1$s）</string>
+    <string name="f072_compat_bad">不兼容（本机支持 %1$s）</string>
+    <string name="f072_entries_value">%1$d 条</string>
+    <string name="f072_entry_line">%1$s · %2$s</string>
+    <string name="f072_entry_ok">已校验</string>
+    <string name="f072_entry_bad">未通过</string>
+    <string name="f072_entries_more">另外还有 %1$d 条未逐条列出</string>
+
+    <!-- 校验问题 -->
+    <string name="f072_section_problems">校验问题</string>
+    <string name="f072_problems_empty">没有发现问题</string>
+
+    <!-- 恢复 -->
+    <string name="f072_section_restore">恢复</string>
+    <string name="f072_label_target">恢复目标</string>
+    <string name="f072_restore_hint">恢复会覆盖目标目录里的同名文件；覆盖前先把原文件按相对路径复制进回滚目录，中途失败自动把快照复制回去</string>
+    <string name="f072_action_dry_run">试运行</string>
+    <string name="f072_action_restore">恢复</string>
+    <string name="f072_confirm_title">确认恢复</string>
+    <string name="f072_confirm_message">将把备份写入 %1$s，同名文件会先复制到回滚目录，恢复失败自动回滚。确定继续？</string>
+    <string name="f072_confirm_ok">开始恢复</string>
+    <string name="f072_confirm_cancel">取消</string>
+    <string name="f072_toast_blocked">校验或版本没通过，先解决上面的问题</string>
+    <string name="f072_toast_cancelled">已取消选择</string>
+    <string name="f072_toast_copy_fail">读取备份失败：%1$s</string>
+    <string name="f072_toast_rolled_back">恢复中断，已按回滚目录还原</string>
+
+    <!-- 结果 -->
+    <string name="f072_section_result">结果</string>
+    <string name="f072_result_idle">还没有执行恢复</string>
+    <string name="f072_result_dry_run">试运行：将恢复 %1$d 个文件，跳过 %2$d 个（没有写入任何文件）</string>
+    <string name="f072_result_done">恢复完成：写入 %1$d 个文件，跳过 %2$d 个</string>
+    <string name="f072_result_rolled_back">恢复中断已回滚：本次写入 %1$d 个文件，跳过 %2$d 个</string>
+    <string name="f072_label_rollback">回滚目录</string>
+    <string name="f072_rollback_none">无需回滚：没有覆盖任何已有文件</string>
+</resources>
