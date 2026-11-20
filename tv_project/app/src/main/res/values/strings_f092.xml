@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F092「内存与线程探针」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f092_title">内存与线程探针</string>
+    <string name="f092_desc">按秒采样堆内存与线程数，用一条 5 分钟曲线看它是不是只增不减，异常增长当场提示并可导出文本</string>
+
+    <!-- 标题行 / 通用 -->
+    <string name="f092_action_back">返回</string>
+    <string name="f092_value_idle">—</string>
+
+    <!-- 当前值 -->
+    <string name="f092_section_live">当前值</string>
+    <string name="f092_heap_value">%1$.1f / %2$.1f MB · 占用 %3$s</string>
+    <string name="f092_heap_value_nocap">%1$.1f MB · 上限未知</string>
+    <string name="f092_thread_value">线程 %1$d 根</string>
+    <string name="f092_span_value">样本 %1$d/%2$d · 覆盖 %3$s</string>
+    <string name="f092_live_hint">堆内存取 Runtime 的已用与上限，线程数取线程 MXBean（取不到时退回 Thread.activeCount）。1 秒采一条，最多留 300 条，正好 5 分钟。</string>
+
+    <!-- 曲线 -->
+    <string name="f092_section_chart">最近 5 分钟</string>
+    <string name="f092_chart_legend">绿线 = 堆内存（按堆上限归一）　蓝线 = 线程数（按窗口内峰值归一）　右端圆点 = 现在</string>
+    <string name="f092_chart_hint">至少两个样本才开始画线：一个点连不成线，硬画一条横线会让人误以为「非常平稳」。切到后台会暂停采样，切回来接着画。</string>
+
+    <!-- 增长判定 -->
+    <string name="f092_section_trend">增长判定</string>
+    <string name="f092_trend_growing">异常增长：窗口内堆涨了 %1$s MB，超过阈值 %2$s MB</string>
+    <string name="f092_trend_stable">未见异常增长：窗口内 %1$s MB，阈值 %2$s MB</string>
+    <string name="f092_thread_delta">线程变化 %1$s 根（同窗口）</string>
+    <string name="f092_alert_body">堆内存持续上涨并超过阈值 %1$s MB。长播时先看这里：反复进出页面仍不回落，通常就是持有 Activity / Context 的引用没放；再看上面的线程列，只增不减的那一列就是线索。点「生成导出文本」把这段数据带出去对表。</string>
+
+    <!-- 阈值 -->
+    <string name="f092_section_threshold">阈值</string>
+    <string name="f092_threshold_value">当前阈值 %1$s MB（窗口涨幅超过它才提示）</string>
+    <string name="f092_action_threshold_down">阈值 -1 MB</string>
+    <string name="f092_action_threshold_up">阈值 +1 MB</string>
+    <string name="f092_threshold_hint">范围 1–64 MB。默认 8 MB：5 分钟内涨过 8 MB 且不回落，才值得去查；调低容易把首屏加载、切页这类正常抖动也报成增长。</string>
+    <string name="f092_toast_threshold_min">已到下限 %1$s MB：再低会把首屏加载的抖动也算成增长</string>
+    <string name="f092_toast_threshold_max">已到上限 %1$s MB</string>
+
+    <!-- 导出 -->
+    <string name="f092_section_export">导出文本</string>
+    <string name="f092_action_export">生成导出文本</string>
+    <string name="f092_action_copy">复制到剪贴板</string>
+    <string name="f092_action_reset">清空记录</string>
+    <string name="f092_export_hint">点「生成导出文本」把当前缓冲导成纯文本：上面是人看的结论，下面一行一条样本，可整段复制贴出来对表。导出的是一份快照，之后继续采样不会回头改它。</string>
+    <string name="f092_toast_export_empty">还没有样本，等一秒再导出</string>
+    <string name="f092_toast_copied">已复制导出文本（%1$d 条样本）</string>
+    <string name="f092_toast_clipboard_unavailable">剪贴板不可用，导出文本已经在页面上了</string>
+    <string name="f092_clip_label">内存与线程探针导出</string>
+    <string name="f092_toast_reset">已清空记录，从当前时刻重新采样</string>
+
+    <string name="f092_engine_note">接线：F092Engine.sample() 读 Runtime 的已用/上限堆与线程 MXBean，append(s) 进 300 条环形缓冲；trend(thresholdMb) 取最近 5 分钟首尾差给出 Trend(growing, deltaMb)，threadDelta() 给同窗口线程差；exportText(thresholdMb) 拼导出全文，spanLabel(ms) 把跨度说成「几分几秒」。页面 1 秒采一次（onStop 停、onStart 续），曲线由 F092ChartView 自绘 Path，不引第三方图表库。</string>
+</resources>
