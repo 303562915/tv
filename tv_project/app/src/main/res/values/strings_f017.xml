@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f017_title">字幕时间轴平移</string>
+    <string name="f017_desc">整体前后平移字幕时间轴，支持 0.1 秒与 1 秒步进，结果会记住。</string>
+
+    <string name="f017_section_shift">平移量</string>
+    <string name="f017_shift_label">当前平移量</string>
+    <string name="f017_shift_zero">0.0s</string>
+    <string name="f017_shift_format">%1$s</string>
+
+    <string name="f017_minus_1s">-1s</string>
+    <string name="f017_minus_01s">-0.1s</string>
+    <string name="f017_plus_01s">+0.1s</string>
+    <string name="f017_plus_1s">+1s</string>
+    <string name="f017_reset">归零</string>
+
+    <string name="f017_section_preview">平移后的字幕</string>
+    <string name="f017_cue_count">共 %1$d 条</string>
+    <string name="f017_cue_empty">平移后没有可显示的字幕</string>
+</resources>
