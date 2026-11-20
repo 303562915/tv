@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 播放列表回收站（F039）：正常列表 / 回收站两区 -->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/page_margin"
+        android:paddingTop="@dimen/page_margin"
+        android:paddingEnd="@dimen/page_margin"
+        android:paddingBottom="96dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/transparent"
+                android:focusable="true"
+                android:text="@string/f039_action_back"
+                android:textColor="@color/theme_primary" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="@string/f039_title"
+                android:textAppearance="@style/TextAppearance.TVPlayer.PageTitle" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/f039_desc"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:text="@string/f039_section_active"
+            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+        <LinearLayout
+            android:id="@+id/activeContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <TextView
+            android:id="@+id/tvActiveEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/f039_active_empty"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+            android:visibility="gone" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:text="@string/f039_section_trash"
+            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+        <LinearLayout
+            android:id="@+id/trashContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <TextView
+            android:id="@+id/tvTrashEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/f039_trash_empty"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btnAdvanceWeek"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:background="@drawable/bg_button_secondary"
+            android:focusable="true"
+            android:text="@string/f039_action_advance" />
+
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_gap"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+            android:textColor="@color/theme_text_secondary" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

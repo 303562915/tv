@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 播放列表回收站（F039） -->
+<resources>
+    <string name="f039_title">播放列表回收站</string>
+    <string name="f039_desc">删掉的列表先进回收站，7 天内可恢复，过期自动清理</string>
+    <string name="f039_action_back">返回</string>
+    <string name="f039_action_advance">把时间往后拨 8 天</string>
+    <string name="f039_section_active">正常列表</string>
+    <string name="f039_section_trash">回收站</string>
+    <string name="f039_active_empty">没有可删除的列表</string>
+    <string name="f039_trash_empty">回收站是空的</string>
+    <string name="f039_row">%1$s · %2$d 项</string>
+    <string name="f039_row_trash">%1$s · %2$d 项 · 剩 %3$d 天</string>
+    <string name="f039_action_delete">删除到回收站</string>
+    <string name="f039_action_restore">恢复</string>
+    <string name="f039_action_purge">彻底清除</string>
+    <string name="f039_toast_deleted">已移入回收站，7 天内可恢复</string>
+    <string name="f039_toast_restored">已恢复「%1$s」</string>
+    <string name="f039_toast_purged">已彻底清除</string>
+    <string name="f039_toast_expired">清理了 %1$d 条过期条目</string>
+    <string name="f039_toast_none_expired">没有过期条目</string>
+    <string name="f039_status">回收站 %1$d 条 · 正常列表 %2$d 条</string>
+</resources>
