@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F089「长按上下文菜单」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f089_title">长按上下文菜单</string>
+    <string name="f089_desc">列表里每一条都能长按出菜单：播放、收藏、看信息、删除。点一下直接播放，长按才出菜单——最常做的动作不给菜单挡路</string>
+
+    <!-- 列表 -->
+    <string name="f089_section_list">列表</string>
+    <string name="f089_summary_counts">共 %1$d 条 · 已收藏 %2$d · 已标记删除 %3$d</string>
+    <string name="f089_summary_counts_placeholder">共 — 条</string>
+    <string name="f089_long_press_note">长按：按住确认键约半秒，或按遥控器上的「菜单」键。点按则直接播放当前条目</string>
+    <string name="f089_state_favorite">★ 已收藏</string>
+    <string name="f089_state_deleted">已删除</string>
+    <string name="f089_state_none">—</string>
+
+    <!-- 上下文菜单 -->
+    <string name="f089_sheet_subtitle">%1$s · %2$s</string>
+    <string name="f089_sheet_hint">方向键选择，确认键执行，返回键关闭</string>
+    <string name="f089_action_play">播放</string>
+    <string name="f089_action_favorite">加入收藏</string>
+    <string name="f089_action_favorite_on">取消收藏</string>
+    <string name="f089_action_info">信息</string>
+    <string name="f089_action_delete">标记删除</string>
+    <string name="f089_action_restore">撤销删除</string>
+    <string name="f089_sheet_hint_play">从头开始播放这一条</string>
+    <string name="f089_sheet_hint_favorite_off">列表里会出现星标</string>
+    <string name="f089_sheet_hint_favorite_on">再选一次就取消收藏</string>
+    <string name="f089_sheet_hint_info">在下方展开标题、时长与简介</string>
+    <string name="f089_sheet_hint_delete">条目录灰，随时能撤销</string>
+    <string name="f089_sheet_hint_restore">恢复成可播放状态</string>
+
+    <!-- 提示 -->
+    <string name="f089_toast_play">正在播放「%1$s」</string>
+    <string name="f089_toast_play_blocked">「%1$s」已标记删除，先长按撤销删除再播放</string>
+    <string name="f089_toast_favorite_added">已收藏「%1$s」，列表里出现星标</string>
+    <string name="f089_toast_favorite_removed">已取消收藏「%1$s」</string>
+    <string name="f089_toast_info">「%1$s」的信息已展开到下方</string>
+    <string name="f089_toast_delete">已标记删除「%1$s」，长按可撤销</string>
+    <string name="f089_toast_restore">已撤销删除「%1$s」，恢复为可播放</string>
+
+    <!-- 信息区 -->
+    <string name="f089_section_info">信息</string>
+    <string name="f089_info_empty">长按任意一条并选择「信息」，这里会显示标题、位置、时长、状态与简介</string>
+
+    <!-- 其它 -->
+    <string name="f089_action_back">返回</string>
+    <string name="f089_engine_note">接线：F089Engine.actionsFor(item) 给出这一条当前能出的菜单项（已标记删除的只剩「信息 / 撤销删除」）；apply(action, item) 返回 ItemChange——收藏翻转、删除标记翻转、播放只发请求不改状态，ITEM 全是不可变 copy，页面整条替换并原地刷新那一行。菜单是 BottomSheetDialog + 自建视图（MaterialCardView 16dp 圆角、surface_card 填充），菜单行之间用动态 id 串成首尾相接的焦点环，按住方向键不会跑到弹窗背后的列表上。长按的兜底：确认键 repeatCount ≥ 1 或按「菜单」键也会开菜单，覆盖把长按拆成连发键的盒子。</string>
+</resources>
