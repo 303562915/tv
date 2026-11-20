@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F076「存储占用分析」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f076_title">存储占用分析</string>
+    <string name="f076_desc">把缓存、应用文件、数据库、下载、缩略图各占多少量出来，占比条一眼对比，再去对应功能页清理</string>
+
+    <!-- 总览卡片 -->
+    <string name="f076_section_total">总览</string>
+    <string name="f076_label_total">五类合计</string>
+    <string name="f076_total_empty">—</string>
+    <string name="f076_total_caption">只算应用自己管得到的目录：缓存的公共部分、内外 filesDir、databases（含 -wal / -shm）、下载目录、缩略图缓存；缩略图已从缓存里扣掉，五类相加就是上面的合计</string>
+    <string name="f076_bar_legend">占比条从左到右：缓存 / 应用文件 / 数据库 / 下载 / 缩略图缓存</string>
+    <string name="f076_action_refresh">重新统计</string>
+    <string name="f076_action_refresh_hint">确认键</string>
+    <string name="f076_action_back">返回</string>
+
+    <!-- 分类卡片 -->
+    <string name="f076_section_buckets">分类占用</string>
+    <string name="f076_bucket_note">每行都量的是真实目录、逐层累加的字节数；路径给的是这次统计实际走的那个目录，换机或用外部存储时可能不一样</string>
+    <string name="f076_bucket_cache">缓存目录</string>
+    <string name="f076_bucket_files">应用文件</string>
+    <string name="f076_bucket_database">数据库</string>
+    <string name="f076_bucket_download">下载目录</string>
+    <string name="f076_bucket_thumb">缩略图缓存</string>
+
+    <!-- 路径说明 -->
+    <string name="f076_path_cache">cacheDir · %1$s</string>
+    <string name="f076_path_files">filesDir · %1$s</string>
+    <string name="f076_path_database">databases · %1$s · %2$d 个库文件（含 -wal / -shm）</string>
+    <string name="f076_path_download">getExternalFilesDir(Download) · %1$s</string>
+    <string name="f076_path_thumb">cacheDir/thumbnail_cache · %1$s</string>
+    <string name="f076_path_missing">目录不可用：外部存储没挂载，或这台设备没给这个私有目录</string>
+
+    <!-- 每类的清理入口（只说明去哪一页，删除动作不在本页） -->
+    <string name="f076_hint_cache">缓存要清就在系统的「应用信息 · 存储」里点「清除缓存」，那个入口会连数据库和 filesDir 一起清；只清图片那一部分去功能中心 F021「缩略图磁盘缓存」页，那边有「清空缓存」</string>
+    <string name="f076_hint_files">filesDir 里放的是各功能自己落盘的 JSON 与日志，没有统一入口：先到功能中心 F071「全量数据备份」把数据带走，再按功能页里各自的清理动作处理</string>
+    <string name="f076_hint_database">数据库里是收藏、历史、播放列表这些真数据，删了不可恢复：要看或清历史去 F027「历史按日分组与批量清理」，收藏去收藏页逐条删，本页只给体积</string>
+    <string name="f076_hint_download">下载目录清理由系统「文件」应用的 Download 目录管理，或在功能页里删掉下载好的视频文件；本页不动这些文件</string>
+    <string name="f076_hint_thumb">缩略图缓存有自己的入口：功能中心 F021「缩略图磁盘缓存」页里的「清空缓存」与「清理到上限」，按 LRU 淘汰最久未用的条目</string>
+
+    <!-- 状态行 -->
+    <string name="f076_status_idle">进页面会自动量一遍；统计只读目录，不动任何文件</string>
+    <string name="f076_status_loading">正在统计五类目录，逐个文件累加字节数…</string>
+    <string name="f076_status_done">统计完成：%1$d 类 · 用时 %2$d ms</string>
+    <string name="f076_status_empty">五类目录都还是空的，没什么可清的；先去播几条、存点收藏，过一会儿再回来看</string>
+    <string name="f076_status_error">统计出错：%1$s</string>
+
+    <!-- 占比 / Toast -->
+    <string name="f076_percent">占 %1$d%%</string>
+    <string name="f076_action_clean">去清理</string>
+    <string name="f076_toast_hint">%1$s 的清理入口在上面那行状态里，本页只统计、不删文件</string>
+
+    <string name="f076_engine_note">接线：F076Engine.analyze(context) 在 IO 线程量五类目录并返回 List&lt;Bucket&gt;（name / bytes / pathDesc / actionHint，顺序固定为缓存 → 应用文件 → 数据库 → 下载 → 缩略图），total(buckets) 是合计，formatBytes / share / percent 负责显示；目录递归用 File.walkTopDown() 并逐层跳过符号链接，缩略图目录从缓存里扣掉避免重复计数；「去清理」只把 actionHint 显示出来，不执行任何删除。</string>
+</resources>
