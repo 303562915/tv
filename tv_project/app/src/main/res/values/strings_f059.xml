@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 请求头配置（F059） -->
+<resources>
+    <string name="f059_cancel">取消</string>
+    <string name="f059_delete_confirm">删除</string>
+    <string name="f059_delete_message">删除后这条规则不再生效。</string>
+    <string name="f059_delete_title">删除规则</string>
+    <string name="f059_dialog_domain_hint">例如 cdn.example.com</string>
+    <string name="f059_dialog_domain_invalid">域名格式不对</string>
+    <string name="f059_dialog_domain_required">域名不能为空</string>
+    <string name="f059_dialog_duplicate">这个域名已经有规则了</string>
+    <string name="f059_dialog_edit_title">编辑请求头规则</string>
+    <string name="f059_dialog_headers_required">UA 与 Referer 至少填一项</string>
+    <string name="f059_dialog_new_title">新增请求头规则</string>
+    <string name="f059_dialog_referer_hint">可选，例如 https://example.com/</string>
+    <string name="f059_dialog_ua_hint">可选，例如 Mozilla/5.0 …</string>
+    <string name="f059_preview_hit">命中规则：%1$s</string>
+    <string name="f059_preview_idle">输入地址后这里会显示将发送的请求头</string>
+    <string name="f059_preview_miss">没有匹配的规则，使用默认请求头</string>
+    <string name="f059_preview_no_headers">这条规则没有配置任何请求头</string>
+    <string name="f059_preview_no_host">地址里读不出域名</string>
+    <string name="f059_row_disabled">已停用</string>
+    <string name="f059_row_headers_none">—</string>
+    <string name="f059_row_referer">Referer：%1$s</string>
+    <string name="f059_row_ua">UA：%1$s</string>
+    <string name="f059_save">保存</string>
+    <string name="f059_status_loaded">已加载 %1$d 条规则</string>
+    <string name="f059_switch_desc">停用的规则不参与匹配</string>
+    <string name="f059_add">新增</string>
+    <string name="f059_desc">按域名给直链配 UA 与 Referer，防盗链的源也能正常起播</string>
+    <string name="f059_hint_sample">输入地址，实时预览命中的规则</string>
+    <string name="f059_list_empty">还没有规则</string>
+    <string name="f059_list_section">规则列表</string>
+    <string name="f059_preview_headers_section">将发送的请求头</string>
+    <string name="f059_preview_hint">输入 URL 后这里显示命中结果</string>
+    <string name="f059_preview_section">命中预览</string>
+    <string name="f059_status_idle">等待输入</string>
+    <string name="f059_title">请求头配置</string>
+</resources>
+
