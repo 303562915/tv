@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F055「自定义 DoH 解析」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f055_title">自定义 DoH 解析</string>
+    <string name="f055_desc">运营商 DNS 被污染时解析出来就是错地址，配一个可信 DoH 端点，解析改走 HTTPS，失败自动回退系统 DNS</string>
+
+    <!-- 配置卡片 -->
+    <string name="f055_section_config">DoH 配置</string>
+    <string name="f055_label_doh_url">DoH 端点地址</string>
+    <string name="f055_hint_doh_url">https://dns.alidns.com/resolve</string>
+    <string name="f055_label_switch">启用 DoH</string>
+    <string name="f055_hint_switch">关闭时解析一律走系统 DNS</string>
+    <string name="f055_hint_preset">点预设可一键填入端点；地址改完离开输入框即保存</string>
+    <string name="f055_status_on">已启用：解析优先走 %1$s</string>
+    <string name="f055_status_off">未启用：解析走系统 DNS，端点仅作备用</string>
+    <string name="f055_switch_on">已启用 DoH</string>
+    <string name="f055_switch_off">已关闭 DoH，解析改走系统 DNS</string>
+    <string name="f055_config_saved">DoH 端点已保存</string>
+    <string name="f055_url_invalid">端点地址不合法，已还原为上一次的值</string>
+    <string name="f055_preset_applied">已填入 %1$s</string>
+
+    <!-- 查询卡片 -->
+    <string name="f055_section_query">解析测试</string>
+    <string name="f055_label_host">要解析的域名</string>
+    <string name="f055_hint_host">例如 www.baidu.com</string>
+    <string name="f055_action_resolve">解析</string>
+    <string name="f055_action_probe">测试端点连通性</string>
+    <string name="f055_action_hint">确认键</string>
+    <string name="f055_action_back">返回</string>
+    <string name="f055_host_empty">先填一个要解析的域名</string>
+    <string name="f055_resolving_doh">正在用 DoH 解析 %1$s…</string>
+    <string name="f055_resolving_system">DoH 未启用，正在走系统 DNS 解析 %1$s…</string>
+    <string name="f055_probing">正在测试端点连通性…</string>
+    <string name="f055_probe_ok">端点可用，返回 %1$d 字节</string>
+    <string name="f055_probe_fail">端点无响应：%1$s</string>
+
+    <!-- 结果卡片 -->
+    <string name="f055_section_result">解析结果</string>
+    <string name="f055_result_source">解析通道</string>
+    <string name="f055_result_elapsed">耗时</string>
+    <string name="f055_result_count">地址数</string>
+    <string name="f055_result_addresses">解析到的地址</string>
+    <string name="f055_elapsed_value">%1$d ms</string>
+    <string name="f055_count_value">%1$d 个</string>
+    <string name="f055_value_none">—</string>
+    <string name="f055_result_idle">还没解析</string>
+    <string name="f055_result_idle_hint">填好端点与域名后点「解析」，结果会显示走的是 DoH 还是系统 DNS</string>
+    <string name="f055_address_none">没有解析到地址</string>
+    <string name="f055_result_doh_ok">DoH 解析成功，用时 %1$d ms</string>
+    <string name="f055_fallback_hint">已回退系统 DNS：%1$s。地址可用，但这次没走 DoH，污染环境下的结果未必可信</string>
+    <string name="f055_both_failed">DoH 与系统 DNS 都失败了：%1$s</string>
+
+    <string name="f055_engine_note">接线：解析链路先把 F055Config.snapshot() 读出来，启用时把域名交给 F055Engine.resolve(host)（阻塞，放 Dispatchers.IO），拿到的 addresses 直接当 InetAddress 列表用；error 非空表示已回退系统 DNS，界面提示一句即可，不要当成解析失败。</string>
+</resources>
