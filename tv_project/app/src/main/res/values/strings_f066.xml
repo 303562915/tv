@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F066「远程遥控通道」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f066_title">远程遥控通道</string>
+    <string name="f066_desc">手机当遥控器：一条 WebSocket 指令通道直连电视上的播放器，播放 / 暂停 / 上下集 / 进度 / 音量都能发，断线按指数退避自动重连</string>
+
+    <!-- 通道卡片 -->
+    <string name="f066_section_channel">通道</string>
+    <string name="f066_url_label">服务地址</string>
+    <string name="f066_url_hint">ws://电视IP:端口/路径，留空则为本地回环演示</string>
+    <string name="f066_action_connect">连接</string>
+    <string name="f066_action_reconnect">重连</string>
+    <string name="f066_action_disconnect">断开</string>
+    <string name="f066_action_back">返回</string>
+    <string name="f066_action_hint">确认键</string>
+    <string name="f066_state_idle">尚未连接。填好 ws 地址点「连接」，或留空点「连接」进本地回环演示</string>
+    <string name="f066_state_connecting">连接中…</string>
+    <string name="f066_state_open">已连接</string>
+    <string name="f066_state_closed">已断开</string>
+    <string name="f066_status_line">%1$s · %2$s</string>
+    <string name="f066_mode_loopback">本地回环</string>
+    <string name="f066_mode_hint">地址为空，本次走本地回环：指令发给自己再收回来，不需要服务端，用来验证协议和界面。</string>
+
+    <!-- 指令卡片 -->
+    <string name="f066_section_commands">指令</string>
+    <string name="f066_cmd_play">播放</string>
+    <string name="f066_cmd_pause">暂停</string>
+    <string name="f066_cmd_prev">上一集</string>
+    <string name="f066_cmd_next">下一集</string>
+    <string name="f066_cmd_seek">进度跳转</string>
+    <string name="f066_cmd_volume">音量</string>
+    <string name="f066_seek_hint">00:00:00，也可直接写秒数</string>
+    <string name="f066_volume_label">音量</string>
+    <string name="f066_volume_value">当前 %1$d</string>
+    <string name="f066_volume_value_empty">当前 —</string>
+    <string name="f066_volume_down">−</string>
+    <string name="f066_volume_up">+</string>
+    <string name="f066_volume_hint">0…100</string>
+    <string name="f066_volume_set">设置音量</string>
+    <string name="f066_volume_limit">已经是 %1$d，到边界了</string>
+    <string name="f066_err_seek_empty">先填个进度，比如 01:30 或 90</string>
+    <string name="f066_err_seek_invalid">进度格式不认识：用 mm:ss、hh:mm:ss 或秒数</string>
+    <string name="f066_err_volume_invalid">音量要填 0 到 100 之间的整数</string>
+
+    <!-- 指令日志 -->
+    <string name="f066_section_log">指令日志</string>
+    <string name="f066_log_empty">还没有指令。连上通道后点按钮，这里会按「时间 + 指令 + 送达状态」倒序记录。</string>
+    <string name="f066_log_clear">清空</string>
+    <string name="f066_log_line">%1$s  %2$s  %3$s  %4$s</string>
+    <string name="f066_log_dial">通道</string>
+    <string name="f066_log_state">状态</string>
+    <string name="f066_log_sent">已发送</string>
+    <string name="f066_log_received">已收到</string>
+    <string name="f066_log_offline">未发送</string>
+    <string name="f066_log_failed">失败</string>
+    <string name="f066_log_pending">—</string>
+    <string name="f066_log_delivered">已送达</string>
+    <string name="f066_log_not_delivered">未送达</string>
+    <string name="f066_toast_offline">通道没连上，先点「连接」</string>
+    <string name="f066_toast_send_fail">这条指令没发出去，看日志里的原因</string>
+
+    <string name="f066_engine_note">接线：F066Activity 把按钮事件交给 RemoteControlServer.send(Command)，报文形如 {"cmd":"SEEK","value":125000,"ts":…}，对面回来的报文走 onCommand 回调；地址留空时该通道进 loopback 模式，自己发自己收。断线由 Engine 按 400/800/1600ms 指数退避重连，最多 3 次，用完落 CLOSED 交给用户手动重连；服务端关连接也要保证 onClosed 能把重连排上。</string>
+</resources>
