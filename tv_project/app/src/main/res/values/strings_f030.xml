@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f030_title">继续观看队列</string>
+    <string name="f030_desc">没看完的集中成一条队列，按最近观看排序，点一下直接回到断点</string>
+
+    <string name="f030_section_window">收录窗口</string>
+    <string name="f030_window_summary_default">收录窗口 5% ~ 95%</string>
+    <string name="f030_window_summary">收录窗口 %1$d%% ~ %2$d%%（两端边界都算收录）</string>
+    <string name="f030_hint_window">下界以下的算「还没真正开始看」，上界以上的算「基本看完」，两头都不进队列；阈值改完立刻重排并记住</string>
+    <string name="f030_label_start">收录下界（进度 ≥ 该值）</string>
+    <string name="f030_label_end">收录上界（进度 ≤ 该值）</string>
+    <string name="f030_percent_value">%1$d%%</string>
+    <string name="f030_reset_action">恢复默认 5% ~ 95%</string>
+    <string name="f030_toast_reset">阈值已恢复默认的 5% ~ 95%</string>
+
+    <string name="f030_section_queue">继续观看队列</string>
+    <string name="f030_stats_placeholder">队列 0 条</string>
+    <string name="f030_stats">队列 %1$d 条 · 低于下界 %2$d 条 · 高于上界 %3$d 条 · 示例共 %4$d 条</string>
+    <string name="f030_empty">当前窗口里没有可续播的条目，放宽下界或上界再试</string>
+    <string name="f030_row_meta">已看 %1$d%% · %2$s / %3$s</string>
+    <string name="f030_resume_from">续播到 %1$s</string>
+    <string name="f030_toast_resume">《%1$s》从 %2$s 续播，还剩 %3$s</string>
+    <string name="f030_hint_sample">示例固定 8 条：0% / 2%（低于下界）、5%（正好下界）、33% / 68%（正常续播）、95%（正好上界）、97% / 100%（高于上界）；最近观看时间故意打乱，用来验证按最近观看倒序</string>
+</resources>
