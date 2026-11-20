@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f071_title">全量数据备份</string>
+    <string name="f071_desc">把设置、收藏、播放历史和应用数据打成一份 ZIP，换机重装前一键带走</string>
+
+    <string name="f071_section_plan">将写入的条目</string>
+    <string name="f071_target_path">目标文件：%1$s</string>
+    <string name="f071_target_placeholder">目标文件：/storage/emulated/0/Android/data/com.tv.ball/files/backup/tvplayer-20250101-120000.zip</string>
+    <string name="f071_plan_stat">本次将写入 %1$d 个条目（不含 manifest.json）</string>
+    <string name="f071_plan_stat_placeholder">本次将写入 0 个条目（不含 manifest.json）</string>
+    <string name="f071_plan_empty">当前没有可备份的数据：SharedPreferences、数据库与应用文件都是空的</string>
+    <string name="f071_plan_hint">SharedPreferences 导出为 JSON，数据库连同 -wal / -shm 一起收，另写一份 manifest.json 记录版本、条目清单与 sha256</string>
+
+    <string name="f071_backup_action">立即备份</string>
+    <string name="f071_share_action">分享备份文件</string>
+    <string name="f071_backup_running">正在打包，请稍候…</string>
+
+    <string name="f071_section_result">备份结果</string>
+    <string name="f071_result_none">还没有备份，点上面的「立即备份」开始</string>
+    <string name="f071_result_stat">备份完成：%1$d 个条目 · ZIP %2$s · %3$s</string>
+    <string name="f071_result_breakdown">其中 SharedPreferences %1$d 项 · 数据库 %2$d 项 · 应用文件 %3$d 项，数据合计 %4$s</string>
+    <string name="f071_result_path">文件路径：%1$s</string>
+    <string name="f071_result_entry">%1$s · %2$s · sha256 %3$s…</string>
+    <string name="f071_result_failed">备份失败：%1$s</string>
+
+    <string name="f071_toast_done">已备份 %1$d 个条目，ZIP %2$s</string>
+    <string name="f071_share_need_backup">先完成一次备份再分享</string>
+    <string name="f071_share_missing">备份文件已经不在了，请重新备份</string>
+    <string name="f071_share_subject">全量数据备份</string>
+    <string name="f071_share_text">tvplayer 备份：%1$d 个条目，ZIP %2$s</string>
+    <string name="f071_share_chooser">分享备份文件</string>
+    <string name="f071_share_copied">已把备份文件路径复制到剪贴板</string>
+    <string name="f071_share_no_provider">没有可用的 FileProvider（应用清单里未声明 provider），已复制路径：%1$s\n请用文件管理器按此路径取走 ZIP</string>
+
+    <string name="f071_hint_share">备份默认落在应用专属外部目录 backup/ 下，卸载应用会被系统清掉，建议备份完立刻分享或拷贝出去；分享走 FileProvider 换成 content:// URI，未配置 provider 时只显示路径并复制到剪贴板</string>
+</resources>
