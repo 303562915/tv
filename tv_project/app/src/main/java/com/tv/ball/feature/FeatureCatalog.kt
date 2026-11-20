@@ -42,6 +42,7 @@ object FeatureCatalog {
         com.tv.ball.feature.f032.F032Module,
         com.tv.ball.feature.f033.F033Module,
         com.tv.ball.feature.f034.F034Module,
+        com.tv.ball.feature.f036.F036Module,
         // WIRE:CATALOG
     )
 

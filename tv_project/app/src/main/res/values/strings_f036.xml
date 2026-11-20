@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f036_title">随机播放与权重调度</string>
+    <string name="f036_desc">随机模式下按权重抽曲：权重高的更容易被抽到，同一轮不重复，整轮播完才重新洗牌</string>
+
+    <string name="f036_section_weight">权重调节</string>
+    <string name="f036_weight_hint">每首曲目拖滑块调权重，改完立刻用新权重重跑下面 20 次抽取</string>
+    <string name="f036_weight_value">权重 %1$d</string>
+    <string name="f036_weight_scale">权重范围 1..9：1 最不容易被抽到，9 最容易被抽到；同一轮内一首曲目只会出现一次</string>
+    <string name="f036_replay_action">重新演示 20 次抽取</string>
+
+    <string name="f036_section_sequence">抽取序列</string>
+    <string name="f036_seed">固定随机种子 %1$d：同一组权重下序列可复现</string>
+    <string name="f036_seed_placeholder">固定随机种子：同一组权重下序列可复现</string>
+    <string name="f036_round_stat">第 %1$d 轮 · 本轮已播 %2$d / %3$d · 剩余 %4$d</string>
+    <string name="f036_round_stat_zero">第 1 轮 · 本轮已播 0 / 0 · 剩余 0</string>
+    <string name="f036_duplicate_pending">连续重复检测：待演示</string>
+    <string name="f036_duplicate_none">连续重复检测：%1$d 次抽取里没有相邻重复</string>
+    <string name="f036_duplicate_found">连续重复检测：发现 %1$d 处相邻重复（第 %2$s 次）</string>
+    <string name="f036_deterministic_pending">同种子复跑校验：待演示</string>
+    <string name="f036_deterministic_ok">同种子复跑 %1$d 次，序列完全一致</string>
+    <string name="f036_deterministic_diff">同种子复跑 %1$d 次，序列不一致（随机源未按种子初始化）</string>
+    <string name="f036_sequence_row">#%1$d · %2$s · 第 %3$d 轮</string>
+    <string name="f036_sequence_row_reset">#%1$d · %2$s · 第 %3$d 轮（本轮重置）</string>
+
+    <string name="f036_section_distribution">各曲目命中次数</string>
+    <string name="f036_distribution_row">%1$s · 权重 %2$d · 命中 %3$d 次</string>
+
+    <string name="f036_hint_sample">示例固定 6 首曲目，20 次抽取正好跨 3 整轮再进第 4 轮，能直接看到「本轮用完才重置」和重置那一刻的防重复</string>
+    <string name="f036_toast_replayed">已按当前权重重跑 %1$d 次抽取</string>
+</resources>
