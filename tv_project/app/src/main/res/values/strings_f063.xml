@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F063「局域网设备扫描」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f063_title">局域网设备扫描</string>
+    <string name="f063_desc">扫本机 /24 网段里哪些设备在线、常见端口开了几个，结果可一键导出成文本</string>
+
+    <!-- 网段卡片 -->
+    <string name="f063_section_subnet">本机网段</string>
+    <string name="f063_label_subnet">当前网段</string>
+    <string name="f063_subnet_unknown">未获取</string>
+    <string name="f063_subnet_hint">从本机 IPv4 地址按 /24 切出来，扫描范围是 1 ~ 254；插网线 + Wi-Fi 同时在线时优先取有线那一张网卡</string>
+    <string name="f063_ports_hint">探测端口：80 HTTP / 443 HTTPS / 5000 文件共享 / 8009 投屏 / 1900 UPnP / 8080 HTTP 代理 / 9090 管理页</string>
+
+    <!-- 动作卡片 -->
+    <string name="f063_section_scan">扫描</string>
+    <string name="f063_action_scan">开始扫描</string>
+    <string name="f063_action_scan_hint">确认键</string>
+    <string name="f063_action_cancel">取消扫描</string>
+    <string name="f063_action_cancel_hint">保留已扫结果</string>
+    <string name="f063_action_back">返回</string>
+    <string name="f063_progress_idle">已扫 0 / 254</string>
+    <string name="f063_progress_start">正在准备扫描…</string>
+    <string name="f063_progress_value">已扫 %1$d / %2$d 台</string>
+
+    <!-- 结果卡片 -->
+    <string name="f063_section_result">扫描结果</string>
+    <string name="f063_summary_empty">还没扫描</string>
+    <string name="f063_summary_partial">已发现 %1$d 台设备，还在扫…</string>
+    <string name="f063_summary_done">存活 %1$d 台 · 用时 %2$d 秒</string>
+    <string name="f063_ports_none">—（端口有回包，无开放端口）</string>
+    <string name="f063_ports_value">%1$s · %2$d ms</string>
+
+    <!-- 导出 -->
+    <string name="f063_action_export">导出文本</string>
+    <string name="f063_action_export_hint">写进下方文本区</string>
+    <string name="f063_export_label">导出内容</string>
+    <string name="f063_export_hint">扫完之后点「导出文本」，这里会出现整份清单，可以选中复制</string>
+
+    <!-- 状态行 -->
+    <string name="f063_status_idle">点「开始扫描」扫一遍本机所在网段；没有 root 也能用，存活判定走 TCP 连接而不是 ping</string>
+    <string name="f063_status_scanning">正在扫描本机网段，每台设备探 7 个常见端口，可以随时点「取消扫描」</string>
+    <string name="f063_status_done">扫描完成：%1$d 台有回包，点「导出文本」可复制清单</string>
+    <string name="f063_status_empty">这一轮没有设备回包：确认电视和手机在同一网段，或路由器开了 AP 隔离</string>
+    <string name="f063_status_cancelled">已取消，保留已经扫到的 %1$d 台设备</string>
+    <string name="f063_status_exported">已导出 %1$d 台设备的清单，可在下方文本区选中复制</string>
+    <string name="f063_status_error">扫描出错：%1$s</string>
+
+    <!-- Toast -->
+    <string name="f063_toast_scanning">正在扫描中，先别急着点第二次</string>
+    <string name="f063_toast_no_subnet">没拿到本机网段，先确认已经连上局域网（网线或 Wi-Fi）</string>
+    <string name="f063_toast_not_scanning">当前没有在扫描</string>
+    <string name="f063_toast_export_empty">先扫一轮再导出，现在没有结果</string>
+    <string name="f063_toast_exported">已写进下方文本区，可选中复制</string>
+
+    <string name="f063_engine_note">接线：F063Engine.localSubnet() 取网段，scan(subnet, ports, timeoutMs, onProgress) 在 IO 上并发探活并回调进度（默认 48 并发、单连接 400 ms），exportText(results) 出纯文本；引擎不持有状态，结果由页面自己保存。</string>
+</resources>
