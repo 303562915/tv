@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 音画同步微调（F008）文案，统一 f008_ 前缀，避免与全站文案撞名 -->
+<resources>
+    <string name="f008_title">音画同步微调</string>
+    <string name="f008_desc">音轨和画面错位时按 50 毫秒步进校正，范围 -2000 ~ +2000 毫秒</string>
+    <string name="f008_action_back">返回</string>
+
+    <string name="f008_section_offset">当前偏移</string>
+    <string name="f008_section_timeline">同步示意</string>
+    <string name="f008_section_status">当前状态</string>
+
+    <string name="f008_offset_zero">0 ms</string>
+    <string name="f008_offset_seconds_zero">0.00 s（可调范围 ±2.00 s）</string>
+    <string name="f008_offset_seconds">%1$s（可调范围 ±2.00 s）</string>
+
+    <string name="f008_action_decrease">-50 ms</string>
+    <string name="f008_action_increase">+50 ms</string>
+    <string name="f008_action_reset">归零</string>
+
+    <string name="f008_hint_long_press">长按 -50 / +50 连续微调；正偏移把音轨往后推，负偏移把音轨提前</string>
+    <string name="f008_limit_max">已到 +2000 ms 上限，再增大没有意义，先把偏移往回调</string>
+    <string name="f008_limit_min">已到 -2000 ms 下限，再减小没有意义，先把偏移往回调</string>
+    <string name="f008_toast_at_max">已到 +2000 ms 上限</string>
+    <string name="f008_toast_at_min">已到 -2000 ms 下限</string>
+    <string name="f008_toast_reset">偏移已归零，音画重新对齐</string>
+    <string name="f008_toast_restored">历史偏移超出范围，已修正为 %1$s</string>
+
+    <string name="f008_label_video">画面</string>
+    <string name="f008_label_audio">音轨</string>
+    <string name="f008_shift_zero">两条时间线对齐，没有偏移</string>
+    <string name="f008_shift_readout">相对基准线：画面 %1$s · 音轨 %2$s</string>
+    <string name="f008_sample">示例：画面时间点 %1$s，经 applyTo 校正后为 %2$s</string>
+
+    <string name="f008_status_zero">当前未校正，音轨与画面同速</string>
+    <string name="f008_status_applied">偏移 %1$s 生效中，退出重进后仍沿用</string>
+    <string name="f008_state_note">偏移存在 f008_av_sync 这个 SharedPreferences 里，播放器渲染时间点时调用 F008Engine.applyTo(baseUs) 即可按当前偏移对齐。</string>
+</resources>
