@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F044「搜索建议与联想」自身文案，统一 f044_ 前缀，避免与全站文案撞名 -->
+<resources>
+    <string name="f044_title">搜索建议与联想</string>
+    <string name="f044_desc">输入 1 个字就出候选，前缀命中和历史优先，点候选直接搜索</string>
+
+    <!-- 搜索框 -->
+    <string name="f044_section_search">搜索框</string>
+    <string name="f044_search_hint">输入片名或关键词</string>
+    <string name="f044_clear_action">清空</string>
+    <string name="f044_input_help">遥控器在这里敲字，按方向键下移选中候选，确认键直接搜索</string>
+    <string name="f044_result_idle">还没有搜索：敲一个字看看候选</string>
+    <string name="f044_result_filled">已搜索：%1$s</string>
+
+    <!-- 实时建议 -->
+    <string name="f044_section_suggest">实时建议</string>
+    <string name="f044_status_idle">正在读取候选…</string>
+    <string name="f044_status_none">没有候选，换个字试试</string>
+    <string name="f044_status_recent">空输入：先给最近 %1$d 条历史</string>
+    <string name="f044_status_hits">命中 %1$d 条 · 历史 %2$d / 标题 %3$d</string>
+    <string name="f044_list_hint">前缀命中的字会高亮；行尾角标说明这条来自历史还是标题库</string>
+    <string name="f044_empty_body">这一份数据里没有匹配项，清空搜索框可以看最近历史</string>
+    <string name="f044_kind_history">历史</string>
+    <string name="f044_kind_title">标题</string>
+
+    <!-- 示例数据 -->
+    <string name="f044_section_sample">示例数据</string>
+    <string name="f044_sample_note">示例数据：历史 6 条 / 标题 8 条</string>
+    <string name="f044_sample_summary">示例数据：历史 %1$d 条 / 标题 %2$d 条</string>
+    <string name="f044_sample_history_label">历史：—</string>
+    <string name="f044_sample_titles_label">标题：—</string>
+    <string name="f044_sample_history">历史：%1$s</string>
+    <string name="f044_sample_titles">标题：%1$s</string>
+
+    <!-- 提示 -->
+    <string name="f044_toast_search">搜索 %1$s</string>
+    <string name="f044_toast_empty">搜索框是空的，先输入关键词</string>
+    <string name="f044_toast_cleared">已清空搜索框</string>
+
+    <string name="f044_footer_note">接线说明：每敲一个字都走一次 F044Engine.suggest(query, history, titles, limit)，规则是前缀优先 → 历史优先 → 同档保持原顺序 → 文案去重（历史与标题撞名时保留历史那份）→ 截断到 limit；空输入返回最近历史。页面里的历史与标题库是 6 条 / 8 条示例，接真实数据时把 SAMPLE_HISTORY / SAMPLE_TITLES 换成历史仓库与本地库返回的列表即可，引擎签名不变。</string>
+</resources>
