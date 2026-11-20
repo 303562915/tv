@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F004「倍速曲线与长按倍速」自身文案，统一 f004_ 前缀，避免与全站文案撞名 -->
+<resources>
+    <string name="f004_title">倍速曲线与长按倍速</string>
+    <string name="f004_desc">档位曲线可增删，长按临时加速、松手回到常驻倍速</string>
+
+    <!-- 当前倍速 -->
+    <string name="f004_section_current">当前倍速</string>
+    <string name="f004_current_value">%1$s</string>
+    <string name="f004_mode_idle">常驻倍速 %1$s：松手会回到这个值</string>
+    <string name="f004_mode_long">长按中，松手恢复到 %1$s</string>
+    <string name="f004_persist_value">已存本地：播放页按 %1$s 继续播放</string>
+    <string name="f004_action_prev">上一档</string>
+    <string name="f004_action_next">下一档</string>
+
+    <!-- 档位集合 -->
+    <string name="f004_section_tiers">档位集合</string>
+    <string name="f004_tiers_hint">焦点停在档位行上，按确认键勾选或取消勾选</string>
+    <string name="f004_tier_current">当前</string>
+    <string name="f004_tier_enabled">已启用</string>
+    <string name="f004_tier_disabled">未启用</string>
+    <string name="f004_tier_note">1.0x 是基准档不能删除；档位自动去重、按升序排列，最多 12 个</string>
+
+    <!-- 新增档位 -->
+    <string name="f004_section_add">新增档位</string>
+    <string name="f004_add_hint">先调整候选倍速（步进 0.05x），再加入列表</string>
+    <string name="f004_add_minus">－ 0.05x</string>
+    <string name="f004_add_plus">＋ 0.05x</string>
+    <string name="f004_add_state_in">已在档位集合里</string>
+    <string name="f004_add_state_out">不在档位集合里</string>
+    <string name="f004_add_action">加入列表</string>
+    <string name="f004_reject_empty">最近一次操作没有失败</string>
+    <string name="f004_reject_note">最近一次操作：%1$s</string>
+
+    <!-- 长按倍速 -->
+    <string name="f004_section_longpress">长按倍速</string>
+    <string name="f004_preset_hint">长按时临时切到 %1$s，松手立刻回到常驻倍速</string>
+    <string name="f004_preset_15">1.5x</string>
+    <string name="f004_preset_20">2.0x</string>
+    <string name="f004_preset_30">3.0x</string>
+
+    <!-- 长按演示 -->
+    <string name="f004_section_demo">长按演示</string>
+    <string name="f004_demo_hold">焦点停在这里，按住确认键模拟长按，松手立即恢复</string>
+    <string name="f004_demo_idle">还没有开始长按</string>
+    <string name="f004_demo_pressing">长按中：%1$s</string>
+    <string name="f004_demo_released">已松手：回到 %1$s</string>
+    <string name="f004_action_auto">自动演示一次长按</string>
+    <string name="f004_action_reset">重置为默认档位</string>
+
+    <!-- 提示 -->
+    <string name="f004_toast_added">已加入档位 %1$s</string>
+    <string name="f004_toast_removed">已移除档位 %1$s</string>
+    <string name="f004_toast_rejected">操作无效：%1$s</string>
+    <string name="f004_toast_reset">已恢复默认档位</string>
+    <string name="f004_toast_current">当前倍速 %1$s</string>
+    <string name="f004_toast_released">已松手，回到 %1$s</string>
+    <string name="f004_toast_preset">长按倍速设为 %1$s</string>
+    <string name="f004_footer_note">播放页接线：长按开始调 applyLongPress(longPressPreset)、松手调 releaseLongPress()，播放器每次读 effectiveSpeed 设置倍速；档位集合与常驻倍速存 SharedPreferences，同时同步 ConfigRepository 的 playback_speed，所以返回播放页、切集、进程重建后都还是这个倍速。</string>
+</resources>
