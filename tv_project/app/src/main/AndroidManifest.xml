@@ -503,6 +503,11 @@
             android:label="@string/f088_title"
             android:exported="false" />
 
+        <activity
+            android:name=".feature.f090.F090Activity"
+            android:label="@string/f090_title"
+            android:exported="false" />
+
     </application>
 
 </manifest>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 骨架屏与空态组件（F090） -->
+<resources>
+    <string name="f090_title">骨架屏与空态组件</string>
+    <string name="f090_desc">加载中给骨架屏，没数据给空态，出错给可重试的错误态，三种视图同一块区域互斥切换</string>
+    <string name="f090_action_back">返回</string>
+    <string name="f090_state_now">当前状态：加载中</string>
+    <string name="f090_state_loading">加载中</string>
+    <string name="f090_state_empty">空列表</string>
+    <string name="f090_state_error">出错</string>
+    <string name="f090_state_content">有内容</string>
+    <string name="f090_copy_loading_title">正在加载片单</string>
+    <string name="f090_copy_loading_desc">这里先用灰色占位块顶上，等数据回来再换成真实内容</string>
+    <string name="f090_copy_empty_title">还没有内容</string>
+    <string name="f090_copy_empty_desc">换个筛选条件，或者先添加一些视频再看</string>
+    <string name="f090_copy_error_title">没能加载出来</string>
+    <string name="f090_copy_error_desc">网络或数据源出了问题，可以稍后重试</string>
+    <string name="f090_copy_content_title">内容已就绪</string>
+    <string name="f090_copy_content_desc">数据回来了，骨架屏淡出，换成真实列表</string>
+    <string name="f090_action_retry">重试</string>
+    <string name="f090_action_reload">重新加载</string>
+    <string name="f090_error_unknown">未知错误</string>
+    <string name="f090_demo_error">演示：数据源返回了错误</string>
+    <string name="f090_toast_state">已切到「%1$s」</string>
+    <string name="f090_row">第 %1$d 条内容 · 占位行</string>
+</resources>

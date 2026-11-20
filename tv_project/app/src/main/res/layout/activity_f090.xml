@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 骨架屏与空态组件（F090）：同一块区域四种状态 -->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/page_margin"
+        android:paddingTop="@dimen/page_margin"
+        android:paddingEnd="@dimen/page_margin"
+        android:paddingBottom="96dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@color/transparent"
+                android:contentDescription="@string/f090_action_back"
+                android:focusable="true"
+                android:src="@drawable/ic_back"
+                app:tint="@color/theme_text_primary" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="@string/f090_title"
+                android:textAppearance="@style/TextAppearance.TVPlayer.PageTitle" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/f090_desc"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+            android:textColor="@color/theme_text_secondary" />
+
+        <TextView
+            android:id="@+id/f090StateLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/f090_state_now"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Body"
+            android:textColor="@color/theme_primary" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_gap"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/f090BtnLoading"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/bg_secondary_button"
+                android:focusable="true"
+                android:text="@string/f090_state_loading" />
+
+            <Button
+                android:id="@+id/f090BtnEmpty"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_secondary_button"
+                android:focusable="true"
+                android:text="@string/f090_state_empty" />
+
+            <Button
+                android:id="@+id/f090BtnError"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_secondary_button"
+                android:focusable="true"
+                android:text="@string/f090_state_error" />
+
+            <Button
+                android:id="@+id/f090BtnContent"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_secondary_button"
+                android:focusable="true"
+                android:text="@string/f090_state_content" />
+        </LinearLayout>
+
+        <!-- 列表区域：四种状态互斥显示 -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding">
+
+            <!-- 骨架屏 -->
+            <LinearLayout
+                android:id="@+id/f090Skeleton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/f090SkeletonTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/f090_copy_loading_title"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+                <TextView
+                    android:id="@+id/f090SkeletonDesc"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="@dimen/card_gap"
+                    android:text="@string/f090_copy_loading_desc"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                <View
+                    android:id="@+id/f090SkeletonBlock1"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="@drawable/bg_card_surface" />
+
+                <View
+                    android:id="@+id/f090SkeletonBlock2"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="@drawable/bg_card_surface" />
+
+                <View
+                    android:id="@+id/f090SkeletonBlock3"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="@drawable/bg_card_surface" />
+
+                <View
+                    android:id="@+id/f090SkeletonBlock4"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="@drawable/bg_card_surface" />
+
+                <View
+                    android:id="@+id/f090SkeletonBlock5"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:background="@drawable/bg_card_surface" />
+            </LinearLayout>
+
+            <!-- 空态 / 错误态 -->
+            <LinearLayout
+                android:id="@+id/f090StatePanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingTop="@dimen/card_padding"
+                android:paddingBottom="@dimen/card_padding"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/f090StateIcon"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_nav_favorite"
+                    app:tint="@color/theme_text_secondary" />
+
+                <TextView
+                    android:id="@+id/f090StateTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/card_gap"
+                    android:gravity="center"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Body"
+                    android:textColor="@color/theme_text_primary" />
+
+                <TextView
+                    android:id="@+id/f090StateDesc"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                <Button
+                    android:id="@+id/f090StateAction"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/card_padding"
+                    android:background="@drawable/bg_primary_button"
+                    android:focusable="true"
+                    android:text="@string/f090_action_retry" />
+            </LinearLayout>
+
+            <!-- 内容态 -->
+            <LinearLayout
+                android:id="@+id/f090ContentPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/f090ContentTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/f090_copy_content_title"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+                <TextView
+                    android:id="@+id/f090ContentText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/card_gap"
+                    android:background="@drawable/bg_card_surface"
+                    android:fontFamily="monospace"
+                    android:padding="@dimen/card_padding"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                    android:textColor="@color/theme_text_primary" />
+            </LinearLayout>
+        </FrameLayout>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
