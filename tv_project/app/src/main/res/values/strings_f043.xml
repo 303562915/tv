@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f043_title">全局搜索</string>
+    <string name="f043_desc">一个搜索框同时搜观看历史、收藏、本地视频和播放列表；结果按来源分组，组内按标题排序</string>
+
+    <string name="f043_search_hint">输入关键词，标题和副标题都参与匹配</string>
+    <string name="f043_clear_action">清空</string>
+
+    <string name="f043_stat">共 %1$d 条可搜 · 历史 %2$d · 收藏 %3$d · 本地 %4$d · 播放列表 %5$d</string>
+
+    <string name="f043_source_history">观看历史</string>
+    <string name="f043_source_favorite">收藏</string>
+    <string name="f043_source_local">本地视频</string>
+    <string name="f043_source_playlist">播放列表</string>
+
+    <string name="f043_group_header">%1$s · %2$d 条</string>
+    <string name="f043_row_meta">%1$s · %2$s</string>
+
+    <string name="f043_summary">「%1$s」命中 %2$d 条，分布在 %3$d 个来源</string>
+
+    <string name="f043_empty_title">还没输入关键词</string>
+    <string name="f043_empty_body">下面每类只列一条最近记录，输入关键词后才会开始检索</string>
+    <string name="f043_empty_recent_header">最近记录</string>
+    <string name="f043_empty_recent_row">%1$s · %2$s</string>
+
+    <string name="f043_no_result">没有匹配「%1$s」的条目</string>
+    <string name="f043_no_result_body">四类数据里都没有命中；换成更短的关键词，或者只输入标题里的几个字</string>
+
+    <string name="f043_hint_sample">示例数据固定 4 类各 4 条，用来演示分组与排序：搜「地球」能同时命中历史、收藏和播放列表</string>
+</resources>
