@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F016「双语双行字幕合成」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f016_title">双语双行字幕合成</string>
+    <string name="f016_desc">主副两条 SRT 按时间轴合成：重叠区间上下两行，缺失区间只留一行</string>
+
+    <!-- 字幕源 -->
+    <string name="f016_section_source">字幕源</string>
+    <string name="f016_primary_label">主字幕</string>
+    <string name="f016_primary_role">重叠时显示在上行</string>
+    <string name="f016_secondary_label">副字幕</string>
+    <string name="f016_secondary_role">重叠时显示在下行</string>
+    <string name="f016_input_hint">输入框里是内置示例 SRT，可直接改；序号行可缺，时间用逗号或点都认</string>
+    <string name="f016_merge_action">合成</string>
+    <string name="f016_merge_hint">确认键执行</string>
+
+    <!-- 统计 -->
+    <string name="f016_section_stats">合成统计</string>
+    <string name="f016_stat_total_label">合成条数</string>
+    <string name="f016_stat_overlap_label">重叠条数</string>
+    <string name="f016_stat_single_label">单行条数</string>
+    <string name="f016_stat_detail">时间轴 %1$s → %2$s，两路覆盖率 %3$d%%；主独有 %4$d 条，副独有 %5$d 条</string>
+    <string name="f016_rule_note">规则：以两边时间边界切分，同一片段内内容一致的相邻片段取并集合并；内容不同即断开，断开处取交集边界；只在其中一路出现的区间输出单行。</string>
+
+    <!-- 结果列表 -->
+    <string name="f016_section_result">合成结果</string>
+    <string name="f016_empty_result">点上面的「合成」，结果会按时间轴列在这里</string>
+    <string name="f016_row_time">%1$s → %2$s</string>
+    <string name="f016_row_time_overlap">%1$s → %2$s · 双行</string>
+    <string name="f016_row_time_single">%1$s → %2$s · 单行</string>
+    <string name="f016_row_tag_primary">主</string>
+    <string name="f016_row_tag_secondary">副</string>
+
+    <!-- 提示 -->
+    <string name="f016_toast_done">已合成 %1$d 条，其中重叠 %2$d 条</string>
+    <string name="f016_toast_empty">两段字幕都没解析出可用的时间行</string>
+    <string name="f016_player_note">播放页接线：拿到两条字幕的 Cue 列表后调用 F016Engine.merge(primary, secondary)，结果里 primaryText 画上行、secondaryText 画下行，为空的那一行不占位；overlapRatio 可用来判断当前时间点是否属于重叠区间。</string>
+</resources>
