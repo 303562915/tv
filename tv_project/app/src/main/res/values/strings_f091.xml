@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F091「启动耗时打点」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f091_title">启动耗时打点</string>
+    <string name="f091_desc">冷启动慢的时候，用户说不清慢在哪，日志里也看不出来。这里把一次启动拆成 Application onCreate、Activity onCreate、首帧三段分别记时，留最近 10 次，可导出成文本贴进工单</string>
+
+    <!-- 上次启动 -->
+    <string name="f091_section_last">上次启动</string>
+    <string name="f091_last_none">还没有记录：点下面「模拟一次启动」跑一组，或者让宿主的 Application / Activity 里调一次 StartupTrace.mark（名字用 Application onCreate、Activity onCreate、首帧）</string>
+    <string name="f091_last_header">上次启动 · %1$s · %2$d 个阶段</string>
+    <string name="f091_stage_app_label">Application onCreate</string>
+    <string name="f091_stage_activity_label">Activity onCreate</string>
+    <string name="f091_stage_frame_label">首帧</string>
+    <string name="f091_stage_value">%1$d ms</string>
+    <string name="f091_value_missing">—</string>
+    <string name="f091_total_label">合计</string>
+    <string name="f091_total_value">%1$d ms · %2$d 个阶段</string>
+    <string name="f091_slowest_label">最慢一段</string>
+    <string name="f091_slowest_value">%1$s · %2$d ms</string>
+
+    <!-- 操作 -->
+    <string name="f091_section_actions">操作</string>
+    <string name="f091_simulate_note">模拟会连跑三个阶段，每段带 20~120 ms 随机延迟；走的是和真实接线完全一样的链路（begin → mark → finish → 落盘），只是数值是假的。这三段会按住主线程，期间界面不重绘</string>
+    <string name="f091_action_simulate">模拟一次启动</string>
+    <string name="f091_action_simulate_mark">按住主线程跑三段</string>
+    <string name="f091_action_export">导出文本</string>
+    <string name="f091_export_note">导出成 .txt 放进应用专属外部目录（Android/data/包名/files/f091），不需要存储权限，用 adb pull 就能取走</string>
+    <string name="f091_export_result_none">还没导出过</string>
+    <string name="f091_status_empty">历史为空</string>
+    <string name="f091_status_records">已有 %1$d / %2$d 次记录，超出后最旧的一条会被挤掉</string>
+
+    <!-- 最近 10 次 -->
+    <string name="f091_section_history">最近 10 次</string>
+    <string name="f091_history_note">新 → 旧，一行一次；合计是最后一次打点的相对时间，最慢一段是相邻两个打点的差里最大的那段</string>
+    <string name="f091_history_empty">还没有记录</string>
+    <string name="f091_history_row">#%1$d %2$s · 合计 %3$d ms · 最慢 %4$s %5$d ms · %6$d 段</string>
+    <string name="f091_history_row_flat">#%1$d %2$s · 合计 %3$d ms · %4$d 段</string>
+
+    <!-- 提示 -->
+    <string name="f091_toast_simulated">已记录一次模拟启动：合计 %1$d ms（%2$d 段），已存盘</string>
+    <string name="f091_toast_exported">已导出到应用目录</string>
+    <string name="f091_toast_nothing">这次没有记到任何阶段，已忽略</string>
+    <string name="f091_export_done">已导出：%1$s（%2$d 字节，%3$d 次记录）</string>
+    <string name="f091_export_failed">导出失败：%1$s</string>
+
+    <!-- 其它 -->
+    <string name="f091_action_back">返回</string>
+    <string name="f091_engine_note">接线：宿主在 Application.onCreate 第一行调 StartupTrace.attach(this)（只交 Context，历史随读），每段结束处调 StartupTrace.mark(StartupTrace.STAGE_APPLICATION / STAGE_ACTIVITY / STAGE_FIRST_FRAME)，首帧那一点放在第一帧回调（ViewTreeObserver.OnPreDrawListener 或 Choreographer.postFrameCallback）里，最后一次 StartupTrace.finish() 封存并写盘。这是独立探针：不改 Application 也能用，页面自己打点一样出数。耗时口径：原点取 SystemClock.uptimeMillis（单调时钟，不受对时影响），每个点是相对原点的累计毫秒，段耗时 = 相邻两点相减，墙钟只用来标记「哪一次」。历史最多 10 条，超出丢最旧。</string>
+</resources>
