@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f027_title">历史按日分组与批量清理</string>
+    <string name="f027_desc">观看历史按今天、昨天、本周、更早分组；点条目或长按进入多选，选好后一次删掉</string>
+
+    <string name="f027_action_select">多选</string>
+    <string name="f027_action_exit">退出多选</string>
+    <string name="f027_action_select_all">全选</string>
+    <string name="f027_action_delete">删除</string>
+
+    <string name="f027_summary_count">共 %1$d 条历史 · 点条目进入多选</string>
+    <string name="f027_summary_selected">已选 %1$d 项</string>
+    <string name="f027_summary_empty">还没有观看历史</string>
+
+    <string name="f027_group_today">今天</string>
+    <string name="f027_group_yesterday">昨天</string>
+    <string name="f027_group_this_week">本周</string>
+    <string name="f027_group_earlier">更早</string>
+    <string name="f027_group_header">%1$s · %2$d 条</string>
+
+    <string name="f027_item_meta">看到 %1$s · %2$s</string>
+    <string name="f027_item_selected">已选中</string>
+    <string name="f027_item_unselected">未选中</string>
+
+    <string name="f027_empty">历史已经清空，回首页看点什么再回来</string>
+    <string name="f027_hint">分组按本机时区切自然日：0 点换天、周一 0 点换周，跨夏令时也不会错位。当前是 10 条示例历史，接真实数据时把示例数据换成 Room 查询即可，分组、多选、删除的逻辑都不用改。</string>
+
+    <string name="f027_toast_deleted">已删除 %1$d 条历史</string>
+    <string name="f027_toast_nothing_selected">先选中要删除的历史</string>
+    <string name="f027_toast_all">已全选 %1$d 条</string>
+    <string name="f027_toast_cleared">已退出多选</string>
+
+    <string name="f027_confirm_title">删除所选历史</string>
+    <string name="f027_confirm_message">将删除 %1$d 条观看历史，删除后无法恢复</string>
+    <string name="f027_confirm_delete">删除</string>
+    <string name="f027_confirm_cancel">取消</string>
+</resources>
