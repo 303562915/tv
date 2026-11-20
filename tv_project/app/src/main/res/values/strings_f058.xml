@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f058_title">流量统计</string>
+    <string name="f058_desc">播放器每解码一段就报一次字节数，这里把本次会话、今日、近七天按日期分桶记下来，想清就清，超量一眼能看出来</string>
+
+    <string name="f058_report_section">模拟上报</string>
+    <string name="f058_add_small">+1 MB</string>
+    <string name="f058_add_large">+50 MB</string>
+    <string name="f058_report_hint">两个按钮代表播放器上报一段已播流量，点一次就按字节记一笔；真实接入时把播放器的解码回调接到同一处即可</string>
+
+    <string name="f058_status_idle">还没有上报 · 点上面任意一个按钮开始记账</string>
+    <string name="f058_status_added">已记 %1$s · 本次会话累计 %2$s</string>
+    <string name="f058_status_session_reset">本次会话已清零 · 历史日期记录保留</string>
+    <string name="f058_status_reset">全部记录已清零 · 今日与近七天重新开始算</string>
+
+    <string name="f058_stat_section">统计</string>
+    <string name="f058_value_zero">0 B</string>
+
+    <string name="f058_session_label">本次会话</string>
+    <string name="f058_session_detail_idle">从打开这个页面开始算</string>
+    <string name="f058_session_detail">自 %1$s 起累计 · 只活在本次进程里</string>
+
+    <string name="f058_today_label">今日</string>
+    <string name="f058_today_detail_idle">今天还没有记录</string>
+    <string name="f058_today_detail">%1$s 这一天的合计 · 按本机时区切日期</string>
+
+    <string name="f058_week_label">近 7 天</string>
+    <string name="f058_week_detail_idle">近七天的合计会显示在这里</string>
+    <string name="f058_week_detail">含今天在内的 %1$d 天合计</string>
+
+    <string name="f058_total_label">累计</string>
+    <string name="f058_total_detail_idle">所有保留日期的合计</string>
+    <string name="f058_total_detail">所有保留日期合计 · 共 %1$d 天有记录</string>
+
+    <string name="f058_day_section">近 7 天分桶</string>
+    <string name="f058_day_empty">还没有分桶数据 · 上报一次之后这里每天一行</string>
+    <string name="f058_day_today">%1$s · 今天</string>
+    <string name="f058_day_value_share">%1$s · 占七天峰值 %2$d%%</string>
+
+    <string name="f058_reset_section">清零</string>
+    <string name="f058_reset_desc">本次会话只清当前进度；全部记录会连历史日期桶一起清掉，清完不能恢复</string>
+    <string name="f058_reset_session_button">清零本次会话</string>
+    <string name="f058_reset_all_button">清空全部记录</string>
+    <string name="f058_reset_session_title">清零本次会话？</string>
+    <string name="f058_reset_session_message">只把「本次会话」归零，今日与历史日期桶保持不变。确认继续？</string>
+    <string name="f058_reset_all_title">清空全部记录？</string>
+    <string name="f058_reset_all_message">会话、今日、近七天与所有保留日期会一起清零，清完不能恢复。确认继续？</string>
+    <string name="f058_reset_confirm">确认清零</string>
+    <string name="f058_reset_cancel">取消</string>
+
+    <string name="f058_hint_sample">字节数按 1024 进位自适应 B / KB / MB / GB，三位数以上不留小数；分桶键是 yyyy-MM-dd，存成 JSON 放在 SharedPreferences 里，进程重启也不丢</string>
+</resources>
