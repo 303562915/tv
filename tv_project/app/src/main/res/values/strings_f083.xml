@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F083「减弱动效」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f083_title">减弱动效</string>
+    <string name="f083_desc">低性能盒子上页面转场和缩放会掉帧，这里把动效切到瞬时切换，选择会记下来</string>
+
+    <!-- 动效档位 -->
+    <string name="f083_section_mode">动效档位</string>
+    <string name="f083_mode_note">两档二选一：标准档按系统默认时长播放，减弱档一律瞬时完成。切换会立即保存，下次打开还是这一档</string>
+    <string name="f083_mode_normal">标准动效</string>
+    <string name="f083_mode_reduced">减弱动效</string>
+    <string name="f083_mode_normal_hint">标准动效：页面转场 300 ms 交叉淡入，控件缩放 0.92 → 1.0，列表项 200 ms 进场</string>
+    <string name="f083_mode_reduced_hint">减弱动效：转场与缩放时长一律 0 ms，页面直接到位，列表项不再逐条进场</string>
+    <string name="f083_mark_selected">当前</string>
+
+    <!-- 当前生效值 -->
+    <string name="f083_status_idle">进页面会读出已保存的档位；没选过时按系统的动画缩放设置来（系统关掉动画就直接是减弱档）</string>
+    <string name="f083_status_mode">当前档位「%1$s」· 演示时长 %2$d ms · 动画%3$s</string>
+    <string name="f083_switch_on">已启用</string>
+    <string name="f083_switch_off">已关闭</string>
+    <string name="f083_summary_normal">影响范围：页面转场（Activity 进出）与列表动画（列表项逐条进场、控件缩放淡入）；减弱档下这些全部改为瞬时切换，内容不变、只去掉过渡</string>
+    <string name="f083_summary_reduced">影响范围：页面转场与列表动画已全部瞬时完成，打开/返回不再有淡入和缩放；播放器内的视频画面、弹幕滚动等播放相关动效不受这里影响</string>
+
+    <!-- 演示 -->
+    <string name="f083_section_demo">演示</string>
+    <string name="f083_demo_note">点一下按当前档位跑一次转场：标准档 300 ms 从 0.92 缩放并淡入，减弱档直接到位、不启动任何动画。演示只改视图属性，不动任何数据</string>
+    <string name="f083_demo_block">转场演示</string>
+    <string name="f083_action_demo">播放转场动画</string>
+    <string name="f083_demo_duration">%1$d ms</string>
+    <string name="f083_demo_duration_placeholder">— ms</string>
+    <string name="f083_status_demo_instant">演示：减弱档，0 ms 瞬时切换，没有启动动画；实际占用 0 ms</string>
+    <string name="f083_status_demo_running">演示中：按 %1$d ms 缩放淡入…</string>
+    <string name="f083_status_demo_done">演示完成：实际时长 %1$d ms，与上面显示的计划时长一致</string>
+
+    <!-- 其它 -->
+    <string name="f083_action_back">返回</string>
+    <string name="f083_toast_switched">已切到「%1$s」并保存</string>
+    <string name="f083_engine_note">接线：F083Engine.durationMs(mode, base) 给任何动效的时长（减弱档恒为 0，标准档取 base）；scale(mode) 给起始缩放（0.92 / 1.0）；shouldAnimate(mode) 决定要不要启动画；read/write 走 SharedPreferences（f083_motion · mode），没存过时 effective(context) 跟随系统的 ANIMATOR_DURATION_SCALE；本页的演示按钮就是这几个函数的直接调用方，界面上的时长与 ValueAnimator 的 duration 同源。</string>
+</resources>
