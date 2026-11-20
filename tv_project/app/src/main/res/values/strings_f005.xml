@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 下集倒计时浮层（F005）文案，统一 f005_ 前缀，避免与全站文案撞名 -->
+<resources>
+    <string name="f005_title">下集倒计时浮层</string>
+    <string name="f005_desc">接近片尾时浮出下一集提示并倒计时，结束时自动切换，也可以中途取消留在片尾</string>
+
+    <string name="f005_section_config">倒计时设置</string>
+    <string name="f005_section_simulate">模拟播放</string>
+    <string name="f005_section_status">当前状态</string>
+
+    <string name="f005_label_seconds">倒计时时长</string>
+    <string name="f005_range_hint">可调范围 3~15 秒，默认 5 秒，改完立即记住，下次进页面沿用</string>
+    <string name="f005_seconds_value">%1$d 秒</string>
+    <string name="f005_seconds_default">5 秒</string>
+
+    <string name="f005_now_playing_idle">当前播放：第 3 集</string>
+    <string name="f005_now_playing_value">当前播放：第 %1$d 集</string>
+    <string name="f005_state_playing_idle">本集正在播放，把进度拖到片尾就会浮出下集提示</string>
+    <string name="f005_state_playing">第 %1$d 集播放中</string>
+    <string name="f005_state_episode_end">第 %1$d 集已到片尾，倒计时结束自动播放下一集；取消则留在片尾</string>
+    <string name="f005_state_canceled">已取消接播，停留在第 %1$d 集片尾</string>
+
+    <string name="f005_remaining_empty">剩余 0.0 秒</string>
+    <string name="f005_remaining_value">剩余 %1$.1f 秒</string>
+
+    <string name="f005_action_start">模拟到达片尾</string>
+    <string name="f005_action_cancel">取消倒计时</string>
+    <string name="f005_action_continue">继续播放下一集</string>
+    <string name="f005_action_play_next">立即播放下一集</string>
+    <string name="f005_action_cancel_countdown">取消</string>
+    <string name="f005_action_minus">\u2212</string>
+    <string name="f005_action_plus">\uff0b</string>
+    <string name="f005_action_back">返回</string>
+
+    <string name="f005_overlay_title">即将播放下一集</string>
+    <string name="f005_overlay_countdown">%1$d 秒后自动播放第 %2$d 集</string>
+    <string name="f005_overlay_countdown_default">5 秒后自动播放下一集</string>
+
+    <string name="f005_status_idle">状态：待机，尚未到达片尾</string>
+    <string name="f005_status_counting">状态：倒计时中，还剩 %1$d 秒</string>
+    <string name="f005_status_canceled">状态：已取消，停留在第 %1$d 集片尾</string>
+    <string name="f005_status_done">状态：已接播，当前第 %1$d 集</string>
+
+    <string name="f005_hint_idle">点「模拟到达片尾」可以看到浮层与倒计时</string>
+    <string name="f005_hint_counting">倒计时走完自动接播下一集；中途点「取消」可以留在本集片尾</string>
+    <string name="f005_hint_canceled">本轮不会再自动跳集；想换集按「继续播放下一集」</string>
+    <string name="f005_hint_done">倒计时已完成并自动接播，想重来再点「模拟到达片尾」</string>
+
+    <string name="f005_toast_started">已到达片尾，%1$d 秒后自动播放下一集</string>
+    <string name="f005_toast_done">倒计时结束，已自动播放第 %1$d 集</string>
+    <string name="f005_toast_continue">已切换到第 %1$d 集</string>
+    <string name="f005_toast_canceled">已取消倒计时，停留在第 %1$d 集片尾</string>
+    <string name="f005_toast_seconds_limit">倒计时只能在 %1$d~%2$d 秒之间调整</string>
+</resources>

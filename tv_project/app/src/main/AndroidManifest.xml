@@ -168,6 +168,11 @@
             android:label="@string/f004_title"
             android:exported="false" />
 
+        <activity
+            android:name=".feature.f005.F005Activity"
+            android:label="@string/f005_title"
+            android:exported="false" />
+
     </application>
 
 </manifest>
