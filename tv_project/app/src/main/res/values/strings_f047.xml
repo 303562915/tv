@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f047_title">搜索结果分类与空态</string>
+    <string name="f047_desc">搜索结果按数据来源分组、每组显示条数；没有命中时给出空态图标、说明和可操作建议</string>
+
+    <string name="f047_search_hint">输入关键词，标题和副标题都参与匹配</string>
+    <string name="f047_clear_all">全部清空</string>
+
+    <string name="f047_source_history">观看历史</string>
+    <string name="f047_source_favorite">收藏</string>
+    <string name="f047_source_local">本地视频</string>
+    <string name="f047_source_playlist">播放列表</string>
+
+    <string name="f047_group_header">%1$s · %2$d 条</string>
+
+    <string name="f047_summary">共 %1$d 条结果 · %2$s</string>
+    <string name="f047_summary_section">%1$s %2$d 条</string>
+
+    <string name="f047_empty_icon_desc">无搜索结果</string>
+    <string name="f047_no_result_title">没有找到「%1$s」</string>
+    <string name="f047_no_result_body">观看历史、收藏、本地视频和播放列表里都没有命中</string>
+    <string name="f047_no_result_idle_title">还没有输入关键词</string>
+    <string name="f047_no_result_idle_body">输入关键词后会按来源分组展示结果</string>
+    <string name="f047_no_result_summary">共 0 条结果</string>
+    <string name="f047_no_result_suggestion">换个更短的关键词，只输入标题里的几个字；或者检查本地视频是否已授权扫描；也可以点右侧「全部清空」回到初始状态</string>
+
+    <string name="f047_hint_sample">示例数据覆盖四类来源，搜「地球」能同时命中历史、收藏、本地和播放列表</string>
+</resources>
