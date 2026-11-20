@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 访问日志与令牌鉴权（F069）：谁在访问、状态码着色、令牌开关/复制/重置、带令牌示例地址 -->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
+    android:clipToPadding="false"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/page_margin"
+        android:paddingTop="@dimen/page_margin"
+        android:paddingEnd="@dimen/page_margin"
+        android:paddingBottom="96dp">
+
+        <!-- 页头 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/f069_action_back"
+                android:focusable="true"
+                android:src="@drawable/ic_back"
+                app:tint="@color/theme_text_primary" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="@string/f069_title"
+                android:textAppearance="@style/TextAppearance.TVPlayer.PageTitle" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/f069_desc"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+        <!-- ===== 令牌区 ===== -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:text="@string/f069_section_token"
+            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/f069Switch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_gap"
+            android:focusable="true"
+            android:minHeight="48dp"
+            android:text="@string/f069_switch_label"
+            android:textColor="@color/theme_text_primary"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/f069_token_note"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+            android:textColor="@color/theme_text_secondary" />
+
+        <TextView
+            android:id="@+id/f069TokenState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:text="@string/f069_token_on"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
+
+        <TextView
+            android:id="@+id/f069Token"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/bg_card_surface"
+            android:fontFamily="monospace"
+            android:letterSpacing="0.08"
+            android:padding="@dimen/card_padding"
+            android:text="@string/f069_token_placeholder"
+            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle"
+            android:textColor="@color/theme_primary"
+            android:textIsSelectable="true" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_gap"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/f069BtnCopy"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/bg_primary_button"
+                android:focusable="true"
+                android:text="@string/f069_btn_copy" />
+
+            <Button
+                android:id="@+id/f069BtnRotate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/card_gap"
+                android:layout_weight="1"
+                android:background="@drawable/bg_secondary_button"
+                android:focusable="true"
+                android:text="@string/f069_btn_rotate" />
+        </LinearLayout>
+
+        <!-- ===== 带令牌的示例地址 ===== -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:text="@string/f069_section_url"
+            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+        <TextView
+            android:id="@+id/f069SampleUrl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_gap"
+            android:background="@drawable/bg_card_surface"
+            android:fontFamily="monospace"
+            android:lineSpacingExtra="2dp"
+            android:padding="@dimen/card_padding"
+            android:text="@string/f069_url_placeholder"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+            android:textColor="@color/theme_text_primary"
+            android:textIsSelectable="true" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/f069_url_note"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+            android:textColor="@color/theme_text_secondary" />
+
+        <!-- ===== 访问日志 ===== -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/f069_section_log"
+                android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+            <TextView
+                android:id="@+id/f069Count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/f069_log_count_placeholder"
+                android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                android:textColor="@color/theme_text_secondary" />
+        </LinearLayout>
+
+        <!-- 列头 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_gap"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp">
+
+            <TextView
+                android:layout_width="64dp"
+                android:layout_height="wrap_content"
+                android:text="@string/f069_col_time"
+                android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                android:textColor="@color/theme_text_secondary" />
+
+            <TextView
+                android:layout_width="108dp"
+                android:layout_height="wrap_content"
+                android:text="@string/f069_col_ip"
+                android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                android:textColor="@color/theme_text_secondary" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/f069_col_path"
+                android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                android:textColor="@color/theme_text_secondary" />
+
+            <TextView
+                android:layout_width="44dp"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:text="@string/f069_col_status"
+                android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                android:textColor="@color/theme_text_secondary" />
+        </LinearLayout>
+
+        <!-- 行容器：由 F069Activity.renderLogs 动态填充 -->
+        <LinearLayout
+            android:id="@+id/f069LogList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="vertical" />
+
+        <TextView
+            android:id="@+id/f069Empty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_gap"
+            android:background="@drawable/bg_card_surface"
+            android:gravity="center"
+            android:padding="@dimen/card_padding"
+            android:text="@string/f069_log_empty"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+            android:textColor="@color/theme_text_secondary" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/f069_log_note"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+            android:textColor="@color/theme_text_secondary" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_gap"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/f069BtnDemo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/bg_secondary_button"
+                android:focusable="true"
+                android:text="@string/f069_btn_demo" />
+
+            <Button
+                android:id="@+id/f069BtnClear"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/card_gap"
+                android:layout_weight="1"
+                android:background="@drawable/bg_secondary_button"
+                android:focusable="true"
+                android:text="@string/f069_btn_clear" />
+        </LinearLayout>
+
+        <!-- 接线说明 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:text="@string/f069_engine_note"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+            android:textColor="@color/theme_text_secondary" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F069「访问日志与令牌鉴权」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f069_title">访问日志与令牌鉴权</string>
+    <string name="f069_desc">局域网端口一开就对整层楼开放：谁在什么时候取了哪个文件、状态码是多少，以及要不要让没令牌的请求直接 401</string>
+
+    <!-- 令牌区 -->
+    <string name="f069_section_token">令牌校验</string>
+    <string name="f069_switch_label">开启令牌校验</string>
+    <string name="f069_token_note">开着时地址必须带 ?token=…，没带或带错一律 401；关着时同网段任何设备都能直接连。16 位 base32（A-Z 与 2-7，80 bit 熵），写进 URL 不需要转义，粘进播放器就能用</string>
+    <string name="f069_token_on">已开启 · 只认带令牌的请求</string>
+    <string name="f069_token_off">已关闭 · 同网段设备无需令牌即可访问</string>
+    <string name="f069_token_placeholder">AAAAAAAAAAAAAAAA</string>
+    <string name="f069_btn_copy">复制令牌</string>
+    <string name="f069_btn_rotate">重置令牌</string>
+
+    <!-- 示例地址 -->
+    <string name="f069_section_url">带令牌的示例地址</string>
+    <string name="f069_url_placeholder">http://192.168.1.10:8090/media/EP01.mp4</string>
+    <string name="f069_url_note">开关关闭时示例地址不带令牌（显示一个当下不用的参数只会让人以为地址写错了）；已有的查询串后面接 &amp; 而不是再补一个 ?</string>
+
+    <!-- 访问日志 -->
+    <string name="f069_section_log">访问日志</string>
+    <string name="f069_log_count">%1$d / %2$d 条</string>
+    <string name="f069_log_count_placeholder">0 / 200 条</string>
+    <string name="f069_col_time">时间</string>
+    <string name="f069_col_ip">来源</string>
+    <string name="f069_col_path">路径</string>
+    <string name="f069_col_status">状态</string>
+    <string name="f069_log_empty">暂无访问记录</string>
+    <string name="f069_log_note">环形缓冲钉死 200 条：满了丢最旧的一条而不是停止记录（一次端口扫描几秒打几十条，停下不记正好会丢掉真正有价值的几条）。绿色 2xx 正常取流、蓝色 3xx 客户端还有缓存、橙色 4xx 没带令牌或被拒、红色 5xx 服务端出错；路径里的令牌值入库前已抹成 ***</string>
+    <string name="f069_btn_demo">模拟一次访问</string>
+    <string name="f069_btn_clear">清空日志</string>
+
+    <!-- 提示 -->
+    <string name="f069_toast_copied">令牌已复制</string>
+    <string name="f069_toast_copy_failed">剪贴板不可用，请长按令牌文字手动复制</string>
+    <string name="f069_toast_rotated">已重置令牌：%1$s</string>
+    <string name="f069_toast_cleared">访问日志已清空</string>
+    <string name="f069_toast_demo_allowed">模拟访问放行：%1$s</string>
+    <string name="f069_toast_demo_denied">模拟访问被拒（401）：%1$s</string>
+
+    <!-- 其它 -->
+    <string name="f069_action_back">返回</string>
+    <string name="f069_engine_note">接线：F069Engine.create(context) 拿到实例后，HTTP 处理里判一句 engine.authorize(remoteAddr, path, queryParams) 即可——它内部调 TokenGuard.check 校验、按 200/401 记一条并返回是否放行；只要记录不判权限就用 engine.record(ip, path, status)，取最近若干条用 recent(n)（新的在前），导出粘贴用 exportText()。令牌与开关在 engine.guard 上（token / enabled / rotate()），拼播放地址用 guard.urlWithToken(base, path)。日志与令牌都落 SharedPreferences（f069_access），进程重建后自动读回</string>
+</resources>
