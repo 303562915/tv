@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 字幕文本检索与跳转（F018） -->
+<resources>
+    <string name="f018_title">字幕文本检索与跳转</string>
+    <string name="f018_desc">输入关键词检索整条字幕轨，命中的片段会高亮，点结果直接跳到那句台词的时间点</string>
+    <string name="f018_action_back">返回</string>
+    <string name="f018_action_search">检索</string>
+    <string name="f018_action_jump">跳转</string>
+    <string name="f018_search_hint">输入台词关键词，如「星星」或 not alone</string>
+    <string name="f018_summary_idle">输入关键词后开始检索</string>
+    <string name="f018_summary_hits">关键词「%1$s」命中 %2$d 处，分布在 %3$d 条字幕</string>
+    <string name="f018_summary_no_hit">关键词「%1$s」没有命中任何字幕</string>
+    <string name="f018_empty_hint">命中的每一句都会带着时间列在这里，选中后点「跳转」即可定位</string>
+    <string name="f018_empty_no_hit">没搜到「%1$s」。检索已做简繁与空格容错，可以换个说法或只留两三个字的短关键词</string>
+    <string name="f018_hit_time">%1$s · 第 %2$d 条</string>
+    <string name="f018_jump_target">已跳转到 %1$s（结束 %2$s）· 第 %3$d 条：%4$s</string>
+</resources>
