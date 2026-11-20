@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 循环策略中心（F040）文案，统一 f040_ 前缀，避免与全站文案撞名 -->
+<resources>
+    <string name="f040_title">循环策略中心</string>
+    <string name="f040_desc">顺序 / 单曲 / 列表循环一个入口切完，策略记住不用每次重设</string>
+
+    <!-- 当前策略 -->
+    <string name="f040_section_mode">播放策略</string>
+    <string name="f040_label_current">当前策略</string>
+    <string name="f040_current_value">当前策略：%1$s</string>
+    <string name="f040_current_default_value">当前策略：顺序播放</string>
+    <string name="f040_mode_off">顺序播放</string>
+    <string name="f040_mode_one">单曲循环</string>
+    <string name="f040_mode_all">列表循环</string>
+    <string name="f040_mode_off_desc">顺序播放：一首放完接着放下一首，放完队列最后一首就停下</string>
+    <string name="f040_mode_one_desc">单曲循环：同一首反复播放，不会自己跳下一首</string>
+    <string name="f040_mode_all_desc">列表循环：放完最后一首回到第一首，队列一直不停</string>
+    <string name="f040_action_back">返回</string>
+
+    <!-- 模拟队列 -->
+    <string name="f040_section_queue">模拟播放队列</string>
+    <string name="f040_now_value">正在播放：第 %1$d / %2$d 首 · %3$s</string>
+    <string name="f040_now_default_value">正在播放：第 1 / 5 首 · 城市清晨</string>
+    <string name="f040_queue_row">%1$d. %2$s</string>
+    <string name="f040_queue_row_1">1. 城市清晨</string>
+    <string name="f040_queue_row_2">2. 海边公路</string>
+    <string name="f040_queue_row_3">3. 旧唱片店</string>
+    <string name="f040_queue_row_4">4. 午夜电台</string>
+    <string name="f040_queue_row_5">5. 终点之前</string>
+    <string name="f040_hint_queue_default">点某一首可直接切到它；队列共 5 首</string>
+    <string name="f040_hint_queue">点某一首可直接切到它；队列共 %1$d 首</string>
+    <string name="f040_hint_last_track">已经是队列最后一首，顺序播放时再放就结束</string>
+    <string name="f040_action_reset">回到第一首</string>
+
+    <!-- 播放结束演示 -->
+    <string name="f040_section_demo">播放结束演示</string>
+    <string name="f040_demo_desc">按下「播放结束」等于播放器报告这一首放完了，页面按当前策略给出下一步动作</string>
+    <string name="f040_action_track_ended">播放结束</string>
+    <string name="f040_last_default">还没有执行过播放结束</string>
+    <string name="f040_last_reset">队列已回到第一首，等下一次播放结束</string>
+    <string name="f040_last_play">%1$s：接着播放第 %2$d 首 · %3$s</string>
+    <string name="f040_last_stop">%1$s：队列已结束，停在第 5 首不再播放</string>
+
+    <!-- 提示 -->
+    <string name="f040_toast_mode_switched">已切换到%1$s</string>
+    <string name="f040_toast_mode_same">当前已经是%1$s</string>
+    <string name="f040_toast_switched_track">已切到第 %1$d 首</string>
+    <string name="f040_toast_already_current">已经是第 %1$d 首</string>
+    <string name="f040_toast_next_playing">继续播放第 %1$d 首 · %2$s</string>
+    <string name="f040_toast_stopped">队列已结束，播放停止</string>
+    <string name="f040_toast_reset">已回到第一首</string>
+</resources>
