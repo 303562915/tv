@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f026_title">最近添加与最近播放</string>
+    <string name="f026_desc">「最近添加」按文件最后修改时间降序，「最近播放」按最后播放时间降序，展示条数上限可调</string>
+
+    <string name="f026_section_source">数据源</string>
+    <string name="f026_section_limit">数量上限</string>
+    <string name="f026_action_source_added">最近添加</string>
+    <string name="f026_action_source_played">最近播放</string>
+    <string name="f026_limit_option">前 %1$d 条</string>
+    <string name="f026_action_load_samples">载入示例数据</string>
+    <string name="f026_action_clear">清空列表</string>
+
+    <string name="f026_summary_added">最近添加 · 展示 %1$d 条 / 库内 %2$d 条（上限 %3$d）</string>
+    <string name="f026_summary_played">最近播放 · 展示 %1$d 条 / 已播放 %2$d 条（上限 %3$d）</string>
+    <string name="f026_summary_library_empty">库是空的，先点「载入示例数据」放 8 条进来看效果</string>
+
+    <string name="f026_empty_added">还没有任何媒体：最近添加按文件修改时间排序，库里进东西之后这里才会出现卡片</string>
+    <string name="f026_empty_played">还没有播放记录：最近播放只列播放过的条目，从未播放的会被过滤掉</string>
+
+    <string name="f026_item_title">%1$d. %2$s</string>
+    <string name="f026_item_added_ago">添加于 %1$s</string>
+    <string name="f026_item_played_ago">播放于 %1$s</string>
+    <string name="f026_status_played">已播放</string>
+    <string name="f026_status_unplayed">未播放</string>
+
+    <string name="f026_never_played">从未播放</string>
+    <string name="f026_ago_just_now">刚刚</string>
+    <string name="f026_ago_minutes">%1$d 分钟前</string>
+    <string name="f026_ago_hours">%1$d 小时前</string>
+    <string name="f026_ago_days">%1$d 天前</string>
+
+    <string name="f026_toast_marked">已把「%1$s」标记为刚播放</string>
+    <string name="f026_toast_samples">已载入 %1$d 条示例数据</string>
+    <string name="f026_toast_cleared">已清空列表</string>
+    <string name="f026_toast_already_empty">列表已经是空的了</string>
+    <string name="f026_toast_limit">上限已设为 %1$d 条</string>
+
+    <string name="f026_hint">排序与过滤全在 F026Engine 里：上限只影响展示条数，不改动库本身；上限档位记在 SharedPreferences 里，退出重进仍然生效。点任意卡片可把它标记为刚播放，「最近播放」会立即把它推到最前。</string>
+</resources>
