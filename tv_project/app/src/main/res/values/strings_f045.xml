@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f045_title">搜索历史管理</string>
+    <string name="f045_desc">搜过的词记在这里：重复关键词只留最新一条，最多 20 条，可单条删除也可一键清空</string>
+
+    <string name="f045_section_input">搜索</string>
+    <string name="f045_hint_keyword">输入关键词，按遥控器确认键或点「搜索」</string>
+    <string name="f045_action_submit">搜索</string>
+    <string name="f045_action_clear_all">清空全部</string>
+
+    <string name="f045_section_history">历史记录</string>
+    <string name="f045_stat">已记 %1$d 条 · 上限 %2$d 条</string>
+    <string name="f045_stat_empty">还没有记录 · 上限 20 条</string>
+
+    <string name="f045_row_keyword">%1$d. %2$s</string>
+    <string name="f045_row_time">上次搜索 %1$s</string>
+    <string name="f045_row_delete">删除</string>
+    <string name="f045_row_delete_of">删除历史「%1$s」</string>
+
+    <string name="f045_empty">还没有搜索历史\n输入关键词并搜索，就会记在这里；重复的关键词只留最新一条</string>
+    <string name="f045_rule">规则：重复关键词去重并移到最前 · 超过 20 条淘汰最旧 · 点历史行可直接重搜</string>
+
+    <string name="f045_toast_added">已记入历史「%1$s」</string>
+    <string name="f045_toast_blank">关键词是空的，没有记录</string>
+    <string name="f045_toast_removed">已删除「%1$s」</string>
+    <string name="f045_toast_missing">历史里已经没有「%1$s」</string>
+    <string name="f045_toast_cleared">已清空 %1$d 条历史</string>
+    <string name="f045_toast_empty_history">历史已经是空的</string>
+    <string name="f045_toast_reused">用历史关键词「%1$s」重新搜索</string>
+</resources>
