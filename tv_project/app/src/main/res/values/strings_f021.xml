@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f021_title">缩略图磁盘缓存</string>
+    <string name="f021_desc">缩略图按源标识的 SHA-1 落盘缓存，命中直接复用不再解码，超出上限按 LRU 淘汰最久未用的条目</string>
+
+    <string name="f021_section_dir">缓存目录</string>
+    <string name="f021_dir_hint">应用私有目录，卸载即清；条目名是 40 位十六进制摘要，不暴露原始路径</string>
+
+    <string name="f021_section_stats">实时统计</string>
+    <string name="f021_label_bytes">当前大小</string>
+    <string name="f021_label_entries">条目数</string>
+    <string name="f021_label_hit_rate">命中率</string>
+    <string name="f021_hit_count">命中 %1$d 次 · 未命中 %2$d 次</string>
+
+    <string name="f021_section_entries">条目明细</string>
+    <string name="f021_entries_hint">按最近使用时间排序，最上面的最旧，淘汰从这里开始</string>
+    <string name="f021_entry_line">%1$s · %2$d B · 最近使用 %3$s</string>
+
+    <string name="f021_section_actions">操作</string>
+    <string name="f021_limit_label">清理上限（字节）</string>
+    <string name="f021_limit_default">4096</string>
+    <string name="f021_btn_seed">写入 3 个示例条目</string>
+    <string name="f021_btn_evict">清理到上限</string>
+    <string name="f021_btn_clear">清空缓存</string>
+    <string name="f021_btn_refresh">刷新统计</string>
+
+    <string name="f021_empty_item">—</string>
+    <string name="f021_toast_seeded">已写入 %1$d 条示例缓存</string>
+    <string name="f021_toast_evicted">淘汰 %1$d 条 / %2$s，剩余 %3$s</string>
+    <string name="f021_toast_cleared">已清空，共移除 %1$d 条 / %2$s</string>
+    <string name="f021_toast_bad_limit">上限需要是一个大于 0 的整数</string>
+    <string name="f021_error_io">缓存操作失败：%1$s</string>
+</resources>
