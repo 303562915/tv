@@ -443,6 +443,11 @@
             android:label="@string/f071_title"
             android:exported="false" />
 
+        <activity
+            android:name=".feature.f073.F073Activity"
+            android:label="@string/f073_title"
+            android:exported="false" />
+
     </application>
 
 </manifest>

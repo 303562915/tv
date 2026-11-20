@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F073「历史导入导出」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f073_title">历史导入导出</string>
+    <string name="f073_desc">把播放历史整份导出成可读 JSON，也能从导出的文件或粘贴文本导回来，按 id 去重</string>
+    <string name="f073_action_back">返回</string>
+    <string name="f073_action_hint">确认键执行</string>
+
+    <!-- 导出 -->
+    <string name="f073_section_export">导出</string>
+    <string name="f073_export_label">导出为 JSON 文件</string>
+    <string name="f073_export_idle">还没导出</string>
+    <string name="f073_export_done">已写入 %1$s（%2$s，共 %3$d 条）</string>
+    <string name="f073_export_failed">导出失败：%1$s</string>
+    <string name="f073_export_note">文件落在应用专属外部目录 export/ 下，接电脑直接拷走即可；结构是 version 为 1 的对象，items 数组里每条带 id、title、playedAtMs、progressMs、durationMs。</string>
+
+    <!-- 导入 -->
+    <string name="f073_section_import">导入</string>
+    <string name="f073_import_pick">选择 JSON 文件</string>
+    <string name="f073_import_paste">粘贴剪贴板</string>
+    <string name="f073_paste_label">历史 JSON</string>
+    <string name="f073_paste_hint">这里粘贴导出的 JSON，也可以直接手写一段</string>
+    <string name="f073_import_text">导入下面的文本</string>
+    <string name="f073_import_idle">还没有导入</string>
+    <string name="f073_import_stats">新增 %1$d 条 · 跳过 %2$d 条 · 非法 %3$d 条</string>
+    <string name="f073_import_stats_with_error">新增 %1$d 条 · 跳过 %2$d 条 · 非法 %3$d 条（%4$s）</string>
+    <string name="f073_import_total">当前共 %1$d 条</string>
+    <string name="f073_import_failed">导入没成功：%1$s</string>
+    <string name="f073_import_file_read_failed">这个文件读不出来：%1$s</string>
+    <string name="f073_import_empty_text">文本框是空的，先粘贴或选个文件</string>
+    <string name="f073_clipboard_empty">剪贴板里没有文本</string>
+    <string name="f073_clipboard_pasted">已从剪贴板填入文本框</string>
+
+    <!-- 历史一览 -->
+    <string name="f073_section_list">历史一览</string>
+    <string name="f073_list_count">本地共 %1$d 条</string>
+    <string name="f073_list_empty">还没有历史条目</string>
+    <string name="f073_row_meta">%1$s · 进度 %2$s</string>
+
+    <!-- 提示 -->
+    <string name="f073_toast_exported">已导出</string>
+    <string name="f073_toast_imported">导入完成</string>
+</resources>
