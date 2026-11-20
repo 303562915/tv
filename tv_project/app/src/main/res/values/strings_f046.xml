@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f046_title">拼音首字母匹配</string>
+    <string name="f046_desc">遥控器打字慢：输首字母就能命中（lsh → 蓝色海洋），全拼 lanse 也能命中，结果按匹配度排序</string>
+
+    <string name="f046_section_query">输入查询</string>
+    <string name="f046_hint_query">首字母如 lsh，全拼如 lanse，也可以直接打中文</string>
+    <string name="f046_quick_caption">快捷填入：三个按钮分别演示首字母命中、全拼命中、无命中空态</string>
+    <string name="f046_quick_initials">lsh</string>
+    <string name="f046_quick_full">lanse</string>
+    <string name="f046_quick_empty">zzz</string>
+    <string name="f046_stat_idle">还没输入：输入首字母或全拼，结果会按匹配度排序</string>
+    <string name="f046_stat">「%1$s」命中 %2$d / %3$d 条</string>
+
+    <string name="f046_section_result">匹配结果</string>
+    <string name="f046_row_title">%1$d. %2$s</string>
+    <string name="f046_row_keys">首字母 %1$s · 全拼 %2$s</string>
+    <string name="f046_empty">没有匹配的标题\n换个首字母试试，比如 lsh、lanse</string>
+
+    <string name="f046_kind_exact_initials">首字母整串命中</string>
+    <string name="f046_kind_prefix_initials">首字母前缀</string>
+    <string name="f046_kind_prefix_pinyin">全拼前缀</string>
+    <string name="f046_kind_prefix_literal">原文前缀</string>
+    <string name="f046_kind_contains_initials">首字母包含</string>
+    <string name="f046_kind_contains_pinyin">全拼包含</string>
+    <string name="f046_kind_contains_literal">原文包含</string>
+    <string name="f046_kind_none">未命中</string>
+
+    <string name="f046_coverage_pending">拼音表覆盖范围：统计中</string>
+    <string name="f046_coverage_ok">内置拼音表覆盖 %1$d 个常用字，8 条示例标题里的字全部收录</string>
+    <string name="f046_coverage_gap">内置拼音表覆盖 %1$d 个常用字，示例里这些字没收录：%2$s</string>
+    <string name="f046_toast_picked">已选中「%1$s」 · %2$s</string>
+    <string name="f046_hint_sample">示例标题：蓝色海洋 / 流浪地球 / 星际穿越 / 漫长的季节 / 深海迷航 / 蓝色星球 / 宇宙时空之旅 / 人间烟火。lsh 只命中「蓝色海洋」；lanse 同时命中「蓝色海洋」和「蓝色星球」，两者分数打平时按示例顺序排</string>
+</resources>

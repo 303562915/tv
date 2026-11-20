@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  拼音首字母匹配 · 沿用 FlClash 视觉语言
+  上面是查询框 + 三个快捷按钮（首字母 / 全拼 / 无命中），下面是按匹配度排序的结果列表。
+  结果行由 F046Activity 按 F046Engine.rank() 的顺序运行时生成，布局里只留容器和空态。
+-->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/surface_page"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:fitsSystemWindows="true"
+    android:overScrollMode="never"
+    android:paddingBottom="96dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/page_margin"
+        android:paddingTop="@dimen/page_margin"
+        android:paddingEnd="@dimen/page_margin"
+        android:paddingBottom="96dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/f046_title"
+            android:textAppearance="@style/TextAppearance.TVPlayer.PageTitle" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/f046_desc"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+        <!-- 小节：输入 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:text="@string/f046_section_query"
+            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/card_padding">
+
+                <EditText
+                    android:id="@+id/etQuery"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="@drawable/search_input_bg"
+                    android:focusable="true"
+                    android:foreground="@drawable/bg_focus_ring"
+                    android:hint="@string/f046_hint_query"
+                    android:imeOptions="actionSearch"
+                    android:inputType="textVisiblePassword|textNoSuggestions"
+                    android:maxLength="16"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:singleLine="true"
+                    android:textColor="@color/theme_text_primary"
+                    android:textColorHint="@color/theme_text_secondary"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/card_gap"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp"
+                    android:text="@string/f046_quick_caption"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnQuickInitials"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/f046_quick_initials" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnQuickFull"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/card_gap"
+                        android:layout_weight="1"
+                        android:text="@string/f046_quick_full" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnQuickEmpty"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/card_gap"
+                        android:layout_weight="1"
+                        android:text="@string/f046_quick_empty" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/statText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/card_gap"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp"
+                    android:text="@string/f046_stat_idle"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- 小节：结果 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:text="@string/f046_section_result"
+            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/card_padding">
+
+                <LinearLayout
+                    android:id="@+id/resultContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+                <TextView
+                    android:id="@+id/emptyState"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:lineSpacingExtra="4dp"
+                    android:paddingStart="12dp"
+                    android:paddingTop="24dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="24dp"
+                    android:text="@string/f046_empty"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:id="@+id/coverageText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_gap"
+            android:background="@drawable/bg_mode_row"
+            android:paddingStart="12dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="10dp"
+            android:text="@string/f046_coverage_pending"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_gap"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:text="@string/f046_hint_sample"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
