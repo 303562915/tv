@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f052_title">搜索范围过滤</string>
+    <string name="f052_desc">关键字之外还能按类型多选和时长区间缩小搜索范围，三个条件 AND 叠加生效</string>
+
+    <!-- 关键字 -->
+    <string name="f052_section_keyword">关键字</string>
+    <string name="f052_keyword_hint">输入标题里的关键词，留空表示不按关键字过滤</string>
+    <string name="f052_clear">清空条件</string>
+
+    <!-- 类型多选 -->
+    <string name="f052_section_type">类型（可多选）</string>
+    <string name="f052_type_movie">电影</string>
+    <string name="f052_type_series">剧集</string>
+    <string name="f052_type_short">短片</string>
+    <string name="f052_type_local">本地</string>
+    <string name="f052_type_all">类型不限：电影 / 剧集 / 短片 / 本地全部参与</string>
+    <string name="f052_type_selected">已选 %1$d 个类型：%2$s</string>
+
+    <!-- 时长四档 -->
+    <string name="f052_section_duration">时长</string>
+    <string name="f052_band_any">不限</string>
+    <string name="f052_band_within_10">10 分钟以内</string>
+    <string name="f052_band_10_to_45">10–45 分钟</string>
+    <string name="f052_band_over_45">45 分钟以上</string>
+    <string name="f052_duration_all">时长不限</string>
+    <string name="f052_duration_selected">当前档位：%1$s</string>
+
+    <!-- 结果与生效条件 -->
+    <string name="f052_section_result">过滤结果</string>
+    <string name="f052_result_count_idle">— / — 条</string>
+    <string name="f052_result_count">%1$d / %2$d 条</string>
+    <string name="f052_condition_idle">生效条件：类型不限 · 时长不限 · 无关键字</string>
+    <string name="f052_condition_value">生效条件：%1$s</string>
+    <string name="f052_condition_and">关键字命中标题，再与类型、时长两个条件同时成立才计入结果，共 %1$d 条</string>
+    <string name="f052_condition_and_no_keyword">类型与时长两个条件同时成立才计入结果，共 %1$d 条</string>
+    <string name="f052_condition_and_idle">三个条件都没设：示例里的内容全部计入结果</string>
+    <string name="f052_condition_keyword">「%1$s」</string>
+    <string name="f052_condition_no_keyword">无关键字</string>
+    <string name="f052_condition_template">类型 %1$s · 时长 %2$s · 关键字 %3$s</string>
+
+    <!-- 时长区间文案，引擎与按钮共用 -->
+    <string name="f052_duration_within">%1$d 分钟以内</string>
+    <string name="f052_duration_range">%1$d–%2$d 分钟</string>
+    <string name="f052_duration_above">%1$d 分钟以上</string>
+
+    <!-- 结果行与空态 -->
+    <string name="f052_row_meta">%1$s · %2$d 分钟 · %3$s</string>
+    <string name="f052_empty">当前条件下没有内容：试着取消几个类型，或者把时长换回「不限」</string>
+    <string name="f052_hint_sample">示例 10 条：电影 3 条、剧集 3 条、短片 2 条、本地 2 条；时长从 3 分钟到 148 分钟，够把四档都试出来</string>
+</resources>
