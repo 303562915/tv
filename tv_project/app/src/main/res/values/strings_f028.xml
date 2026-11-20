@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f028_title">历史搜索与筛选</string>
+    <string name="f028_desc">历史条目多了以后，按标题关键字搜一遍，再按最近 7/30 天收窄，两个条件可以叠加</string>
+    <string name="f028_section_filter">筛选条件</string>
+    <string name="f028_section_result">筛选结果</string>
+    <string name="f028_search_hint">输入标题关键字，边输边筛</string>
+    <string name="f028_range_label">时间范围</string>
+    <string name="f028_range_all">全部时间</string>
+    <string name="f028_range_7">最近 7 天</string>
+    <string name="f028_range_30">最近 30 天</string>
+    <string name="f028_clear_action">清空条件</string>
+    <string name="f028_hit_count">命中 %1$d / %2$d 条</string>
+    <string name="f028_hit_count_zero">命中 0 条</string>
+    <string name="f028_empty">没有同时满足关键字和时间范围的记录，换个关键字或放宽时间范围再试</string>
+    <string name="f028_meta">%1$s · %2$s</string>
+    <string name="f028_progress_value">看到 %1$s</string>
+    <string name="f028_progress_zero">还没开始看</string>
+    <string name="f028_hint_combine">关键字与时间范围是「并且」关系：两个条件都满足才会命中</string>
+    <string name="f028_hint_range">时间范围以进页面那一刻为基准往前推，7 天=168 小时，30 天=720 小时；关键字比较不区分大小写</string>
+    <string name="f028_hint_sample">示例数据固定 12 条历史，时间跨度铺满 7 天 / 30 天 / 更早三档，方便直接试组合条件</string>
+    <string name="f028_toast_cleared">已清空筛选条件</string>
+</resources>
