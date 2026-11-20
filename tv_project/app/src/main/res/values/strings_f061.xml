@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F061「DLNA 设备发现」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f061_title">DLNA 设备发现</string>
+    <string name="f061_desc">局域网里的电视、盒子要先能被 SSDP 找出来，投屏才有目标可选；每次搜索只发一轮组播，不后台轮询</string>
+
+    <!-- 搜索卡片 -->
+    <string name="f061_section_discovery">搜索</string>
+    <string name="f061_status_idle">还没搜索。点「搜索设备」在局域网里找支持 DLNA 的电视 / 盒子</string>
+    <string name="f061_status_searching">正在搜索 DLNA 设备（最长 %1$d 秒），设备回包有快有慢…</string>
+    <string name="f061_status_found">找到 %1$d 台可投屏设备</string>
+    <string name="f061_status_empty">这次没搜到设备</string>
+    <string name="f061_status_failed">搜索失败：网络或系统不允许发组播</string>
+    <string name="f061_action_search">搜索设备</string>
+    <string name="f061_action_hint">确认键</string>
+    <string name="f061_action_back">返回</string>
+    <string name="f061_toast_searching">正在搜索，请稍等…</string>
+
+    <!-- 设备列表 -->
+    <string name="f061_section_devices">设备</string>
+    <string name="f061_summary_idle">—</string>
+    <string name="f061_summary_searching">搜索中</string>
+    <string name="f061_summary_empty">0 台</string>
+    <string name="f061_summary_found">%1$d 台</string>
+    <string name="f061_empty_idle">还没搜索。结果会列在这里：设备名 / USN / 地址</string>
+    <string name="f061_empty_searching">正在等设备回包…</string>
+    <string name="f061_empty_none">局域网里没有设备响应这次发现请求</string>
+    <string name="f061_row_usn">USN：%1$s</string>
+    <string name="f061_row_address">地址：%1$s</string>
+    <string name="f061_value_none">—</string>
+
+    <!-- 失败说明：区分「发不出去」和「没人应答」 -->
+    <string name="f061_fail_multicast">当前网络或系统不支持组播：%1$s。模拟器、盒子的 Wi-Fi 省电模式、以及开了「AP 隔离 / 客户端隔离」的路由器都会让 SSDP 包发不出去或收不回来；可以换手机热点直连，或把电视插网线再试。</string>
+    <string name="f061_fail_no_network">组播没有可用路由：%1$s。先确认 Wi-Fi 已连上，并且和电视在同一网段——很多电视只连 2.4G，手机连 5G 时会跨网段搜不到。</string>
+    <string name="f061_fail_unknown">搜索过程中出错：%1$s。可以再点一次「搜索设备」重试。</string>
+    <string name="f061_fail_none_hint">也可能是这几件事：电视没开「多屏互动 / DLNA / 投屏」开关；电视和本机不在同一网段或 VLAN；路由器的组播转发被关了。设备刚上电要等十几秒才会响应，稍后再搜一次。</string>
+    <string name="f061_partial_hint">这次搜索中途出错，只拿到部分结果：%1$s。列表里的设备仍可尝试投屏，但可能不全。</string>
+
+    <string name="f061_engine_note">接线：F061Activity 在 Dispatchers.IO 上调 F061Engine.discover(3000)，返回的 DlnaDevice 直接渲染成行（displayName / usn / host）；F061Engine.lastFailure 非空表示组播或网络层失败，要按类型给出对应说明，不能当成「家里没有设备」。搜索前记得拿 WifiManager.MulticastLock，否则很多盒子根本收不到组播。</string>
+</resources>
