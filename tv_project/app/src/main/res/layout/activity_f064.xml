@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  「二维码分享地址」页 · 沿用功能页既有的 FlClash 视觉语言：
+  卡片层 + 16dp 圆角，焦点态靠 bg_card_surface 的 surface_inset 填充表达，不额外描边。
+  颜色只走 colors.xml 的 theme_* / surface_* 语义 token，这里不出现任何十六进制。
+  电视没有触摸屏：返回、输入框、生成按钮、二维码、地址文本都可聚焦，
+  nextFocus* 串成 返回 → 地址 → 生成 → 二维码 → 地址文本 一条线，遥控器一路按下来能走通。
+  二维码本身由 F064Activity 画成纯黑白位图，这里的 ImageView 只负责贴图，不参与主题着色。
+-->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:fitsSystemWindows="true"
+    android:overScrollMode="never">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/page_margin"
+        android:paddingTop="@dimen/page_margin"
+        android:paddingEnd="@dimen/page_margin"
+        android:paddingBottom="96dp">
+
+        <!-- 标题行：返回 + 页标题 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_secondary_button"
+                android:contentDescription="@string/f064_action_back"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:nextFocusDown="@id/f064AddressInput"
+                android:padding="12dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_back"
+                app:tint="@color/theme_text_primary" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:text="@string/f064_title"
+                android:textAppearance="@style/TextAppearance.TVPlayer.PageTitle" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/f064_desc"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+        <!-- 小节：地址输入 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:text="@string/f064_section_input"
+            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/card_padding">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/f064_input_hint"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                    android:textColor="@color/theme_text_secondary" />
+
+                <!-- 地址输入：IME 动作直接当「生成」用，省一次遥控器移动 -->
+                <EditText
+                    android:id="@+id/f064AddressInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="@dimen/card_gap"
+                    android:background="@drawable/search_input_bg"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:foreground="@drawable/bg_focus_ring"
+                    android:hint="@string/f064_hint_address"
+                    android:imeOptions="actionDone"
+                    android:inputType="textUri|textNoSuggestions"
+                    android:maxLines="1"
+                    android:nextFocusDown="@id/f064GenerateButton"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:singleLine="true"
+                    android:textColor="@color/theme_text_primary"
+                    android:textColorHint="@color/theme_text_secondary"
+                    android:textSize="14sp" />
+
+                <!-- 生成：主动作 -->
+                <LinearLayout
+                    android:id="@+id/f064GenerateButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/card_gap"
+                    android:background="@drawable/bg_card_surface"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/list_row_min_height"
+                    android:nextFocusDown="@id/f064QrImage"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/f064_action_generate"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Body"
+                        android:textColor="@color/theme_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/f064_action_generate_hint"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+                </LinearLayout>
+
+                <!-- 状态行：成功 / 超长 / 空地址，颜色由代码切换 -->
+                <TextView
+                    android:id="@+id/f064StatusLine"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/card_gap"
+                    android:lineSpacingExtra="3dp"
+                    android:text="@string/f064_status_idle"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                    android:textColor="@color/theme_text_secondary" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- 小节：二维码 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:text="@string/f064_section_qr"
+            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:padding="@dimen/card_padding">
+
+                <!-- 二维码居中：ImageView 贴黑白位图，占位文案在没有码时顶上 -->
+                <FrameLayout
+                    android:layout_width="260dp"
+                    android:layout_height="260dp"
+                    android:background="@color/surface_inset">
+
+                    <ImageView
+                        android:id="@+id/f064QrImage"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="@string/f064_image_desc"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:nextFocusDown="@id/f064AddressText"
+                        android:padding="8dp"
+                        android:scaleType="fitCenter"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/f064QrPlaceholder"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:lineSpacingExtra="3dp"
+                        android:padding="16dp"
+                        android:text="@string/f064_qr_placeholder"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+                        android:textColor="@color/theme_text_secondary" />
+                </FrameLayout>
+
+                <!-- 地址原文：长按可复制，也方便用户核对扫出来的内容 -->
+                <TextView
+                    android:id="@+id/f064AddressText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/card_gap"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center"
+                    android:lineSpacingExtra="3dp"
+                    android:text="@string/f064_value_none"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Body"
+                    android:textColor="@color/theme_text_primary"
+                    android:textIsSelectable="false" />
+
+                <TextView
+                    android:id="@+id/f064HintText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:text="@string/f064_hint_long_press"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/section_gap"
+            android:text="@string/f064_engine_note"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
