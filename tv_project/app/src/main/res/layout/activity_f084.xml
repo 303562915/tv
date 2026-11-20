@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  「日志级别与导出」页 · 沿用 FlClash 视觉语言：
+  卡片层 + 16dp 圆角，焦点态靠 bg_card_surface 的 surface_inset 填充表达，不额外描边。
+  四段：级别（五级单选）、测试（写一条看判定）、日志（五色列表）、导出（路径 + 字节数 / 清空）。
+  电视没有触摸屏，所有可操作控件都 focusable，并用 nextFocus* 显式串好 D-Pad 路径。
+-->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/theme_background"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:fitsSystemWindows="true"
+    android:overScrollMode="never"
+    android:paddingBottom="96dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/page_margin"
+        android:paddingTop="@dimen/page_margin"
+        android:paddingEnd="@dimen/page_margin"
+        android:paddingBottom="96dp">
+
+        <!-- 标题行：返回键 + 页名 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/f084Back"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_secondary_button"
+                android:contentDescription="@string/f084_back"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:nextFocusDown="@id/f084LevelVerbose"
+                android:padding="12dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_back"
+                app:tint="@color/theme_text_primary" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:text="@string/f084_title"
+                android:textAppearance="@style/TextAppearance.TVPlayer.PageTitle" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/f084_desc"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+        <!-- 设备与版本摘要：和导出文件里那一段是同一份数据 -->
+        <TextView
+            android:id="@+id/f084DeviceInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+            android:textColor="@color/theme_text_secondary" />
+
+        <!-- 小节：日志级别 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:text="@string/f084_section_level"
+            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/card_padding">
+
+                <RadioGroup
+                    android:id="@+id/f084LevelGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <RadioButton
+                        android:id="@+id/f084LevelVerbose"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_card_surface"
+                        android:buttonTint="@color/theme_primary"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:minHeight="@dimen/list_row_min_height"
+                        android:nextFocusDown="@id/f084LevelDebug"
+                        android:nextFocusUp="@id/f084LevelVerbose"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:text="@string/f084_level_verbose"
+                        android:textColor="@color/theme_text_primary"
+                        android:textSize="15sp" />
+
+                    <RadioButton
+                        android:id="@+id/f084LevelDebug"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/card_gap"
+                        android:background="@drawable/bg_card_surface"
+                        android:buttonTint="@color/theme_primary"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:minHeight="@dimen/list_row_min_height"
+                        android:nextFocusDown="@id/f084LevelInfo"
+                        android:nextFocusUp="@id/f084LevelVerbose"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:text="@string/f084_level_debug"
+                        android:textColor="@color/theme_text_primary"
+                        android:textSize="15sp" />
+
+                    <RadioButton
+                        android:id="@+id/f084LevelInfo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/card_gap"
+                        android:background="@drawable/bg_card_surface"
+                        android:buttonTint="@color/theme_primary"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:minHeight="@dimen/list_row_min_height"
+                        android:nextFocusDown="@id/f084LevelWarn"
+                        android:nextFocusUp="@id/f084LevelDebug"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:text="@string/f084_level_info"
+                        android:textColor="@color/theme_text_primary"
+                        android:textSize="15sp" />
+
+                    <RadioButton
+                        android:id="@+id/f084LevelWarn"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/card_gap"
+                        android:background="@drawable/bg_card_surface"
+                        android:buttonTint="@color/theme_primary"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:minHeight="@dimen/list_row_min_height"
+                        android:nextFocusDown="@id/f084LevelError"
+                        android:nextFocusUp="@id/f084LevelInfo"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:text="@string/f084_level_warn"
+                        android:textColor="@color/theme_text_primary"
+                        android:textSize="15sp" />
+
+                    <RadioButton
+                        android:id="@+id/f084LevelError"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/card_gap"
+                        android:background="@drawable/bg_card_surface"
+                        android:buttonTint="@color/theme_primary"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:minHeight="@dimen/list_row_min_height"
+                        android:nextFocusDown="@id/f084TestButton"
+                        android:nextFocusUp="@id/f084LevelWarn"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:text="@string/f084_level_error"
+                        android:textColor="@color/theme_text_primary"
+                        android:textSize="15sp" />
+                </RadioGroup>
+
+                <TextView
+                    android:id="@+id/f084LevelHint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/card_gap"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- 小节：写一条测试日志 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:text="@string/f084_section_test"
+            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/card_padding">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/f084_test_tip"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
+
+                <LinearLayout
+                    android:id="@+id/f084TestButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/card_gap"
+                    android:background="@drawable/bg_card_surface"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/list_row_min_height"
+                    android:nextFocusDown="@id/f084ExportButton"
+                    android:nextFocusUp="@id/f084LevelError"
+                    android:orientation="horizontal"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/f084_test_button"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/f084_action_hint"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/f084TestResult"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/card_gap"
+                    android:text="@string/f084_test_idle"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- 小节：内存日志 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/f084_section_log"
+                android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+            <TextView
+                android:id="@+id/f084LogCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+        </LinearLayout>
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/card_padding">
+
+                <LinearLayout
+                    android:id="@+id/f084LogContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+                <TextView
+                    android:id="@+id/f084LogEmpty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/f084_log_empty"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- 小节：导出 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:text="@string/f084_section_export"
+            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+        <LinearLayout
+            android:id="@+id/f084ExportButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card_surface"
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/list_row_min_height"
+            android:nextFocusDown="@id/f084ClearButton"
+            android:nextFocusUp="@id/f084TestButton"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/f084_export_button"
+                android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/f084_action_hint"
+                android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/f084ClearButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_gap"
+            android:background="@drawable/bg_card_surface"
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/list_row_min_height"
+            android:nextFocusDown="@id/f084LevelVerbose"
+            android:nextFocusUp="@id/f084ExportButton"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/f084_clear_button"
+                android:textAppearance="@style/TextAppearance.TVPlayer.Body"
+                android:textColor="@color/theme_text_secondary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/f084_action_hint"
+                android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/f084ExportResult"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_gap"
+            android:lineSpacingExtra="2dp"
+            android:text="@string/f084_export_idle"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/section_gap"
+            android:text="@string/f084_footer_note"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F084「日志级别与导出」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f084_title">日志级别与导出</string>
+    <string name="f084_desc">五级日志级别随便切，内存里留最近 500 条，一键导出带设备信息的 txt</string>
+    <string name="f084_back">返回</string>
+    <string name="f084_action_hint">确认键执行</string>
+
+    <!-- 日志级别 -->
+    <string name="f084_section_level">日志级别</string>
+    <string name="f084_level_verbose">VERBOSE · 全部日志</string>
+    <string name="f084_level_debug">DEBUG · 调试细节</string>
+    <string name="f084_level_info">INFO · 常规信息</string>
+    <string name="f084_level_warn">WARN · 异常但能跑</string>
+    <string name="f084_level_error">ERROR · 只会留错误</string>
+    <string name="f084_level_now">当前级别 %1$s：低于它的一律不写进缓冲，已留下的旧日志不会被删掉。级别存本地，下次进来还是这一级。</string>
+
+    <!-- 测试日志 -->
+    <string name="f084_section_test">测试日志</string>
+    <string name="f084_test_tip">每按一次写一条，级别从 ERROR 往 VERBOSE 轮着来 —— 正好看清当前的过滤和下面的配色。</string>
+    <string name="f084_test_button">写一条测试日志</string>
+    <string name="f084_test_idle">还没有写过测试日志</string>
+    <string name="f084_test_message">测试日志 #%1$d（%2$s）</string>
+    <string name="f084_test_accepted">已写入 %1$s，当前级别 %2$s 放行</string>
+    <string name="f084_test_filtered">%1$s 低于当前级别 %2$s，这条被过滤掉了</string>
+
+    <!-- 内存日志 -->
+    <string name="f084_section_log">内存日志</string>
+    <string name="f084_log_count">共 %1$d 条 · 上限 %2$d 条</string>
+    <string name="f084_log_empty">缓冲是空的，按上面的按钮写一条</string>
+    <string name="f084_log_more">只画最近 %1$d 条，导出文件里是全部记录</string>
+
+    <!-- 导出 -->
+    <string name="f084_section_export">导出</string>
+    <string name="f084_export_button">导出日志</string>
+    <string name="f084_clear_button">清空日志</string>
+    <string name="f084_export_idle">导出后这里显示文件路径和字节数</string>
+    <string name="f084_export_done">已导出 %1$d 条日志\n%2$s\n%3$s</string>
+    <string name="f084_export_failed">导出失败：%1$s</string>
+    <string name="f084_toast_exported">日志已导出</string>
+    <string name="f084_toast_cleared">日志已清空</string>
+
+    <string name="f084_footer_note">导出的 txt 落在应用专属外部目录 getExternalFilesDir("logs")/tvplayer-log-&lt;时间&gt;.txt，不需要任何存储权限，连电脑就能直接拷走；文件开头带机型、Android 版本、系统指纹和应用版本，用户反馈问题时把这份文件发过来即可定位。</string>
+</resources>
