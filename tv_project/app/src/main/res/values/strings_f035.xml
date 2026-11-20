@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f035_title">M3U 播放列表导入导出</string>
+    <string name="f035_desc">按标准 M3U/M3U8 文本与其他播放器交换队列：导出展示生成的全文，导入解析 EXTINF 标题与时长，非法行只统计不报错</string>
+
+    <!-- 导出 -->
+    <string name="f035_section_export">导出</string>
+    <string name="f035_export_hint">下面是把内置 4 条示例队列交给导出器得到的原文：第一行 #EXTM3U 是文件头，之后每条两行 —— #EXTINF:时长(秒),标题 与地址；时长 -1 表示直播或未知长度。</string>
+    <string name="f035_export_action">重新生成导出文本</string>
+    <string name="f035_copy_action">复制到剪贴板</string>
+    <string name="f035_export_stat">示例 %1$d 条 · 生成 %2$d 行文本</string>
+
+    <string name="f035_sample_1_title">体育频道 · 直播</string>
+    <string name="f035_sample_2_title">示例电影 · 正片</string>
+    <string name="f035_sample_3_title">赛事直播 · 推流地址</string>
+    <string name="f035_sample_4_title">本地片源 · 离线比赛录像</string>
+
+    <!-- 导入 -->
+    <string name="f035_section_import">导入</string>
+    <string name="f035_import_hint">把外部 M3U 文本粘进输入框再解析。电视上用遥控器敲字麻烦，建议在手机上复制内容后按「读取剪贴板」直接灌进来；解析只读内存，不落盘、不联网。</string>
+    <string name="f035_input_hint">在此粘贴 M3U / M3U8 文本…</string>
+    <string name="f035_paste_action">读取剪贴板</string>
+    <string name="f035_parse_action">解析</string>
+    <string name="f035_clear_action">清空</string>
+
+    <string name="f035_parse_idle">还没有解析内容</string>
+    <string name="f035_parse_stat">成功 %1$d 条 · 跳过 %2$d 行</string>
+    <string name="f035_parse_no_address">没有识别到任何播放地址，检查是不是粘错了内容</string>
+    <string name="f035_parse_row">%1$d. %2$s · %3$s\n%4$s</string>
+    <string name="f035_parse_more">…另有 %1$d 条未列出</string>
+    <string name="f035_row_untitled">（无标题）</string>
+    <string name="f035_duration_unknown">未知时长</string>
+
+    <string name="f035_toast_parsed">解析完成：成功 %1$d 条，跳过 %2$d 行</string>
+    <string name="f035_toast_copied">已复制 %1$d 条示例的 M3U 文本</string>
+    <string name="f035_toast_nothing_to_copy">没有可复制的内容</string>
+    <string name="f035_toast_clipboard_unavailable">剪贴板不可用</string>
+    <string name="f035_toast_clipboard_empty">剪贴板里没有文本</string>
+    <string name="f035_toast_input_empty">输入框是空的，先粘贴 M3U 文本</string>
+</resources>
