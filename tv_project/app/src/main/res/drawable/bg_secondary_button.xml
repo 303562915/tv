@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 次要按钮：block 填充、无描边、文字用正文色 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/surface_block" />
+    <corners android:radius="@dimen/radius_full" />
+</shape>

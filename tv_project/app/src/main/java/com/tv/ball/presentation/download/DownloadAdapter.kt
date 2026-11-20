@@ -79,6 +79,15 @@ class DownloadAdapter(
         fun bind(task: DownloadTask) {
             val isSelected = selectedItems.contains(task.id)
             
+            val secondaryText = androidx.core.content.ContextCompat.getColor(
+                binding.root.context,
+                com.tv.ball.R.color.theme_text_secondary
+            )
+            val primaryText = androidx.core.content.ContextCompat.getColor(
+                binding.root.context,
+                com.tv.ball.R.color.theme_primary
+            )
+            
             // 电影胶片图标始终显示，使用灰色图标
             binding.ivIcon.visibility = View.VISIBLE
             binding.ivIcon.setImageResource(com.tv.ball.R.drawable.ic_film_gray)
@@ -87,7 +96,12 @@ class DownloadAdapter(
             if (isSelectionMode && isSelected) {
                 binding.ivCheckmark.visibility = View.VISIBLE
                 binding.ivCheckmark.setImageResource(com.tv.ball.R.drawable.ic_mtrl_checked_circle)
-                binding.ivCheckmark.setColorFilter(android.graphics.Color.parseColor("#4CAF50")) // 绿色
+                binding.ivCheckmark.setColorFilter(
+                    androidx.core.content.ContextCompat.getColor(
+                        binding.root.context,
+                        com.tv.ball.R.color.theme_primary
+                    )
+                )
             } else {
                 binding.ivCheckmark.visibility = View.GONE
             }
@@ -116,7 +130,12 @@ class DownloadAdapter(
                 val confirmEnd = confirmStart + confirmText.length
                 
                 spannableString.setSpan(
-                    android.text.style.ForegroundColorSpan(android.graphics.Color.parseColor("#4CAF50")), // 绿色
+                    android.text.style.ForegroundColorSpan(
+                        androidx.core.content.ContextCompat.getColor(
+                            binding.root.context,
+                            com.tv.ball.R.color.theme_primary
+                        )
+                    ),
                     confirmStart,
                     confirmEnd,
                     android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -138,16 +157,20 @@ class DownloadAdapter(
                 android.util.Log.d("DownloadAdapter", "显示分段背景: ${task.title}, 线程数=${task.threadCount}")
                 
                 // 为每个线程创建一个背景段
+                val ctx = binding.root.context
                 task.partProgresses.forEachIndexed { index, progress ->
-                    val segmentView = View(binding.root.context).apply {
-                        // 根据进度设置颜色
-                        val segmentColor = when {
-                            progress >= 100 -> android.graphics.Color.parseColor("#C8E6C9") // 深绿 - 已完成
-                            progress >= 75 -> android.graphics.Color.parseColor("#E8F5E9")  // 浅绿 - 75%+
-                            progress >= 50 -> android.graphics.Color.parseColor("#FFF9C4")  // 浅黄 - 50%+
-                            progress >= 25 -> android.graphics.Color.parseColor("#E3F2FD")  // 浅蓝 - 25%+
-                            progress > 0 -> android.graphics.Color.parseColor("#F5F5F5")    // 浅灰 - 开始
-                            else -> android.graphics.Color.parseColor("#FFFFFF")            // 白色 - 未开始
+                    val segmentView = View(ctx).apply {
+                        // 进度只用 primary，底色用 inset：不做整卡铺色
+                        val segmentColor = if (progress > 0) {
+                            androidx.core.content.ContextCompat.getColor(
+                                ctx,
+                                com.tv.ball.R.color.theme_primary
+                            )
+                        } else {
+                            androidx.core.content.ContextCompat.getColor(
+                                ctx,
+                                com.tv.ball.R.color.surface_inset
+                            )
                         }
                         
                         layoutParams = android.widget.LinearLayout.LayoutParams(
@@ -167,11 +190,17 @@ class DownloadAdapter(
                 binding.llSegmentedProgress.visibility = View.GONE
                 binding.progressBackground.visibility = View.VISIBLE
                 
-                val progressColor = when {
-                    task.status == DownloadStatus.FAILED -> android.graphics.Color.parseColor("#FFEBEE") // 浅红
-                    task.progress >= 90 -> android.graphics.Color.parseColor("#E8F5E9") // 浅绿
-                    task.progress >= 50 -> android.graphics.Color.parseColor("#FFF9C4") // 浅黄
-                    else -> android.graphics.Color.parseColor("#E3F2FD") // 浅蓝
+                val progressColor = if (task.status == DownloadStatus.FAILED) {
+                    androidx.core.content.ContextCompat.getColor(
+                        binding.root.context,
+                        com.tv.ball.R.color.surface_inset
+                    )
+                } else {
+                    // 进度用 theme_primary，轨道用 surface_block
+                    androidx.core.content.ContextCompat.getColor(
+                        binding.root.context,
+                        com.tv.ball.R.color.theme_primary
+                    )
                 }
                 binding.progressBackground.setBackgroundColor(progressColor)
                 
@@ -199,9 +228,9 @@ class DownloadAdapter(
                     // 如果分片已全部下载但未合并，显示提示
                     if (downloadedSegments == totalSegments && task.status == DownloadStatus.PAUSED) {
                         binding.tvStatusLine.text = "${binding.tvStatusLine.text}\n⚠️ 分片已下载完成，长按合并"
-                        binding.tvStatusLine.setTextColor(android.graphics.Color.parseColor("#FF9800")) // 橙色
+                        binding.tvStatusLine.setTextColor(secondaryText)
                     } else {
-                        binding.tvStatusLine.setTextColor(android.graphics.Color.parseColor("#666666"))
+                        binding.tvStatusLine.setTextColor(secondaryText)
                     }
                 } else if (task.status == DownloadStatus.COMPLETED) {
                     val finalFile = File(task.savePath)
@@ -212,13 +241,13 @@ class DownloadAdapter(
                     } else {
                         binding.tvStatusLine.text = "100% | ${String.format("%.2f", finalSizeMB)}MB - 共 $totalSegments 个分片"
                     }
-                    binding.tvStatusLine.setTextColor(android.graphics.Color.parseColor("#666666"))
+                    binding.tvStatusLine.setTextColor(secondaryText)
                 } else if (task.status == DownloadStatus.MERGING) {
                     binding.tvStatusLine.text = "合并中 - 共 $totalSegments 个分片"
-                    binding.tvStatusLine.setTextColor(android.graphics.Color.parseColor("#2196F3")) // 蓝色
+                    binding.tvStatusLine.setTextColor(primaryText)
                 } else {
                     binding.tvStatusLine.text = "${task.progress}%"
-                    binding.tvStatusLine.setTextColor(android.graphics.Color.parseColor("#666666"))
+                    binding.tvStatusLine.setTextColor(secondaryText)
                 }
             } else {
                 // 普通视频 - 显示实际大小

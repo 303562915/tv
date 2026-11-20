@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 图标井：inset 级底，只做标识，不承载状态 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/surface_inset" />
+    <corners android:radius="@dimen/radius_sm" />
+</shape>

@@ -4,7 +4,7 @@
     android:id="@+id/rootCoordinator"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000">
+    android:background="@color/black">
 
     <!-- 滚动容器 -->
     <androidx.core.widget.NestedScrollView
@@ -38,7 +38,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:background="#1A1A1A"
+                android:background="@color/surface_page"
                 android:visibility="gone">
 
                 <!-- 标题区域 -->
@@ -54,7 +54,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="视频标题"
-                        android:textColor="@android:color/white"
+                        android:textColor="@color/theme_text_primary"
                         android:textSize="18sp"
                         android:textStyle="bold"
                         android:maxLines="2"
@@ -67,7 +67,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:text="8.5分 · 8118播放"
-                        android:textColor="#AAAAAA"
+                        android:textColor="@color/theme_text_secondary"
                         android:textSize="12sp" />
 
                 </LinearLayout>
@@ -98,14 +98,14 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@drawable/ic_thumb_up_black_24dp"
-                            android:tint="#AAAAAA" />
+                            android:tint="@color/theme_text_secondary" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="推荐"
-                            android:textColor="#AAAAAA"
+                            android:textColor="@color/theme_text_secondary"
                             android:textSize="11sp" />
                     </LinearLayout>
 
@@ -125,14 +125,14 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@drawable/ic_favorite_border_black_24dp"
-                            android:tint="#AAAAAA" />
+                            android:tint="@color/theme_text_secondary" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="加追"
-                            android:textColor="#AAAAAA"
+                            android:textColor="@color/theme_text_secondary"
                             android:textSize="11sp" />
                     </LinearLayout>
 
@@ -152,14 +152,14 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@drawable/ic_file_download_black_24dp"
-                            android:tint="#AAAAAA" />
+                            android:tint="@color/theme_text_secondary" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="下载"
-                            android:textColor="#AAAAAA"
+                            android:textColor="@color/theme_text_secondary"
                             android:textSize="11sp" />
                     </LinearLayout>
 
@@ -179,14 +179,14 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@drawable/ic_cast_black_24dp"
-                            android:tint="#AAAAAA" />
+                            android:tint="@color/theme_text_secondary" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="投屏"
-                            android:textColor="#AAAAAA"
+                            android:textColor="@color/theme_text_secondary"
                             android:textSize="11sp" />
                     </LinearLayout>
 
@@ -206,14 +206,14 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@drawable/ic_share_black_24dp"
-                            android:tint="#AAAAAA" />
+                            android:tint="@color/theme_text_secondary" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="分享"
-                            android:textColor="#AAAAAA"
+                            android:textColor="@color/theme_text_secondary"
                             android:textSize="11sp" />
                     </LinearLayout>
 
@@ -223,7 +223,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#2A2A2A" />
+                    android:background="@color/theme_divider" />
 
                 <!-- 选集区域 -->
                 <LinearLayout
@@ -237,7 +237,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="选集"
-                        android:textColor="@android:color/white"
+                        android:textColor="@color/theme_text_primary"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 

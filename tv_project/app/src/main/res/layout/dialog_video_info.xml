@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#FFFFFF"
+    android:background="@color/surface_card"
     android:padding="16dp">
 
     <LinearLayout
@@ -24,7 +24,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="视频信息"
-                android:textColor="#333333"
+                android:textColor="@color/theme_text_primary"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
@@ -42,7 +42,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:cardBackgroundColor="#F5F5F5"
+            app:cardBackgroundColor="@color/surface_block"
             app:cardCornerRadius="8dp"
             app:cardElevation="0dp">
 
@@ -56,7 +56,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="基本信息"
-                    android:textColor="#666666"
+                    android:textColor="@color/theme_text_secondary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
@@ -65,7 +65,7 @@
                     android:layout_height="1dp"
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="8dp"
-                    android:background="#E0E0E0" />
+                    android:background="@color/theme_divider" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -78,7 +78,7 @@
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
                         android:text="标题："
-                        android:textColor="#999999"
+                        android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
                     <TextView
@@ -87,7 +87,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="视频标题"
-                        android:textColor="#333333"
+                        android:textColor="@color/theme_text_primary"
                         android:textSize="13sp" />
                 </LinearLayout>
 
@@ -102,7 +102,7 @@
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
                         android:text="地址："
-                        android:textColor="#999999"
+                        android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
                     <TextView
@@ -113,7 +113,7 @@
                         android:ellipsize="end"
                         android:maxLines="2"
                         android:text="视频地址"
-                        android:textColor="#333333"
+                        android:textColor="@color/theme_text_primary"
                         android:textSize="13sp" />
                 </LinearLayout>
             </LinearLayout>
@@ -124,7 +124,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:cardBackgroundColor="#F5F5F5"
+            app:cardBackgroundColor="@color/surface_block"
             app:cardCornerRadius="8dp"
             app:cardElevation="0dp">
 
@@ -138,7 +138,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="视频信息"
-                    android:textColor="#666666"
+                    android:textColor="@color/theme_text_secondary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
@@ -147,7 +147,7 @@
                     android:layout_height="1dp"
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="8dp"
-                    android:background="#E0E0E0" />
+                    android:background="@color/theme_divider" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -160,7 +160,7 @@
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
                         android:text="分辨率："
-                        android:textColor="#999999"
+                        android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
                     <TextView
@@ -169,7 +169,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="1920 × 1080"
-                        android:textColor="#333333"
+                        android:textColor="@color/theme_text_primary"
                         android:textSize="13sp" />
                 </LinearLayout>
 
@@ -184,7 +184,7 @@
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
                         android:text="清晰度："
-                        android:textColor="#999999"
+                        android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
                     <TextView
@@ -193,7 +193,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="1080p 全高清"
-                        android:textColor="#333333"
+                        android:textColor="@color/theme_text_primary"
                         android:textSize="13sp" />
                 </LinearLayout>
 
@@ -208,7 +208,7 @@
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
                         android:text="时长："
-                        android:textColor="#999999"
+                        android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
                     <TextView
@@ -217,7 +217,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="00:00:00"
-                        android:textColor="#333333"
+                        android:textColor="@color/theme_text_primary"
                         android:textSize="13sp" />
                 </LinearLayout>
 
@@ -232,7 +232,7 @@
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
                         android:text="当前位置："
-                        android:textColor="#999999"
+                        android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
                     <TextView
@@ -241,7 +241,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="00:00:00"
-                        android:textColor="#333333"
+                        android:textColor="@color/theme_text_primary"
                         android:textSize="13sp" />
                 </LinearLayout>
 
@@ -256,7 +256,7 @@
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
                         android:text="播放进度："
-                        android:textColor="#999999"
+                        android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
                     <TextView
@@ -265,7 +265,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="0%"
-                        android:textColor="#333333"
+                        android:textColor="@color/theme_text_primary"
                         android:textSize="13sp" />
                 </LinearLayout>
 
@@ -280,7 +280,7 @@
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
                         android:text="视频编码："
-                        android:textColor="#999999"
+                        android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
                     <TextView
@@ -289,7 +289,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="H.264"
-                        android:textColor="#333333"
+                        android:textColor="@color/theme_text_primary"
                         android:textSize="13sp" />
                 </LinearLayout>
 
@@ -304,7 +304,7 @@
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
                         android:text="码率："
-                        android:textColor="#999999"
+                        android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
                     <TextView
@@ -313,7 +313,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="未知"
-                        android:textColor="#333333"
+                        android:textColor="@color/theme_text_primary"
                         android:textSize="13sp" />
                 </LinearLayout>
 
@@ -328,7 +328,7 @@
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
                         android:text="帧率："
-                        android:textColor="#999999"
+                        android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
                     <TextView
@@ -337,7 +337,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="未知"
-                        android:textColor="#333333"
+                        android:textColor="@color/theme_text_primary"
                         android:textSize="13sp" />
                 </LinearLayout>
             </LinearLayout>
@@ -348,7 +348,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:cardBackgroundColor="#F5F5F5"
+            app:cardBackgroundColor="@color/surface_block"
             app:cardCornerRadius="8dp"
             app:cardElevation="0dp">
 
@@ -362,7 +362,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="音频信息"
-                    android:textColor="#666666"
+                    android:textColor="@color/theme_text_secondary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
@@ -371,7 +371,7 @@
                     android:layout_height="1dp"
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="8dp"
-                    android:background="#E0E0E0" />
+                    android:background="@color/theme_divider" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -384,7 +384,7 @@
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
                         android:text="音频编码："
-                        android:textColor="#999999"
+                        android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
                     <TextView
@@ -393,7 +393,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="AAC"
-                        android:textColor="#333333"
+                        android:textColor="@color/theme_text_primary"
                         android:textSize="13sp" />
                 </LinearLayout>
 
@@ -408,7 +408,7 @@
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
                         android:text="声道："
-                        android:textColor="#999999"
+                        android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
                     <TextView
@@ -417,7 +417,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="立体声"
-                        android:textColor="#333333"
+                        android:textColor="@color/theme_text_primary"
                         android:textSize="13sp" />
                 </LinearLayout>
 
@@ -432,7 +432,7 @@
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
                         android:text="采样率："
-                        android:textColor="#999999"
+                        android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
                     <TextView
@@ -441,7 +441,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="48 kHz"
-                        android:textColor="#333333"
+                        android:textColor="@color/theme_text_primary"
                         android:textSize="13sp" />
                 </LinearLayout>
             </LinearLayout>
@@ -451,7 +451,7 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="#F5F5F5"
+            app:cardBackgroundColor="@color/surface_block"
             app:cardCornerRadius="8dp"
             app:cardElevation="0dp">
 
@@ -465,7 +465,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="文件信息"
-                    android:textColor="#666666"
+                    android:textColor="@color/theme_text_secondary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
@@ -474,7 +474,7 @@
                     android:layout_height="1dp"
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="8dp"
-                    android:background="#E0E0E0" />
+                    android:background="@color/theme_divider" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -487,7 +487,7 @@
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
                         android:text="文件大小："
-                        android:textColor="#999999"
+                        android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
                     <TextView
@@ -496,7 +496,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="未知"
-                        android:textColor="#333333"
+                        android:textColor="@color/theme_text_primary"
                         android:textSize="13sp" />
                 </LinearLayout>
             </LinearLayout>

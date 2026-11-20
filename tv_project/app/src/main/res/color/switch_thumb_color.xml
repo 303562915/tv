@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 开关拇指：选中 = 主色，未选中 = 表面 inset（FlClash：颜色只表达状态） -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:color="#FFFFFF" android:state_checked="true" />
-    <item android:color="#BDBDBD" />
+    <item android:color="?attr/colorPrimary" android:state_checked="true" />
+    <item android:color="@color/surface_inset" />
 </selector>

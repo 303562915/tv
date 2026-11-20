@@ -4,8 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#4D1F1F1F">
-    <!-- 30% 透明度的深灰色背景: alpha=0.3, 0.3*255=77=0x4D -->
+    android:background="@color/surface_card">
 
     <!-- 标题栏 -->
     <LinearLayout
@@ -16,15 +15,14 @@
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingTop="12dp"
-        android:paddingBottom="8dp"
-        android:background="#4D1F1F1F">
+        android:paddingBottom="8dp">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="选集"
-            android:textColor="@android:color/white"
+            android:textColor="@color/theme_text_primary"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -34,7 +32,7 @@
             android:layout_height="32dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/dkplayer_ic_action_close"
-            android:tint="@android:color/white"
+            android:tint="@color/theme_text_primary"
             android:scaleType="fitCenter"
             android:padding="4dp" />
     </LinearLayout>
@@ -44,11 +42,11 @@
         android:id="@+id/sourceTabLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#4D1F1F1F"
+        android:background="@android:color/transparent"
         app:tabMode="scrollable"
         app:tabIndicatorColor="@color/theme_primary"
-        app:tabSelectedTextColor="@android:color/white"
-        app:tabTextColor="#AAAAAA"
+        app:tabSelectedTextColor="@color/theme_primary"
+        app:tabTextColor="@color/theme_text_secondary"
         app:tabIndicatorHeight="3dp"
         app:tabTextAppearance="@style/TabTextAppearance"
         app:tabRippleColor="@null"

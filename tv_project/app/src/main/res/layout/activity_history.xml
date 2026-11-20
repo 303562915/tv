@@ -3,36 +3,38 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?android:attr/colorBackground"
+    android:background="@color/theme_background"
     android:orientation="vertical">
 
+    <!-- 顶部工具条：page 底（透明），高 72dp，标题 24sp bold 左对齐 -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="@dimen/page_toolbar_height"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="8dp"
-        android:paddingEnd="16dp">
+        android:paddingEnd="@dimen/page_margin">
 
-        <ImageView
+        <!-- 返回：44dp 触摸区，图标 24dp -->
+        <ImageButton
             android:id="@+id/btnBack"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/watch_history"
-            android:padding="8dp"
+            android:padding="10dp"
+            android:scaleType="centerInside"
             android:src="@drawable/ic_back"
-            app:tint="?attr/colorOnSurface" />
+            app:tint="@color/theme_text_primary" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="4dp"
             android:layout_weight="1"
             android:text="@string/watch_history"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textAppearance="@style/TextAppearance.TVPlayer.PageTitle"
+            android:gravity="start" />
     </LinearLayout>
 
     <FrameLayout

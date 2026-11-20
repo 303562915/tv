@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 外观主题页：选中对勾（主色） -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="@color/theme_primary"
+        android:pathData="M9.55,17.6L4.4,12.45l1.7,-1.7l3.45,3.45l7.35,-7.35l1.7,1.7z" />
+</vector>

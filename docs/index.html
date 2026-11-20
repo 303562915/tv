@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>TV Player · 下载</title>
 <meta name="description" content="TV Player — 开源 Android TV 播放器，无账号、无广告。直接下载最新版 APK。">
-<meta name="theme-color" content="#0a0a0d">
+<meta name="theme-color" content="#131413">
 <meta property="og:title" content="TV Player · 下载最新版">
 <meta property="og:description" content="开源 Android TV 播放器，本地与直链随点随播，记录只存本机。">
 <meta property="og:type" content="website">
@@ -13,15 +13,15 @@
 <style>
   *,*::before,*::after{box-sizing:border-box}
   :root{
-    --bg:#0a0a0d;
+    --bg:#131413;
     --panel:rgba(255,255,255,.035);
     --line:rgba(255,255,255,.08);
     --line-strong:rgba(255,255,255,.14);
     --fg:#f2f2f4;
     --muted:#9a9aa6;
     --dim:#6b6b78;
-    --acc:#3ee0b4;
-    --acc-soft:rgba(62,224,180,.12);
+    --acc:#3CDEB3;
+    --acc-soft:rgba(60,222,179,.12);
     --radius:18px;
     --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
   }
@@ -41,7 +41,7 @@
   .bg::before{
     content:"";position:absolute;inset:-20% -10% auto -10%;height:70vh;
     background:
-      radial-gradient(50% 60% at 50% 0%,rgba(62,224,180,.20),transparent 70%),
+      radial-gradient(50% 60% at 50% 0%,rgba(60,222,179,.20),transparent 70%),
       radial-gradient(30% 40% at 80% 10%,rgba(90,160,255,.10),transparent 70%);
     filter:blur(10px);
   }
@@ -84,7 +84,7 @@
     margin:1.25rem 0 0;
     font-size:clamp(3.2rem,13vw,5.4rem);
     line-height:.95;letter-spacing:-.045em;font-weight:700;
-    background:linear-gradient(170deg,#fff 20%,#b8fff0 60%,#2ee6b3 100%);
+    background:linear-gradient(170deg,#fff 20%,#b9fff0 60%,#3CDEB3 100%);
     -webkit-background-clip:text;background-clip:text;color:transparent;
   }
   .tagline{margin:.9rem 0 0;font-size:clamp(1rem,3.6vw,1.2rem);color:var(--muted);max-width:34ch}
@@ -95,10 +95,10 @@
     display:flex;align-items:center;gap:1rem;
     margin-top:2.2rem;padding:1.05rem 1.4rem;
     max-width:440px;
-    border-radius:var(--radius);border:1px solid rgba(62,224,180,.35);
-    background:linear-gradient(180deg,rgba(62,224,180,.16),rgba(62,224,180,.06));
+    border-radius:var(--radius);border:1px solid rgba(60,222,179,.35);
+    background:linear-gradient(180deg,rgba(60,222,179,.16),rgba(60,222,179,.06));
     color:var(--fg);text-decoration:none;
-    box-shadow:0 16px 44px -18px rgba(62,224,180,.65),inset 0 1px 0 rgba(255,255,255,.09);
+    box-shadow:0 16px 44px -18px rgba(60,222,179,.65),inset 0 1px 0 rgba(255,255,255,.09);
     transition:transform .2s cubic-bezier(.2,.8,.3,1),box-shadow .2s,border-color .2s;
     position:relative;overflow:hidden;
   }
@@ -107,14 +107,14 @@
     background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.16) 48%,transparent 58%);
     transform:translateX(-120%);transition:transform .7s ease;
   }
-  .dl:hover{transform:translateY(-2px);box-shadow:0 22px 54px -18px rgba(62,224,180,.85),inset 0 1px 0 rgba(255,255,255,.12)}
+  .dl:hover{transform:translateY(-2px);box-shadow:0 22px 54px -18px rgba(60,222,179,.85),inset 0 1px 0 rgba(255,255,255,.12)}
   .dl:hover::after{transform:translateX(120%)}
   .dl[aria-disabled="true"]{opacity:.55;pointer-events:none;filter:saturate(.4)}
   .dl svg{flex:none;width:30px;height:30px;color:var(--acc)}
   .dl .txt{display:flex;flex-direction:column;min-width:0}
   .dl .t{font-weight:650;font-size:1.0625rem;letter-spacing:.01em}
-  .dl .s{font-size:.8125rem;color:#a8f5e0;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .dl .arrow{margin-left:auto;color:#a8f5e0;flex:none;transition:transform .2s}
+  .dl .s{font-size:.8125rem;color:#9ff2dd;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dl .arrow{margin-left:auto;color:#9ff2dd;flex:none;transition:transform .2s}
   .dl:hover .arrow{transform:translateX(3px)}
 
   .alt{display:flex;flex-wrap:wrap;gap:1.1rem;margin-top:1.1rem;font-size:.875rem}
@@ -155,8 +155,8 @@
     padding-top:.25rem;
   }
   ol.steps b{color:var(--fg);font-weight:600}
-  ol.steps a{color:#8ff0d6;text-decoration:none;border-bottom:1px solid rgba(143,240,214,.3)}
-  ol.steps a:hover{border-bottom-color:#8ff0d6}
+  ol.steps a{color:#8ff0dc;text-decoration:none;border-bottom:1px solid rgba(143,240,214,.3)}
+  ol.steps a:hover{border-bottom-color:#8ff0dc}
 
   details{
     border:1px solid var(--line);border-radius:14px;background:var(--panel);
@@ -168,7 +168,7 @@
   summary::after{content:"+";color:var(--dim);font-family:var(--mono)}
   details[open] summary::after{content:"−"}
   details p{margin:.75rem 0 0;color:var(--muted);font-size:.9rem}
-  details code,code{font-family:var(--mono);font-size:.82em;background:rgba(255,255,255,.06);padding:.12em .4em;border-radius:5px;color:#b6f5e3}
+  details code,code{font-family:var(--mono);font-size:.82em;background:rgba(255,255,255,.06);padding:.12em .4em;border-radius:5px;color:#c6f7ea}
 
   .warn{
     display:flex;gap:.85rem;margin-top:2.6rem;padding:1rem 1.15rem;
@@ -220,7 +220,7 @@
 <div class="wrap">
   <header>
     <a class="brand" href="./">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#3ee0b4"/><rect x="9" y="8" width="14" height="11" rx="2" fill="none" stroke="#0a0a0d" stroke-width="1.8"/><path d="M12 22h8" stroke="#0a0a0d" stroke-width="1.8" stroke-linecap="round"/><path d="M11 20l7-4-7-4z" fill="#0a0a0d"/></svg>
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#3CDEB3"/><rect x="9" y="8" width="14" height="11" rx="2" fill="none" stroke="#131413" stroke-width="1.8"/><path d="M12 22h8" stroke="#131413" stroke-width="1.8" stroke-linecap="round"/><path d="M11 20l7-4-7-4z" fill="#131413"/></svg>
       <span>TV Player<small>com.tv.ball</small></span>
     </a>
     <nav>

@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -175,23 +176,16 @@ class ThemeActivity : AppCompatActivity() {
     }
 
     private fun updateNightModeChecks() {
-        // 更新背景颜色
-        if (selectedNightMode == 0) {
-            binding.checkFollowSystem.setBackgroundResource(R.drawable.mode_selector_bg)
-        } else {
-            binding.checkFollowSystem.setBackgroundResource(R.drawable.mode_selector_bg_unselected)
-        }
+        // 选中态：卡片 2dp primary 描边 + 右侧对勾（不铺 primaryContainer 底色）
+        applyModeState(binding.nightModeFollowSystem, binding.checkFollowSystem, selectedNightMode == 0)
+        applyModeState(binding.nightModeOff, binding.checkLightMode, selectedNightMode == 1)
+        applyModeState(binding.nightModeOn, binding.checkDarkMode, selectedNightMode == 2)
+    }
 
-        if (selectedNightMode == 1) {
-            binding.checkLightMode.setBackgroundResource(R.drawable.mode_selector_bg)
-        } else {
-            binding.checkLightMode.setBackgroundResource(R.drawable.mode_selector_bg_unselected)
-        }
-
-        if (selectedNightMode == 2) {
-            binding.checkDarkMode.setBackgroundResource(R.drawable.mode_selector_bg)
-        } else {
-            binding.checkDarkMode.setBackgroundResource(R.drawable.mode_selector_bg_unselected)
-        }
+    private fun applyModeState(option: View, check: View, selected: Boolean) {
+        option.setBackgroundResource(
+            if (selected) R.drawable.bg_mode_card_selected else R.drawable.bg_mode_card
+        )
+        check.visibility = if (selected) View.VISIBLE else View.INVISIBLE
     }
 }

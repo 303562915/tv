@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/theme_background"
     android:fitsSystemWindows="true">
 
     <LinearLayout
@@ -20,16 +21,15 @@
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
+                android:layout_height="56dp"
                 android:background="@android:color/transparent">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
                     android:text="我的收藏"
-                    android:textColor="?android:attr/textColorPrimary"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:textAppearance="@style/TextAppearance.TVPlayer.PageTitle" />
 
                 <Button
                     android:id="@+id/btnClearAll"
@@ -39,7 +39,7 @@
                     android:layout_marginEnd="8dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:text="清空"
-                    android:textColor="#673AB7"
+                    android:textColor="?attr/colorPrimary"
                     android:textSize="14sp" />
 
             </androidx.appcompat.widget.Toolbar>
@@ -50,18 +50,41 @@
             android:id="@+id/rvFavorite"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="8dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="96dp"
+            android:clipToPadding="false"
+            android:scrollbars="none"
             tools:listitem="@layout/item_favorite" />
 
     </LinearLayout>
 
-    <TextView
+    <!-- 空状态：图标 + 一句说明，居中，不彩色 -->
+    <LinearLayout
         android:id="@+id/tvEmpty"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="暂无收藏"
-        android:textSize="16sp"
-        android:visibility="gone" />
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_nav_favorite"
+            app:tint="@color/theme_text_secondary" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="暂无收藏"
+            android:textColor="@color/theme_text_secondary"
+            android:textSize="14sp" />
+
+    </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

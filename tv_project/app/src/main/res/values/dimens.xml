@@ -1,5 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  形状与间距取自 FlClash prism_ui/lib/shape.dart：
+  xs 4 / sm 8 / md 16 / lg 20 / xl 24 / xxl 28 / alert 34。
+-->
 <resources>
+    <!-- 圆角 -->
+    <dimen name="radius_xs">4dp</dimen>
+    <dimen name="radius_sm">8dp</dimen>
+    <dimen name="radius_md">16dp</dimen>
+    <dimen name="radius_lg">20dp</dimen>
+    <dimen name="radius_xl">24dp</dimen>
+    <dimen name="radius_xxl">28dp</dimen>
+    <dimen name="radius_alert">34dp</dimen>
+    <dimen name="radius_full">1000dp</dimen>
+
+    <!-- 页面间距：内容左右 16dp，卡片内 16dp，卡片间距 8dp -->
+    <dimen name="page_margin">16dp</dimen>
+    <dimen name="card_padding">16dp</dimen>
+    <dimen name="card_gap">8dp</dimen>
+    <dimen name="section_gap">24dp</dimen>
+
+    <!-- 行高 / 工具条（prism_ui/lib/metrics.dart） -->
+    <dimen name="list_row_min_height">56dp</dimen>
+    <dimen name="page_toolbar_height">72dp</dimen>
+
+    <!-- 底栏：胶囊 62dp、内边距 4dp、左右 21dp、单项最大 86dp -->
+    <dimen name="nav_bar_height">62dp</dimen>
+    <dimen name="nav_bar_padding">4dp</dimen>
+    <dimen name="nav_edge_margin">21dp</dimen>
+    <dimen name="nav_max_item_extent">86dp</dimen>
+    <dimen name="nav_icon_size">28dp</dimen>
+
+    <!-- 既有尺寸（保留原引用） -->
     <dimen name="tab_padding">12dp</dimen>
     <dimen name="speed_dialog_width">400dp</dimen>
 </resources>

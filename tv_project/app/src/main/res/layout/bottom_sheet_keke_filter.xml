@@ -4,12 +4,17 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:background="@drawable/bg_bottom_sheet"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="16dp"
+    android:paddingBottom="24dp">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="筛选条件"
+        android:textColor="@color/theme_text_primary"
         android:textSize="18sp"
         android:textStyle="bold"
         android:gravity="center"
@@ -20,6 +25,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="类型"
+        android:textColor="@color/theme_text_secondary"
         android:textSize="14sp"
         android:textStyle="bold"
         android:paddingTop="8dp"
@@ -43,6 +49,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="地区"
+        android:textColor="@color/theme_text_secondary"
         android:textSize="14sp"
         android:textStyle="bold"
         android:paddingTop="16dp"
@@ -66,6 +73,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="年份"
+        android:textColor="@color/theme_text_secondary"
         android:textSize="14sp"
         android:textStyle="bold"
         android:paddingTop="16dp"
@@ -89,6 +97,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="语言"
+        android:textColor="@color/theme_text_secondary"
         android:textSize="14sp"
         android:textStyle="bold"
         android:paddingTop="16dp"
@@ -118,19 +127,22 @@
         <Button
             android:id="@+id/btnReset"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_weight="1"
-            android:text="重置"
             android:layout_marginEnd="8dp"
-            style="@style/Widget.Material3.Button.OutlinedButton" />
+            android:text="重置"
+            android:textColor="@color/theme_text_primary"
+            android:background="@drawable/bg_dialog_button_secondary" />
 
         <Button
             android:id="@+id/btnApply"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_weight="1"
+            android:layout_marginStart="8dp"
             android:text="应用"
-            android:layout_marginStart="8dp" />
+            android:textColor="@color/theme_on_primary"
+            android:background="@drawable/bg_dialog_button_primary" />
     </LinearLayout>
 
 </LinearLayout>

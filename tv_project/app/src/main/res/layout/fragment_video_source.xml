@@ -1,36 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="?android:attr/colorBackground"
+    android:background="@color/theme_background"
     android:fitsSystemWindows="true">
 
+    <!-- 顶部工具条：page 底（透明），标题 24sp bold -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/page_toolbar_height"
         android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="center"
-        android:background="#F0F0F0">
+        android:paddingStart="@dimen/page_margin"
+        android:paddingEnd="@dimen/page_margin"
+        android:gravity="center_vertical"
+        android:background="@android:color/transparent">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="影视仓库"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="?android:attr/textColorPrimary"
-            android:gravity="center" />
+            android:textAppearance="@style/TextAppearance.TVPlayer.PageTitle"
+            android:gravity="start" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="刷新"
             android:textSize="14sp"
-            android:textColor="?android:attr/textColorSecondary" />
+            android:textColor="?attr/colorPrimary"
+            android:gravity="center"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:background="?attr/selectableItemBackground" />
 
     </LinearLayout>
 
@@ -38,7 +43,11 @@
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="8dp"
-        android:clipToPadding="false" />
+        android:paddingStart="@dimen/page_margin"
+        android:paddingEnd="@dimen/page_margin"
+        android:paddingTop="8dp"
+        android:paddingBottom="96dp"
+        android:clipToPadding="false"
+        android:scrollbars="none" />
 
 </LinearLayout>

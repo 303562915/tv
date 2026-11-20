@@ -25,7 +25,7 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:contentDescription="音量/亮度图标"
-            android:tint="@android:color/white" />
+            android:tint="@color/theme_text_primary" />
 
         <!-- 进度条 -->
         <ProgressBar
@@ -45,7 +45,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="50%"
-            android:textColor="@android:color/white"
+            android:textColor="@color/theme_text_primary"
             android:textSize="16sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -65,7 +65,7 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:contentDescription="音量/亮度图标"
-            android:tint="@android:color/white" />
+            android:tint="@color/theme_text_primary" />
 
         <!-- 精确进度条 -->
         <ProgressBar
@@ -85,7 +85,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="50%"
-            android:textColor="@android:color/white"
+            android:textColor="@color/theme_text_primary"
             android:textSize="14sp" />
     </LinearLayout>
 

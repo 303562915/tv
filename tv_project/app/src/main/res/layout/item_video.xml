@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- 列表缩略图卡：无底色、无阴影、无描边，只有封面与副标题 -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="4dp"
-    app:cardBackgroundColor="@color/theme_card_background"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp"
-    app:strokeColor="@color/theme_divider"
-    app:strokeWidth="1dp">
+    app:cardBackgroundColor="@android:color/transparent"
+    app:cardCornerRadius="@dimen/radius_md"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -33,13 +33,13 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="top|end"
                 android:layout_margin="4dp"
-                android:background="@color/theme_primary"
+                android:background="@color/theme_scrim"
                 android:paddingStart="6dp"
                 android:paddingTop="2dp"
                 android:paddingEnd="6dp"
                 android:paddingBottom="2dp"
                 android:text="HD"
-                android:textColor="@android:color/white"
+                android:textColor="@color/white"
                 android:textSize="10sp" />
 
         </FrameLayout>
@@ -50,14 +50,16 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
+            android:paddingStart="2dp"
+            android:paddingTop="@dimen/card_gap"
+            android:paddingEnd="2dp"
+            android:paddingBottom="2dp"
             android:singleLine="true"
-            android:padding="8dp"
             android:text="视频标题"
-            android:textColor="?android:attr/textColorPrimary"
+            android:textColor="@color/theme_text_primary"
             android:textSize="14sp"
             android:textStyle="bold" />
 
     </LinearLayout>
 
-</androidx.cardview.widget.CardView>
-
+</com.google.android.material.card.MaterialCardView>

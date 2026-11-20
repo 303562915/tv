@@ -2,6 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_surface"
     android:padding="16dp">
 
     <ImageView
@@ -9,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="400dp"
         android:scaleType="fitCenter"
-        android:background="#F0F0F0"
+        android:background="@color/surface_inset"
         android:contentDescription="图片预览" />
 
 </FrameLayout>

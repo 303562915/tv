@@ -98,11 +98,11 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private fun setupSearchButtonColor() {
-        // 使用 ThemeHelper 统一设置主题色
-        com.tv.ball.util.ThemeHelper.setThemeBackground(binding.btnSearch)
-
-        // 设置Tab指示器颜色
-        binding.tabIndicator.setBackgroundColor(com.tv.ball.util.ThemeHelper.getThemeColor())
+        // 搜索按钮 = 这一屏唯一的主操作，由布局的 bg_primary_button 承载；
+        // 这里只把下划线指示器对齐 primary token
+        binding.tabIndicator.setBackgroundColor(
+            androidx.core.content.ContextCompat.getColor(this, com.tv.ball.R.color.theme_primary)
+        )
     }
     
     private fun setupSearchHistory() {
@@ -139,8 +139,10 @@ class SearchActivity : AppCompatActivity() {
             // 已经在榜单模式，无需操作
         }
 
-        // 默认选中榜单，使用 ThemeHelper 设置颜色
-        com.tv.ball.util.ThemeHelper.setThemeTextColor(binding.tabRanking)
+        // 默认选中榜单
+        binding.tabRanking.setTextColor(
+            androidx.core.content.ContextCompat.getColor(this, com.tv.ball.R.color.theme_text_primary)
+        )
         binding.tabRanking.paint.isFakeBoldText = true
         binding.tabRanking.invalidate()
     }

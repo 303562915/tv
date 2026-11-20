@@ -45,3 +45,13 @@ release.keystore
 # Pages 站点：CI 生成的数据与 APK 镜像
 docs/latest.json
 docs/apk/
+
+# ===== 本地参考实现 / 备份（不入库）=====
+.tmp_flclash/
+backups/
+
+# ===== 功能编排器（本地工作区，不入库）=====
+orchestrator/staging/
+orchestrator/state.json
+orchestrator/build.log
+orchestrator/reports/

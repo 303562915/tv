@@ -1,36 +1,68 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- 应用主题：Material 3（夜间） -->
+    <!-- 应用主题：Material 3（夜间），表面层次同 FlClash 深色四级 -->
     <style name="Theme.影视星球" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/theme_primary</item>
-        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorOnPrimary">@color/theme_on_primary</item>
         <item name="colorPrimaryContainer">@color/theme_primary_container</item>
         <item name="colorOnPrimaryContainer">@color/theme_on_primary_container</item>
-        <item name="colorSecondary">@color/theme_accent</item>
-        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondary">@color/theme_secondary</item>
+        <item name="colorOnSecondary">@color/theme_on_secondary_container</item>
         <item name="colorSecondaryContainer">@color/theme_secondary_container</item>
         <item name="colorOnSecondaryContainer">@color/theme_on_secondary_container</item>
+        <item name="colorTertiary">@color/theme_tertiary</item>
+        <item name="colorTertiaryContainer">@color/theme_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/theme_on_tertiary_container</item>
 
         <item name="android:colorBackground">@color/theme_background</item>
         <item name="colorOnBackground">@color/theme_text_primary</item>
         <item name="colorSurface">@color/theme_surface</item>
         <item name="colorOnSurface">@color/theme_text_primary</item>
-        <item name="colorSurfaceVariant">@color/theme_surface_container</item>
+        <item name="colorSurfaceVariant">@color/theme_surface_container_high</item>
         <item name="colorOnSurfaceVariant">@color/theme_text_secondary</item>
-        <item name="colorSurfaceContainer">@color/theme_surface_container</item>
+        <item name="colorSurfaceDim">@color/theme_surface_dim</item>
+        <item name="colorSurfaceBright">@color/theme_surface_bright</item>
+        <item name="colorSurfaceContainerLowest">@color/theme_surface_container_lowest</item>
         <item name="colorSurfaceContainerLow">@color/theme_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/theme_surface_container</item>
         <item name="colorSurfaceContainerHigh">@color/theme_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/theme_surface_container_highest</item>
         <item name="colorOutline">@color/theme_outline</item>
-        <item name="colorOutlineVariant">@color/theme_outline</item>
+        <item name="colorOutlineVariant">@color/theme_outline_variant</item>
+        <item name="colorError">@color/theme_error</item>
+        <item name="colorOnError">@color/theme_on_error</item>
+        <item name="colorErrorContainer">@color/theme_error_container</item>
+        <item name="colorOnErrorContainer">@color/theme_on_error_container</item>
+        <item name="colorControlHighlight">@color/theme_divider</item>
 
-        <item name="android:statusBarColor">@color/theme_background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
-        <item name="android:navigationBarColor">@color/theme_background</item>
+        <item name="android:navigationBarColor">@color/theme_surface</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o">false</item>
+        <item name="android:windowBackground">@color/theme_background</item>
 
         <item name="android:fontFamily">@font/custom_font</item>
         <item name="fontFamily">@font/custom_font</item>
         <item name="android:textColorPrimary">@color/theme_text_primary</item>
         <item name="android:textColorSecondary">@color/theme_text_secondary</item>
+
+        <item name="materialCardViewStyle">@style/Widget.TVPlayer.Card</item>
+    </style>
+
+    <style name="Widget.TVPlayer.Card" parent="Widget.Material3.CardView.Filled">
+        <item name="cardBackgroundColor">@color/surface_card</item>
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeWidth">0dp</item>
+    </style>
+
+    <style name="Widget.TVPlayer.Card.Raised" parent="Widget.TVPlayer.Card">
+        <item name="cardCornerRadius">20dp</item>
+        <item name="cardElevation">2dp</item>
+    </style>
+
+    <style name="Widget.TVPlayer.Card.Flat" parent="Widget.TVPlayer.Card">
+        <item name="cardBackgroundColor">@color/surface_block</item>
+        <item name="cardCornerRadius">12dp</item>
     </style>
 
     <style name="DialogSlideAnimation">
@@ -49,9 +81,9 @@
     </style>
 
     <style name="TabTextAppearance" parent="TextAppearance.Design.Tab">
-        <item name="android:textSize">16sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:textColor">@color/theme_text_primary</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">@color/theme_text_secondary</item>
     </style>
 
     <style name="TabTextSmall" parent="TextAppearance.Design.Tab">
@@ -63,12 +95,12 @@
         <item name="bottomSheetStyle">@style/FullWidthBottomSheet</item>
         <item name="android:windowIsFloating">false</item>
         <item name="android:windowSoftInputMode">adjustResize</item>
-        <item name="android:colorBackground">@color/theme_surface</item>
+        <item name="android:colorBackground">@color/theme_surface_container_low</item>
     </style>
 
     <style name="FullWidthBottomSheet" parent="Widget.Design.BottomSheet.Modal">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:background">@color/theme_surface</item>
+        <item name="android:background">@color/theme_surface_container_low</item>
     </style>
 
     <style name="Widget.TVPlayer.ListRow" parent="">
@@ -76,6 +108,7 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:orientation">horizontal</item>
         <item name="android:gravity">center_vertical</item>
+        <item name="android:minHeight">56dp</item>
         <item name="android:paddingStart">16dp</item>
         <item name="android:paddingEnd">16dp</item>
         <item name="android:paddingTop">14dp</item>
@@ -84,5 +117,32 @@
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
     </style>
-</resources>
 
+    <style name="TextAppearance.TVPlayer.PageTitle" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:textColor">@color/theme_text_primary</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">-0.01</item>
+    </style>
+
+    <style name="TextAppearance.TVPlayer.SectionTitle" parent="TextAppearance.Material3.TitleSmall">
+        <item name="android:textColor">@color/theme_text_secondary</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+
+    <style name="TextAppearance.TVPlayer.Body" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">@color/theme_text_primary</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <style name="TextAppearance.TVPlayer.Caption" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textColor">@color/theme_text_secondary</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="Widget.TVPlayer.FocusRing" parent="">
+        <item name="android:background">@drawable/bg_focus_ring</item>
+    </style>
+</resources>

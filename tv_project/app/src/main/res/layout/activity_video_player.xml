@@ -126,7 +126,7 @@
         android:id="@+id/progressOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#40000000"
+        android:background="@color/theme_overlay"
         android:visibility="gone" />
 
     <!-- 进度调整提示（中间大显示） -->
@@ -224,7 +224,7 @@
             android:layout_gravity="start|top"
             android:layout_marginStart="7dp"
             android:layout_marginTop="3.5dp"
-            android:tint="#E6333333"
+            android:tint="@color/white"
             android:elevation="2dp"
             android:contentDescription="音量/亮度" />
     </FrameLayout>
@@ -418,9 +418,10 @@
         android:layout_gravity="center_horizontal|top"
         android:layout_marginTop="100dp"
         android:visibility="gone"
-        app:cardBackgroundColor="?attr/colorPrimary"
-        app:cardCornerRadius="24dp"
-        app:cardElevation="8dp">
+        app:cardBackgroundColor="@color/theme_primary"
+        app:cardCornerRadius="@dimen/radius_xl"
+        app:cardElevation="8dp"
+        app:strokeWidth="0dp">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -434,7 +435,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="检测到更快路线"
-                android:textColor="@android:color/white"
+                android:textColor="@color/theme_on_primary"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
@@ -444,7 +445,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="线路1 (1200KB/s)"
-                android:textColor="@android:color/white"
+                android:textColor="@color/theme_on_primary"
                 android:textSize="14sp" />
 
             <TextView
@@ -453,7 +454,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="3秒后自动消失"
-                android:textColor="#CCFFFFFF"
+                android:textColor="@color/theme_on_primary"
+                android:alpha="0.8"
                 android:textSize="12sp" />
 
             <TextView
@@ -461,7 +463,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="点击切换"
-                android:textColor="#CCFFFFFF"
+                android:textColor="@color/theme_on_primary"
+                android:alpha="0.8"
                 android:textSize="12sp" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
@@ -558,7 +561,8 @@
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
             android:text=""
-            android:textColor="#CCCCCC"
+            android:textColor="@color/white"
+            android:alpha="0.8"
             android:textSize="11sp"
             android:maxLines="1"
             android:ellipsize="end"
@@ -573,11 +577,11 @@
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
             android:text=""
-            android:textColor="#AAAAAA"
+            android:textColor="@color/white"
             android:textSize="10sp"
             android:maxLines="1"
             android:ellipsize="end"
-            android:alpha="0"
+            android:alpha="0.6"
             android:visibility="gone" />
 
         <!-- 控制按钮 -->

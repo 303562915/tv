@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- FlClash 同款种子色 0xFF6750A4（tonalSpot）在深色下的 M3 结果 -->
+<!--
+  深色：FlClash 的层级比 Material 默认更"散"——surface tone 6、
+  surfaceContainer 15、High 21、Highest 27，卡片只往亮里走，
+  onSurface 取 tone 97。表面 chroma 上限 3，几乎中性。
+-->
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
@@ -10,55 +14,88 @@
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
 
-    <color name="primary">#FFD0BCFF</color>
-    <color name="theme_primary">#FFD0BCFF</color>
-    <color name="theme_accent">#FFCCC2DC</color>
-    <color name="theme_primary_container">#FF4F378B</color>
-    <color name="theme_on_primary_container">#FFEADDFF</color>
-    <color name="theme_secondary_container">#FF4A4458</color>
-    <color name="theme_on_secondary_container">#FFE8DEF8</color>
+    <!-- ===== M3 角色（dark） ===== -->
+    <color name="primary">#FF3CDEB3</color>
+    <color name="theme_primary">#FF3CDEB3</color>
+    <color name="theme_on_primary">#FF00382A</color>
+    <color name="theme_accent">#FF3CDEB3</color>
+    <color name="theme_primary_container">#FF00513E</color>
+    <color name="theme_on_primary_container">#FF61FBCE</color>
+    <color name="theme_secondary">#FFAECEC0</color>
+    <color name="theme_secondary_container">#FF304C42</color>
+    <color name="theme_on_secondary_container">#FFC9EADB</color>
+    <color name="theme_tertiary">#FFA0CDE6</color>
+    <color name="theme_tertiary_container">#FF1F4B5F</color>
+    <color name="theme_on_tertiary_container">#FFBBE9FF</color>
 
-    <color name="theme_background">#FF141218</color>
-    <color name="theme_surface">#FF141218</color>
-    <color name="theme_surface_container">#FF211F26</color>
-    <color name="theme_surface_container_low">#FF1D1B20</color>
-    <color name="theme_outline">#FF938F99</color>
-    <color name="theme_text_primary">#FFE6E0E9</color>
-    <color name="theme_text_secondary">#FFCAC4D0</color>
-    <color name="theme_card">#FF2B2930</color>
-    <color name="theme_card_background">#FF211F26</color>
-    <color name="theme_card_elevated">#FF2B2930</color>
-    <color name="search_box_background">#FF2B2930</color>
+    <!-- ===== 表面 / 背景 ===== -->
+    <color name="theme_surface">#FF131413</color>
+    <color name="theme_surface_dim">#FF121413</color>
+    <color name="theme_surface_bright">#FF393938</color>
+    <color name="theme_surface_container_lowest">#FF0C0F0E</color>
+    <color name="theme_surface_container_low">#FF1A1C1B</color>
+    <color name="theme_surface_container">#FF242625</color>
+    <color name="theme_surface_container_high">#FF313332</color>
+    <color name="theme_surface_container_highest">#FF3E403F</color>
 
-    <color name="theme_success">#FF00C853</color>
-    <color name="theme_warning">#FFFFB300</color>
+    <!-- page / card / block / inset 语义别名 -->
+    <color name="surface_page">#FF131413</color>
+    <color name="surface_card">#FF242625</color>
+    <color name="surface_block">#FF313332</color>
+    <color name="surface_inset">#FF3E403F</color>
+
+    <color name="theme_background">#FF131413</color>
+    <color name="theme_on_background">#FFF6F7F4</color>
+    <color name="theme_text_primary">#FFF6F7F4</color>
+    <color name="theme_text_secondary">#FFBFC9C3</color>
+    <color name="theme_outline">#FF89938E</color>
+    <color name="theme_outline_variant">#FF444845</color>
+
+    <color name="theme_card">#FF242625</color>
+    <color name="theme_card_background">#FF242625</color>
+    <color name="theme_card_elevated">#FF313332</color>
+    <color name="search_box_background">#FF3E403F</color>
+
+    <!-- ===== 状态 ===== -->
+    <color name="theme_success">#FF78DC77</color>
+    <color name="theme_success_container">#FF3B4B38</color>
+    <color name="theme_on_success_container">#FF94F990</color>
+    <color name="theme_warning">#FFFFB870</color>
+    <color name="theme_warning_container">#FF59422C</color>
+    <color name="theme_on_warning_container">#FFFFDCBE</color>
     <color name="theme_error">#FFFFB4AB</color>
-    <color name="theme_info">#FF0288D1</color>
-    <color name="theme_gradient_start">#FFD0BCFF</color>
-    <color name="theme_gradient_end">#FFCCC2DC</color>
-    <color name="theme_selected_bg">#FF4A4458</color>
-    <color name="theme_selected_border">#FFD0BCFF</color>
-    <color name="theme_divider">#FF49454F</color>
-    <color name="theme_overlay">#80000000</color>
-    <color name="theme_highlight">#FF3E3A1F</color>
-    <color name="theme_disabled">#FF5C5C5C</color>
+    <color name="theme_on_error">#FF690005</color>
+    <color name="theme_error_container">#FF93000A</color>
+    <color name="theme_on_error_container">#FFFFDAD6</color>
+    <color name="theme_info">#FFA0CDE6</color>
 
-    <color name="unselected_bg">#FF1D1B20</color>
-    <color name="unselected_text">#FFCAC4D0</color>
+    <color name="theme_gradient_start">#FF3CDEB3</color>
+    <color name="theme_gradient_end">#FFAECEC0</color>
+    <color name="theme_selected_bg">#FF304C42</color>
+    <color name="theme_selected_border">#FF3CDEB3</color>
+    <color name="theme_divider">#24F6F7F4</color>
+    <color name="theme_overlay">#7A000000</color>
+    <color name="theme_highlight">#FF00513E</color>
+    <color name="theme_disabled">#FF444845</color>
+    <color name="theme_scrim">#7A000000</color>
 
-    <color name="player_progress_played">#FFD0BCFF</color>
-    <color name="player_progress_buffered">#4DD0BCFF</color>
+    <color name="unselected_bg">#FF1A1C1B</color>
+    <color name="unselected_text">#FFBFC9C3</color>
+
+    <color name="player_progress_played">#FF3CDEB3</color>
+    <color name="player_progress_buffered">#4D3CDEB3</color>
     <color name="player_progress_unplayed">#33FFFFFF</color>
 
-    <color name="episode_movie_bg">#FF4F378B</color>
-    <color name="episode_normal_bg">#FF1D1B20</color>
-    <color name="episode_movie_text">#FFEADDFF</color>
-    <color name="episode_normal_text">#FFE6E0E9</color>
+    <color name="episode_movie_bg">#FF00513E</color>
+    <color name="episode_normal_bg">#FF1A1C1B</color>
+    <color name="episode_movie_text">#FF61FBCE</color>
+    <color name="episode_normal_text">#FFF6F7F4</color>
 
     <!-- ===== 悬浮胶囊底栏（夜间） ===== -->
-    <color name="nav_capsule">#FF211F26</color>
+    <!-- 条形 = floatingOf 深色取 block；透镜 = 下一级 inset -->
+    <color name="nav_capsule">#FF313332</color>
     <color name="nav_capsule_stroke">#00FFFFFF</color>
-    <color name="nav_lens">#FF4A4458</color>
-    <color name="nav_item_idle">#FFCAC4D0</color>
-    <color name="theme_surface_container_high">#FF2B2930</color>
+    <color name="nav_lens">#FF3E403F</color>
+    <color name="nav_item_idle">#FFBFC9C3</color>
+    <color name="nav_badge">#FF3CDEB3</color>
 </resources>

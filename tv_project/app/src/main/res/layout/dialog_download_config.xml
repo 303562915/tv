@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#424242"
+    android:background="@drawable/bg_dialog_surface"
     android:padding="0dp">
 
     <LinearLayout
@@ -16,9 +16,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="下载文件"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/theme_text_primary"
             android:paddingBottom="16dp" />
 
         <!-- 链接显示 -->
@@ -34,7 +34,7 @@
                 android:layout_weight="1"
                 android:text="链接: 复制"
                 android:textSize="14sp"
-                android:textColor="#E0E0E0" />
+                android:textColor="@color/theme_text_secondary" />
 
             <TextView
                 android:id="@+id/btnCopyUrl"
@@ -42,7 +42,7 @@
                 android:layout_height="wrap_content"
                 android:text="复制"
                 android:textSize="14sp"
-                android:textColor="#FF9800"
+                android:textColor="@color/theme_primary"
                 android:padding="4dp" />
         </LinearLayout>
 
@@ -52,9 +52,9 @@
             android:layout_height="wrap_content"
             android:text="https://example.com/video.m3u8"
             android:textSize="13sp"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/theme_text_primary"
             android:padding="12dp"
-            android:background="#616161"
+            android:background="@color/surface_inset"
             android:layout_marginTop="8dp"
             android:maxLines="5"
             android:ellipsize="end" />
@@ -65,7 +65,7 @@
             android:layout_height="wrap_content"
             android:text="下载/引用页面链接"
             android:textSize="14sp"
-            android:textColor="#E0E0E0"
+            android:textColor="@color/theme_text_secondary"
             android:layout_marginTop="12dp" />
 
         <EditText
@@ -74,11 +74,12 @@
             android:layout_height="48dp"
             android:hint="如果不确定，请留空"
             android:textSize="13sp"
-            android:textColor="#FFFFFF"
-            android:textColorHint="#999999"
-            android:padding="12dp"
+            android:textColor="@color/theme_text_primary"
+            android:textColorHint="@color/theme_text_secondary"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
             android:layout_marginTop="4dp"
-            android:background="#616161"
+            android:background="@drawable/bg_dialog_input"
             android:inputType="textUri" />
 
         <!-- 文件名 -->
@@ -87,7 +88,7 @@
             android:layout_height="wrap_content"
             android:text="另存为："
             android:textSize="14sp"
-            android:textColor="#E0E0E0"
+            android:textColor="@color/theme_text_secondary"
             android:layout_marginTop="16dp" />
 
         <EditText
@@ -96,11 +97,12 @@
             android:layout_height="48dp"
             android:hint="文件名"
             android:textSize="14sp"
-            android:textColor="#FFFFFF"
-            android:textColorHint="#999999"
-            android:padding="12dp"
+            android:textColor="@color/theme_text_primary"
+            android:textColorHint="@color/theme_text_secondary"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
             android:layout_marginTop="4dp"
-            android:background="#616161" />
+            android:background="@drawable/bg_dialog_input" />
 
         <!-- 大小 -->
         <TextView
@@ -108,7 +110,7 @@
             android:layout_height="wrap_content"
             android:text="大小:"
             android:textSize="14sp"
-            android:textColor="#E0E0E0"
+            android:textColor="@color/theme_text_secondary"
             android:layout_marginTop="12dp" />
 
         <!-- 存储信息 -->
@@ -118,7 +120,7 @@
             android:layout_height="wrap_content"
             android:text="存储：31.06GB/226.10GB, 13.7% 可用"
             android:textSize="13sp"
-            android:textColor="#FF9800"
+            android:textColor="@color/theme_text_secondary"
             android:layout_marginTop="4dp" />
 
         <!-- 保存路径 -->
@@ -129,13 +131,13 @@
             android:gravity="center_vertical"
             android:layout_marginTop="12dp"
             android:padding="12dp"
-            android:background="#616161">
+            android:background="@drawable/bg_dialog_input">
 
             <ImageView
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:src="@drawable/file"
-                android:tint="#FFFFFF"
+                android:tint="@color/theme_text_secondary"
                 android:contentDescription="文件夹" />
 
             <TextView
@@ -145,7 +147,7 @@
                 android:layout_weight="1"
                 android:text="/storage/emulated/0/IDMP/Others"
                 android:textSize="13sp"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/theme_text_primary"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp" />
 
@@ -154,7 +156,7 @@
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:src="@drawable/enter"
-                android:tint="#CCCCCC"
+                android:tint="@color/theme_text_secondary"
                 android:contentDescription="选择路径" />
         </LinearLayout>
 
@@ -177,9 +179,9 @@
                     android:layout_weight="1"
                     android:text="仅限WiFi"
                     android:textSize="14sp"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/theme_text_primary"
                     android:checked="true"
-                    android:buttonTint="#9C27B0" />
+                    android:buttonTint="@color/theme_primary" />
 
                 <CheckBox
                     android:id="@+id/cbRetryOnError"
@@ -188,9 +190,9 @@
                     android:layout_weight="1"
                     android:text="出错重试"
                     android:textSize="14sp"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/theme_text_primary"
                     android:checked="true"
-                    android:buttonTint="#9C27B0" />
+                    android:buttonTint="@color/theme_primary" />
 
                 <CheckBox
                     android:id="@+id/cbUseProxy"
@@ -199,8 +201,8 @@
                     android:layout_weight="1"
                     android:text="使用代理"
                     android:textSize="14sp"
-                    android:textColor="#FFFFFF"
-                    android:buttonTint="#9C27B0" />
+                    android:textColor="@color/theme_text_primary"
+                    android:buttonTint="@color/theme_primary" />
             </LinearLayout>
 
             <LinearLayout
@@ -216,8 +218,8 @@
                     android:layout_weight="1"
                     android:text="隐藏文件"
                     android:textSize="14sp"
-                    android:textColor="#FFFFFF"
-                    android:buttonTint="#9C27B0" />
+                    android:textColor="@color/theme_text_primary"
+                    android:buttonTint="@color/theme_primary" />
 
                 <CheckBox
                     android:id="@+id/cbDownloadFirst"
@@ -226,9 +228,9 @@
                     android:layout_weight="1"
                     android:text="预先下载"
                     android:textSize="14sp"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/theme_text_primary"
                     android:checked="true"
-                    android:buttonTint="#9C27B0" />
+                    android:buttonTint="@color/theme_primary" />
 
                 <View
                     android:layout_width="0dp"
@@ -242,9 +244,9 @@
                 android:layout_height="wrap_content"
                 android:text="高级设置"
                 android:textSize="14sp"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/theme_text_primary"
                 android:layout_marginTop="8dp"
-                android:buttonTint="#9C27B0" />
+                android:buttonTint="@color/theme_primary" />
         </LinearLayout>
 
         <!-- 高级设置面板 -->
@@ -262,15 +264,15 @@
                 android:layout_height="wrap_content"
                 android:text="类型："
                 android:textSize="14sp"
-                android:textColor="#E0E0E0" />
+                android:textColor="@color/theme_text_secondary" />
 
             <Spinner
                 android:id="@+id/spinnerFileType"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
-                android:background="#616161"
+                android:background="@drawable/bg_dialog_input"
                 android:layout_marginTop="4dp"
-                android:popupBackground="#616161" />
+                android:popupBackground="@drawable/bg_dialog_input" />
 
             <!-- 多线程数 -->
             <TextView
@@ -278,7 +280,7 @@
                 android:layout_height="wrap_content"
                 android:text="多线程数："
                 android:textSize="14sp"
-                android:textColor="#E0E0E0"
+                android:textColor="@color/theme_text_secondary"
                 android:layout_marginTop="12dp" />
 
             <LinearLayout
@@ -292,7 +294,7 @@
                     android:layout_height="wrap_content"
                     android:text="1"
                     android:textSize="12sp"
-                    android:textColor="#BBBBBB" />
+                    android:textColor="@color/theme_text_secondary" />
 
                 <SeekBar
                     android:id="@+id/seekBarThreads"
@@ -301,8 +303,8 @@
                     android:layout_weight="1"
                     android:max="31"
                     android:progress="0"
-                    android:progressTint="#9C27B0"
-                    android:thumbTint="#9C27B0"
+                    android:progressTint="@color/theme_primary"
+                    android:thumbTint="@color/theme_primary"
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp" />
 
@@ -312,7 +314,7 @@
                     android:layout_height="wrap_content"
                     android:text="1"
                     android:textSize="12sp"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/theme_text_primary"
                     android:minWidth="30dp"
                     android:gravity="end" />
             </LinearLayout>
@@ -323,7 +325,7 @@
                 android:layout_height="wrap_content"
                 android:text="下载速度限制："
                 android:textSize="14sp"
-                android:textColor="#E0E0E0"
+                android:textColor="@color/theme_text_secondary"
                 android:layout_marginTop="12dp" />
 
             <LinearLayout
@@ -337,7 +339,7 @@
                     android:layout_height="wrap_content"
                     android:text="8.0KB/s"
                     android:textSize="12sp"
-                    android:textColor="#BBBBBB" />
+                    android:textColor="@color/theme_text_secondary" />
 
                 <SeekBar
                     android:id="@+id/seekBarSpeedLimit"
@@ -346,8 +348,8 @@
                     android:layout_weight="1"
                     android:max="100"
                     android:progress="100"
-                    android:progressTint="#9C27B0"
-                    android:thumbTint="#9C27B0"
+                    android:progressTint="@color/theme_primary"
+                    android:thumbTint="@color/theme_primary"
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp" />
 
@@ -357,7 +359,7 @@
                     android:layout_height="wrap_content"
                     android:text="最大"
                     android:textSize="12sp"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/theme_text_primary"
                     android:minWidth="50dp"
                     android:gravity="end" />
             </LinearLayout>
@@ -368,16 +370,16 @@
                 android:layout_height="wrap_content"
                 android:text="用户代理："
                 android:textSize="14sp"
-                android:textColor="#E0E0E0"
+                android:textColor="@color/theme_text_secondary"
                 android:layout_marginTop="12dp" />
 
             <Spinner
                 android:id="@+id/spinnerUserAgent"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
-                android:background="#616161"
+                android:background="@drawable/bg_dialog_input"
                 android:layout_marginTop="4dp"
-                android:popupBackground="#616161" />
+                android:popupBackground="@drawable/bg_dialog_input" />
 
             <!-- 自定义请求头 -->
             <TextView
@@ -385,7 +387,7 @@
                 android:layout_height="wrap_content"
                 android:text="自定义请求头："
                 android:textSize="14sp"
-                android:textColor="#E0E0E0"
+                android:textColor="@color/theme_text_secondary"
                 android:layout_marginTop="12dp" />
 
             <EditText
@@ -394,11 +396,11 @@
                 android:layout_height="80dp"
                 android:hint="例如：&#10;Referer: https://example.com&#10;Cookie: session=xxx"
                 android:textSize="12sp"
-                android:textColor="#FFFFFF"
-                android:textColorHint="#999999"
+                android:textColor="@color/theme_text_primary"
+                android:textColorHint="@color/theme_text_secondary"
                 android:padding="8dp"
                 android:layout_marginTop="4dp"
-                android:background="#616161"
+                android:background="@drawable/bg_dialog_input"
                 android:gravity="top|start"
                 android:inputType="textMultiLine" />
 
@@ -420,9 +422,9 @@
                 android:text="添加"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="#9C27B0"
+                android:textColor="@color/theme_text_primary"
                 android:gravity="center"
-                android:background="?attr/selectableItemBackground" />
+                android:background="@drawable/bg_dialog_button_secondary" />
 
             <TextView
                 android:id="@+id/btnCancel"
@@ -432,7 +434,7 @@
                 android:text="取消"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="#CCCCCC"
+                android:textColor="@color/theme_text_secondary"
                 android:gravity="center"
                 android:background="?attr/selectableItemBackground" />
 
@@ -444,9 +446,9 @@
                 android:text="连接"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="#9C27B0"
+                android:textColor="@color/theme_on_primary"
                 android:gravity="center"
-                android:background="?attr/selectableItemBackground" />
+                android:background="@drawable/bg_dialog_button_primary" />
         </LinearLayout>
 
     </LinearLayout>

@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="#FFFFFF">
+    android:background="?android:attr/colorBackground">
 
     <TextView
         android:id="@+id/tv_title"
@@ -13,7 +13,7 @@
         android:text="视频流程日志"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:textColor="#000000"
+        android:textColor="@color/theme_text_primary"
         android:paddingBottom="16dp" />
 
     <ScrollView
@@ -27,7 +27,7 @@
             android:layout_height="wrap_content"
             android:text="暂无日志\n\n播放视频后会自动记录流程日志"
             android:textSize="14sp"
-            android:textColor="#666666"
+            android:textColor="@color/theme_text_secondary"
             android:lineSpacingExtra="4dp" />
 
     </ScrollView>

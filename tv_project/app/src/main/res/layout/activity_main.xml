@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 仿 FlClash 悬浮胶囊底栏：bar 62dp、内边距 4dp、左右 21dp、无阴影 -->
+<!--
+  仿 FlClash 悬浮胶囊底栏（NavigationDock）：
+  - 窄胶囊居中悬浮：宽度 = count*86dp + 16dp（3 项 = 274dp），绝不横跨全屏；
+    宽度上限由 FloatingNavDock.onMeasure 计算，这里只给 wrap_content + 居中约束。
+  - 胶囊高 62dp、内边距 4dp、左右 21dp（nav_edge_margin）由 dock 自己的 padding 承担。
+  - 悬浮阴影由 FloatingNavDock 自绘（对应 FlClash dockShadows）。
+  - 视口底部间距 max(21dp, navigationBarInset) 由 FloatingNavDock 的 insets 监听处理。
+-->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -10,47 +17,34 @@
         android:id="@+id/fragmentContainer"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/navCapsule"
+        app:layout_constraintBottom_toTopOf="@+id/navDock"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- 主操作：实心 primary + onPrimary 图标（FlClash 唯一的主操作用色） -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabOpenLocalVideo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="14dp"
+        android:layout_marginEnd="@dimen/page_margin"
+        android:layout_marginBottom="4dp"
         android:contentDescription="@string/open_local_video"
         android:src="@drawable/ic_nav_local_video"
-        app:backgroundTint="?attr/colorPrimaryContainer"
-        app:elevation="0dp"
+        app:backgroundTint="?attr/colorPrimary"
         app:borderWidth="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/navCapsule"
+        app:elevation="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/navDock"
         app:layout_constraintEnd_toEndOf="parent"
-        app:rippleColor="?attr/colorPrimary"
-        app:tint="?attr/colorOnPrimaryContainer" />
+        app:rippleColor="?attr/colorOnPrimary"
+        app:tint="?attr/colorOnPrimary" />
 
-    <!-- 悬浮胶囊：无阴影 -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/navCapsule"
-        android:layout_width="0dp"
-        android:layout_height="62dp"
-        android:layout_marginStart="21dp"
-        android:layout_marginEnd="21dp"
-        android:layout_marginBottom="16dp"
-        app:cardBackgroundColor="@color/nav_capsule"
-        app:cardCornerRadius="31dp"
-        app:cardElevation="0dp"
-        app:strokeWidth="0dp"
+    <com.tv.ball.presentation.nav.FloatingNavDock
+        android:id="@+id/navDock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <com.tv.ball.presentation.nav.FloatingNavDock
-            android:id="@+id/navDock"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-    </com.google.android.material.card.MaterialCardView>
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

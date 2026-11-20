@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 胶囊按钮：实心 primary -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="#5C7CFA" />
-    <corners android:radius="25dp" />
+    <solid android:color="@color/theme_primary" />
+    <corners android:radius="@dimen/radius_full" />
 </shape>

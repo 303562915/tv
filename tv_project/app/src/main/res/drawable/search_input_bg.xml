@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 搜索框：inset 填充 + 胶囊圆角，无描边（FlClash Borders That Stay：输入框只靠填充表达结构） -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="#F5F5F5" />
-    <corners android:radius="20dp" />
+    <solid android:color="@color/surface_inset" />
+    <corners android:radius="@dimen/radius_full" />
 </shape>

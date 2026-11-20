@@ -2,7 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="240dp"
     android:layout_height="match_parent"
-    android:background="#FFFFFF"
+    android:background="@color/surface_card"
     android:fillViewport="true">
 
     <LinearLayout
@@ -18,7 +18,7 @@
             android:gravity="center_vertical"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:background="#F5F5F5">
+            android:background="@color/surface_block">
 
             <ImageView
                 android:layout_width="24dp"
@@ -32,7 +32,7 @@
                 android:layout_weight="1"
                 android:text="设置"
                 android:textSize="16sp"
-                android:textColor="#666666"
+                android:textColor="@color/theme_text_secondary"
                 android:layout_marginStart="12dp" />
 
             <ImageView
@@ -50,7 +50,7 @@
             android:gravity="center_vertical"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:background="#FFFFFF">
+            android:background="@color/surface_card">
 
             <TextView
                 android:layout_width="0dp"
@@ -58,7 +58,7 @@
                 android:layout_weight="1"
                 android:text="类型"
                 android:textSize="14sp"
-                android:textColor="#999999" />
+                android:textColor="@color/theme_text_secondary" />
 
             <ImageView
                 android:layout_width="16dp"
@@ -72,7 +72,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="#FFFFFF">
+            android:background="@color/surface_card">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -94,7 +94,7 @@
                     android:layout_weight="1"
                     android:text="全部 (1)"
                     android:textSize="14sp"
-                    android:textColor="#333333"
+                    android:textColor="@color/theme_text_primary"
                     android:layout_marginStart="12dp" />
             </LinearLayout>
 
@@ -118,7 +118,7 @@
                     android:layout_weight="1"
                     android:text="种子"
                     android:textSize="14sp"
-                    android:textColor="#333333"
+                    android:textColor="@color/theme_text_primary"
                     android:layout_marginStart="12dp" />
             </LinearLayout>
 
@@ -142,7 +142,7 @@
                     android:layout_weight="1"
                     android:text="ZIP"
                     android:textSize="14sp"
-                    android:textColor="#333333"
+                    android:textColor="@color/theme_text_primary"
                     android:layout_marginStart="12dp" />
             </LinearLayout>
 
@@ -166,7 +166,7 @@
                     android:layout_weight="1"
                     android:text="文档"
                     android:textSize="14sp"
-                    android:textColor="#333333"
+                    android:textColor="@color/theme_text_primary"
                     android:layout_marginStart="12dp" />
             </LinearLayout>
 
@@ -190,7 +190,7 @@
                     android:layout_weight="1"
                     android:text="音乐"
                     android:textSize="14sp"
-                    android:textColor="#333333"
+                    android:textColor="@color/theme_text_primary"
                     android:layout_marginStart="12dp" />
             </LinearLayout>
 
@@ -214,7 +214,7 @@
                     android:layout_weight="1"
                     android:text="视频 (1)"
                     android:textSize="14sp"
-                    android:textColor="#333333"
+                    android:textColor="@color/theme_text_primary"
                     android:layout_marginStart="12dp" />
             </LinearLayout>
 
@@ -238,7 +238,7 @@
                     android:layout_weight="1"
                     android:text="字幕"
                     android:textSize="14sp"
-                    android:textColor="#333333"
+                    android:textColor="@color/theme_text_primary"
                     android:layout_marginStart="12dp" />
             </LinearLayout>
 
@@ -262,7 +262,7 @@
                     android:layout_weight="1"
                     android:text="图片"
                     android:textSize="14sp"
-                    android:textColor="#333333"
+                    android:textColor="@color/theme_text_primary"
                     android:layout_marginStart="12dp" />
             </LinearLayout>
 
@@ -286,7 +286,7 @@
                     android:layout_weight="1"
                     android:text="程序"
                     android:textSize="14sp"
-                    android:textColor="#333333"
+                    android:textColor="@color/theme_text_primary"
                     android:layout_marginStart="12dp" />
             </LinearLayout>
 
@@ -310,7 +310,7 @@
                     android:layout_weight="1"
                     android:text="其它"
                     android:textSize="14sp"
-                    android:textColor="#333333"
+                    android:textColor="@color/theme_text_primary"
                     android:layout_marginStart="12dp" />
             </LinearLayout>
         </LinearLayout>
@@ -323,7 +323,7 @@
             android:gravity="center_vertical"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:background="#FFFFFF"
+            android:background="@color/surface_card"
             android:layout_marginTop="8dp">
 
             <TextView
@@ -332,7 +332,7 @@
                 android:layout_weight="1"
                 android:text="下载"
                 android:textSize="14sp"
-                android:textColor="#999999" />
+                android:textColor="@color/theme_text_secondary" />
 
             <ImageView
                 android:layout_width="16dp"
@@ -346,7 +346,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="#FFFFFF"
+            android:background="@color/surface_card"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
             android:paddingBottom="16dp">
@@ -356,7 +356,7 @@
                 android:layout_height="wrap_content"
                 android:text="下载位置"
                 android:textSize="12sp"
-                android:textColor="#666666"
+                android:textColor="@color/theme_text_secondary"
                 android:layout_marginTop="8dp" />
 
             <TextView
@@ -364,7 +364,7 @@
                 android:layout_height="wrap_content"
                 android:text="/storage/emulated/0"
                 android:textSize="11sp"
-                android:textColor="#999999"
+                android:textColor="@color/theme_text_secondary"
                 android:layout_marginTop="4dp" />
 
             <TextView
@@ -373,7 +373,7 @@
                 android:layout_height="wrap_content"
                 android:text="同时下载：7"
                 android:textSize="12sp"
-                android:textColor="#666666"
+                android:textColor="@color/theme_text_secondary"
                 android:layout_marginTop="12dp" />
 
             <SeekBar
@@ -390,7 +390,7 @@
                 android:layout_height="wrap_content"
                 android:text="多线程数：32"
                 android:textSize="12sp"
-                android:textColor="#666666"
+                android:textColor="@color/theme_text_secondary"
                 android:layout_marginTop="12dp" />
 
             <SeekBar
@@ -415,7 +415,7 @@
                     android:layout_weight="1"
                     android:text="速度限制"
                     android:textSize="12sp"
-                    android:textColor="#666666" />
+                    android:textColor="@color/theme_text_secondary" />
 
                 <Switch
                     android:layout_width="wrap_content"
@@ -435,7 +435,7 @@
                     android:layout_weight="1"
                     android:text="全部限速"
                     android:textSize="12sp"
-                    android:textColor="#666666" />
+                    android:textColor="@color/theme_text_secondary" />
 
                 <Switch
                     android:layout_width="wrap_content"
@@ -447,7 +447,7 @@
                 android:layout_height="wrap_content"
                 android:text="下载速度限制：最大"
                 android:textSize="11sp"
-                android:textColor="#999999"
+                android:textColor="@color/theme_text_secondary"
                 android:layout_marginTop="8dp" />
 
             <TextView
@@ -455,7 +455,7 @@
                 android:layout_height="wrap_content"
                 android:text="上传速度限制：最大"
                 android:textSize="11sp"
-                android:textColor="#999999"
+                android:textColor="@color/theme_text_secondary"
                 android:layout_marginTop="4dp" />
             
             <!-- 检查并合并 M3U8 按钮 -->
@@ -465,8 +465,8 @@
                 android:layout_height="wrap_content"
                 android:text="检查并合并 M3U8"
                 android:textSize="14sp"
-                android:textColor="#FFFFFF"
-                android:background="#673AB7"
+                android:textColor="@color/surface_card"
+                android:background="@color/theme_primary"
                 android:layout_marginTop="16dp"
                 android:padding="12dp" />
         </LinearLayout>

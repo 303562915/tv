@@ -144,8 +144,7 @@ class HistoryFragment : Fragment() {
     }
     
     private fun setupClearButton() {
-        // 使用 ThemeHelper 设置清空按钮颜色
-        com.tv.ball.util.ThemeHelper.setThemeTextColor(binding.btnClearAll)
+        // 清空按钮：primary 文字由布局 token 提供，这里只挂点击
 
         binding.btnClearAll.setOnClickListener {
             if (adapter.currentList.isEmpty()) {

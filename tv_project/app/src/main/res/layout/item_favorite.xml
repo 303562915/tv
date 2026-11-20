@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.TVPlayer.Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="4dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp">
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardBackgroundColor="@color/surface_card"
+    app:cardCornerRadius="@dimen/radius_md"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -21,6 +27,7 @@
                 android:id="@+id/ivCover"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:background="@color/surface_inset"
                 android:scaleType="centerCrop"
                 android:src="@drawable/player" />
 
@@ -29,11 +36,12 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:layout_gravity="top|end"
-                android:layout_margin="4dp"
-                android:background="@android:drawable/ic_menu_delete"
-                android:backgroundTint="@color/theme_primary"
+                android:layout_margin="8dp"
+                android:background="@drawable/bg_icon_well"
                 android:contentDescription="删除收藏"
-                android:padding="4dp" />
+                android:padding="8dp"
+                android:src="@android:drawable/ic_menu_delete"
+                app:tint="@color/theme_text_secondary" />
 
         </FrameLayout>
 
@@ -41,7 +49,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="8dp">
+            android:padding="@dimen/card_padding">
 
             <TextView
                 android:id="@+id/tvTitle"
@@ -50,6 +58,7 @@
                 android:ellipsize="end"
                 android:maxLines="2"
                 android:text="视频标题"
+                android:textColor="@color/theme_text_primary"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 tools:ignore="HardcodedText" />
@@ -58,15 +67,14 @@
                 android:id="@+id/tvAddedTime"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="6dp"
                 android:text="收藏于 12-25 18:30"
-                android:textColor="?android:attr/textColorSecondary"
-                android:textSize="11sp"
+                android:textColor="@color/theme_text_secondary"
+                android:textSize="12sp"
                 tools:ignore="HardcodedText" />
 
         </LinearLayout>
 
     </LinearLayout>
 
-</androidx.cardview.widget.CardView>
-
+</com.google.android.material.card.MaterialCardView>

@@ -3,13 +3,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F5F5">
+    android:background="?android:attr/colorBackground">
 
     <!-- 顶部紫色标题栏 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#673AB7"
+        android:background="@color/surface_card"
         android:orientation="vertical">
         
         <!-- 状态栏占位 -->
@@ -32,7 +32,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/back"
-                android:tint="#FFFFFF"
+                android:tint="@color/theme_text_primary"
                 android:contentDescription="返回" />
 
             <!-- 标题 -->
@@ -43,7 +43,7 @@
                 android:text="选择文件"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/theme_text_primary"
                 android:layout_marginStart="24dp" />
         </LinearLayout>
     </LinearLayout>
@@ -55,9 +55,9 @@
         android:layout_height="wrap_content"
         android:text="路径: /storage/emulated/0"
         android:textSize="14sp"
-        android:textColor="#666666"
+        android:textColor="@color/theme_text_secondary"
         android:padding="12dp"
-        android:background="#FFFFFF" />
+        android:background="@color/surface_card" />
 
     <!-- 文件列表 -->
     <androidx.recyclerview.widget.RecyclerView
@@ -65,6 +65,6 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="#FFFFFF" />
+        android:background="@color/surface_card" />
 
 </LinearLayout>

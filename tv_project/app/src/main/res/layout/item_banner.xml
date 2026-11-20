@@ -9,9 +9,10 @@
         android:id="@+id/bannerCard"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:cardElevation="3dp"
-        app:cardCornerRadius="8dp"
-        app:cardBackgroundColor="@color/theme_card_background">
+        app:cardBackgroundColor="@color/surface_card"
+        app:cardCornerRadius="@dimen/radius_md"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp">
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -28,14 +29,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|start"
-                android:textColor="@android:color/white"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:padding="12dp"
-                android:shadowColor="#80000000"
+                android:padding="@dimen/card_padding"
+                android:shadowColor="@color/theme_overlay"
                 android:shadowDx="1"
                 android:shadowDy="1"
-                android:shadowRadius="2" />
+                android:shadowRadius="2"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
         </FrameLayout>
 

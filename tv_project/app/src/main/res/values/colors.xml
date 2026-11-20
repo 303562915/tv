@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  配色取自 FlClash：prism_ui/lib/theme_data.dart 里 _baselineSeed = Color(0xFF6750A4)，
-  ColorStyle.soft 对应 Material 3 tonalSpot 变体。
-  下面就是这套种子在浅色下的标准 M3 结果，命名沿用本项目旧称。
+  配色基准：FlClash（prism_ui/lib/color.dart + .agents/surfaces.md）
+  种子色取本项目品牌青绿 #3EE0B4，走 ColorStyle.vivid（primary 保留种子色相），
+  表面保持近中性（chroma <= 3），层次靠明度递进，不靠描边。
+
+  表面层级 SurfaceLevel —— 浅色：page=surfaceContainer / card=surfaceBright /
+  block=surfaceContainer / inset=surfaceContainerHighest；深色见 values-night。
 -->
 <resources>
     <color name="black">#FF000000</color>
@@ -14,61 +17,94 @@
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
 
-    <!-- M3 主色 / 次色 -->
-    <color name="primary">#FF6750A4</color>
-    <color name="theme_primary">#FF6750A4</color>
-    <color name="theme_accent">#FF625B71</color>
-    <color name="theme_primary_container">#FFEADDFF</color>
-    <color name="theme_on_primary_container">#FF21005D</color>
-    <color name="theme_secondary_container">#FFE8DEF8</color>
-    <color name="theme_on_secondary_container">#FF1D192B</color>
+    <!-- ===== M3 角色（light） ===== -->
+    <color name="primary">#FF006C53</color>
+    <color name="theme_primary">#FF006C53</color>
+    <color name="theme_on_primary">#FFFFFFFF</color>
+    <color name="theme_accent">#FF006C53</color>
+    <color name="theme_primary_container">#FF61FBCE</color>
+    <color name="theme_on_primary_container">#FF002117</color>
+    <color name="theme_secondary">#FF476459</color>
+    <color name="theme_secondary_container">#FFC9EADB</color>
+    <color name="theme_on_secondary_container">#FF032018</color>
+    <color name="theme_tertiary">#FF37647A</color>
+    <color name="theme_tertiary_container">#FFBBE9FF</color>
+    <color name="theme_on_tertiary_container">#FF001E2A</color>
 
-    <!-- 表面与背景 -->
-    <color name="theme_background">#FFFEF7FF</color>
-    <color name="theme_surface">#FFFEF7FF</color>
-    <color name="theme_surface_container">#FFF3EDF7</color>
-    <color name="theme_surface_container_low">#FFF7F2FA</color>
-    <color name="theme_outline">#FF79747E</color>
-    <color name="theme_text_primary">#FF1D1B20</color>
-    <color name="theme_text_secondary">#FF49454F</color>
-    <color name="theme_card">#FFECE6F0</color>
-    <color name="theme_card_background">#FFF3EDF7</color>
-    <color name="theme_card_elevated">#FFFFFFFF</color>
-    <color name="search_box_background">#FFECE6F0</color>
+    <!-- ===== 表面 / 背景 ===== -->
+    <color name="theme_surface">#FFFBF9F7</color>
+    <color name="theme_surface_dim">#FFD9DAD8</color>
+    <color name="theme_surface_bright">#FFFBF9F7</color>
+    <color name="theme_surface_container_lowest">#FFFFFFFF</color>
+    <color name="theme_surface_container_low">#FFF3F4F1</color>
+    <color name="theme_surface_container">#FFEDEEEB</color>
+    <color name="theme_surface_container_high">#FFE8E8E6</color>
+    <color name="theme_surface_container_highest">#FFE2E3E0</color>
 
-    <!-- 状态色 -->
-    <color name="theme_success">#FF00C853</color>
-    <color name="theme_warning">#FFFFB300</color>
+    <!-- page / card / block / inset 语义别名 -->
+    <color name="surface_page">#FFEDEEEB</color>
+    <color name="surface_card">#FFFBF9F7</color>
+    <color name="surface_block">#FFEDEEEB</color>
+    <color name="surface_inset">#FFE2E3E0</color>
+
+    <color name="theme_background">#FFEDEEEB</color>
+    <color name="theme_on_background">#FF1A1C1B</color>
+    <color name="theme_text_primary">#FF1A1C1B</color>
+    <color name="theme_text_secondary">#FF3F4944</color>
+    <color name="theme_outline">#FF707974</color>
+    <color name="theme_outline_variant">#FFC4C7C4</color>
+
+    <!-- 旧卡片别名（保留引用点，值对齐新层级） -->
+    <color name="theme_card">#FFFBF9F7</color>
+    <color name="theme_card_background">#FFFBF9F7</color>
+    <color name="theme_card_elevated">#FFEDEEEB</color>
+    <color name="search_box_background">#FFE2E3E0</color>
+
+    <!-- ===== 状态 ===== -->
+    <color name="theme_success">#FF006E1C</color>
+    <color name="theme_success_container">#FFD5E8CF</color>
+    <color name="theme_on_success_container">#FF005313</color>
+    <color name="theme_warning">#FF8B5000</color>
+    <color name="theme_warning_container">#FFFFDCBE</color>
+    <color name="theme_on_warning_container">#FF693C00</color>
     <color name="theme_error">#FFBA1A1A</color>
-    <color name="theme_info">#FF0288D1</color>
-    <color name="theme_gradient_start">#FF6750A4</color>
-    <color name="theme_gradient_end">#FF625B71</color>
-    <color name="theme_selected_bg">#FFE8DEF8</color>
-    <color name="theme_selected_border">#FF6750A4</color>
-    <color name="theme_divider">#FFCAC4D0</color>
-    <color name="theme_overlay">#80000000</color>
-    <color name="theme_highlight">#FFFFF9C4</color>
-    <color name="theme_disabled">#FFBDBDBD</color>
+    <color name="theme_on_error">#FFFFFFFF</color>
+    <color name="theme_error_container">#FFFFDAD6</color>
+    <color name="theme_on_error_container">#FF410002</color>
+    <color name="theme_info">#FF37647A</color>
+
+    <color name="theme_gradient_start">#FF006C53</color>
+    <color name="theme_gradient_end">#FF476459</color>
+    <color name="theme_selected_bg">#FFC9EADB</color>
+    <color name="theme_selected_border">#FF006C53</color>
+    <!-- FlClash：分隔线一律用 onSurface 14%，不用 outlineVariant -->
+    <color name="theme_divider">#241A1C1B</color>
+    <color name="theme_overlay">#33000000</color>
+    <color name="theme_highlight">#FF61FBCE</color>
+    <color name="theme_disabled">#FFC4C7C4</color>
+    <color name="theme_scrim">#33000000</color>
 
     <!-- 列表未选中态 -->
-    <color name="unselected_bg">#FFF7F2FA</color>
-    <color name="unselected_text">#FF49454F</color>
+    <color name="unselected_bg">#FFF3F4F1</color>
+    <color name="unselected_text">#FF3F4944</color>
 
-    <!-- 播放器进度条：主色系 -->
-    <color name="player_progress_played">#FF6750A4</color>
-    <color name="player_progress_buffered">#4D6750A4</color>
+    <!-- 播放器 -->
+    <color name="player_progress_played">#FF006C53</color>
+    <color name="player_progress_buffered">#4D006C53</color>
     <color name="player_progress_unplayed">#33FFFFFF</color>
 
-    <!-- 选集背景（按时长区分） -->
-    <color name="episode_movie_bg">#FFEADDFF</color>
-    <color name="episode_normal_bg">#FFF7F2FA</color>
-    <color name="episode_movie_text">#FF21005D</color>
-    <color name="episode_normal_text">#FF1D1B20</color>
+    <!-- 选集（按时长区分） -->
+    <color name="episode_movie_bg">#FF61FBCE</color>
+    <color name="episode_normal_bg">#FFF3F4F1</color>
+    <color name="episode_movie_text">#FF002117</color>
+    <color name="episode_normal_text">#FF1A1C1B</color>
 
     <!-- ===== 悬浮胶囊底栏（FlClash NavigationDock） ===== -->
-    <color name="nav_capsule">#FFF3EDF7</color>
+    <!-- 条形 = SurfaceLevel.floatingOf：浅色取 card -->
+    <color name="nav_capsule">#FFFBF9F7</color>
     <color name="nav_capsule_stroke">#00FFFFFF</color>
-    <color name="nav_lens">#FFE7E0EC</color>
-    <color name="nav_item_idle">#FF49454F</color>
-    <color name="theme_surface_container_high">#FFECE6F0</color>
+    <!-- 透镜 = floatingOf 的下一级：浅色取 block -->
+    <color name="nav_lens">#FFEDEEEB</color>
+    <color name="nav_item_idle">#FF3F4944</color>
+    <color name="nav_badge">#FF006C53</color>
 </resources>

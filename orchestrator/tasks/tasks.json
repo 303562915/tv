@@ -1,0 +1,2086 @@
+{
+  "tasks": [
+    {
+      "id": "F001",
+      "batch": 1,
+      "group": "播放核心",
+      "scope": "player",
+      "kind": "ui",
+      "title": "播放器锁定",
+      "summary": "遥控器误触会打断观看，提供一键锁定，挡住除锁定键外的全部按键",
+      "acceptance": [
+        "锁定时屏蔽手势与按键",
+        "长按返回键或按确认键可解锁",
+        "锁定状态在旋转/切集后保持"
+      ],
+      "touch_files": [
+        "java/feature/f001/F001Activity.kt",
+        "java/feature/f001/F001Module.kt",
+        "java/feature/f001/F001Engine.kt",
+        "res/layout/activity_f001.xml",
+        "res/values/strings_f001.xml"
+      ]
+    },
+    {
+      "id": "F002",
+      "batch": 1,
+      "group": "播放核心",
+      "scope": "player",
+      "kind": "ui",
+      "title": "A-B 段落复读",
+      "summary": "语言学习与片段反复看，需要按标记点循环播放选段",
+      "acceptance": [
+        "可设置 A 点与 B 点",
+        "到达 B 点自动跳回 A 点",
+        "清除标记后恢复正常播放"
+      ],
+      "touch_files": [
+        "java/feature/f002/F002Activity.kt",
+        "java/feature/f002/F002Module.kt",
+        "java/feature/f002/F002Engine.kt",
+        "res/layout/activity_f002.xml",
+        "res/values/strings_f002.xml"
+      ]
+    },
+    {
+      "id": "F003",
+      "batch": 1,
+      "group": "播放核心",
+      "scope": "player",
+      "kind": "ui",
+      "title": "精确定位跳转",
+      "summary": "拖进度条只能到大概位置，提供时间码输入直接跳到秒",
+      "acceptance": [
+        "支持 hh:mm:ss 与 mm:ss 两种输入",
+        "非法输入给出提示不崩溃",
+        "跳转后当前播放位置同步更新"
+      ],
+      "touch_files": [
+        "java/feature/f003/F003Activity.kt",
+        "java/feature/f003/F003Module.kt",
+        "java/feature/f003/F003Engine.kt",
+        "res/layout/activity_f003.xml",
+        "res/values/strings_f003.xml"
+      ]
+    },
+    {
+      "id": "F004",
+      "batch": 1,
+      "group": "播放核心",
+      "scope": "player",
+      "kind": "ui",
+      "title": "倍速曲线与长按倍速",
+      "summary": "长按临时倍速与常驻倍速需要可配置的档位曲线",
+      "acceptance": [
+        "档位集合可增删并持久化",
+        "长按时按配置倍速播放、松手恢复",
+        "当前倍速在返回播放页后恢复"
+      ],
+      "touch_files": [
+        "java/feature/f004/F004Activity.kt",
+        "java/feature/f004/F004Module.kt",
+        "java/feature/f004/F004Engine.kt",
+        "res/layout/activity_f004.xml",
+        "res/values/strings_f004.xml"
+      ]
+    },
+    {
+      "id": "F005",
+      "batch": 1,
+      "group": "播放核心",
+      "scope": "player",
+      "kind": "ui",
+      "title": "下集倒计时浮层",
+      "summary": "接近片尾时提示下一集并在倒计时结束后自动切换，可取消",
+      "acceptance": [
+        "默认 5 秒倒计时且可配置",
+        "倒计时中可取消且本轮不再提示",
+        "取消后停留在当前集片尾"
+      ],
+      "touch_files": [
+        "java/feature/f005/F005Activity.kt",
+        "java/feature/f005/F005Module.kt",
+        "java/feature/f005/F005Engine.kt",
+        "res/layout/activity_f005.xml",
+        "res/values/strings_f005.xml"
+      ]
+    },
+    {
+      "id": "F006",
+      "batch": 1,
+      "group": "播放核心",
+      "scope": "player",
+      "kind": "ui",
+      "title": "播放失败自动重试与降级",
+      "summary": "网络抖动导致的解码/连接失败不该让用户手动重来",
+      "acceptance": [
+        "失败后按 1s/2s/4s 退避重试至多 3 次",
+        "重试仍失败时提示切换线路",
+        "重试过程有可见提示且可手动终止"
+      ],
+      "touch_files": [
+        "java/feature/f006/F006Activity.kt",
+        "java/feature/f006/F006Module.kt",
+        "java/feature/f006/F006Engine.kt",
+        "res/layout/activity_f006.xml",
+        "res/values/strings_f006.xml"
+      ]
+    },
+    {
+      "id": "F007",
+      "batch": 1,
+      "group": "播放核心",
+      "scope": "player",
+      "kind": "ui",
+      "title": "画面比例与裁剪模式",
+      "summary": "不同片源比例不一致，需要在适应/填充/拉伸/原始之间循环",
+      "acceptance": [
+        "四种模式循环切换",
+        "选择结果持久化",
+        "切换立即生效不重启播放"
+      ],
+      "touch_files": [
+        "java/feature/f007/F007Activity.kt",
+        "java/feature/f007/F007Module.kt",
+        "java/feature/f007/F007Engine.kt",
+        "res/layout/activity_f007.xml",
+        "res/values/strings_f007.xml"
+      ]
+    },
+    {
+      "id": "F008",
+      "batch": 1,
+      "group": "播放核心",
+      "scope": "player",
+      "kind": "ui",
+      "title": "音画同步微调",
+      "summary": "音轨与画面不同步时按 ±50ms 步进校正",
+      "acceptance": [
+        "可左右微调并显示当前偏移",
+        "范围限制在 -2s~2s",
+        "退出重进后偏移沿用"
+      ],
+      "touch_files": [
+        "java/feature/f008/F008Activity.kt",
+        "java/feature/f008/F008Module.kt",
+        "java/feature/f008/F008Engine.kt",
+        "res/layout/activity_f008.xml",
+        "res/values/strings_f008.xml"
+      ]
+    },
+    {
+      "id": "F009",
+      "batch": 1,
+      "group": "播放核心",
+      "scope": "player",
+      "kind": "ui",
+      "title": "快进快退步长策略",
+      "summary": "不同习惯需要不同的快进步长，且支持智能跳片头",
+      "acceptance": [
+        "可设置 5/10/30/60 秒步长",
+        "智能模式自动跳过片头片尾标记",
+        "设置持久化"
+      ],
+      "touch_files": [
+        "java/feature/f009/F009Activity.kt",
+        "java/feature/f009/F009Module.kt",
+        "java/feature/f009/F009Engine.kt",
+        "res/layout/activity_f009.xml",
+        "res/values/strings_f009.xml"
+      ]
+    },
+    {
+      "id": "F010",
+      "batch": 1,
+      "group": "播放核心",
+      "scope": "player",
+      "kind": "ui",
+      "title": "手势灵敏度配置",
+      "summary": "滑动调节音量亮度时阈值过高或过低都难用",
+      "acceptance": [
+        "可调阈值与滑动增益",
+        "预览区实时展示当前参数效果",
+        "恢复默认一键可用"
+      ],
+      "touch_files": [
+        "java/feature/f010/F010Activity.kt",
+        "java/feature/f010/F010Module.kt",
+        "java/feature/f010/F010Engine.kt",
+        "res/layout/activity_f010.xml",
+        "res/values/strings_f010.xml"
+      ]
+    },
+    {
+      "id": "F011",
+      "batch": 1,
+      "group": "播放核心",
+      "scope": "subtitle",
+      "kind": "ui",
+      "title": "外挂字幕加载",
+      "summary": "本地视频常配外挂字幕，需要选择并加载 SRT/ASS/VTT 文件",
+      "acceptance": [
+        "可从文件选择器选字幕并解析",
+        "解析失败给出原因不崩溃",
+        "成功加载后显示条目数"
+      ],
+      "touch_files": [
+        "java/feature/f011/F011Activity.kt",
+        "java/feature/f011/F011Module.kt",
+        "java/feature/f011/F011Engine.kt",
+        "res/layout/activity_f011.xml",
+        "res/values/strings_f011.xml"
+      ]
+    },
+    {
+      "id": "F012",
+      "batch": 1,
+      "group": "播放核心",
+      "scope": "subtitle",
+      "kind": "ui",
+      "title": "字幕样式设置",
+      "summary": "字幕默认样式在大屏上偏小，需要字号/颜色/描边/背景可调",
+      "acceptance": [
+        "字号、颜色、描边、背景四项可独立调整",
+        "预览实时反映改动",
+        "设置持久化"
+      ],
+      "touch_files": [
+        "java/feature/f012/F012Activity.kt",
+        "java/feature/f012/F012Module.kt",
+        "java/feature/f012/F012Engine.kt",
+        "res/layout/activity_f012.xml",
+        "res/values/strings_f012.xml"
+      ]
+    },
+    {
+      "id": "F013",
+      "batch": 2,
+      "group": "字幕",
+      "scope": "subtitle",
+      "kind": "ui",
+      "title": "字幕轨道切换与延迟",
+      "summary": "内嵌多字幕轨时需要在轨间切换并对延迟做 ±100ms 校正",
+      "acceptance": [
+        "列出全部字幕轨并高亮当前轨",
+        "可切换并立即生效",
+        "延迟调整范围 -5s~5s"
+      ],
+      "touch_files": [
+        "java/feature/f013/F013Activity.kt",
+        "java/feature/f013/F013Module.kt",
+        "java/feature/f013/F013Engine.kt",
+        "res/layout/activity_f013.xml",
+        "res/values/strings_f013.xml"
+      ]
+    },
+    {
+      "id": "F014",
+      "batch": 2,
+      "group": "字幕",
+      "scope": "subtitle",
+      "kind": "ui",
+      "title": "同名字幕自动匹配",
+      "summary": "视频旁边放着同名 srt 时应自动加载，不用手动挑",
+      "acceptance": [
+        "按同名/同目录规则匹配字幕",
+        "多个候选按语言优先级选择",
+        "无匹配时静默跳过"
+      ],
+      "touch_files": [
+        "java/feature/f014/F014Activity.kt",
+        "java/feature/f014/F014Module.kt",
+        "java/feature/f014/F014Engine.kt",
+        "res/layout/activity_f014.xml",
+        "res/values/strings_f014.xml"
+      ]
+    },
+    {
+      "id": "F015",
+      "batch": 2,
+      "group": "字幕",
+      "scope": "subtitle",
+      "kind": "ui",
+      "title": "字幕编码探测",
+      "summary": "GBK 字幕按 UTF-8 读会乱码，需要探测编码",
+      "acceptance": [
+        "依次尝试 UTF-8/UTF-16/GBK/Big5",
+        "探测结果可人工覆盖",
+        "乱码文件给出提示而非乱码输出"
+      ],
+      "touch_files": [
+        "java/feature/f015/F015Activity.kt",
+        "java/feature/f015/F015Module.kt",
+        "java/feature/f015/F015Engine.kt",
+        "res/layout/activity_f015.xml",
+        "res/values/strings_f015.xml"
+      ]
+    },
+    {
+      "id": "F016",
+      "batch": 2,
+      "group": "字幕",
+      "scope": "subtitle",
+      "kind": "ui",
+      "title": "双语双行字幕合成",
+      "summary": "中英字幕文件并存时需要合成双行显示",
+      "acceptance": [
+        "两个字幕文件按时间轴对齐合成",
+        "时间重叠时上下两行分别显示",
+        "缺失区间只显示单行"
+      ],
+      "touch_files": [
+        "java/feature/f016/F016Activity.kt",
+        "java/feature/f016/F016Module.kt",
+        "java/feature/f016/F016Engine.kt",
+        "res/layout/activity_f016.xml",
+        "res/values/strings_f016.xml"
+      ]
+    },
+    {
+      "id": "F017",
+      "batch": 2,
+      "group": "字幕",
+      "scope": "subtitle",
+      "kind": "ui",
+      "title": "字幕时间轴平移",
+      "summary": "整轨字幕整体偏早或偏晚，需要整体平移",
+      "acceptance": [
+        "支持 ±秒级整体平移",
+        "平移量可保存到同目录旁挂文件",
+        "平移后立刻反映到预览"
+      ],
+      "touch_files": [
+        "java/feature/f017/F017Activity.kt",
+        "java/feature/f017/F017Module.kt",
+        "java/feature/f017/F017Engine.kt",
+        "res/layout/activity_f017.xml",
+        "res/values/strings_f017.xml"
+      ]
+    },
+    {
+      "id": "F018",
+      "batch": 2,
+      "group": "字幕",
+      "scope": "subtitle",
+      "kind": "ui",
+      "title": "字幕文本检索与跳转",
+      "summary": "想找某句台词出现的位置，需要检索字幕全文",
+      "acceptance": [
+        "全文检索并列出命中条目与时间",
+        "点击结果跳转到该时间点",
+        "无命中给出空态"
+      ],
+      "touch_files": [
+        "java/feature/f018/F018Activity.kt",
+        "java/feature/f018/F018Module.kt",
+        "java/feature/f018/F018Engine.kt",
+        "res/layout/activity_f018.xml",
+        "res/values/strings_f018.xml"
+      ]
+    },
+    {
+      "id": "F019",
+      "batch": 2,
+      "group": "媒体库",
+      "scope": "library",
+      "kind": "ui",
+      "title": "媒体库增量索引",
+      "summary": "每次全量扫描太慢，需要记录已扫描文件并只处理新增/变更",
+      "acceptance": [
+        "按路径+大小+修改时间判定变更",
+        "只对变更项重建索引",
+        "索引可清空重建"
+      ],
+      "touch_files": [
+        "java/feature/f019/F019Activity.kt",
+        "java/feature/f019/F019Module.kt",
+        "java/feature/f019/F019Engine.kt",
+        "res/layout/activity_f019.xml",
+        "res/values/strings_f019.xml"
+      ]
+    },
+    {
+      "id": "F020",
+      "batch": 2,
+      "group": "媒体库",
+      "scope": "library",
+      "kind": "ui",
+      "title": "文件夹多维排序",
+      "summary": "文件夹需要按名称/数量/最近修改/总时长排序",
+      "acceptance": [
+        "四种排序方式可切换",
+        "排序方向可反转",
+        "选择持久化"
+      ],
+      "touch_files": [
+        "java/feature/f020/F020Activity.kt",
+        "java/feature/f020/F020Module.kt",
+        "java/feature/f020/F020Engine.kt",
+        "res/layout/activity_f020.xml",
+        "res/values/strings_f020.xml"
+      ]
+    },
+    {
+      "id": "F021",
+      "batch": 2,
+      "group": "媒体库",
+      "scope": "library",
+      "kind": "ui",
+      "title": "缩略图磁盘缓存",
+      "summary": "缩略图每次重解太慢，落盘缓存并按 LRU 淘汰",
+      "acceptance": [
+        "缓存目录按 hash 命名",
+        "超过上限按 LRU 清理",
+        "命中缓存时不再解码"
+      ],
+      "touch_files": [
+        "java/feature/f021/F021Activity.kt",
+        "java/feature/f021/F021Module.kt",
+        "java/feature/f021/F021Engine.kt",
+        "res/layout/activity_f021.xml",
+        "res/values/strings_f021.xml"
+      ]
+    },
+    {
+      "id": "F022",
+      "batch": 2,
+      "group": "媒体库",
+      "scope": "library",
+      "kind": "ui",
+      "title": "本地视频筛选",
+      "summary": "库里视频多时需要按格式/时长/大小筛选",
+      "acceptance": [
+        "按扩展名与时长区间筛选",
+        "多条件可叠加",
+        "清空条件一键恢复"
+      ],
+      "touch_files": [
+        "java/feature/f022/F022Activity.kt",
+        "java/feature/f022/F022Module.kt",
+        "java/feature/f022/F022Engine.kt",
+        "res/layout/activity_f022.xml",
+        "res/values/strings_f022.xml"
+      ]
+    },
+    {
+      "id": "F023",
+      "batch": 3,
+      "group": "媒体库",
+      "scope": "library",
+      "kind": "ui",
+      "title": "忽略目录与扩展名规则",
+      "summary": "系统目录和广告小视频不该进媒体库",
+      "acceptance": [
+        "支持目录前缀与扩展名黑名单",
+        "新增规则后重新扫描即生效",
+        "规则可编辑删除"
+      ],
+      "touch_files": [
+        "java/feature/f023/F023Activity.kt",
+        "java/feature/f023/F023Module.kt",
+        "java/feature/f023/F023Engine.kt",
+        "res/layout/activity_f023.xml",
+        "res/values/strings_f023.xml"
+      ]
+    },
+    {
+      "id": "F024",
+      "batch": 3,
+      "group": "媒体库",
+      "scope": "library",
+      "kind": "ui",
+      "title": "SAF 目录授权管理",
+      "summary": "Android 11+ 需要用户主动授权目录才能全量读取",
+      "acceptance": [
+        "列出已授权目录并可移除",
+        "新增目录走系统 SAF 选择器",
+        "授权状态持久化并在重启后可用"
+      ],
+      "touch_files": [
+        "java/feature/f024/F024Activity.kt",
+        "java/feature/f024/F024Module.kt",
+        "java/feature/f024/F024Engine.kt",
+        "res/layout/activity_f024.xml",
+        "res/values/strings_f024.xml"
+      ]
+    },
+    {
+      "id": "F025",
+      "batch": 3,
+      "group": "媒体库",
+      "scope": "library",
+      "kind": "ui",
+      "title": "媒体信息面板",
+      "summary": "需要看清编码/码率/分辨率/帧率/HDR 等信息",
+      "acceptance": [
+        "展示容器、视频编码、音频编码、码率、分辨率、帧率",
+        "信息缺失时显示未知",
+        "可从详情页与本地播放页进入"
+      ],
+      "touch_files": [
+        "java/feature/f025/F025Activity.kt",
+        "java/feature/f025/F025Module.kt",
+        "java/feature/f025/F025Engine.kt",
+        "res/layout/activity_f025.xml",
+        "res/values/strings_f025.xml"
+      ]
+    },
+    {
+      "id": "F026",
+      "batch": 3,
+      "group": "媒体库",
+      "scope": "library",
+      "kind": "ui",
+      "title": "最近添加与最近播放",
+      "summary": "首页需要「最近添加」「最近播放」两个横向数据源",
+      "acceptance": [
+        "按修改时间取最近添加",
+        "按最后播放时间取最近播放",
+        "数量上限可配置"
+      ],
+      "touch_files": [
+        "java/feature/f026/F026Activity.kt",
+        "java/feature/f026/F026Module.kt",
+        "java/feature/f026/F026Engine.kt",
+        "res/layout/activity_f026.xml",
+        "res/values/strings_f026.xml"
+      ]
+    },
+    {
+      "id": "F027",
+      "batch": 3,
+      "group": "历史",
+      "scope": "history",
+      "kind": "ui",
+      "title": "历史按日分组与批量清理",
+      "summary": "历史列表需要按今天/昨天/更早分组，并支持多选删除",
+      "acceptance": [
+        "分组标题正确",
+        "多选后可批量删除",
+        "删除后列表即时刷新"
+      ],
+      "touch_files": [
+        "java/feature/f027/F027Activity.kt",
+        "java/feature/f027/F027Module.kt",
+        "java/feature/f027/F027Engine.kt",
+        "res/layout/activity_f027.xml",
+        "res/values/strings_f027.xml"
+      ]
+    },
+    {
+      "id": "F028",
+      "batch": 3,
+      "group": "历史",
+      "scope": "history",
+      "kind": "ui",
+      "title": "历史搜索与筛选",
+      "summary": "历史条目多了需要搜索标题并按时间范围筛选",
+      "acceptance": [
+        "按标题关键字搜索",
+        "按最近 7/30 天筛选",
+        "组合条件可用"
+      ],
+      "touch_files": [
+        "java/feature/f028/F028Activity.kt",
+        "java/feature/f028/F028Module.kt",
+        "java/feature/f028/F028Engine.kt",
+        "res/layout/activity_f028.xml",
+        "res/values/strings_f028.xml"
+      ]
+    },
+    {
+      "id": "F029",
+      "batch": 3,
+      "group": "收藏",
+      "scope": "favorite",
+      "kind": "ui",
+      "title": "收藏标签与分组",
+      "summary": "收藏需要按自定义标签归档",
+      "acceptance": [
+        "可给收藏打多个标签",
+        "按标签筛选",
+        "标签可重命名删除"
+      ],
+      "touch_files": [
+        "java/feature/f029/F029Activity.kt",
+        "java/feature/f029/F029Module.kt",
+        "java/feature/f029/F029Engine.kt",
+        "res/layout/activity_f029.xml",
+        "res/values/strings_f029.xml"
+      ]
+    },
+    {
+      "id": "F030",
+      "batch": 3,
+      "group": "历史",
+      "scope": "history",
+      "kind": "ui",
+      "title": "继续观看队列",
+      "summary": "没看完的内容应该集中成一条队列，随时接着看",
+      "acceptance": [
+        "只收录进度在 5%~95% 的条目",
+        "按最近观看排序",
+        "点击直接续播到断点"
+      ],
+      "touch_files": [
+        "java/feature/f030/F030Activity.kt",
+        "java/feature/f030/F030Module.kt",
+        "java/feature/f030/F030Engine.kt",
+        "res/layout/activity_f030.xml",
+        "res/values/strings_f030.xml"
+      ]
+    },
+    {
+      "id": "F031",
+      "batch": 3,
+      "group": "统计",
+      "scope": "stats",
+      "kind": "ui",
+      "title": "观看时长周报",
+      "summary": "统计本周观看时长与日均，帮用户了解观看习惯",
+      "acceptance": [
+        "按天聚合本周观看秒数",
+        "展示总量、日均、最长单日",
+        "数据源自本机播放记录"
+      ],
+      "touch_files": [
+        "java/feature/f031/F031Activity.kt",
+        "java/feature/f031/F031Module.kt",
+        "java/feature/f031/F031Engine.kt",
+        "res/layout/activity_f031.xml",
+        "res/values/strings_f031.xml"
+      ]
+    },
+    {
+      "id": "F032",
+      "batch": 3,
+      "group": "统计",
+      "scope": "stats",
+      "kind": "ui",
+      "title": "播放偏好学习",
+      "summary": "记住用户常用的线路与清晰度，下次默认选它",
+      "acceptance": [
+        "统计各线路被选择次数",
+        "默认选最高频项",
+        "可手动清除学习结果"
+      ],
+      "touch_files": [
+        "java/feature/f032/F032Activity.kt",
+        "java/feature/f032/F032Module.kt",
+        "java/feature/f032/F032Engine.kt",
+        "res/layout/activity_f032.xml",
+        "res/values/strings_f032.xml"
+      ]
+    },
+    {
+      "id": "F033",
+      "batch": 4,
+      "group": "播放队列",
+      "scope": "playlist",
+      "kind": "ui",
+      "title": "队列编辑",
+      "summary": "播放队列需要拖动排序与删除",
+      "acceptance": [
+        "长按拖动改变顺序",
+        "删除单项并保持当前播放项",
+        "顺序变化即时持久化"
+      ],
+      "touch_files": [
+        "java/feature/f033/F033Activity.kt",
+        "java/feature/f033/F033Module.kt",
+        "java/feature/f033/F033Engine.kt",
+        "res/layout/activity_f033.xml",
+        "res/values/strings_f033.xml"
+      ]
+    },
+    {
+      "id": "F034",
+      "batch": 4,
+      "group": "播放队列",
+      "scope": "playlist",
+      "kind": "ui",
+      "title": "队列另存为播放列表",
+      "summary": "临时凑的队列想留成固定列表",
+      "acceptance": [
+        "输入名称后另存",
+        "重名时提示覆盖或改名",
+        "保存后出现在播放列表管理里"
+      ],
+      "touch_files": [
+        "java/feature/f034/F034Activity.kt",
+        "java/feature/f034/F034Module.kt",
+        "java/feature/f034/F034Engine.kt",
+        "res/layout/activity_f034.xml",
+        "res/values/strings_f034.xml"
+      ]
+    },
+    {
+      "id": "F035",
+      "batch": 4,
+      "group": "播放队列",
+      "scope": "playlist",
+      "kind": "ui",
+      "title": "M3U 播放列表导入导出",
+      "summary": "与其他播放器交换列表需要标准格式",
+      "acceptance": [
+        "导出为 M3U8 文本",
+        "导入时解析 EXTINF 标题与时长",
+        "非法行跳过并统计"
+      ],
+      "touch_files": [
+        "java/feature/f035/F035Activity.kt",
+        "java/feature/f035/F035Module.kt",
+        "java/feature/f035/F035Engine.kt",
+        "res/layout/activity_f035.xml",
+        "res/values/strings_f035.xml"
+      ]
+    },
+    {
+      "id": "F036",
+      "batch": 4,
+      "group": "播放队列",
+      "scope": "playlist",
+      "kind": "ui",
+      "title": "随机播放与权重调度",
+      "summary": "随机模式需要避免连续重复并支持权重",
+      "acceptance": [
+        "开启随机后不连续播同一项",
+        "全部播完才重置",
+        "权重可调"
+      ],
+      "touch_files": [
+        "java/feature/f036/F036Activity.kt",
+        "java/feature/f036/F036Module.kt",
+        "java/feature/f036/F036Engine.kt",
+        "res/layout/activity_f036.xml",
+        "res/values/strings_f036.xml"
+      ]
+    },
+    {
+      "id": "F037",
+      "batch": 4,
+      "group": "播放队列",
+      "scope": "playlist",
+      "kind": "ui",
+      "title": "播放列表封面与描述",
+      "summary": "列表需要封面与简介便于识别",
+      "acceptance": [
+        "可选择本地图片作封面",
+        "可填写描述",
+        "列表页展示封面与简介"
+      ],
+      "touch_files": [
+        "java/feature/f037/F037Activity.kt",
+        "java/feature/f037/F037Module.kt",
+        "java/feature/f037/F037Engine.kt",
+        "res/layout/activity_f037.xml",
+        "res/values/strings_f037.xml"
+      ]
+    },
+    {
+      "id": "F038",
+      "batch": 4,
+      "group": "播放队列",
+      "scope": "playlist",
+      "kind": "ui",
+      "title": "多播放列表切换",
+      "summary": "需要多个列表并存并快速切换当前列表",
+      "acceptance": [
+        "列出全部列表并标出当前",
+        "切换后队列随之切换",
+        "支持重命名"
+      ],
+      "touch_files": [
+        "java/feature/f038/F038Activity.kt",
+        "java/feature/f038/F038Module.kt",
+        "java/feature/f038/F038Engine.kt",
+        "res/layout/activity_f038.xml",
+        "res/values/strings_f038.xml"
+      ]
+    },
+    {
+      "id": "F039",
+      "batch": 4,
+      "group": "播放队列",
+      "scope": "playlist",
+      "kind": "ui",
+      "title": "播放列表回收站",
+      "summary": "误删列表需要可恢复",
+      "acceptance": [
+        "删除进回收站而非直接消失",
+        "可恢复或彻底清除",
+        "回收站条目保留 7 天"
+      ],
+      "touch_files": [
+        "java/feature/f039/F039Activity.kt",
+        "java/feature/f039/F039Module.kt",
+        "java/feature/f039/F039Engine.kt",
+        "res/layout/activity_f039.xml",
+        "res/values/strings_f039.xml"
+      ]
+    },
+    {
+      "id": "F040",
+      "batch": 4,
+      "group": "播放队列",
+      "scope": "playlist",
+      "kind": "ui",
+      "title": "循环策略中心",
+      "summary": "顺序/单曲/列表循环需要统一入口与记忆",
+      "acceptance": [
+        "三种策略可切换并显示当前",
+        "播放到末尾按策略行为正确",
+        "策略持久化"
+      ],
+      "touch_files": [
+        "java/feature/f040/F040Activity.kt",
+        "java/feature/f040/F040Module.kt",
+        "java/feature/f040/F040Engine.kt",
+        "res/layout/activity_f040.xml",
+        "res/values/strings_f040.xml"
+      ]
+    },
+    {
+      "id": "F041",
+      "batch": 4,
+      "group": "界面",
+      "scope": "ui",
+      "kind": "ui",
+      "title": "视图模式切换",
+      "summary": "网格与列表两种浏览模式，需要切换并记住",
+      "acceptance": [
+        "两模式即时切换",
+        "每页记住各自滚动位置",
+        "选择持久化"
+      ],
+      "touch_files": [
+        "java/feature/f041/F041Activity.kt",
+        "java/feature/f041/F041Module.kt",
+        "java/feature/f041/F041Engine.kt",
+        "res/layout/activity_f041.xml",
+        "res/values/strings_f041.xml"
+      ]
+    },
+    {
+      "id": "F042",
+      "batch": 4,
+      "group": "界面",
+      "scope": "ui",
+      "kind": "ui",
+      "title": "焦点记忆",
+      "summary": "返回列表时应回到上次停留的位置",
+      "acceptance": [
+        "记录每个列表最后聚焦项",
+        "返回后恢复焦点",
+        "数据失效时回退到首项"
+      ],
+      "touch_files": [
+        "java/feature/f042/F042Activity.kt",
+        "java/feature/f042/F042Module.kt",
+        "java/feature/f042/F042Engine.kt",
+        "res/layout/activity_f042.xml",
+        "res/values/strings_f042.xml"
+      ]
+    },
+    {
+      "id": "F043",
+      "batch": 5,
+      "group": "搜索",
+      "scope": "search",
+      "kind": "ui",
+      "title": "全局搜索",
+      "summary": "一个入口搜历史/收藏/本地/播放列表",
+      "acceptance": [
+        "四类数据统一检索",
+        "结果分组展示",
+        "空查询显示最近记录"
+      ],
+      "touch_files": [
+        "java/feature/f043/F043Activity.kt",
+        "java/feature/f043/F043Module.kt",
+        "java/feature/f043/F043Engine.kt",
+        "res/layout/activity_f043.xml",
+        "res/values/strings_f043.xml"
+      ]
+    },
+    {
+      "id": "F044",
+      "batch": 5,
+      "group": "搜索",
+      "scope": "search",
+      "kind": "ui",
+      "title": "搜索建议与联想",
+      "summary": "输入时给出候选，减少按键次数",
+      "acceptance": [
+        "输入 1 字后出候选",
+        "候选来自历史与本地库标题",
+        "点击候选直接搜索"
+      ],
+      "touch_files": [
+        "java/feature/f044/F044Activity.kt",
+        "java/feature/f044/F044Module.kt",
+        "java/feature/f044/F044Engine.kt",
+        "res/layout/activity_f044.xml",
+        "res/values/strings_f044.xml"
+      ]
+    },
+    {
+      "id": "F045",
+      "batch": 5,
+      "group": "搜索",
+      "scope": "search",
+      "kind": "ui",
+      "title": "搜索历史管理",
+      "summary": "搜索历史需要去重、限量与清空",
+      "acceptance": [
+        "重复关键词只留最新一条",
+        "上限 20 条超出淘汰最旧",
+        "可单条删除与整体清空"
+      ],
+      "touch_files": [
+        "java/feature/f045/F045Activity.kt",
+        "java/feature/f045/F045Module.kt",
+        "java/feature/f045/F045Engine.kt",
+        "res/layout/activity_f045.xml",
+        "res/values/strings_f045.xml"
+      ]
+    },
+    {
+      "id": "F046",
+      "batch": 5,
+      "group": "搜索",
+      "scope": "search",
+      "kind": "ui",
+      "title": "拼音首字母匹配",
+      "summary": "TV 遥控器打字慢，用首字母就能命中",
+      "acceptance": [
+        "中文标题支持全拼与首字母",
+        "命中结果排序按匹配度",
+        "英文标题按前缀匹配"
+      ],
+      "touch_files": [
+        "java/feature/f046/F046Activity.kt",
+        "java/feature/f046/F046Module.kt",
+        "java/feature/f046/F046Engine.kt",
+        "res/layout/activity_f046.xml",
+        "res/values/strings_f046.xml"
+      ]
+    },
+    {
+      "id": "F047",
+      "batch": 5,
+      "group": "搜索",
+      "scope": "search",
+      "kind": "ui",
+      "title": "搜索结果分类与空态",
+      "summary": "结果需要分组且无结果时给出引导",
+      "acceptance": [
+        "结果按数据源分组",
+        "每组显示条数",
+        "无结果展示空态建议"
+      ],
+      "touch_files": [
+        "java/feature/f047/F047Activity.kt",
+        "java/feature/f047/F047Module.kt",
+        "java/feature/f047/F047Engine.kt",
+        "res/layout/activity_f047.xml",
+        "res/values/strings_f047.xml"
+      ]
+    },
+    {
+      "id": "F048",
+      "batch": 5,
+      "group": "搜索",
+      "scope": "search",
+      "kind": "ui",
+      "title": "搜索防抖与竞态取消",
+      "summary": "快速输入时旧请求会覆盖新结果",
+      "acceptance": [
+        "输入 300ms 防抖",
+        "新查询取消旧任务",
+        "只有最新结果可渲染"
+      ],
+      "touch_files": [
+        "java/feature/f048/F048Activity.kt",
+        "java/feature/f048/F048Module.kt",
+        "java/feature/f048/F048Engine.kt",
+        "res/layout/activity_f048.xml",
+        "res/values/strings_f048.xml"
+      ]
+    },
+    {
+      "id": "F049",
+      "batch": 5,
+      "group": "搜索",
+      "scope": "search",
+      "kind": "ui",
+      "title": "热词与最近查询排序",
+      "summary": "首页搜索框需要热词与最近查询",
+      "acceptance": [
+        "热词按点击次数排序",
+        "最近查询按时间排序",
+        "点击直达搜索"
+      ],
+      "touch_files": [
+        "java/feature/f049/F049Activity.kt",
+        "java/feature/f049/F049Module.kt",
+        "java/feature/f049/F049Engine.kt",
+        "res/layout/activity_f049.xml",
+        "res/values/strings_f049.xml"
+      ]
+    },
+    {
+      "id": "F050",
+      "batch": 5,
+      "group": "搜索",
+      "scope": "search",
+      "kind": "ui",
+      "title": "模糊匹配容错",
+      "summary": "错字、简繁、空格差异不该让结果消失",
+      "acceptance": [
+        "容错 1 个字符差异",
+        "简繁统一",
+        "忽略空格与标点"
+      ],
+      "touch_files": [
+        "java/feature/f050/F050Activity.kt",
+        "java/feature/f050/F050Module.kt",
+        "java/feature/f050/F050Engine.kt",
+        "res/layout/activity_f050.xml",
+        "res/values/strings_f050.xml"
+      ]
+    },
+    {
+      "id": "F051",
+      "batch": 5,
+      "group": "搜索",
+      "scope": "search",
+      "kind": "ui",
+      "title": "结果关键字高亮",
+      "summary": "命中词在结果里高亮，便于扫读",
+      "acceptance": [
+        "命中片段高亮显示",
+        "多词命中分别高亮",
+        "高亮颜色走主题 token"
+      ],
+      "touch_files": [
+        "java/feature/f051/F051Activity.kt",
+        "java/feature/f051/F051Module.kt",
+        "java/feature/f051/F051Engine.kt",
+        "res/layout/activity_f051.xml",
+        "res/values/strings_f051.xml"
+      ]
+    },
+    {
+      "id": "F052",
+      "batch": 5,
+      "group": "搜索",
+      "scope": "search",
+      "kind": "ui",
+      "title": "搜索范围过滤",
+      "summary": "可按类型与时长缩小搜索范围",
+      "acceptance": [
+        "按类型多选过滤",
+        "按时长区间过滤",
+        "过滤条件与关键字叠加生效"
+      ],
+      "touch_files": [
+        "java/feature/f052/F052Activity.kt",
+        "java/feature/f052/F052Module.kt",
+        "java/feature/f052/F052Engine.kt",
+        "res/layout/activity_f052.xml",
+        "res/values/strings_f052.xml"
+      ]
+    },
+    {
+      "id": "F053",
+      "batch": 6,
+      "group": "网络",
+      "scope": "network",
+      "kind": "ui",
+      "title": "网络诊断面板",
+      "summary": "播放卡顿时要能判断是 DNS、连通性还是带宽问题",
+      "acceptance": [
+        "DNS 解析耗时与结果",
+        "目标地址 TCP 连通性与 RTT",
+        "给出结论建议"
+      ],
+      "touch_files": [
+        "java/feature/f053/F053Activity.kt",
+        "java/feature/f053/F053Module.kt",
+        "java/feature/f053/F053Engine.kt",
+        "res/layout/activity_f053.xml",
+        "res/values/strings_f053.xml"
+      ]
+    },
+    {
+      "id": "F054",
+      "batch": 6,
+      "group": "网络",
+      "scope": "network",
+      "kind": "ui",
+      "title": "线路测速缓存",
+      "summary": "测速结果需要缓存并排序，避免每次重测",
+      "acceptance": [
+        "测速结果带时间戳缓存",
+        "按速度排序展示",
+        "缓存过期后可重测"
+      ],
+      "touch_files": [
+        "java/feature/f054/F054Activity.kt",
+        "java/feature/f054/F054Module.kt",
+        "java/feature/f054/F054Engine.kt",
+        "res/layout/activity_f054.xml",
+        "res/values/strings_f054.xml"
+      ]
+    },
+    {
+      "id": "F055",
+      "batch": 6,
+      "group": "网络",
+      "scope": "network",
+      "kind": "ui",
+      "title": "自定义 DoH 解析",
+      "summary": "运营商 DNS 污染时需要自建 DoH",
+      "acceptance": [
+        "可配置 DoH 地址并启用",
+        "启用后解析走 DoH",
+        "失败回退系统 DNS"
+      ],
+      "touch_files": [
+        "java/feature/f055/F055Activity.kt",
+        "java/feature/f055/F055Module.kt",
+        "java/feature/f055/F055Engine.kt",
+        "res/layout/activity_f055.xml",
+        "res/values/strings_f055.xml"
+      ]
+    },
+    {
+      "id": "F056",
+      "batch": 6,
+      "group": "网络",
+      "scope": "network",
+      "kind": "ui",
+      "title": "代理配置",
+      "summary": "部分网络环境需要 HTTP/SOCKS 代理",
+      "acceptance": [
+        "支持 HTTP 与 SOCKS5 主机端口",
+        "可开关并即时生效",
+        "配置持久化"
+      ],
+      "touch_files": [
+        "java/feature/f056/F056Activity.kt",
+        "java/feature/f056/F056Module.kt",
+        "java/feature/f056/F056Engine.kt",
+        "res/layout/activity_f056.xml",
+        "res/values/strings_f056.xml"
+      ]
+    },
+    {
+      "id": "F057",
+      "batch": 6,
+      "group": "网络",
+      "scope": "network",
+      "kind": "ui",
+      "title": "缓冲与并发策略",
+      "summary": "弱网下默认缓冲策略容易卡顿",
+      "acceptance": [
+        "可设缓冲时长与并发连接数",
+        "预设「省流/均衡/激进」",
+        "设置持久化"
+      ],
+      "touch_files": [
+        "java/feature/f057/F057Activity.kt",
+        "java/feature/f057/F057Module.kt",
+        "java/feature/f057/F057Engine.kt",
+        "res/layout/activity_f057.xml",
+        "res/values/strings_f057.xml"
+      ]
+    },
+    {
+      "id": "F058",
+      "batch": 6,
+      "group": "网络",
+      "scope": "network",
+      "kind": "ui",
+      "title": "流量统计",
+      "summary": "需要知道本次与累计播放流量",
+      "acceptance": [
+        "记录会话与累计字节数",
+        "按天汇总",
+        "可清零"
+      ],
+      "touch_files": [
+        "java/feature/f058/F058Activity.kt",
+        "java/feature/f058/F058Module.kt",
+        "java/feature/f058/F058Engine.kt",
+        "res/layout/activity_f058.xml",
+        "res/values/strings_f058.xml"
+      ]
+    },
+    {
+      "id": "F059",
+      "batch": 6,
+      "group": "网络",
+      "scope": "network",
+      "kind": "ui",
+      "title": "请求头配置",
+      "summary": "部分直链需要特定 UA/Referer 才能播",
+      "acceptance": [
+        "可自定义 UA 与 Referer",
+        "按域名匹配不同配置",
+        "配置在播放请求中生效"
+      ],
+      "touch_files": [
+        "java/feature/f059/F059Activity.kt",
+        "java/feature/f059/F059Module.kt",
+        "java/feature/f059/F059Engine.kt",
+        "res/layout/activity_f059.xml",
+        "res/values/strings_f059.xml"
+      ]
+    },
+    {
+      "id": "F060",
+      "batch": 6,
+      "group": "网络",
+      "scope": "network",
+      "kind": "ui",
+      "title": "地址连通性预检",
+      "summary": "播放前先判断地址是否可达，失败直接提示",
+      "acceptance": [
+        "HEAD/GET Range 预检",
+        "超时 5 秒判定不可达",
+        "预检结果缓存 5 分钟"
+      ],
+      "touch_files": [
+        "java/feature/f060/F060Activity.kt",
+        "java/feature/f060/F060Module.kt",
+        "java/feature/f060/F060Engine.kt",
+        "res/layout/activity_f060.xml",
+        "res/values/strings_f060.xml"
+      ]
+    },
+    {
+      "id": "F061",
+      "batch": 7,
+      "group": "投屏",
+      "scope": "lan",
+      "kind": "ui",
+      "title": "DLNA 设备发现",
+      "summary": "局域网内的电视/盒子需要能被发现并投屏",
+      "acceptance": [
+        "SSDP 发现设备并列出",
+        "设备名与地址可读",
+        "可手动刷新"
+      ],
+      "touch_files": [
+        "java/feature/f061/F061Activity.kt",
+        "java/feature/f061/F061Module.kt",
+        "java/feature/f061/F061Engine.kt",
+        "res/layout/activity_f061.xml",
+        "res/values/strings_f061.xml"
+      ]
+    },
+    {
+      "id": "F062",
+      "batch": 7,
+      "group": "投屏",
+      "scope": "lan",
+      "kind": "ui",
+      "title": "投屏会话控制",
+      "summary": "投屏后需要控制播放/暂停/进度/音量",
+      "acceptance": [
+        "建立 AVTransport 会话",
+        "支持播放暂停与进度跳转",
+        "支持音量设置"
+      ],
+      "touch_files": [
+        "java/feature/f062/F062Activity.kt",
+        "java/feature/f062/F062Module.kt",
+        "java/feature/f062/F062Engine.kt",
+        "res/layout/activity_f062.xml",
+        "res/values/strings_f062.xml"
+      ]
+    },
+    {
+      "id": "F063",
+      "batch": 7,
+      "group": "投屏",
+      "scope": "lan",
+      "kind": "ui",
+      "title": "局域网设备扫描",
+      "summary": "需要知道网段内有哪些设备与开放端口",
+      "acceptance": [
+        "扫描 /24 网段存活主机",
+        "列出常见端口开放情况",
+        "结果可导出文本"
+      ],
+      "touch_files": [
+        "java/feature/f063/F063Activity.kt",
+        "java/feature/f063/F063Module.kt",
+        "java/feature/f063/F063Engine.kt",
+        "res/layout/activity_f063.xml",
+        "res/values/strings_f063.xml"
+      ]
+    },
+    {
+      "id": "F064",
+      "batch": 7,
+      "group": "投屏",
+      "scope": "lan",
+      "kind": "ui",
+      "title": "二维码分享地址",
+      "summary": "把当前播放地址分享到手机，扫一下就打开",
+      "acceptance": [
+        "将地址生成二维码位图",
+        "居中显示在对话框",
+        "长按可复制文本"
+      ],
+      "touch_files": [
+        "java/feature/f064/F064Activity.kt",
+        "java/feature/f064/F064Module.kt",
+        "java/feature/f064/F064Engine.kt",
+        "res/layout/activity_f064.xml",
+        "res/values/strings_f064.xml"
+      ]
+    },
+    {
+      "id": "F065",
+      "batch": 7,
+      "group": "投屏",
+      "scope": "lan",
+      "kind": "ui",
+      "title": "局域网目录浏览",
+      "summary": "电视上的文件想在手机/电脑上直接浏览下载",
+      "acceptance": [
+        "启动本地 HTTP 服务",
+        "目录列表可点击进入",
+        "文件可直接下载"
+      ],
+      "touch_files": [
+        "java/feature/f065/F065Activity.kt",
+        "java/feature/f065/F065Module.kt",
+        "java/feature/f065/F065Engine.kt",
+        "res/layout/activity_f065.xml",
+        "res/values/strings_f065.xml"
+      ]
+    },
+    {
+      "id": "F066",
+      "batch": 7,
+      "group": "投屏",
+      "scope": "lan",
+      "kind": "ui",
+      "title": "远程遥控通道",
+      "summary": "手机当遥控器控制电视上的播放器",
+      "acceptance": [
+        "建立 WebSocket 指令通道",
+        "支持播放/暂停/上下集/进度",
+        "断线自动重连"
+      ],
+      "touch_files": [
+        "java/feature/f066/F066Activity.kt",
+        "java/feature/f066/F066Module.kt",
+        "java/feature/f066/F066Engine.kt",
+        "res/layout/activity_f066.xml",
+        "res/values/strings_f066.xml"
+      ]
+    },
+    {
+      "id": "F067",
+      "batch": 8,
+      "group": "媒体服务",
+      "scope": "server",
+      "kind": "ui",
+      "title": "内置媒体服务器",
+      "summary": "把本机视频通过 HTTP 提供给局域网设备",
+      "acceptance": [
+        "NanoHTTPD 启停控制",
+        "监听端口可配置",
+        "显示访问地址"
+      ],
+      "touch_files": [
+        "java/feature/f067/F067Activity.kt",
+        "java/feature/f067/F067Module.kt",
+        "java/feature/f067/F067Engine.kt",
+        "res/layout/activity_f067.xml",
+        "res/values/strings_f067.xml"
+      ]
+    },
+    {
+      "id": "F068",
+      "batch": 8,
+      "group": "媒体服务",
+      "scope": "server",
+      "kind": "ui",
+      "title": "MIME 映射与响应头",
+      "summary": "不同容器需要正确 Content-Type 才能在浏览器播放",
+      "acceptance": [
+        "按扩展名映射 MIME",
+        "响应带头部缓存与 CORS",
+        "未知扩展名回退 octet-stream"
+      ],
+      "touch_files": [
+        "java/feature/f068/F068Activity.kt",
+        "java/feature/f068/F068Module.kt",
+        "java/feature/f068/F068Engine.kt",
+        "res/layout/activity_f068.xml",
+        "res/values/strings_f068.xml"
+      ]
+    },
+    {
+      "id": "F069",
+      "batch": 8,
+      "group": "媒体服务",
+      "scope": "server",
+      "kind": "ui",
+      "title": "访问日志与令牌鉴权",
+      "summary": "局域网服务需要知道谁在访问且不被陌生设备乱连",
+      "acceptance": [
+        "记录访问 IP/路径/状态码",
+        "可开启令牌校验",
+        "令牌可重置"
+      ],
+      "touch_files": [
+        "java/feature/f069/F069Activity.kt",
+        "java/feature/f069/F069Module.kt",
+        "java/feature/f069/F069Engine.kt",
+        "res/layout/activity_f069.xml",
+        "res/values/strings_f069.xml"
+      ]
+    },
+    {
+      "id": "F070",
+      "batch": 8,
+      "group": "媒体服务",
+      "scope": "server",
+      "kind": "ui",
+      "title": "Range 请求与流式传输",
+      "summary": "播放器拖动进度需要服务端支持 Range",
+      "acceptance": [
+        "解析 Range 头返回 206",
+        "大文件分块流式输出不整读内存",
+        "非法 Range 返回 416"
+      ],
+      "touch_files": [
+        "java/feature/f070/F070Activity.kt",
+        "java/feature/f070/F070Module.kt",
+        "java/feature/f070/F070Engine.kt",
+        "res/layout/activity_f070.xml",
+        "res/values/strings_f070.xml"
+      ]
+    },
+    {
+      "id": "F071",
+      "batch": 9,
+      "group": "备份",
+      "scope": "backup",
+      "kind": "ui",
+      "title": "全量数据备份",
+      "summary": "换机或重装前需要把本机数据打包",
+      "acceptance": [
+        "导出历史/收藏/播放列表/设置到 ZIP",
+        "ZIP 内含 manifest 版本号",
+        "备份文件可分享"
+      ],
+      "touch_files": [
+        "java/feature/f071/F071Activity.kt",
+        "java/feature/f071/F071Module.kt",
+        "java/feature/f071/F071Engine.kt",
+        "res/layout/activity_f071.xml",
+        "res/values/strings_f071.xml"
+      ]
+    },
+    {
+      "id": "F072",
+      "batch": 9,
+      "group": "备份",
+      "scope": "backup",
+      "kind": "ui",
+      "title": "备份恢复与校验",
+      "summary": "恢复前必须校验来源与版本，避免半坏数据",
+      "acceptance": [
+        "校验 manifest 版本与校验和",
+        "版本不兼容时提示",
+        "恢复过程可回滚"
+      ],
+      "touch_files": [
+        "java/feature/f072/F072Activity.kt",
+        "java/feature/f072/F072Module.kt",
+        "java/feature/f072/F072Engine.kt",
+        "res/layout/activity_f072.xml",
+        "res/values/strings_f072.xml"
+      ]
+    },
+    {
+      "id": "F073",
+      "batch": 9,
+      "group": "备份",
+      "scope": "backup",
+      "kind": "ui",
+      "title": "历史导入导出",
+      "summary": "历史记录需要单独导出为可读 JSON",
+      "acceptance": [
+        "导出为结构化 JSON",
+        "导入时按 id 去重",
+        "非法条目跳过并统计"
+      ],
+      "touch_files": [
+        "java/feature/f073/F073Activity.kt",
+        "java/feature/f073/F073Module.kt",
+        "java/feature/f073/F073Engine.kt",
+        "res/layout/activity_f073.xml",
+        "res/values/strings_f073.xml"
+      ]
+    },
+    {
+      "id": "F074",
+      "batch": 9,
+      "group": "备份",
+      "scope": "backup",
+      "kind": "ui",
+      "title": "收藏导入导出",
+      "summary": "收藏单独导出，便于迁移",
+      "acceptance": [
+        "导出 JSON 含标题/封面/时间",
+        "导入去重",
+        "统计成功与跳过数"
+      ],
+      "touch_files": [
+        "java/feature/f074/F074Activity.kt",
+        "java/feature/f074/F074Module.kt",
+        "java/feature/f074/F074Engine.kt",
+        "res/layout/activity_f074.xml",
+        "res/values/strings_f074.xml"
+      ]
+    },
+    {
+      "id": "F075",
+      "batch": 9,
+      "group": "备份",
+      "scope": "backup",
+      "kind": "ui",
+      "title": "CSV 数据导出",
+      "summary": "用表格软件查看观看记录",
+      "acceptance": [
+        "导出历史与收藏两张 CSV",
+        "字段带表头",
+        "文件写入下载目录"
+      ],
+      "touch_files": [
+        "java/feature/f075/F075Activity.kt",
+        "java/feature/f075/F075Module.kt",
+        "java/feature/f075/F075Engine.kt",
+        "res/layout/activity_f075.xml",
+        "res/values/strings_f075.xml"
+      ]
+    },
+    {
+      "id": "F076",
+      "batch": 9,
+      "group": "存储",
+      "scope": "storage",
+      "kind": "ui",
+      "title": "存储占用分析",
+      "summary": "需要看清缓存、数据库、下载各占多少",
+      "acceptance": [
+        "按分类统计占用",
+        "展示占比条",
+        "可跳转到对应清理入口"
+      ],
+      "touch_files": [
+        "java/feature/f076/F076Activity.kt",
+        "java/feature/f076/F076Module.kt",
+        "java/feature/f076/F076Engine.kt",
+        "res/layout/activity_f076.xml",
+        "res/values/strings_f076.xml"
+      ]
+    },
+    {
+      "id": "F077",
+      "batch": 10,
+      "group": "设置",
+      "scope": "settings",
+      "kind": "ui",
+      "title": "设置项搜索",
+      "summary": "设置项变多后需要搜索直达",
+      "acceptance": [
+        "索引全部设置项名称与别名",
+        "输入即过滤",
+        "点击跳转到该项"
+      ],
+      "touch_files": [
+        "java/feature/f077/F077Activity.kt",
+        "java/feature/f077/F077Module.kt",
+        "java/feature/f077/F077Engine.kt",
+        "res/layout/activity_f077.xml",
+        "res/values/strings_f077.xml"
+      ]
+    },
+    {
+      "id": "F078",
+      "batch": 10,
+      "group": "设置",
+      "scope": "settings",
+      "kind": "ui",
+      "title": "设置分组重置",
+      "summary": "某项调乱了需要恢复默认",
+      "acceptance": [
+        "按分组重置为默认值",
+        "二次确认防误触",
+        "重置后立即生效"
+      ],
+      "touch_files": [
+        "java/feature/f078/F078Activity.kt",
+        "java/feature/f078/F078Module.kt",
+        "java/feature/f078/F078Engine.kt",
+        "res/layout/activity_f078.xml",
+        "res/values/strings_f078.xml"
+      ]
+    },
+    {
+      "id": "F079",
+      "batch": 10,
+      "group": "设置",
+      "scope": "onboarding",
+      "kind": "ui",
+      "title": "首启动引导",
+      "summary": "新用户不知道权限与功能在哪",
+      "acceptance": [
+        "首次启动展示引导页",
+        "逐项说明权限用途",
+        "可跳过且不再重复弹出"
+      ],
+      "touch_files": [
+        "java/feature/f079/F079Activity.kt",
+        "java/feature/f079/F079Module.kt",
+        "java/feature/f079/F079Engine.kt",
+        "res/layout/activity_f079.xml",
+        "res/values/strings_f079.xml"
+      ]
+    },
+    {
+      "id": "F080",
+      "batch": 10,
+      "group": "设置",
+      "scope": "settings",
+      "kind": "ui",
+      "title": "隐私模式",
+      "summary": "公共场合观看不希望留下记录",
+      "acceptance": [
+        "开启后不写历史与续播进度",
+        "状态在首页可见",
+        "关闭后恢复记录"
+      ],
+      "touch_files": [
+        "java/feature/f080/F080Activity.kt",
+        "java/feature/f080/F080Module.kt",
+        "java/feature/f080/F080Engine.kt",
+        "res/layout/activity_f080.xml",
+        "res/values/strings_f080.xml"
+      ]
+    },
+    {
+      "id": "F081",
+      "batch": 10,
+      "group": "设置",
+      "scope": "settings",
+      "kind": "ui",
+      "title": "播放默认值中心",
+      "summary": "新装设备需要一次配好默认播放行为",
+      "acceptance": [
+        "默认倍速/比例/自动连播集中配置",
+        "改完对新播放生效",
+        "可一键恢复默认"
+      ],
+      "touch_files": [
+        "java/feature/f081/F081Activity.kt",
+        "java/feature/f081/F081Module.kt",
+        "java/feature/f081/F081Engine.kt",
+        "res/layout/activity_f081.xml",
+        "res/values/strings_f081.xml"
+      ]
+    },
+    {
+      "id": "F082",
+      "batch": 10,
+      "group": "设置",
+      "scope": "settings",
+      "kind": "ui",
+      "title": "界面缩放与字号",
+      "summary": "不同尺寸电视上字号与间距需要整体缩放",
+      "acceptance": [
+        "提供 90%~130% 缩放档",
+        "立即生效并持久化",
+        "不影响播放器全屏控件布局"
+      ],
+      "touch_files": [
+        "java/feature/f082/F082Activity.kt",
+        "java/feature/f082/F082Module.kt",
+        "java/feature/f082/F082Engine.kt",
+        "res/layout/activity_f082.xml",
+        "res/values/strings_f082.xml"
+      ]
+    },
+    {
+      "id": "F083",
+      "batch": 10,
+      "group": "设置",
+      "scope": "settings",
+      "kind": "ui",
+      "title": "减弱动效",
+      "summary": "低性能盒子上动画卡顿，需要可关闭",
+      "acceptance": [
+        "可切换标准/减弱",
+        "减弱后禁用转场与缩放动画",
+        "选择持久化"
+      ],
+      "touch_files": [
+        "java/feature/f083/F083Activity.kt",
+        "java/feature/f083/F083Module.kt",
+        "java/feature/f083/F083Engine.kt",
+        "res/layout/activity_f083.xml",
+        "res/values/strings_f083.xml"
+      ]
+    },
+    {
+      "id": "F084",
+      "batch": 10,
+      "group": "诊断",
+      "scope": "diagnostics",
+      "kind": "ui",
+      "title": "日志级别与导出",
+      "summary": "排障需要可调日志级别并一键导出",
+      "acceptance": [
+        "四级日志级别可切换",
+        "导出到文件可分享",
+        "导出文件包含设备与版本信息"
+      ],
+      "touch_files": [
+        "java/feature/f084/F084Activity.kt",
+        "java/feature/f084/F084Module.kt",
+        "java/feature/f084/F084Engine.kt",
+        "res/layout/activity_f084.xml",
+        "res/values/strings_f084.xml"
+      ]
+    },
+    {
+      "id": "F085",
+      "batch": 10,
+      "group": "诊断",
+      "scope": "diagnostics",
+      "kind": "ui",
+      "title": "崩溃捕获与报告",
+      "summary": "崩溃后需要留下堆栈便于定位",
+      "acceptance": [
+        "全局捕获未处理异常",
+        "堆栈写入本地文件",
+        "下次启动可查看与分享"
+      ],
+      "touch_files": [
+        "java/feature/f085/F085Activity.kt",
+        "java/feature/f085/F085Module.kt",
+        "java/feature/f085/F085Engine.kt",
+        "res/layout/activity_f085.xml",
+        "res/values/strings_f085.xml"
+      ]
+    },
+    {
+      "id": "F086",
+      "batch": 10,
+      "group": "设置",
+      "scope": "settings",
+      "kind": "ui",
+      "title": "关于页与许可证",
+      "summary": "开源分发需要展示依赖许可证",
+      "acceptance": [
+        "列出依赖与许可证",
+        "展示版本与构建时间",
+        "可跳转仓库地址"
+      ],
+      "touch_files": [
+        "java/feature/f086/F086Activity.kt",
+        "java/feature/f086/F086Module.kt",
+        "java/feature/f086/F086Engine.kt",
+        "res/layout/activity_f086.xml",
+        "res/values/strings_f086.xml"
+      ]
+    },
+    {
+      "id": "F087",
+      "batch": 11,
+      "group": "无障碍",
+      "scope": "ui",
+      "kind": "ui",
+      "title": "无障碍描述审计",
+      "summary": "图标按钮缺少描述，TalkBack 读不出来",
+      "acceptance": [
+        "扫描布局中缺少 contentDescription 的可点控件",
+        "给出清单",
+        "提供一键补全建议文本"
+      ],
+      "touch_files": [
+        "java/feature/f087/F087Activity.kt",
+        "java/feature/f087/F087Module.kt",
+        "java/feature/f087/F087Engine.kt",
+        "res/layout/activity_f087.xml",
+        "res/values/strings_f087.xml"
+      ]
+    },
+    {
+      "id": "F088",
+      "batch": 11,
+      "group": "界面",
+      "scope": "ui",
+      "kind": "ui",
+      "title": "遥控器按键自定义",
+      "summary": "不同遥控器键值不一致，需要重映射",
+      "acceptance": [
+        "捕获按键事件并展示键值",
+        "可绑定到播放/暂停/上下集",
+        "映射持久化"
+      ],
+      "touch_files": [
+        "java/feature/f088/F088Activity.kt",
+        "java/feature/f088/F088Module.kt",
+        "java/feature/f088/F088Engine.kt",
+        "res/layout/activity_f088.xml",
+        "res/values/strings_f088.xml"
+      ]
+    },
+    {
+      "id": "F089",
+      "batch": 11,
+      "group": "界面",
+      "scope": "ui",
+      "kind": "ui",
+      "title": "长按上下文菜单",
+      "summary": "长按一项需要直接出操作菜单",
+      "acceptance": [
+        "长按弹出菜单含播放/收藏/信息/删除",
+        "菜单可用 D-Pad 操作",
+        "操作后列表刷新"
+      ],
+      "touch_files": [
+        "java/feature/f089/F089Activity.kt",
+        "java/feature/f089/F089Module.kt",
+        "java/feature/f089/F089Engine.kt",
+        "res/layout/activity_f089.xml",
+        "res/values/strings_f089.xml"
+      ]
+    },
+    {
+      "id": "F090",
+      "batch": 11,
+      "group": "界面",
+      "scope": "ui",
+      "kind": "ui",
+      "title": "骨架屏与空态组件",
+      "summary": "加载与空列表需要统一的可复用视图",
+      "acceptance": [
+        "提供骨架屏与空态两种视图",
+        "可配置文案与图标",
+        "在列表页可直接复用"
+      ],
+      "touch_files": [
+        "java/feature/f090/F090Activity.kt",
+        "java/feature/f090/F090Module.kt",
+        "java/feature/f090/F090Engine.kt",
+        "res/layout/activity_f090.xml",
+        "res/values/strings_f090.xml"
+      ]
+    },
+    {
+      "id": "F091",
+      "batch": 11,
+      "group": "性能",
+      "scope": "perf",
+      "kind": "ui",
+      "title": "启动耗时打点",
+      "summary": "需要量化冷启动各阶段耗时",
+      "acceptance": [
+        "记录 Application/Activity 各阶段耗时",
+        "展示最近 10 次",
+        "可导出"
+      ],
+      "touch_files": [
+        "java/feature/f091/F091Activity.kt",
+        "java/feature/f091/F091Module.kt",
+        "java/feature/f091/F091Engine.kt",
+        "res/layout/activity_f091.xml",
+        "res/values/strings_f091.xml"
+      ]
+    },
+    {
+      "id": "F092",
+      "batch": 11,
+      "group": "性能",
+      "scope": "perf",
+      "kind": "ui",
+      "title": "内存与线程探针",
+      "summary": "长时间播放需要观察内存与线程增长",
+      "acceptance": [
+        "采样堆内存与线程数",
+        "曲线展示最近 5 分钟",
+        "异常增长给出提示"
+      ],
+      "touch_files": [
+        "java/feature/f092/F092Activity.kt",
+        "java/feature/f092/F092Module.kt",
+        "java/feature/f092/F092Engine.kt",
+        "res/layout/activity_f092.xml",
+        "res/values/strings_f092.xml"
+      ]
+    },
+    {
+      "id": "F093",
+      "batch": 11,
+      "group": "质量",
+      "scope": "quality",
+      "kind": "ui",
+      "title": "数据库迁移校验",
+      "summary": "升级后表结构不一致会导致崩溃",
+      "acceptance": [
+        "校验期望表与列是否存在",
+        "缺失时给出修复 SQL 建议",
+        "结果可导出"
+      ],
+      "touch_files": [
+        "java/feature/f093/F093Activity.kt",
+        "java/feature/f093/F093Module.kt",
+        "java/feature/f093/F093Engine.kt",
+        "res/layout/activity_f093.xml",
+        "res/values/strings_f093.xml"
+      ]
+    },
+    {
+      "id": "F094",
+      "batch": 11,
+      "group": "存储",
+      "scope": "storage",
+      "kind": "ui",
+      "title": "缓存分类清理",
+      "summary": "缓存需要按图片/视频/日志分类清理",
+      "acceptance": [
+        "分类统计与单独清理",
+        "清理有二次确认",
+        "清理后统计刷新"
+      ],
+      "touch_files": [
+        "java/feature/f094/F094Activity.kt",
+        "java/feature/f094/F094Module.kt",
+        "java/feature/f094/F094Engine.kt",
+        "res/layout/activity_f094.xml",
+        "res/values/strings_f094.xml"
+      ]
+    },
+    {
+      "id": "F095",
+      "batch": 12,
+      "group": "质量",
+      "scope": "quality",
+      "kind": "tooling",
+      "title": "播放进度逻辑单测",
+      "summary": "进度换算与续播判定需要回归保护",
+      "acceptance": [
+        "覆盖进度换算边界",
+        "覆盖续播阈值判定",
+        "gradlew testDebugUnitTest 通过"
+      ],
+      "touch_files": [
+        "test/java/com/tv/ball/feature/f095/F095ProgressLogicTest.kt",
+        "java/feature/f095/F095ProgressMath.kt"
+      ]
+    },
+    {
+      "id": "F096",
+      "batch": 12,
+      "group": "质量",
+      "scope": "quality",
+      "kind": "tooling",
+      "title": "字幕解析单测",
+      "summary": "SRT 解析是字幕功能的地基，需要单测",
+      "acceptance": [
+        "覆盖正常 SRT、空文件、异常时间轴",
+        "解析结果条目数与时间正确",
+        "gradlew testDebugUnitTest 通过"
+      ],
+      "touch_files": [
+        "test/java/com/tv/ball/feature/f096/F096SrtParserTest.kt",
+        "java/feature/f096/F096SrtParser.kt"
+      ]
+    },
+    {
+      "id": "F097",
+      "batch": 12,
+      "group": "质量",
+      "scope": "quality",
+      "kind": "tooling",
+      "title": "质量门禁脚本",
+      "summary": "提交前需要统一的最小检查",
+      "acceptance": [
+        "脚本检查编译、硬编码色值、TODO 残留",
+        "输出可读报告",
+        "退出码可用于 CI"
+      ],
+      "touch_files": [
+        "orchestrator/scripts/quality_gate.ps1",
+        "docs/QUALITY.md"
+      ]
+    },
+    {
+      "id": "F098",
+      "batch": 12,
+      "group": "质量",
+      "scope": "quality",
+      "kind": "tooling",
+      "title": "多语言资源审计",
+      "summary": "缺翻译会导致英文设备显示中文",
+      "acceptance": [
+        "扫描 strings.xml 与 values-en 键差异",
+        "输出缺失键清单",
+        "给出补全模板"
+      ],
+      "touch_files": [
+        "orchestrator/scripts/i18n_audit.py",
+        "docs/I18N.md"
+      ]
+    },
+    {
+      "id": "F099",
+      "batch": 12,
+      "group": "质量",
+      "scope": "quality",
+      "kind": "tooling",
+      "title": "依赖许可证报告",
+      "summary": "开源分发需要第三方许可证清单",
+      "acceptance": [
+        "从 gradle 依赖生成清单",
+        "标注许可证类型",
+        "输出 Markdown"
+      ],
+      "touch_files": [
+        "orchestrator/scripts/license_report.py",
+        "docs/LICENSES.md"
+      ]
+    },
+    {
+      "id": "F100",
+      "batch": 12,
+      "group": "质量",
+      "scope": "quality",
+      "kind": "tooling",
+      "title": "版本号与变更日志脚本",
+      "summary": "发版需要统一改版本并生成本次变更",
+      "acceptance": [
+        "脚本递增 versionCode/versionName",
+        "从提交记录生成 CHANGELOG 片段",
+        "dry-run 模式可用"
+      ],
+      "touch_files": [
+        "orchestrator/scripts/version_bump.py",
+        "docs/RELEASE.md"
+      ]
+    }
+  ]
+}

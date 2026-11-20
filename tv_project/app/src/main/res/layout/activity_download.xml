@@ -4,98 +4,91 @@
     android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5">
+    android:background="@color/theme_background">
 
     <!-- 主内容 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="#F5F5F5">
+        android:background="@color/theme_background">
 
-        <!-- 顶部紫色标题栏 -->
+        <!-- 顶部工具条：page 底（透明），高 72dp，标题 24sp bold 左对齐 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#673AB7"
-            android:orientation="vertical">
-            
-            <!-- 状态栏占位 -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="24dp" />
+            android:layout_height="@dimen/page_toolbar_height"
+            android:background="@android:color/transparent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="@dimen/page_margin">
 
-            <!-- 标题栏内容 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp">
+            <!-- 菜单图标：44dp 触摸区，图标 24dp -->
+            <ImageButton
+                android:id="@+id/btnMenu"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="菜单"
+                android:padding="10dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/menu"
+                app:tint="@color/theme_text_primary" />
 
-                <!-- 菜单图标 -->
-                <ImageView
-                    android:id="@+id/btnMenu"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/menu"
-                    android:tint="#FFFFFF"
-                    android:contentDescription="菜单" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:text="IDM+"
+                android:textAppearance="@style/TextAppearance.TVPlayer.PageTitle" />
 
-                <!-- IDM+ 标题 -->
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="IDM+"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:textColor="#FFFFFF"
-                    android:layout_marginStart="24dp" />
+            <!-- 右侧操作图标 -->
+            <ImageButton
+                android:id="@+id/btnFilter"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="筛选"
+                android:padding="10dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/filter"
+                app:tint="@color/theme_text_secondary" />
 
-                <!-- 右侧图标 -->
-                <ImageView
-                    android:id="@+id/btnFilter"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/filter"
-                    android:tint="#FFFFFF"
-                    android:layout_marginEnd="12dp"
-                    android:contentDescription="筛选" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:text="U"
+                android:textColor="@color/theme_text_secondary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="U"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:textColor="#FFFFFF"
-                    android:layout_marginEnd="12dp" />
-
-                <ImageView
-                    android:id="@+id/btnMore"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/more_vert"
-                    android:tint="#FFFFFF"
-                    android:contentDescription="更多" />
-            </LinearLayout>
+            <ImageButton
+                android:id="@+id/btnMore"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="更多"
+                android:padding="10dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/more_vert"
+                app:tint="@color/theme_text_secondary" />
         </LinearLayout>
 
-        <!-- 标签页 -->
+        <!-- 标签页：选中 = primary 文字，未选中 = 次要文字 -->
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:background="#673AB7"
+            android:background="@android:color/transparent"
             android:scrollbars="none">
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:orientation="horizontal"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp">
+                android:paddingStart="@dimen/page_margin"
+                android:paddingEnd="@dimen/page_margin">
 
                 <TextView
                     android:id="@+id/tabAll"
@@ -103,10 +96,11 @@
                     android:layout_height="match_parent"
                     android:text="全部"
                     android:textSize="14sp"
-                    android:textColor="#FFFFFF"
+                    android:textColor="?attr/colorPrimary"
+                    android:textStyle="bold"
                     android:gravity="center"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
                     android:background="?attr/selectableItemBackground" />
 
                 <TextView
@@ -115,10 +109,11 @@
                     android:layout_height="match_parent"
                     android:text="下载中"
                     android:textSize="14sp"
-                    android:textColor="#B39DDB"
+                    android:textColor="@color/theme_text_secondary"
                     android:gravity="center"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:layout_marginStart="4dp"
                     android:background="?attr/selectableItemBackground" />
 
                 <TextView
@@ -127,10 +122,11 @@
                     android:layout_height="match_parent"
                     android:text="已完成"
                     android:textSize="14sp"
-                    android:textColor="#B39DDB"
+                    android:textColor="@color/theme_text_secondary"
                     android:gravity="center"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:layout_marginStart="4dp"
                     android:background="?attr/selectableItemBackground" />
 
                 <TextView
@@ -139,10 +135,11 @@
                     android:layout_height="match_parent"
                     android:text="错误"
                     android:textSize="14sp"
-                    android:textColor="#B39DDB"
+                    android:textColor="@color/theme_text_secondary"
                     android:gravity="center"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:layout_marginStart="4dp"
                     android:background="?attr/selectableItemBackground" />
 
                 <TextView
@@ -151,10 +148,11 @@
                     android:layout_height="match_parent"
                     android:text="计划任务"
                     android:textSize="14sp"
-                    android:textColor="#B39DDB"
+                    android:textColor="@color/theme_text_secondary"
                     android:gravity="center"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:layout_marginStart="4dp"
                     android:background="?attr/selectableItemBackground" />
             </LinearLayout>
         </HorizontalScrollView>
@@ -170,14 +168,20 @@
                 android:id="@+id/rvDownloads"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="#F5F5F5" />
+                android:background="@color/theme_background"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="96dp"
+                android:clipToPadding="false"
+                android:scrollbars="none" />
 
             <!-- 遮罩层 -->
             <View
                 android:id="@+id/fabOverlay"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="#80000000"
+                android:background="@color/theme_overlay"
                 android:visibility="gone"
                 android:clickable="true" />
 
@@ -201,8 +205,8 @@
                     android:layout_height="wrap_content"
                     android:text="从文本文件导入"
                     android:textSize="14sp"
-                    android:textColor="#FFFFFF"
-                    android:background="#8BC34A"
+                    android:textColor="@color/theme_text_primary"
+                    android:background="@drawable/bg_secondary_button"
                     android:paddingStart="12dp"
                     android:paddingEnd="12dp"
                     android:paddingTop="8dp"
@@ -213,8 +217,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@drawable/file"
-                    app:tint="#FFFFFF"
-                    app:backgroundTint="#8BC34A"
+                    app:tint="@color/theme_text_secondary"
+                    app:backgroundTint="@color/surface_block"
+                    app:elevation="0dp"
                     app:fabSize="mini"
                     android:clickable="false"
                     android:focusable="false"
@@ -241,8 +246,8 @@
                     android:layout_height="wrap_content"
                     android:text="从剪贴板"
                     android:textSize="14sp"
-                    android:textColor="#FFFFFF"
-                    android:background="#FF7043"
+                    android:textColor="@color/theme_text_primary"
+                    android:background="@drawable/bg_secondary_button"
                     android:paddingStart="12dp"
                     android:paddingEnd="12dp"
                     android:paddingTop="8dp"
@@ -253,8 +258,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@drawable/clipboard"
-                    app:tint="#FFFFFF"
-                    app:backgroundTint="#FF7043"
+                    app:tint="@color/theme_text_secondary"
+                    app:backgroundTint="@color/surface_block"
+                    app:elevation="0dp"
                     app:fabSize="mini"
                     android:clickable="false"
                     android:focusable="false"
@@ -281,8 +287,8 @@
                     android:layout_height="wrap_content"
                     android:text="添加链接"
                     android:textSize="14sp"
-                    android:textColor="#FFFFFF"
-                    android:background="#5C6BC0"
+                    android:textColor="@color/theme_text_primary"
+                    android:background="@drawable/bg_secondary_button"
                     android:paddingStart="12dp"
                     android:paddingEnd="12dp"
                     android:paddingTop="8dp"
@@ -293,15 +299,16 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@drawable/link"
-                    app:tint="#FFFFFF"
-                    app:backgroundTint="#5C6BC0"
+                    app:tint="@color/theme_text_secondary"
+                    app:backgroundTint="@color/surface_block"
+                    app:elevation="0dp"
                     app:fabSize="mini"
                     android:clickable="false"
                     android:focusable="false"
                     android:contentDescription="添加链接" />
             </LinearLayout>
 
-            <!-- 主按钮 -->
+            <!-- 主按钮：一屏唯一的主操作 -->
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/fabMain"
                 android:layout_width="wrap_content"
@@ -309,8 +316,9 @@
                 android:layout_gravity="bottom|end"
                 android:layout_margin="16dp"
                 android:src="@drawable/plus_light"
-                app:tint="#FFFFFF"
-                app:backgroundTint="#673AB7"
+                app:tint="@color/theme_on_primary"
+                app:backgroundTint="@color/theme_primary"
+                app:elevation="2dp"
                 android:contentDescription="添加下载" />
         </FrameLayout>
 

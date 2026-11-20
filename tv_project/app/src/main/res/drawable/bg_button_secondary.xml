@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 次按钮：surface_block 填充 + 无描边，圆角 16dp -->
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="#201976D2">
+    android:color="@color/theme_divider">
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="#E3F2FD" />
-            <corners android:radius="12dp" />
+            <solid android:color="@color/surface_block" />
+            <corners android:radius="@dimen/radius_md" />
         </shape>
     </item>
 </ripple>

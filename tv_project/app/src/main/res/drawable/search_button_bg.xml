@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 一屏唯一的主操作：实心 primary + onPrimary，胶囊圆角 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="#FF6B6B" />
-    <corners android:radius="20dp" />
+    <solid android:color="@color/theme_primary" />
+    <corners android:radius="@dimen/radius_full" />
 </shape>

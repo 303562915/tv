@@ -20,7 +20,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="12dp"
             android:layout_marginTop="10dp"
-            app:cardBackgroundColor="#FFFFFFFF"
+            app:cardBackgroundColor="@color/surface_card"
             app:cardCornerRadius="12dp"
             app:cardElevation="0dp"
             app:strokeWidth="0dp">
@@ -37,7 +37,7 @@
                     android:text="聚合解析"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    android:textColor="#333333"
+                    android:textColor="@color/theme_text_primary"
                     android:paddingBottom="8dp" />
 
                 <TextView
@@ -45,7 +45,7 @@
                     android:layout_height="wrap_content"
                     android:text="支持解析抖音、快手、B站等平台视频"
                     android:textSize="14sp"
-                    android:textColor="#999999" />
+                    android:textColor="@color/theme_text_secondary" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -55,7 +55,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="12dp"
             android:layout_marginTop="0dp"
-            app:cardBackgroundColor="#FFFFFFFF"
+            app:cardBackgroundColor="@color/surface_card"
             app:cardCornerRadius="12dp"
             app:cardElevation="0dp"
             app:strokeWidth="0dp">
@@ -71,7 +71,7 @@
                     android:layout_height="wrap_content"
                     android:text="视频链接"
                     android:textSize="16sp"
-                    android:textColor="#333333"
+                    android:textColor="@color/theme_text_primary"
                     android:textStyle="bold"
                     android:paddingBottom="8dp" />
 
@@ -107,7 +107,7 @@
                         android:layout_marginStart="8dp"
                         android:text="抖音"
                         android:textSize="16sp"
-                        android:textColor="#333333"
+                        android:textColor="@color/theme_text_primary"
                         android:textStyle="bold" />
                 </LinearLayout>
 
@@ -132,7 +132,7 @@
             android:layout_margin="12dp"
             android:layout_marginTop="0dp"
             android:visibility="gone"
-            app:cardBackgroundColor="#FFFFFFFF"
+            app:cardBackgroundColor="@color/surface_card"
             app:cardCornerRadius="12dp"
             app:cardElevation="0dp"
             app:strokeWidth="0dp">
@@ -148,7 +148,7 @@
                     android:layout_height="wrap_content"
                     android:text="解析结果"
                     android:textSize="16sp"
-                    android:textColor="#333333"
+                    android:textColor="@color/theme_text_primary"
                     android:textStyle="bold"
                     android:paddingBottom="12dp" />
 
@@ -163,7 +163,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="200dp"
                         android:scaleType="centerCrop"
-                        android:background="#F0F0F0" />
+                        android:background="@color/theme_divider" />
 
                     <!-- 图集网格 -->
                     <androidx.recyclerview.widget.RecyclerView
@@ -182,7 +182,7 @@
                     android:layout_marginTop="12dp"
                     android:text="视频标题"
                     android:textSize="16sp"
-                    android:textColor="#333333"
+                    android:textColor="@color/theme_text_primary"
                     android:textStyle="bold"
                     android:maxLines="2"
                     android:ellipsize="end" />
@@ -195,7 +195,7 @@
                     android:layout_marginTop="4dp"
                     android:text="作者"
                     android:textSize="14sp"
-                    android:textColor="#999999" />
+                    android:textColor="@color/theme_text_secondary" />
 
                 <!-- 操作按钮 -->
                 <LinearLayout

@@ -14,17 +14,24 @@ class LocalVideoAdapter(
     private val onFolderClick: (VideoFolder) -> Unit
 ) : ListAdapter<VideoFolder, LocalVideoAdapter.ViewHolder>(DiffCallback()) {
     
-    companion object {
-        // 创建默认占位图（灰色）
-        private val PLACEHOLDER_BITMAP: Bitmap by lazy {
-            Bitmap.createBitmap(320, 180, Bitmap.Config.ARGB_8888).apply {
-                val canvas = Canvas(this)
-                val paint = Paint().apply {
-                    color = 0xFFEEEEEE.toInt()
-                }
-                canvas.drawRect(0f, 0f, 320f, 180f, paint)
+    // 占位图底走 inset token，随主题切换重建
+    private var placeholderBitmap: Bitmap? = null
+
+    private fun placeholder(context: android.content.Context): Bitmap {
+        placeholderBitmap?.let { return it }
+        val appContext = context.applicationContext
+        val bitmap = Bitmap.createBitmap(320, 180, Bitmap.Config.ARGB_8888).apply {
+            val canvas = Canvas(this)
+            val paint = Paint().apply {
+                color = androidx.core.content.ContextCompat.getColor(
+                    appContext,
+                    com.tv.ball.R.color.surface_inset
+                )
             }
+            canvas.drawRect(0f, 0f, 320f, 180f, paint)
         }
+        placeholderBitmap = bitmap
+        return bitmap
     }
     
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -49,7 +56,7 @@ class LocalVideoAdapter(
             binding.videoCount.text = "${folder.videoCount} 个视频"
             
             // 使用缩略图或占位图
-            val bitmap = folder.thumbnail ?: PLACEHOLDER_BITMAP
+            val bitmap = folder.thumbnail ?: placeholder(binding.root.context)
             binding.thumbnail.setImageBitmap(bitmap)
             
             binding.root.setOnClickListener {
@@ -68,3 +75,4 @@ class LocalVideoAdapter(
         }
     }
 }
+

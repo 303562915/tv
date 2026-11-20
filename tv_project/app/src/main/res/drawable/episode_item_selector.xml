@@ -1,27 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  选集格子的按下态：FlClash Press 段只允许墨水层，不做缩放。
+  底为 block（未选中），已看为 inset 时由代码叠加半透明墨水。
+-->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 选中状态 -->
-    <item android:state_selected="true">
-        <shape android:shape="rectangle">
-            <solid android:color="@color/theme_accent" />
-            <corners android:radius="12dp" />
-        </shape>
-    </item>
-    
-    <!-- 按下状态 -->
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
-            <solid android:color="#E0E0E0" />
-            <corners android:radius="12dp" />
+            <solid android:color="@color/surface_inset" />
+            <corners android:radius="@dimen/radius_sm" />
         </shape>
     </item>
-    
-    <!-- 默认状态 -->
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="#FFFFFF" />
-            <corners android:radius="12dp" />
-            <stroke android:width="1dp" android:color="#E0E0E0" />
+            <solid android:color="@color/surface_block" />
+            <corners android:radius="@dimen/radius_sm" />
         </shape>
     </item>
 </selector>

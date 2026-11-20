@@ -39,11 +39,13 @@ class VideoListAdapter(
             // 处理空的封面 URL
             val coverUrl = if (video.coverUrl.isNullOrEmpty()) {
                 android.util.Log.d("VideoListAdapter", "封面 URL 为空，使用占位图: ${video.title}")
-                // 使用一个占位图URL或者设置背景色
-                binding.videoCover.setBackgroundColor(0xFFE0E0E0.toInt()) // 浅灰色背景
+                // 空封面时用 inset 井占位
+                binding.videoCover.setBackgroundColor(
+                    binding.root.context.getColor(R.color.surface_inset)
+                )
                 null
             } else {
-                binding.videoCover.setBackgroundColor(0x00000000) // 透明背景
+                binding.videoCover.setBackgroundColor(android.graphics.Color.TRANSPARENT)
                 video.coverUrl
             }
             

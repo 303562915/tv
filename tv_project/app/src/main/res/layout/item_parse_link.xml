@@ -9,9 +9,10 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="56dp"
         android:orientation="horizontal"
-        android:padding="16dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
         android:gravity="center_vertical">
 
         <!-- 类型标签 -->
@@ -20,7 +21,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="M3U8"
-            android:textColor="@android:color/white"
+            android:textColor="@color/theme_text_secondary"
             android:textSize="10sp"
             android:paddingStart="8dp"
             android:paddingEnd="8dp"
@@ -41,7 +42,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="链接 1"
-                android:textColor="#333333"
+                android:textColor="@color/theme_text_primary"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:maxLines="1"
@@ -53,7 +54,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="https://example.com/video.m3u8"
-                android:textColor="#999999"
+                android:textColor="@color/theme_text_secondary"
                 android:textSize="10sp"
                 android:maxLines="2"
                 android:ellipsize="end" />
@@ -65,13 +66,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="播放中"
-            android:textColor="#4CAF50"
+            android:textColor="@color/theme_success"
             android:textSize="10sp"
             android:paddingStart="8dp"
             android:paddingEnd="8dp"
             android:paddingTop="4dp"
             android:paddingBottom="4dp"
-            android:background="@drawable/bg_current_label"
+            android:background="@drawable/bg_tag_green"
             android:layout_marginStart="8dp"
             android:visibility="gone" />
 
@@ -80,9 +81,9 @@
     <!-- 分隔线 -->
     <View
         android:layout_width="match_parent"
-        android:layout_height="1dp"
+        android:layout_height="1px"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:background="#F0F0F0" />
+        android:background="@color/theme_divider" />
 
 </LinearLayout>

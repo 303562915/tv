@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.tv.ball.R
 import com.tv.ball.databinding.ItemRankingBinding
 
 class RankingAdapter(
@@ -43,14 +44,12 @@ class RankingAdapter(
                 binding.tvPlayCount.visibility = android.view.View.GONE
             }
             
-            // 设置排名背景颜色
-            val rankColor = when (item.rank) {
-                1 -> 0xFFFF6B6B.toInt()
-                2 -> 0xFFFF9F43.toInt()
-                3 -> 0xFFFECA57.toInt()
-                else -> 0xFF999999.toInt()
+            // 排名只用文字上色，徽章底保持 inset 井
+            val rankTextColor = when (item.rank) {
+                1, 2, 3 -> R.color.theme_primary
+                else -> R.color.theme_text_secondary
             }
-            binding.tvRank.setBackgroundColor(rankColor)
+            binding.tvRank.setTextColor(binding.root.context.getColor(rankTextColor))
             
             binding.root.setOnClickListener {
                 onItemClick(item)

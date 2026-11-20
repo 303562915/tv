@@ -3,16 +3,21 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
     android:fitsSystemWindows="true">
 
+    <!-- 顶栏：不铺底色，搜索胶囊是唯一填充 -->
     <LinearLayout
         android:id="@+id/topBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="12dp"
+        android:background="@android:color/transparent"
         android:gravity="center_vertical"
-        android:background="?attr/colorSurfaceContainer"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/page_margin"
+        android:paddingTop="8dp"
+        android:paddingEnd="@dimen/page_margin"
+        android:paddingBottom="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -21,37 +26,38 @@
             android:id="@+id/searchBox"
             android:layout_width="0dp"
             android:layout_height="40dp"
+            android:layout_marginEnd="@dimen/card_gap"
             android:layout_weight="1"
-            android:layout_marginEnd="8dp"
-            app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
-            app:cardElevation="2dp"
-            app:cardCornerRadius="20dp"
             android:clickable="true"
             android:focusable="true"
-            android:foreground="?attr/selectableItemBackground">
+            android:foreground="?attr/selectableItemBackground"
+            app:cardBackgroundColor="@color/surface_inset"
+            app:cardCornerRadius="@dimen/radius_full"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp">
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/card_padding"
+                android:paddingEnd="@dimen/card_padding">
 
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@drawable/ic_search"
-                    android:tint="?android:attr/textColorSecondary" />
+                    app:tint="@color/theme_text_secondary" />
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/card_gap"
                     android:layout_weight="1"
-                    android:layout_marginStart="8dp"
                     android:text="搜索 | 筛选"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="14sp" />
+                    android:textColor="@color/theme_text_secondary"
+                    android:textSize="15sp" />
 
             </LinearLayout>
 
@@ -61,9 +67,10 @@
             android:id="@+id/ivHistory"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/history"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:padding="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless" />
+            android:src="@drawable/history"
+            app:tint="@color/theme_text_secondary" />
 
     </LinearLayout>
 
@@ -111,28 +118,29 @@
     </FrameLayout>
     -->
 
-    <!-- 继续播放卡片 -->
+    <!-- 继续播放卡片：卡上一行，填充表达结构 -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardContinuePlay"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginStart="@dimen/page_margin"
+        android:layout_marginTop="@dimen/card_gap"
+        android:layout_marginEnd="@dimen/page_margin"
         android:visibility="gone"
-        app:cardBackgroundColor="@color/theme_card"
-        app:cardCornerRadius="6dp"
+        app:cardBackgroundColor="@color/surface_card"
+        app:cardCornerRadius="@dimen/radius_md"
         app:cardElevation="0dp"
-        app:strokeWidth="0dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/topBar">
+        app:layout_constraintTop_toBottomOf="@id/topBar"
+        app:strokeWidth="0dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="10dp">
+            android:padding="@dimen/card_padding">
 
             <TextView
                 android:id="@+id/tvContinuePlayTitle"
@@ -142,34 +150,39 @@
                 android:ellipsize="marquee"
                 android:singleLine="true"
                 android:text="继续播放： "
-                android:textColor="#FFFFFFFF"
+                android:textColor="@color/theme_text_primary"
+                android:textSize="15sp"
                 android:textStyle="bold" />
 
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/play"
-                app:tint="#FFFFFFFF" />
+                app:tint="?attr/colorPrimary" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- 分类 Tab：选中 primary，未选中 onSurfaceVariant，无下划线 -->
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:background="?attr/colorSurfaceContainer"
-        app:tabIndicatorHeight="0dp"
-        app:tabRippleColor="@android:color/transparent"
-        app:tabMinWidth="60dp"
-        app:tabPaddingStart="12dp"
-        app:tabPaddingEnd="12dp"
-        app:tabSelectedTextColor="@color/theme_accent"
-        app:tabTextColor="@color/theme_text_secondary"
+        android:background="@android:color/transparent"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/cardContinuePlay"
-        app:tabMode="scrollable" />
+        app:tabIndicatorHeight="0dp"
+        app:tabMinWidth="60dp"
+        app:tabMode="scrollable"
+        app:tabPaddingEnd="@dimen/tab_padding"
+        app:tabPaddingStart="@dimen/tab_padding"
+        app:tabRippleColor="@android:color/transparent"
+        app:tabSelectedTextColor="@color/theme_primary"
+        app:tabTextAppearance="@style/TabTextAppearance"
+        app:tabTextColor="@color/theme_text_secondary" />
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefresh"
@@ -192,6 +205,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="暂无视频"
+        android:textColor="@color/theme_text_secondary"
         android:textSize="16sp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -200,4 +214,3 @@
         app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

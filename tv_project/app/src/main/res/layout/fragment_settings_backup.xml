@@ -22,7 +22,7 @@
             android:layout_margin="10dp"
             android:layout_marginTop="0dp"
             android:visibility="gone"
-            app:cardBackgroundColor="#2196F3"
+            app:cardBackgroundColor="@color/surface_card"
             app:cardCornerRadius="6dp"
             app:cardElevation="0dp"
             app:strokeWidth="0dp">
@@ -42,14 +42,14 @@
                     android:ellipsize="marquee"
                     android:singleLine="true"
                     android:text="继续播放： "
-                    android:textColor="#FFFFFFFF"
+                    android:textColor="@color/theme_text_primary"
                     android:textStyle="bold" />
 
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/play"
-                    app:tint="#FFFFFFFF" />
+                    app:tint="@color/theme_text_primary" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

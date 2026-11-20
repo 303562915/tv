@@ -326,23 +326,7 @@ class HomeFragment : Fragment() {
         // 使用 TabLayoutMediator 连接 TabLayout 和 ViewPager2
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             val category = categories[position]
-
-            // 创建自定义 TextView
-            val textView = TextView(requireContext()).apply {
-                text = category.name
-                gravity = android.view.Gravity.CENTER
-                setPadding(
-                    resources.getDimensionPixelSize(R.dimen.tab_padding),
-                    0,
-                    resources.getDimensionPixelSize(R.dimen.tab_padding),
-                    0
-                )
-                setTextColor(resources.getColor(R.color.theme_text_secondary, null))
-                setTypeface(typeface, android.graphics.Typeface.NORMAL)
-                textSize = 16f
-            }
-
-            tab.customView = textView
+            tab.customView = buildTabView(category.name, position == binding.viewPager.currentItem)
         }.attach()
 
         // 监听页面切换，更新样式和加载数据
@@ -353,17 +337,7 @@ class HomeFragment : Fragment() {
                 // 更新 Tab 样式
                 for (i in 0 until binding.tabLayout.tabCount) {
                     val tab = binding.tabLayout.getTabAt(i)
-                    (tab?.customView as? TextView)?.apply {
-                        if (i == position) {
-                            setTextColor(resources.getColor(R.color.theme_accent, null))
-                            setTypeface(typeface, android.graphics.Typeface.BOLD)
-                            textSize = 20f
-                        } else {
-                            setTextColor(resources.getColor(R.color.theme_text_secondary, null))
-                            setTypeface(typeface, android.graphics.Typeface.NORMAL)
-                            textSize = 16f
-                        }
-                    }
+                    (tab?.customView as? TextView)?.let { styleTab(it, i == position) }
                 }
 
                 // 加载当前分类的数据
@@ -371,6 +345,41 @@ class HomeFragment : Fragment() {
                 viewModel.loadVideos(category.id, refresh = true)
             }
         })
+    }
+
+    private fun buildTabView(name: String, selected: Boolean): TextView {
+        val density = resources.displayMetrics.density
+        val padH = (4 * density).toInt()
+        val padV = (6 * density).toInt()
+        return TextView(requireContext()).apply {
+            text = name
+            gravity = android.view.Gravity.CENTER
+            setPadding(padH, padV, padH, padV)
+            styleTab(this, selected)
+        }
+    }
+
+    /**
+     * 选中 primary + 浅底胶囊，未选中 onSurfaceVariant，无下划线（FlClash 状态色只标选中项）
+     */
+    private fun styleTab(tabView: TextView, selected: Boolean) {
+        val context = tabView.context
+        tabView.setTextColor(
+            context.getColor(if (selected) R.color.theme_primary else R.color.theme_text_secondary)
+        )
+        tabView.setTypeface(
+            tabView.typeface,
+            if (selected) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL
+        )
+        tabView.textSize = if (selected) 20f else 16f
+        tabView.background = if (selected) {
+            android.graphics.drawable.GradientDrawable().apply {
+                cornerRadius = resources.getDimension(R.dimen.radius_full)
+                setColor(context.getColor(R.color.surface_block))
+            }
+        } else {
+            null
+        }
     }
 
     private fun setupRecyclerView() {
@@ -527,9 +536,10 @@ class HomeFragment : Fragment() {
 
         binding.cardContinuePlay.visibility = View.VISIBLE
 
-        // 应用主题色到卡片
-        val themeColor = com.tv.ball.di.Dependencies.configRepository.getThemeColor()
-        binding.cardContinuePlay.setCardBackgroundColor(themeColor)
+        // 卡片保持 card 表面，颜色只留给状态
+        binding.cardContinuePlay.setCardBackgroundColor(
+            requireContext().getColor(R.color.surface_card)
+        )
 
         // 格式化标题
         val titleText = if (history.currentEpisode.isNullOrEmpty()) {
@@ -538,8 +548,9 @@ class HomeFragment : Fragment() {
             "继续播放：${history.videoTitle} - ${history.currentEpisode}"
         }
         binding.tvContinuePlayTitle.text = titleText
-        // 设置文字为白色以便在主题色背景上显示
-        binding.tvContinuePlayTitle.setTextColor(android.graphics.Color.WHITE)
+        binding.tvContinuePlayTitle.setTextColor(
+            requireContext().getColor(R.color.theme_text_primary)
+        )
 
         // 点击事件
         binding.cardContinuePlay.setOnClickListener {

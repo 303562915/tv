@@ -307,9 +307,9 @@
                     android:maxHeight="4dp"
                     android:minHeight="4dp"
                     android:progressDrawable="@android:drawable/progress_horizontal"
-                    android:progressTint="#FF3700B3"
-                    android:secondaryProgressTint="#40FFFFFF"
-                    android:thumbTint="#FF3700B3"
+                    android:progressTint="@color/player_progress_played"
+                    android:secondaryProgressTint="@color/player_progress_buffered"
+                    android:thumbTint="@color/player_progress_played"
                     android:thumbOffset="0dp" />
             </FrameLayout>
 

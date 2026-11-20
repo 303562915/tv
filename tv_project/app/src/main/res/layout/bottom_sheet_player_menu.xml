@@ -4,9 +4,12 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@android:color/white">
-    
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="16dp"
+    android:paddingBottom="24dp"
+    android:background="@drawable/bg_bottom_sheet">
+
     <!-- 标题 -->
     <TextView
         android:layout_width="match_parent"
@@ -14,134 +17,146 @@
         android:text="播放设置"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:textColor="@android:color/black"
-        android:paddingBottom="16dp"/>
-    
+        android:textColor="@color/theme_text_primary"
+        android:paddingBottom="16dp" />
+
     <!-- 画面比例 -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="画面比例"
         android:textSize="14sp"
-        android:textColor="@android:color/black"
+        android:textColor="@color/theme_text_secondary"
         android:paddingTop="8dp"
-        android:paddingBottom="8dp"/>
-    
+        android:paddingBottom="8dp" />
+
     <RadioGroup
         android:id="@+id/aspectRatioGroup"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-        
+
         <RadioButton
             android:id="@+id/aspectRatioFit"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="自适应"
-            android:checked="true"/>
-        
+            android:textColor="@color/theme_text_primary"
+            android:buttonTint="@color/theme_primary"
+            android:checked="true" />
+
         <RadioButton
             android:id="@+id/aspectRatio169"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="16:9"/>
-        
+            android:text="16:9"
+            android:textColor="@color/theme_text_primary"
+            android:buttonTint="@color/theme_primary" />
+
         <RadioButton
             android:id="@+id/aspectRatio43"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="4:3"/>
+            android:text="4:3"
+            android:textColor="@color/theme_text_primary"
+            android:buttonTint="@color/theme_primary" />
     </RadioGroup>
-    
+
     <RadioGroup
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-        
+
         <RadioButton
             android:id="@+id/aspectRatioFill"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="铺满"/>
-        
+            android:text="铺满"
+            android:textColor="@color/theme_text_primary"
+            android:buttonTint="@color/theme_primary" />
+
         <RadioButton
             android:id="@+id/aspectRatioZoom"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="放大"/>
-        
+            android:text="放大"
+            android:textColor="@color/theme_text_primary"
+            android:buttonTint="@color/theme_primary" />
+
         <View
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_weight="1"/>
+            android:layout_weight="1" />
     </RadioGroup>
-    
+
     <View
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#E0E0E0"
+        android:layout_height="1px"
+        android:background="@color/theme_divider"
         android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"/>
-    
+        android:layout_marginBottom="16dp" />
+
     <!-- 播放倍速 -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="播放倍速"
         android:textSize="14sp"
-        android:textColor="@android:color/black"
-        android:paddingBottom="8dp"/>
-    
+        android:textColor="@color/theme_text_secondary"
+        android:paddingBottom="8dp" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical">
-        
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0.5×"
-            android:textSize="12sp"/>
-        
+            android:textSize="12sp"
+            android:textColor="@color/theme_text_secondary" />
+
         <SeekBar
             android:id="@+id/speedSeekBar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"/>
-        
+            android:layout_marginEnd="8dp" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="2.0×"
-            android:textSize="12sp"/>
-        
+            android:textSize="12sp"
+            android:textColor="@color/theme_text_secondary" />
+
         <TextView
             android:id="@+id/speedValueText"
             android:layout_width="60dp"
             android:layout_height="wrap_content"
             android:text="1.00×"
             android:textSize="14sp"
-            android:textColor="@android:color/holo_blue_dark"
+            android:textColor="@color/theme_primary"
             android:textStyle="bold"
             android:gravity="center"
-            android:layout_marginStart="8dp"/>
+            android:layout_marginStart="8dp" />
     </LinearLayout>
-    
+
     <!-- 快速倍速按钮 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_marginTop="8dp">
-        
+
         <Button
             android:id="@+id/speed05Button"
             android:layout_width="0dp"
@@ -149,9 +164,10 @@
             android:layout_weight="1"
             android:text="0.5×"
             android:textSize="12sp"
-            android:layout_marginEnd="4dp"
-            style="?android:attr/buttonBarButtonStyle"/>
-        
+            android:textColor="@color/theme_text_primary"
+            android:background="@drawable/bg_dialog_button_secondary"
+            android:layout_marginEnd="4dp" />
+
         <Button
             android:id="@+id/speed075Button"
             android:layout_width="0dp"
@@ -159,9 +175,10 @@
             android:layout_weight="1"
             android:text="0.75×"
             android:textSize="12sp"
-            android:layout_marginEnd="4dp"
-            style="?android:attr/buttonBarButtonStyle"/>
-        
+            android:textColor="@color/theme_text_primary"
+            android:background="@drawable/bg_dialog_button_secondary"
+            android:layout_marginEnd="4dp" />
+
         <Button
             android:id="@+id/speed10Button"
             android:layout_width="0dp"
@@ -169,9 +186,10 @@
             android:layout_weight="1"
             android:text="1.0×"
             android:textSize="12sp"
-            android:layout_marginEnd="4dp"
-            style="?android:attr/buttonBarButtonStyle"/>
-        
+            android:textColor="@color/theme_text_primary"
+            android:background="@drawable/bg_dialog_button_secondary"
+            android:layout_marginEnd="4dp" />
+
         <Button
             android:id="@+id/speed125Button"
             android:layout_width="0dp"
@@ -179,9 +197,10 @@
             android:layout_weight="1"
             android:text="1.25×"
             android:textSize="12sp"
-            android:layout_marginEnd="4dp"
-            style="?android:attr/buttonBarButtonStyle"/>
-        
+            android:textColor="@color/theme_text_primary"
+            android:background="@drawable/bg_dialog_button_secondary"
+            android:layout_marginEnd="4dp" />
+
         <Button
             android:id="@+id/speed15Button"
             android:layout_width="0dp"
@@ -189,9 +208,10 @@
             android:layout_weight="1"
             android:text="1.5×"
             android:textSize="12sp"
-            android:layout_marginEnd="4dp"
-            style="?android:attr/buttonBarButtonStyle"/>
-        
+            android:textColor="@color/theme_text_primary"
+            android:background="@drawable/bg_dialog_button_secondary"
+            android:layout_marginEnd="4dp" />
+
         <Button
             android:id="@+id/speed20Button"
             android:layout_width="0dp"
@@ -199,113 +219,116 @@
             android:layout_weight="1"
             android:text="2.0×"
             android:textSize="12sp"
-            style="?android:attr/buttonBarButtonStyle"/>
+            android:textColor="@color/theme_text_primary"
+            android:background="@drawable/bg_dialog_button_secondary" />
     </LinearLayout>
-    
+
     <View
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#E0E0E0"
+        android:layout_height="1px"
+        android:background="@color/theme_divider"
         android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"/>
-    
+        android:layout_marginBottom="16dp" />
+
     <!-- 重复播放模式 -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="重复播放"
         android:textSize="14sp"
-        android:textColor="@android:color/black"
-        android:paddingBottom="8dp"/>
-    
+        android:textColor="@color/theme_text_secondary"
+        android:paddingBottom="8dp" />
+
     <RadioGroup
         android:id="@+id/repeatModeGroup"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-        
+
         <RadioButton
             android:id="@+id/repeatModeOff"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="关闭"
-            android:checked="true"/>
-        
+            android:textColor="@color/theme_text_primary"
+            android:buttonTint="@color/theme_primary"
+            android:checked="true" />
+
         <RadioButton
             android:id="@+id/repeatModeOne"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="单集循环"/>
-        
+            android:text="单集循环"
+            android:textColor="@color/theme_text_primary"
+            android:buttonTint="@color/theme_primary" />
+
         <RadioButton
             android:id="@+id/repeatModeAll"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="列表循环"/>
+            android:text="列表循环"
+            android:textColor="@color/theme_text_primary"
+            android:buttonTint="@color/theme_primary" />
     </RadioGroup>
-    
+
     <View
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#E0E0E0"
+        android:layout_height="1px"
+        android:background="@color/theme_divider"
         android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"/>
-    
+        android:layout_marginBottom="16dp" />
+
     <!-- 片头片尾跳过 -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="56dp"
         android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp">
-        
+        android:gravity="center_vertical">
+
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="自动跳过片头"
             android:textSize="14sp"
-            android:textColor="@android:color/black"/>
-        
+            android:textColor="@color/theme_text_primary" />
+
         <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/skipIntroSwitch"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content" />
     </LinearLayout>
-    
+
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="56dp"
         android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp">
-        
+        android:gravity="center_vertical">
+
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="自动跳过片尾"
             android:textSize="14sp"
-            android:textColor="@android:color/black"/>
-        
+            android:textColor="@color/theme_text_primary" />
+
         <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/skipOutroSwitch"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content" />
     </LinearLayout>
-    
+
     <View
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#E0E0E0"
+        android:layout_height="1px"
+        android:background="@color/theme_divider"
         android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"/>
-    
+        android:layout_marginBottom="16dp" />
+
     <!-- 下载按钮 -->
     <Button
         android:id="@+id/downloadButton"
@@ -313,10 +336,10 @@
         android:layout_height="48dp"
         android:text="⬇️ 下载视频"
         android:textSize="16sp"
-        android:background="@android:color/holo_green_light"
-        android:textColor="@android:color/white"
-        android:layout_marginBottom="8dp"/>
-    
+        android:textColor="@color/theme_on_primary"
+        android:background="@drawable/bg_dialog_button_primary"
+        android:layout_marginBottom="8dp" />
+
     <!-- 投屏按钮 -->
     <Button
         android:id="@+id/castButton"
@@ -324,6 +347,6 @@
         android:layout_height="48dp"
         android:text="📺 投屏"
         android:textSize="16sp"
-        android:background="@android:color/holo_blue_light"
-        android:textColor="@android:color/white"/>
+        android:textColor="@color/theme_text_primary"
+        android:background="@drawable/bg_dialog_button_secondary" />
 </LinearLayout>

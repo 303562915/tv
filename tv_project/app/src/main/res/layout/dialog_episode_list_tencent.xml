@@ -3,11 +3,11 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="#1F1F1F"
-    android:paddingStart="12dp"
-    android:paddingEnd="12dp"
+    android:background="@drawable/bg_bottom_sheet"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
     android:paddingTop="8dp"
-    android:paddingBottom="8dp">
+    android:paddingBottom="24dp">
 
     <!-- 标题栏 -->
     <LinearLayout
@@ -22,7 +22,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="选集"
-            android:textColor="@android:color/white"
+            android:textColor="@color/theme_text_primary"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -32,7 +32,7 @@
             android:layout_height="24dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/dkplayer_ic_action_close"
-            android:tint="@android:color/white"
+            android:tint="@color/theme_text_primary"
             android:scaleType="fitCenter"
             android:padding="2dp" />
     </LinearLayout>

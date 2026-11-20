@@ -25,11 +25,13 @@ class LocalVideoViewModel(
     
     companion object {
         // 创建默认占位图（灰色）- 完全照搬 Lua 代码
-        private val LOADING_IMAGE: Bitmap by lazy {
-            Bitmap.createBitmap(320, 180, Bitmap.Config.ARGB_8888).apply {
+        private val LOADING_IMAGE: Bitmap by lazy {            Bitmap.createBitmap(320, 180, Bitmap.Config.ARGB_8888).apply {
                 val canvas = Canvas(this)
                 val paint = Paint().apply {
-                    color = 0xFFEEEEEE.toInt()
+                    color = androidx.core.content.ContextCompat.getColor(
+                        Dependencies.context,
+                        com.tv.ball.R.color.surface_inset
+                    )
                 }
                 canvas.drawRect(0f, 0f, 320f, 180f, paint)
             }
@@ -241,3 +243,4 @@ data class VideoFolder(
     val videoCount: Int,
     val videoId: Long = 0  // 用于加载缩略图
 )
+

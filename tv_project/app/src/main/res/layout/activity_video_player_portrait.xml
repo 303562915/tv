@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@android:color/white">
+    android:background="@color/surface_page">
 
     <!-- 播放器容器 -->
     <FrameLayout
@@ -59,9 +59,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:background="#88000000"
+            android:background="@drawable/gesture_hint_background"
             android:padding="16dp"
-            android:textColor="@android:color/white"
+            android:textColor="@color/theme_text_primary"
             android:textSize="16sp"
             android:visibility="gone" />
 
@@ -236,7 +236,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="0.65"
-        android:background="@android:color/white">
+        android:background="@color/surface_page">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -249,7 +249,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="播放日志"
-                android:textColor="@android:color/black"
+                android:textColor="@color/theme_text_primary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
@@ -258,7 +258,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:textColor="@android:color/darker_gray"
+                android:textColor="@color/theme_text_secondary"
                 android:textSize="12sp"
                 android:fontFamily="monospace"
                 android:text="等待播放..." />
@@ -269,7 +269,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:textColor="@android:color/black"
+                android:textColor="@color/theme_text_primary"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
@@ -278,7 +278,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:textColor="@android:color/darker_gray"
+                android:textColor="@color/theme_text_secondary"
                 android:textSize="13sp" />
 
             <!-- 功能按钮区域 -->
@@ -286,8 +286,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="2dp">
+                app:cardBackgroundColor="@color/surface_card"
+                app:cardCornerRadius="@dimen/radius_md"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -309,7 +311,7 @@
                             android:layout_width="32dp"
                             android:layout_height="32dp"
                             android:src="@android:drawable/ic_menu_info_details"
-                            app:tint="@color/primary" />
+                            app:tint="@color/theme_primary" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -333,7 +335,7 @@
                             android:layout_width="32dp"
                             android:layout_height="32dp"
                             android:src="@android:drawable/ic_menu_share"
-                            app:tint="@color/primary" />
+                            app:tint="@color/theme_primary" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -357,7 +359,7 @@
                             android:layout_width="32dp"
                             android:layout_height="32dp"
                             android:src="@android:drawable/ic_menu_search"
-                            app:tint="@color/primary" />
+                            app:tint="@color/theme_primary" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -381,7 +383,7 @@
                             android:layout_width="32dp"
                             android:layout_height="32dp"
                             android:src="@android:drawable/ic_menu_send"
-                            app:tint="@color/primary" />
+                            app:tint="@color/theme_primary" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -405,7 +407,7 @@
                             android:layout_width="32dp"
                             android:layout_height="32dp"
                             android:src="@android:drawable/ic_menu_save"
-                            app:tint="@color/primary" />
+                            app:tint="@color/theme_primary" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -423,7 +425,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="视频源"
-                android:textColor="@android:color/black"
+                android:textColor="@color/theme_text_primary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
@@ -439,7 +441,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="选集"
-                android:textColor="@android:color/black"
+                android:textColor="@color/theme_text_primary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 

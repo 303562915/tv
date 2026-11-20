@@ -42,8 +42,10 @@ class DownloadActivity : AppCompatActivity() {
         binding = ActivityDownloadBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 不设置透明状态栏，使用紫色标题栏
-        window.statusBarColor = android.graphics.Color.parseColor("#673AB7")
+        // 状态栏跟随页面底色，与工具条同一层
+        window.statusBarColor = androidx.core.content.ContextCompat.getColor(
+            this, com.tv.ball.R.color.theme_background
+        )
 
         videoDownloader = VideoDownloader.getInstance(this)
 
@@ -64,11 +66,18 @@ class DownloadActivity : AppCompatActivity() {
         autoCheckAndMergeM3u8()
     }
 
+    private val tabSelectedColor: Int by lazy {
+        androidx.core.content.ContextCompat.getColor(this, com.tv.ball.R.color.theme_primary)
+    }
+    private val tabIdleColor: Int by lazy {
+        androidx.core.content.ContextCompat.getColor(this, com.tv.ball.R.color.theme_text_secondary)
+    }
+
     private var currentFilter = "all"
     
     private fun setupTabs() {
         // 默认选中"全部"
-        binding.tabAll.setTextColor(android.graphics.Color.WHITE)
+        binding.tabAll.setTextColor(tabSelectedColor)
         
         binding.tabAll.setOnClickListener {
             selectTab(binding.tabAll)
@@ -98,14 +107,14 @@ class DownloadActivity : AppCompatActivity() {
     
     private fun selectTab(selectedTab: android.widget.TextView) {
         // 重置所有标签颜色
-        binding.tabAll.setTextColor(android.graphics.Color.parseColor("#B39DDB"))
-        binding.tabDownloading.setTextColor(android.graphics.Color.parseColor("#B39DDB"))
-        binding.tabCompleted.setTextColor(android.graphics.Color.parseColor("#B39DDB"))
-        binding.tabError.setTextColor(android.graphics.Color.parseColor("#B39DDB"))
-        binding.tabScheduled.setTextColor(android.graphics.Color.parseColor("#B39DDB"))
+        binding.tabAll.setTextColor(tabIdleColor)
+        binding.tabDownloading.setTextColor(tabIdleColor)
+        binding.tabCompleted.setTextColor(tabIdleColor)
+        binding.tabError.setTextColor(tabIdleColor)
+        binding.tabScheduled.setTextColor(tabIdleColor)
         
         // 设置选中标签为白色
-        selectedTab.setTextColor(android.graphics.Color.WHITE)
+        selectedTab.setTextColor(tabSelectedColor)
     }
     
     private fun filterDownloads(filter: String) {
@@ -337,7 +346,7 @@ class DownloadActivity : AppCompatActivity() {
             val messageText = android.widget.TextView(this@DownloadActivity).apply {
                 text = "确定要从 IDM+ 列表中删除选择的下载?"
                 textSize = 16f
-                setTextColor(android.graphics.Color.parseColor("#333333"))
+                setTextColor(androidx.core.content.ContextCompat.getColor(this@DownloadActivity, com.tv.ball.R.color.theme_text_primary))
                 setPadding(0, 0, 0, 20)
             }
             
@@ -676,7 +685,7 @@ class DownloadActivity : AppCompatActivity() {
             val messageText = android.widget.TextView(this@DownloadActivity).apply {
                 text = "确定要从 IDM+ 列表中删除 ${task.title} 吗?"
                 textSize = 16f
-                setTextColor(android.graphics.Color.parseColor("#333333"))
+                setTextColor(androidx.core.content.ContextCompat.getColor(this@DownloadActivity, com.tv.ball.R.color.theme_text_primary))
                 setPadding(0, 0, 0, 20)
             }
             
@@ -986,3 +995,4 @@ class DownloadActivity : AppCompatActivity() {
         }
     }
 }
+

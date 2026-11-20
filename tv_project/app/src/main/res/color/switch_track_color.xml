@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 开关轨道：选中 = 主色 40%，未选中 = 表面 block -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:color="#4CAF50" android:state_checked="true" />
-    <item android:color="#424242" />
+    <item android:color="?attr/colorPrimaryContainer" android:state_checked="true" />
+    <item android:color="@color/surface_block" />
 </selector>

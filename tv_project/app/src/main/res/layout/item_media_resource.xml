@@ -1,37 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- 资源卡片：类型徽章 + 大小 + 地址 + 两个操作 -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.TVPlayer.Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp">
+    android:layout_marginBottom="@dimen/card_gap"
+    app:cardBackgroundColor="@color/surface_card"
+    app:cardCornerRadius="@dimen/radius_md"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:padding="@dimen/card_padding">
 
         <!-- 资源类型和大小 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
             <TextView
                 android:id="@+id/tv_resource_type"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_tag"
+                android:background="@drawable/bg_tag_inset"
                 android:paddingStart="8dp"
-                android:paddingTop="4dp"
+                android:paddingTop="2dp"
                 android:paddingEnd="8dp"
-                android:paddingBottom="4dp"
-                android:textColor="@android:color/white"
+                android:paddingBottom="2dp"
+                android:textColor="@color/theme_text_secondary"
                 android:textSize="12sp"
-                android:textStyle="bold"
                 tools:text="视频" />
 
             <TextView
@@ -39,7 +43,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:textColor="@android:color/darker_gray"
+                android:textColor="@color/theme_text_secondary"
                 android:textSize="12sp"
                 tools:text="25.6 MB" />
 
@@ -53,6 +57,7 @@
             android:layout_marginTop="8dp"
             android:ellipsize="middle"
             android:maxLines="2"
+            android:textColor="@color/theme_text_primary"
             android:textSize="13sp"
             tools:text="https://example.com/video/sample.m3u8" />
 
@@ -64,24 +69,33 @@
             android:gravity="end"
             android:orientation="horizontal">
 
+            <!-- 次要：block 填充、无描边、正文色文字 -->
             <Button
                 android:id="@+id/btn_play"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="40dp"
                 android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_secondary_button"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
                 android:text="播放"
+                android:textColor="@color/theme_text_primary"
                 android:textSize="14sp" />
 
+            <!-- 主操作：实心 primary -->
             <Button
                 android:id="@+id/btn_download"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_primary_button"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
                 android:text="下载"
+                android:textColor="@color/theme_on_primary"
                 android:textSize="14sp" />
 
         </LinearLayout>
 
     </LinearLayout>
 
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

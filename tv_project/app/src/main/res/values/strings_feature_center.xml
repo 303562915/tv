@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能中心外壳文案（功能自身文案放在各自的 strings_f###.xml） -->
+<resources>
+    <string name="feature_lab">功能中心</string>
+    <string name="feature_lab_desc">播放器能力的开关与工具，点一行进入</string>
+    <string name="feature_lab_empty">还没有已接入的功能模块</string>
+    <string name="feature_lab_item">打开功能：%1$s</string>
+</resources>

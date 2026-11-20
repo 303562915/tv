@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 选集格子：未选中 block 底；当前集由代码改实心 primary；圆角 8dp -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/cardView"
+    style="@style/Widget.TVPlayer.Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="4dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp"
+    app:cardBackgroundColor="@color/surface_block"
+    app:cardCornerRadius="@dimen/radius_sm"
+    app:cardElevation="0dp"
     app:strokeWidth="0dp"
     android:foreground="?attr/selectableItemBackground"
     android:clickable="true"
@@ -28,7 +31,6 @@
         android:gravity="center"
         android:maxLines="2"
         android:ellipsize="end"
-        android:background="@drawable/episode_item_selector"
         tools:text="1集" />
 
 </com.google.android.material.card.MaterialCardView>
