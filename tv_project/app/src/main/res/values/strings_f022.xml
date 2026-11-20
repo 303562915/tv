@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f022_title">本地视频筛选</string>
+    <string name="f022_desc">按扩展名、时长、体积区间过滤本地视频，改动即时重算并给出当前生效条件</string>
+
+    <string name="f022_section_samples">示例视频</string>
+    <string name="f022_samples_hint">8 条示例数据用于核对筛选规则，接入真实媒体库后替换为扫描结果</string>
+
+    <string name="f022_section_ext">扩展名</string>
+    <string name="f022_ext_hint">可多选；一个都不选表示不限扩展名</string>
+    <string name="f022_ext_none">未选择扩展名，等价于不限扩展名</string>
+    <string name="f022_ext_selected">已选扩展名：%1$s</string>
+
+    <string name="f022_section_range">时长与大小</string>
+    <string name="f022_range_duration_label">时长区间</string>
+    <string name="f022_range_size_label">大小区间</string>
+
+    <string name="f022_section_condition">生效条件</string>
+    <string name="f022_condition_note">扩展名为空表示不限；时长与大小按闭区间比较，选「不限」即该端不做限制</string>
+    <string name="f022_btn_clear">清空条件</string>
+    <string name="f022_toast_cleared">筛选条件已清空</string>
+
+    <string name="f022_section_result">筛选结果</string>
+    <string name="f022_result_hint">调整上方条件后，这里按当前规则重新筛选</string>
+    <string name="f022_result_summary">命中 %1$d / %2$d 条</string>
+
+    <string name="f022_result_empty">当前条件没有命中任何示例视频</string>
+    <string name="f022_row_line">%1$s · %2$s · %3$s · %4$s</string>
+    <string name="f022_ext_tag">.%1$s</string>
+
+    <string name="f022_duration_opt_all">时长不限</string>
+    <string name="f022_duration_opt_short">≤ 1 分钟</string>
+    <string name="f022_duration_opt_normal">1–10 分钟</string>
+    <string name="f022_duration_opt_long">≥ 10 分钟</string>
+
+    <string name="f022_size_opt_all">大小不限</string>
+    <string name="f022_size_opt_small">≤ 100 MB</string>
+    <string name="f022_size_opt_normal">100–500 MB</string>
+    <string name="f022_size_opt_large">≥ 500 MB</string>
+</resources>
