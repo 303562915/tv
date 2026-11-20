@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f020_title">文件夹多维排序</string>
+    <string name="f020_desc">按名称、视频数、总时长、最近修改轮换查看同一批文件夹，名称排序支持「第9集 &lt; 第10集」的自然序</string>
+
+    <string name="f020_section_sort">排序方式</string>
+    <string name="f020_sort_hint">点一种排序维度，再用右侧按钮切换升序 / 降序；选择会记住，下次进来沿用</string>
+    <string name="f020_sort_name">名称</string>
+    <string name="f020_sort_count">视频数</string>
+    <string name="f020_sort_duration">总时长</string>
+    <string name="f020_sort_modified">最近修改</string>
+    <string name="f020_btn_to_asc">切换为升序</string>
+    <string name="f020_btn_to_desc">切换为降序</string>
+    <string name="f020_sort_current">当前：%1$s · %2$s</string>
+
+    <string name="f020_section_result">排序结果</string>
+    <string name="f020_result_hint">点上方维度后，这里按当前规则重排</string>
+    <string name="f020_result_summary">共 %1$d 个文件夹 · 当前 %2$s %3$s</string>
+
+    <string name="f020_key_name">名称</string>
+    <string name="f020_key_count">视频数</string>
+    <string name="f020_key_duration">总时长</string>
+    <string name="f020_key_modified">最近修改</string>
+    <string name="f020_dir_asc">升序</string>
+    <string name="f020_dir_desc">降序</string>
+
+    <string name="f020_row_line">%1$d. %2$s · %3$d 个视频 · %4$s · 修改于 %5$s</string>
+    <string name="f020_duration_hm">%1$d 小时 %2$d 分</string>
+    <string name="f020_duration_m">%1$d 分钟</string>
+    <string name="f020_empty_item">—</string>
+
+    <string name="f020_toast_switched">已按%1$s%2$s排列</string>
+</resources>
