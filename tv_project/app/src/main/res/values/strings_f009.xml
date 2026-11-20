@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 功能 F009「快进快退步长策略」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<resources>
+    <string name="f009_title">快进快退步长策略</string>
+    <string name="f009_desc">5 / 10 / 30 / 60 秒步长可选，智能模式按一次直接跳过片头片尾</string>
+
+    <!-- 步长 -->
+    <string name="f009_section_step">遥控器步长</string>
+    <string name="f009_step_5">5 秒 · 精调，适合找台词</string>
+    <string name="f009_step_10">10 秒 · 默认，跳过片头字幕</string>
+    <string name="f009_step_30">30 秒 · 快速掠过前情</string>
+    <string name="f009_step_60">60 秒 · 大跨度，一按一分钟</string>
+    <string name="f009_step_summary">当前步长 %1$d 秒，已保存</string>
+
+    <!-- 智能模式 -->
+    <string name="f009_section_smart">智能跳过</string>
+    <string name="f009_smart_label">智能模式：跳过片头片尾标记</string>
+    <string name="f009_smart_on_summary">已开启</string>
+    <string name="f009_smart_off_summary">已关闭</string>
+    <string name="f009_smart_desc">开启后：在片头里按快进会一步落到片头结束；快踏进片尾时一步跳到结尾；反向操作会整段跨过片头片尾</string>
+    <string name="f009_marks_hint_on">片头片尾标记参与判定</string>
+    <string name="f009_marks_hint_off">智能模式关闭，片头片尾标记暂不参与判定</string>
+
+    <!-- 模拟播放区 -->
+    <string name="f009_section_demo">模拟播放区</string>
+    <string name="f009_position_value">%1$s / %2$s</string>
+    <string name="f009_reset_position">回到开头</string>
+    <string name="f009_nudge_back">位置 -30 秒</string>
+    <string name="f009_nudge_forward">位置 +30 秒</string>
+    <string name="f009_action_forward">快进一步</string>
+    <string name="f009_action_backward">快退一步</string>
+    <string name="f009_set_intro">把当前位置设为片头结束</string>
+    <string name="f009_set_credits">把当前位置设为片尾开始</string>
+    <string name="f009_clear_marks">清除片头片尾标记</string>
+    <string name="f009_intro_label">片头结束</string>
+    <string name="f009_credits_label">片尾开始</string>
+    <string name="f009_mark_none">未标记</string>
+
+    <!-- 跳转结果 -->
+    <string name="f009_section_result">本次跳转</string>
+    <string name="f009_result_idle">还没有跳转，按上面的快进 / 快退试试</string>
+    <string name="f009_result_line">跳到 %1$s（原 %2$s）· %3$s</string>
+    <string name="f009_kind_plain">前进 %1$d 秒</string>
+    <string name="f009_kind_intro">智能模式跨过片头</string>
+    <string name="f009_kind_credits">智能模式跨过片尾</string>
+    <string name="f009_kind_clamped_end">剩余不足一步，停在结尾</string>
+    <string name="f009_kind_clamped_start">已到开头</string>
+    <string name="f009_kind_edge_end">已在结尾</string>
+    <string name="f009_kind_edge_start">已在开头</string>
+    <string name="f009_boundary_end">已经是结尾，不能再快进</string>
+    <string name="f009_boundary_start">已经是开头，不能再快退</string>
+    <string name="f009_boundary_clamp_end">只剩 %1$s，不足 %2$d 秒步长，已停在结尾</string>
+    <string name="f009_boundary_clamp_start">当前位置 %1$s，不足 %2$d 秒步长，已停在开头</string>
+
+    <!-- 提示 -->
+    <string name="f009_toast_step">步长已设为 %1$d 秒</string>
+    <string name="f009_toast_smart_on">智能模式已开启</string>
+    <string name="f009_toast_smart_off">智能模式已关闭</string>
+    <string name="f009_toast_intro_set">片头结束标记：%1$s</string>
+    <string name="f009_toast_intro_cleared">已取消片头标记</string>
+    <string name="f009_toast_credits_set">片尾开始标记：%1$s</string>
+    <string name="f009_toast_credits_cleared">已取消片尾标记</string>
+    <string name="f009_toast_marks_cleared">片头片尾标记已清除</string>
+    <string name="f009_toast_mark_conflict">片头结束必须早于片尾开始，请先调整位置</string>
+    <string name="f009_player_note">播放页接线：快进 / 快退按一次取 F009Engine.forward / backward 的返回值直接 seekTo；智能模式判断已在引擎里做，播放器只要把当前进度、总时长和片头片尾标记传进来。步长与开关存 SharedPreferences，重进页面、换集、进程重建都沿用上次设置。</string>
+</resources>
