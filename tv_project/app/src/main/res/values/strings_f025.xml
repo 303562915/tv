@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f025_title">媒体信息面板</string>
+    <string name="f025_desc">用 MediaExtractor 与 MediaMetadataRetriever 真读文件，看清容器、编码、码率、分辨率、帧率和 HDR</string>
+
+    <string name="f025_pick_action">选择视频文件</string>
+    <string name="f025_reload_action">重新读取</string>
+    <string name="f025_section_info">媒体信息</string>
+
+    <string name="f025_no_file">还没有选择文件，点「选择视频文件」挑一个本地视频</string>
+    <string name="f025_parsing">正在读取媒体信息…</string>
+    <string name="f025_unknown">未知</string>
+
+    <string name="f025_label_container">容器</string>
+    <string name="f025_label_video_codec">视频编码</string>
+    <string name="f025_label_audio_codec">音频编码</string>
+    <string name="f025_label_resolution">分辨率</string>
+    <string name="f025_label_total_bitrate">总码率</string>
+    <string name="f025_label_frame_rate">帧率</string>
+    <string name="f025_label_duration">时长</string>
+    <string name="f025_label_hdr">HDR</string>
+    <string name="f025_label_color_transfer">传输特性</string>
+    <string name="f025_label_color_primaries">色域</string>
+    <string name="f025_label_bit_depth">位深</string>
+    <string name="f025_label_audio_channels">声道</string>
+    <string name="f025_label_audio_sample_rate">采样率</string>
+    <string name="f025_label_audio_bitrate">音频码率</string>
+    <string name="f025_label_track_count">轨道</string>
+    <string name="f025_label_rotation">画面旋转</string>
+    <string name="f025_label_mime">MIME</string>
+    <string name="f025_label_size">文件大小</string>
+
+    <string name="f025_value_resolution">%1$d × %2$d</string>
+    <string name="f025_value_fps">%1$s fps</string>
+    <string name="f025_value_sample_rate">%1$s Hz</string>
+    <string name="f025_value_rotation">%1$d°</string>
+    <string name="f025_value_channels">%1$d 声道（%2$s）</string>
+    <string name="f025_value_channels_only">%1$d 声道</string>
+    <string name="f025_value_track_summary">共 %1$d 条（视频 %2$d / 音频 %3$d）</string>
+
+    <string name="f025_hdr_yes">是（%1$s）</string>
+    <string name="f025_hdr_no">否（SDR）</string>
+    <string name="f025_hdr_unsupported">未知</string>
+
+    <string name="f025_toast_cancelled">已取消选择文件</string>
+    <string name="f025_toast_read_fail">读取失败：%1$s</string>
+
+    <string name="f025_hint_parse">容器与轨道信息来自 MediaExtractor，码率/时长/帧率/色彩信息来自 MediaMetadataRetriever；系统取不到的字段一律显示「未知」，不做猜测。</string>
+</resources>
