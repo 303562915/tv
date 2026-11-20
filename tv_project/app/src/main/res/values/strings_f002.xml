@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A-B 段落复读（F002）文案，统一 f002_ 前缀，避免与全站文案撞名 -->
+<resources>
+    <string name="f002_title">A-B 段落复读</string>
+    <string name="f002_desc">标出 A、B 两点，播放到 B 点自动跳回 A 点反复听同一段</string>
+
+    <string name="f002_section_marks">标记点</string>
+    <string name="f002_section_timeline">模拟播放时间轴</string>
+    <string name="f002_section_status">当前状态</string>
+
+    <string name="f002_label_a">A 点</string>
+    <string name="f002_label_b">B 点</string>
+    <string name="f002_label_position">播放位置</string>
+    <string name="f002_label_loop_switch">到达 B 点时跳回 A 点</string>
+
+    <string name="f002_value_unset">未设置</string>
+    <string name="f002_position_zero">00:00.000</string>
+    <string name="f002_position_value">播放位置 %1$s</string>
+    <string name="f002_segment_empty">A、B 两点未设齐，当前按普通方式播放</string>
+    <string name="f002_segment_value">复读区间 %1$s → %2$s（%3$.1f 秒）</string>
+    <string name="f002_loop_count_empty">本次尚未发生跳回</string>
+    <string name="f002_loop_count_value">本次已跳回 A 点 %1$d 次</string>
+
+    <string name="f002_action_set_a">设为 A</string>
+    <string name="f002_action_set_b">设为 B</string>
+    <string name="f002_action_jump_a">跳至 A</string>
+    <string name="f002_action_jump_b">跳至 B</string>
+    <string name="f002_action_clear">清除标记</string>
+    <string name="f002_action_play">开始模拟播放</string>
+    <string name="f002_action_pause">暂停模拟播放</string>
+    <string name="f002_action_back">返回</string>
+
+    <string name="f002_status_idle">状态：未设置标记，正常播放</string>
+    <string name="f002_status_marked">状态：A-B 复读生效</string>
+
+    <string name="f002_hint_setting">把播放位置移到想要的位置，再点「设为 A」「设为 B」</string>
+    <string name="f002_hint_ready">两点已就绪，点「开始模拟播放」观察到 B 跳回 A</string>
+    <string name="f002_hint_playing">模拟播放中，未设置标记，按正常顺序播放</string>
+    <string name="f002_hint_looping">模拟播放中，到达 B 点会自动跳回 A 点</string>
+
+    <string name="f002_toast_set_a">A 点已设为 %1$s</string>
+    <string name="f002_toast_set_b">B 点已设为 %1$s</string>
+    <string name="f002_toast_jump_a">已跳到 A 点 %1$s</string>
+    <string name="f002_toast_jump_b">已跳到 B 点 %1$s</string>
+    <string name="f002_toast_cleared">已清除标记，恢复正常播放</string>
+    <string name="f002_toast_looped">第 %1$d 次跳回 A 点，当前 %2$s</string>
+
+    <string name="f002_err_generic">设置失败</string>
+    <string name="f002_err_no_a">还没有设置 A 点</string>
+    <string name="f002_err_no_b">还没有设置 B 点</string>
+</resources>
