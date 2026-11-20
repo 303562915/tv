@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 多播放列表切换（F038） -->
+<resources>
+    <string name="f038_title">多播放列表切换</string>
+    <string name="f038_desc">多个列表并存，切换即刻换队列，支持重命名与新建</string>
+    <string name="f038_action_back">返回</string>
+    <string name="f038_action_new">新建空列表</string>
+    <string name="f038_action_rename">重命名当前列表</string>
+    <string name="f038_section_lists">全部列表</string>
+    <string name="f038_section_items">当前列表内容</string>
+    <string name="f038_current">当前：%1$s</string>
+    <string name="f038_current_empty">还没有任何列表</string>
+    <string name="f038_row">%1$s · %2$d 项</string>
+    <string name="f038_row_current">%1$s · %2$d 项（当前）</string>
+    <string name="f038_items_empty">这个列表还是空的</string>
+    <string name="f038_items">共 %1$d 项：%2$s</string>
+    <string name="f038_rename_title">重命名列表</string>
+    <string name="f038_rename_hint">新名称</string>
+    <string name="f038_rename_ok">保存</string>
+    <string name="f038_rename_cancel">取消</string>
+    <string name="f038_toast_renamed">已重命名为「%1$s」</string>
+    <string name="f038_toast_blank">名称不能为空</string>
+    <string name="f038_toast_created">已新建「%1$s」</string>
+    <string name="f038_badge_current">当前</string>
+</resources>
+
