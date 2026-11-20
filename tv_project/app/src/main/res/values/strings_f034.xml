@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f034_title">队列另存为播放列表</string>
+    <string name="f034_desc">临时凑出来的那串想留着下次接着看，就给它起个名字存成固定列表；名字重了会问你是覆盖还是另存一份</string>
+
+    <string name="f034_section_queue">当前队列</string>
+    <string name="f034_section_save">另存为播放列表</string>
+    <string name="f034_section_saved">已保存的列表</string>
+
+    <string name="f034_queue_count">当前队列 %1$d 项，顺序就是播放顺序</string>
+    <string name="f034_queue_order">%1$d</string>
+
+    <string name="f034_hint_queue">队列是临时的：离开播放就散了，只有另存过的才会留在下面的列表里</string>
+    <string name="f034_hint_name">名称会去掉首尾空格保存，「重名」指去掉空格后完全一样</string>
+    <string name="f034_name_hint">给这串队列起个名字</string>
+    <string name="f034_save_action">另存为播放列表</string>
+    <string name="f034_hint_retry">用同一个名字再点一次保存，就会看到覆盖 / 改名的选择</string>
+
+    <string name="f034_saved_count">已保存 %1$d 个列表</string>
+    <string name="f034_empty">还没有保存过列表，在上面输个名字点保存</string>
+    <string name="f034_playlist_meta">%1$d 项 · %2$s</string>
+
+    <string name="f034_conflict_title">名称已存在</string>
+    <string name="f034_conflict_message">已经有一个叫「%1$s」的列表（%2$d 项，%3$s）。\n\n覆盖：内容换成当前队列，名称和保存时间沿用原列表。\n另存为「%4$s」：保留原列表，新建一条。</string>
+    <string name="f034_conflict_overwrite">覆盖原列表</string>
+    <string name="f034_conflict_rename">另存为「%1$s」</string>
+    <string name="f034_conflict_cancel">取消</string>
+
+    <string name="f034_toast_saved">已保存「%1$s」，共 %2$d 项</string>
+    <string name="f034_toast_overwritten">已覆盖「%1$s」，现在是 %2$d 项</string>
+    <string name="f034_toast_loaded">已把「%1$s」读回队列，共 %2$d 项</string>
+    <string name="f034_toast_blank_name">名称不能为空</string>
+
+    <string name="f034_hint_sample">示例队列固定 5 项；点任意一条已保存的列表可以把它读回上面的队列区，确认存进去的就是这一串</string>
+</resources>
