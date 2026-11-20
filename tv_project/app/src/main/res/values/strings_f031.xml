@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f031_title">观看时长周报</string>
+    <string name="f031_desc">按天统计本周看了多久，一根柱子一天，总量、日均、最长单日放在一起看</string>
+
+    <string name="f031_prev_week">上一周</string>
+    <string name="f031_next_week">下一周</string>
+    <string name="f031_week_placeholder">本周</string>
+    <string name="f031_week_range">%1$s - %2$s</string>
+    <string name="f031_week_current">本周（周一 00:00 起算，7 天全覆盖）</string>
+    <string name="f031_week_past">往前 %1$d 周</string>
+    <string name="f031_toast_latest">已经是最新一周，再往后没有播放记录</string>
+    <string name="f031_toast_earliest">最多往前看 %1$d 周</string>
+
+    <string name="f031_section_chart">每天观看时长</string>
+    <string name="f031_chart_scale">柱高按本周最长的一天等比缩放（最长 %1$s），没看的日子留一截底座</string>
+    <string name="f031_chart_scale_empty">本周没有播放记录，7 根柱子都停在底座上</string>
+    <string name="f031_empty">这一周没有播放记录</string>
+
+    <string name="f031_section_stats">关键数字</string>
+    <string name="f031_stat_total_label">本周总量</string>
+    <string name="f031_stat_total_caption">7 天累计播放时长</string>
+    <string name="f031_stat_avg_label">日均</string>
+    <string name="f031_stat_avg_caption">总量 ÷ 整周 7 天，没看的日子算 0</string>
+    <string name="f031_stat_longest_label">最长单日</string>
+    <string name="f031_stat_longest_day">最长的一天：%1$s</string>
+    <string name="f031_stat_longest_none">这一周还没有播放记录</string>
+
+    <string name="f031_day_1">周一</string>
+    <string name="f031_day_2">周二</string>
+    <string name="f031_day_3">周三</string>
+    <string name="f031_day_4">周四</string>
+    <string name="f031_day_5">周五</string>
+    <string name="f031_day_6">周六</string>
+    <string name="f031_day_7">周日</string>
+
+    <string name="f031_hint_sample">示例固定 25 条会话铺满本周（周一 4 / 周二 3 / 周三 4 / 周四 3 / 周五 4 / 周六 4 / 周日 3），合计 1960 分钟，日均 280 分钟，最长单日周六 540 分钟；翻到上一周能看到 7 天全 0 的空周</string>
+</resources>
