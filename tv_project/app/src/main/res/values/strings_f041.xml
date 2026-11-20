@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="f041_title">视图模式切换</string>
+    <string name="f041_desc">网格与列表两种浏览模式即时切换，两种模式各自记住滚动位置，退出重进也回到原处</string>
+
+    <string name="f041_section_view">浏览模式</string>
+    <string name="f041_mode_grid">网格视图</string>
+    <string name="f041_mode_list">列表视图</string>
+    <string name="f041_btn_grid">网格视图 · 4 列</string>
+    <string name="f041_btn_list">列表视图 · 1 列</string>
+
+    <string name="f041_status_pending">当前模式读取中</string>
+    <string name="f041_scroll_pending">滚动位置：—</string>
+    <string name="f041_other_pending">另一页的位置：—</string>
+
+    <string name="f041_status_mode">当前：%1$s · 每行 %2$d 列</string>
+    <string name="f041_scroll_current">%1$s 这一页从第 %2$d 条开始显示</string>
+    <string name="f041_scroll_other">%1$s 这一页记住第 %2$d 条</string>
+    <string name="f041_scroll_other_none">%1$s 这一页还没记过位置</string>
+
+    <string name="f041_card_index">%1$d / %2$d</string>
+    <string name="f041_card_a11y">第 %1$d 条：%2$s，%3$s</string>
+
+    <string name="f041_toast_switch">已切到%1$s，两页位置各自保留</string>
+    <string name="f041_toast_same">已经是%1$s了</string>
+    <string name="f041_toast_pick">已选择第 %1$d 条：%2$s</string>
+
+    <string name="f041_hint">网格 4 列、列表一行一条；切换只换排布，两页的滚动位置分开记，离开页面时模式与位置一起落盘，重进照原样恢复</string>
+</resources>
