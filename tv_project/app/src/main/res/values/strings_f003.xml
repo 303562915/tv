@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 精确定位跳转（F003）文案，统一 f003_ 前缀，避免与全站文案撞名 -->
+<resources>
+    <string name="f003_title">精确定位跳转</string>
+    <string name="f003_desc">输入时间码直接跳到指定秒，不用再拖着进度条猜位置</string>
+
+    <!-- 时间码跳转 -->
+    <string name="f003_section_timecode">时间码跳转</string>
+    <string name="f003_label_input">时间码</string>
+    <string name="f003_hint_timecode">01:23:45 / 12:34 / 540，可带 .毫秒</string>
+    <string name="f003_key_colon">:</string>
+    <string name="f003_key_delete">删除</string>
+    <string name="f003_action_jump">跳转</string>
+    <string name="f003_action_back">返回</string>
+
+    <!-- 快捷跳转 -->
+    <string name="f003_section_quick">快捷跳转</string>
+    <string name="f003_action_plus30">+30 秒</string>
+    <string name="f003_action_plus5min">+5 分钟</string>
+    <string name="f003_action_near_end">片尾前 30 秒</string>
+
+    <!-- 片长设定 -->
+    <string name="f003_section_duration">片长设定</string>
+    <string name="f003_label_duration">当前片长</string>
+    <string name="f003_duration_value">片长 %1$s</string>
+    <string name="f003_duration_default_value">片长 00:45:00</string>
+    <string name="f003_hint_duration">45:00 或 2700</string>
+    <string name="f003_action_apply_duration">设定片长</string>
+    <string name="f003_action_duration_minus">-5 分钟</string>
+    <string name="f003_action_duration_plus">+5 分钟</string>
+    <string name="f003_action_duration_reset">恢复 45 分钟</string>
+
+    <!-- 当前位置 -->
+    <string name="f003_section_position">当前播放位置</string>
+    <string name="f003_label_position">播放位置</string>
+    <string name="f003_position_default_value">00:00:00 / 00:45:00</string>
+    <string name="f003_position_value">%1$s / %2$s</string>
+    <string name="f003_remaining_default_value">距片尾 00:45:00</string>
+    <string name="f003_remaining_value">距片尾 %1$s</string>
+    <string name="f003_hint_ready">输入后按「跳转」，或用下面的快捷按钮；片长可在上面改</string>
+
+    <!-- 提示 -->
+    <string name="f003_toast_jumped">已跳到 %1$s</string>
+    <string name="f003_toast_shifted">已跳到 %1$s</string>
+    <string name="f003_toast_duration_set">片长已设为 %1$s</string>
+
+    <!-- 错误提示：说清哪里不对，不静默失败 -->
+    <string name="f003_err_empty">请先输入时间码，例如 01:23:45</string>
+    <string name="f003_err_negative">时间码不能是负数，只填正数的时:分:秒</string>
+    <string name="f003_err_illegal_char">时间码只能包含数字、冒号和小数点</string>
+    <string name="f003_err_bad_format">时间码格式不对，支持 hh:mm:ss、mm:ss、ss 三种写法</string>
+    <string name="f003_err_out_of_range">时间码数值越界：分和秒要小于 60，毫秒最多 3 位</string>
+    <string name="f003_err_over_duration">超出片长（当前片长 %1$s），这次没有跳转</string>
+    <string name="f003_err_duration_invalid">片长格式不对，保持原来的 %1$s</string>
+    <string name="f003_err_duration_too_short">片长至少 10 秒</string>
+    <string name="f003_err_duration_too_long">片长最长 12 小时</string>
+</resources>
