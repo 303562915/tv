@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 画面比例与裁剪模式（F007） -->
+<resources>
+    <string name="f007_title">画面比例与裁剪模式</string>
+    <string name="f007_desc">适应 / 填充 / 拉伸 / 原始 四种模式循环切换，选择会记住</string>
+    <string name="f007_back">返回</string>
+    <string name="f007_cycle">切换下一个模式</string>
+    <string name="f007_reset">恢复「适应」</string>
+    <string name="f007_source_ratio">片源比例</string>
+    <string name="f007_ratio_169">16:9</string>
+    <string name="f007_ratio_43">4:3</string>
+    <string name="f007_ratio_219">21:9</string>
+    <string name="f007_mode_fit">适应</string>
+    <string name="f007_mode_crop">填充</string>
+    <string name="f007_mode_stretch">拉伸</string>
+    <string name="f007_mode_original">原始</string>
+    <string name="f007_desc_fit">整幅画面可见，多出来的区域留背景色</string>
+    <string name="f007_desc_crop">等比放大铺满屏幕，超出部分裁掉，画面不变形</string>
+    <string name="f007_desc_stretch">宽高都铺满屏幕，比例被拉变形</string>
+    <string name="f007_desc_original">宽度铺满，高度按片源比例推，4:3 片源会很高</string>
+    <string name="f007_letterbox_yes">当前模式会在画面边缘留出背景色</string>
+    <string name="f007_letterbox_no">当前模式铺满容器，不留边</string>
+</resources>

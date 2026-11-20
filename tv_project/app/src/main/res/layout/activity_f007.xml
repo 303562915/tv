@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 画面比例中心：预览区 + 片源比例 + 模式切换 -->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/page_margin"
+        android:paddingTop="@dimen/page_margin"
+        android:paddingEnd="@dimen/page_margin"
+        android:paddingBottom="96dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/transparent"
+                android:focusable="true"
+                android:text="@string/f007_back"
+                android:textColor="@color/theme_primary" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="@string/f007_title"
+                android:textAppearance="@style/TextAppearance.TVPlayer.PageTitle" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:text="@string/f007_desc"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+        <!-- 预览：容器 16:9，内部色块代表实际画面区域 -->
+        <FrameLayout
+            android:id="@+id/previewFrame"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:background="@drawable/bg_card_surface">
+
+            <View
+                android:id="@+id/videoSurface"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:background="@color/surface_inset" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tvModeName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_gap"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Body"
+            android:textColor="@color/theme_text_primary" />
+
+        <TextView
+            android:id="@+id/tvModeDesc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+        <TextView
+            android:id="@+id/tvLetterbox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textAppearance="@style/TextAppearance.TVPlayer.Caption"
+            android:textColor="@color/theme_text_secondary" />
+
+        <!-- 片源比例 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:text="@string/f007_source_ratio"
+            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnSource169"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/bg_button_secondary"
+                android:focusable="true"
+                android:text="@string/f007_ratio_169" />
+
+            <Button
+                android:id="@+id/btnSource43"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_button_secondary"
+                android:focusable="true"
+                android:text="@string/f007_ratio_43" />
+
+            <Button
+                android:id="@+id/btnSource219"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_button_secondary"
+                android:focusable="true"
+                android:text="@string/f007_ratio_219" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnCycle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/bg_button_primary"
+                android:focusable="true"
+                android:text="@string/f007_cycle" />
+
+            <Button
+                android:id="@+id/btnReset"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_button_secondary"
+                android:focusable="true"
+                android:text="@string/f007_reset" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

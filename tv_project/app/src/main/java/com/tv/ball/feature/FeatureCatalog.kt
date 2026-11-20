@@ -11,6 +11,7 @@ object FeatureCatalog {
     val entries: List<FeatureModule> = listOf(
         com.tv.ball.feature.f001.F001Module,
         com.tv.ball.feature.f002.F002Module,
+        com.tv.ball.feature.f007.F007Module,
         // WIRE:CATALOG
     )
 
