@@ -19,7 +19,7 @@
 ### 1️⃣ 提交
 
 ```bash
-git add -A
+git add <只列本次改动的文件>       # 不要 git add -A，工作区可能有无关脏文件
 git commit -m "type(scope): 说明"
 ```
 
@@ -33,11 +33,13 @@ git push origin main
 把 `TVPlayer-dev-<run_number>.apk` 追加到 `dev` 预发布 Release（每次构建独立命名，不覆盖）
 → Pages 刷新 `docs/development.json`。
 
-### 3️⃣ 看 CI 结果
+### 3️⃣ 推送完就结束
+
+推送后**直接结束**，不等待、不跟踪 Actions 运行结果。只有用户明确要求查看或排查构建时才查询：
 
 ```bash
 gh run list -L 3
-gh run watch <run-id>
+gh run view <run-id> --log-failed
 ```
 
 - 成功 → 产物在 `dev` Release（开发版）与下载页开发版渠道。
