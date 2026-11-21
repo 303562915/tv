@@ -523,29 +523,14 @@
                 android:paddingEnd="@dimen/row_padding_h"
                 android:paddingBottom="@dimen/row_padding_v">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <!-- 条数由代码按 F086Engine.deps().size 填 -->
+                <TextView
+                    android:id="@+id/f086DepsCount"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/f086_deps_note"
-                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
-
-                    <!-- 条数由代码按 F086Engine.deps().size 填 -->
-                    <TextView
-                        android:id="@+id/f086DepsCount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:textColor="@color/theme_primary"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
+                    android:textColor="@color/theme_primary"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
 
                 <!-- 依赖行容器：代码按清单顺序逐行生成（名字 / 版本 · 许可证 / 上游地址） -->
                 <LinearLayout

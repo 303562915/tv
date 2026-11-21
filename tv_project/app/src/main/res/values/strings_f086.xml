@@ -43,7 +43,6 @@
 
     <!-- 依赖卡 -->
     <string name="f086_section_deps">第三方依赖</string>
-    <string name="f086_deps_note">清单与仓库 README 的「第三方依赖与协议」一节同源，版本取 gradle/libs.versions.toml 里锁定的值；只在编译期出现的注解处理器不进 APK，不列在这里</string>
     <string name="f086_deps_count">共 %1$d 项</string>
     <string name="f086_dep_line">版本 %1$s · 许可证 %2$s</string>
 
