@@ -40,6 +40,16 @@ class ShortDramaViewModel : ViewModel() {
     private var isLoadingMore = false
     private var loadJob: Job? = null
 
+    /** 已经翻到底（某页返回空）就不再发请求，避免滚动到底后反复重打同一页 */
+    private var endReached = false
+
+    /**
+     * 在途请求去重表：同 mode+keyword+page 只发一次。
+     * 列表页滚动监听和下拉刷新经常在同一帧里连着触发，没有这张表就会对同一页发两三个请求，
+     * 结果重复追加到列表里。refresh 走的是「取消旧的 + 重新发」，不受这里限制。
+     */
+    private val inFlight = mutableSetOf<String>()
+
     fun loadDramas(category: String, page: Int, refresh: Boolean = false) {
         currentCategory = category
         _searchKeyword.value = ""
@@ -70,25 +80,46 @@ class ShortDramaViewModel : ViewModel() {
     }
 
     private fun load(page: Int, refresh: Boolean) {
+        val keyword = _searchKeyword.value
+        val category = currentCategory
+        val mode = if (keyword.isNotEmpty()) "search" else "tab:$category"
+        val requestKey = "$mode|$keyword|$page"
+
         if (refresh) {
+            // 刷新：掐掉在途请求，再清掉这个 mode+keyword 的页缓存，
+            // 否则刷新后拿到的还是 Repository 里缓存的旧页
+            loadJob?.cancel()
             currentPage = 1
             _dramas.value = emptyList()
-        }
-        if (isLoadingMore && !refresh) {
-            Log.d(TAG, "Already loading, skipping")
-            return
+            endReached = false
+            if (keyword.isEmpty()) {
+                ShortDramaRepository.invalidateTabCache(category)
+            } else {
+                ShortDramaRepository.invalidateSearchCache(keyword)
+            }
+        } else {
+            if (isLoadingMore || _isLoading.value) {
+                Log.d(TAG, "已有请求在途，跳过 $requestKey")
+                return
+            }
+            if (requestKey in inFlight) {
+                Log.d(TAG, "同一页已在途，跳过 $requestKey")
+                return
+            }
+            if (endReached) {
+                Log.d(TAG, "已翻到底，跳过 $requestKey")
+                return
+            }
         }
 
         isLoadingMore = true
         _isLoading.value = true
         _error.value = null
+        inFlight += requestKey
 
-        val keyword = _searchKeyword.value
-        val category = currentCategory
-        // 搜索时把上一次的在途请求掐掉，避免旧结果盖掉新结果
-        if (refresh) loadJob?.cancel()
-
-        loadJob = viewModelScope.launch {
+        val job = viewModelScope.launch {
+            // 记住自己是谁：被 cancel 掉的旧 job 的 finally 不能把新请求的 loading 状态清掉
+            val self = coroutineContext[Job]
             try {
                 val items = if (keyword.isNotEmpty()) {
                     ShortDramaRepository.search(keyword, page)
@@ -99,8 +130,10 @@ class ShortDramaViewModel : ViewModel() {
                 if (items.isEmpty()) {
                     if (page <= 1) {
                         _error.value = if (keyword.isNotEmpty()) "没搜到「$keyword」相关的短剧" else "该分类暂时没有短剧"
+                    } else {
+                        // 第 2 页起为空 = 到底了（也可能是采集源翻页无效，Repository 那边已按空返回）
+                        endReached = true
                     }
-                    // 第 2 页起为空 = 到底了，不再继续翻页
                 } else {
                     _dramas.value = if (refresh || page <= 1) items else _dramas.value + items
                     currentPage = page + 1
@@ -111,10 +144,14 @@ class ShortDramaViewModel : ViewModel() {
                 Log.e(TAG, "load failed: ${e.message}", e)
                 _error.value = e.message ?: "短剧源请求失败"
             } finally {
-                _isLoading.value = false
-                isLoadingMore = false
+                inFlight -= requestKey
+                if (loadJob === self) {
+                    _isLoading.value = false
+                    isLoadingMore = false
+                }
             }
         }
+        loadJob = job
     }
 }
 
@@ -126,5 +163,11 @@ data class ShortDramaItem(
     val playCnt: String,
     val episodeCnt: String,
     val cover: String,
-    val intro: String
+    val intro: String,
+    /** 年份，采集源没有这个字段时为空串 */
+    val year: String = "",
+    /** 评分，采集源没有这个字段时为空串 */
+    val score: String = "",
+    /** 是否完结（vod_isend=1 或备注里带「完结」） */
+    val finished: Boolean = false
 )
