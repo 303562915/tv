@@ -51,7 +51,9 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
+    <!-- 加了 id 是为了「自动滚到上次看的集数」时能把这一层滚过去 -->
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
@@ -126,26 +128,98 @@
 
             </LinearLayout>
 
+            <!-- 年份 / 评分 / 完结状态：字段缺一项就少一项，全缺整行不显示（默认 gone，代码里判断） -->
+            <TextView
+                android:id="@+id/tvMetaInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textSize="12sp"
+                android:textColor="@color/theme_text_secondary"
+                android:visibility="gone"
+                tools:text="2024 · 评分 8.5 · 已完结"
+                tools:visibility="visible" />
+
+            <!-- 简介默认 3 行，超长才出「展开」，避免长简介把选集挤到屏幕外 -->
             <TextView
                 android:id="@+id/tvIntro"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
+                android:maxLines="3"
+                android:ellipsize="end"
                 android:textSize="14sp"
                 android:lineSpacingExtra="4dp"
                 android:textColor="@color/theme_text_primary"
                 tools:text="剧情简介..." />
 
             <TextView
+                android:id="@+id/tvIntroToggle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:paddingEnd="8dp"
+                android:text="展开"
+                android:textSize="13sp"
+                android:textColor="@color/theme_accent"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="选集"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/theme_text_primary" />
+                android:orientation="horizontal"
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical">
 
-            <!-- 选集列表 - 使用 wrap_content 让它自动扩展 -->
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="选集"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/theme_text_primary" />
+
+                <!-- 上次看到的集数角标：有进度才显示，点一下直接跳到那一集 -->
+                <TextView
+                    android:id="@+id/tvProgressHint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:background="@drawable/bg_tag"
+                    android:textSize="12sp"
+                    android:textColor="@color/theme_accent"
+                    android:visibility="gone"
+                    tools:text="上次看到第12集"
+                    tools:visibility="visible" />
+
+            </LinearLayout>
+
+            <!-- 播放源切换：只有一个源时不显示（代码里控制 visibility） -->
+            <HorizontalScrollView
+                android:id="@+id/sourceScroll"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:scrollbars="none"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <LinearLayout
+                    android:id="@+id/sourceChipRow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal" />
+
+            </HorizontalScrollView>
+
+            <!-- 选集列表 - 使用 wrap_content 让它自动扩展；集数由代码分批（默认 30） -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
@@ -154,6 +228,21 @@
                 android:nestedScrollingEnabled="false"
                 android:overScrollMode="never" />
 
+            <!-- 展开全部 / 收起 -->
+            <TextView
+                android:id="@+id/tvEpisodeExpand"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:paddingTop="12dp"
+                android:paddingBottom="4dp"
+                android:textSize="14sp"
+                android:textColor="@color/theme_accent"
+                android:visibility="gone"
+                tools:text="展开全部（共 120 集）"
+                tools:visibility="visible" />
+
+            <!-- 空态 / 失败重试共用这一块：文案和可点性由代码切换 -->
             <TextView
                 android:id="@+id/emptyView"
                 android:layout_width="match_parent"
