@@ -4,6 +4,7 @@
   三段：缓存有效期（TTL 三档 + 测速按钮 + 状态条）、测速结果（按速度降序，行由 F054Activity 运行时生成）、底部说明。
 -->
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/theme_background"
@@ -98,7 +99,11 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/card_gap"
                     android:minWidth="0dp"
-                    android:text="@string/f054_measure" />
+                    android:text="@string/f054_measure"
+                    app:icon="@drawable/ic_bolt"
+                    app:iconGravity="textStart"
+                    app:iconPadding="6dp"
+                    app:iconTint="@color/theme_on_primary" />
 
                 <TextView
                     android:id="@+id/status_value"
