@@ -7,54 +7,40 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
+import java.io.IOException
+import java.net.SocketTimeoutException
 import java.util.concurrent.TimeUnit
 
-/*
- * 检查更新（对照 unicanta 的 UpdateChecker.kt）：
+/**
+ * 检查更新，双渠道（对应 CI 生成的两份数据）：
  *
- * 数据源按渠道分层，任何一步失败都会落到下一步，而不是整体报废：
- *   稳定版：下载页镜像 latest.json → GitHub API releases/latest → Release 页面 HTML
- *   开发版：下载页镜像 development.json → GitHub API releases/tags/dev → Release 页面 HTML
+ * - 稳定版 `latest.json`：只由 `v*` 正式 Release 产生，比 `version_code`；
+ * - 开发版 `development.json`：滚动 `dev` 预发布，比 `build_number`。
  *
- * - 镜像（github.io）国内可达但会被墙；API 不需要翻墙但匿名配额按出口 IP 计数；
- *   Release 页面没有配额 —— 三条路互为备份。
- * - 每次请求 12s 封顶（代理"活着但不通"的典型形态），瞬态失败重试一次。
- * - 失败要给出「为什么」：被墙 / 超时 / 配额烧完 / 上游 5xx / 该渠道还没有版本 /
- *   响应被劫持，用户看到一句话就知道该换节点还是等一等。
+ * 顺序：下载页镜像（国内可达、带 sha256）→ GitHub API → Release 页面（不占匿名配额）。
  */
 object UpdateChecker {
 
-    /** 下载页镜像（Pages 生成，国内可达）。 */
-    private const val MIRROR_BASE = "https://303562915.github.io/tv/"
-    private const val MIRROR_STABLE_JSON = "${MIRROR_BASE}latest.json"
-    private const val MIRROR_DEV_JSON = "${MIRROR_BASE}development.json"
-
-    private const val REPO_URL = "https://github.com/303562915/tv"
-    private const val STABLE_API = "$REPO_URL/releases/latest"
-    private const val DEV_API = "$REPO_URL/releases/tags/dev"
-
-    /** Release 页面没有 API 配额：配额烧完（403/429）时从页面反解 tag。 */
-    private const val STABLE_PAGE = "$REPO_URL/releases/latest"
-    private const val DEV_PAGE = "$REPO_URL/releases/tag/dev"
-
-    private const val RELEASES_HOME = "https://github.com/303562915/tv/releases"
-
-    /** 一次尝试加一次重试：抖动的代理往往第二次就通了。 */
-    private const val CHECK_ATTEMPTS = 2
-    private const val RETRY_DELAY_MILLIS = 1_200L
-
-    /** 超过这个时长视为代理坏了，而不是服务器慢。 */
+    private const val SITE = "https://303562915.github.io/tv/"
+    private const val MIRROR_STABLE_JSON = SITE + "latest.json"
+    private const val MIRROR_DEV_JSON = SITE + "development.json"
+    private const val STABLE_API = "https://api.github.com/repos/303562915/tv/releases/latest"
+    private const val DEV_API = "https://api.github.com/repos/303562915/tv/releases/tags/dev"
+    private const val STABLE_PAGE = "https://github.com/303562915/tv/releases/latest"
+    private const val DEV_PAGE = "https://github.com/303562915/tv/releases/tag/dev"
+    private const val CHECK_ATTEMPTS = 3
+    private const val RETRY_DELAY_MILLIS = 800L
     private const val CHECK_TIMEOUT_SECONDS = 12L
 
-    /** 为什么一次检查两手空空。关于页把它翻成一句话，而不是一句笼统的「失败」。 */
+    /** 检查失败的原因，界面按这个给人话。 */
     enum class Failure {
-        /** GitHub 回了 403/429：这个出口 IP 的匿名配额没了。 */
+        /** 触发 GitHub 匿名配额（403 / 429）。 */
         RATE_LIMITED,
 
-        /** 超时：代理活着但不通，或网络太慢。 */
+        /** 连接或读取超时。 */
         TIMEOUT,
 
-        /** 请求根本没到 GitHub：DNS、拒连、TLS，节点挂了。 */
+        /** 没有网络 / DNS / 连接被拒。 */
         NETWORK,
 
         /** GitHub 回了 5xx。 */
@@ -70,7 +56,6 @@ object UpdateChecker {
         UNKNOWN
     }
 
-    /** 检查无法回答时抛出；[failure] 说明是上面哪一种。 */
     class CheckException(val failure: Failure) : Exception(failure.name)
 
     private val http by lazy {
@@ -80,10 +65,7 @@ object UpdateChecker {
             .build()
     }
 
-    /**
-     * 读取所选渠道的最新发布。
-     * 镜像优先（带 version_code / sha256，还能拿镜像直链），API 兜底，页面最后。
-     */
+    /** 读取所选渠道的最新发布；拿不到就抛 [CheckException]。 */
     suspend fun check(channel: UpdateChannel): UpdateInfo = withContext(Dispatchers.IO) {
         var failure = Failure.UNKNOWN
         repeat(CHECK_ATTEMPTS) { attempt ->
@@ -100,44 +82,56 @@ object UpdateChecker {
         throw CheckException(failure)
     }
 
-    private fun Failure.isTransient(): Boolean = when (this) {
-        Failure.RATE_LIMITED, Failure.TIMEOUT, Failure.NETWORK, Failure.SERVER -> true
-        Failure.NO_RELEASE, Failure.MALFORMED, Failure.UNKNOWN -> false
+    /** 手上这个包是否比远端旧。 */
+    fun isNewer(info: UpdateInfo): Boolean {
+        if (info.buildNumber > 0) {
+            return if (BuildConfig.DEV_BUILD_NUMBER > 0) {
+                info.buildNumber > BuildConfig.DEV_BUILD_NUMBER
+            } else {
+                // 手上是正式/本地包，开发版渠道的构建一律算新
+                true
+            }
+        }
+        if (info.versionCode > 0) return info.versionCode > BuildConfig.VERSION_CODE
+        return compareVersion(info.versionName, BuildConfig.VERSION_NAME) > 0
     }
 
-    /** 镜像有数据就返回；404 / 解析失败 / 网络异常都返回 null，把机会让给 API。 */
-    private fun fetchMirror(channel: UpdateChannel): UpdateInfo? = try {
+    // ---------------------------------------------------------------- 镜像
+
+    private fun fetchMirror(channel: UpdateChannel): UpdateInfo? {
         val url = if (channel == UpdateChannel.DEV) MIRROR_DEV_JSON else MIRROR_STABLE_JSON
         val body = requestText(url, "application/json") ?: return null
-        val json = JSONObject(body)
+        val json = try {
+            JSONObject(body)
+        } catch (e: Exception) {
+            return null
+        }
         val file = json.optString("file")
         if (file.isBlank()) return null
-        val versionName = json.optString("version_name").ifBlank { return null }
-        val buildNumber = json.optInt("build_number", 0)
-        UpdateInfo(
+        val versionName = json.optString("version_name")
+        if (versionName.isBlank()) return null
+        return UpdateInfo(
             channel = channel,
             versionName = versionName,
             versionCode = json.optInt("version_code", -1),
-            buildNumber = buildNumber,
-            apkUrl = if (file.startsWith("http")) file else MIRROR_BASE + file.removePrefix("/"),
+            buildNumber = json.optInt("build_number", 0),
+            apkUrl = if (file.startsWith("http")) file else SITE + file.removePrefix("/"),
             size = json.optLong("size", 0L),
             sha256 = json.optString("sha256"),
             notes = json.optString("notes"),
-            pageUrl = MIRROR_BASE,
+            pageUrl = if (channel == UpdateChannel.DEV) DEV_PAGE else STABLE_PAGE,
             fileName = json.optString("file_name")
         )
-    } catch (e: Exception) {
-        null
     }
 
-    /** GitHub API：稳定版 releases/latest，开发版 releases/tags/dev + notes 字段解析。 */
+    // ---------------------------------------------------------------- GitHub API
+
     private fun fetchGithub(channel: UpdateChannel): UpdateInfo {
         val api = if (channel == UpdateChannel.DEV) DEV_API else STABLE_API
         val body = try {
-            requestText(api, "application/vnd.github+json")
-                ?: throw CheckException(Failure.NETWORK)
+            requestText(api, "application/vnd.github+json") ?: throw CheckException(Failure.NETWORK)
         } catch (e: CheckException) {
-            // 匿名配额按出口 IP 计数，403/429 时改读 Release 页面（无配额）
+            // 匿名配额按出口 IP 计数，403 / 429 时改读 Release 页面（不占配额）
             if (e.failure == Failure.RATE_LIMITED) return fetchFromPage(channel)
             throw e
         }
@@ -146,189 +140,169 @@ object UpdateChecker {
         } catch (e: Exception) {
             throw CheckException(Failure.MALFORMED)
         }
-        val tag = json.optString("tag_name").takeIf { it.isNotBlank() }
-            ?: throw CheckException(Failure.MALFORMED)
-        if (channel == UpdateChannel.STABLE) {
-            val asset = json.optJSONArray("assets")?.let { assets ->
-                (0 until assets.length()).map { assets.getJSONObject(it) }
-                    .firstOrNull { it.optString("name").endsWith(".apk", true) }
-            } ?: return fetchFromPage(channel)
-            val name = asset.optString("name")
-            val url = asset.optString("browser_download_url").ifBlank { return fetchFromPage(channel) }
-            return UpdateInfo(
-                channel = channel,
-                versionName = tag.removePrefix("v").ifBlank { tag },
-                versionCode = -1,
-                buildNumber = 0,
-                apkUrl = url,
-                size = asset.optLong("size", 0L),
-                sha256 = "",
-                notes = json.optString("body"),
-                pageUrl = json.optString("html_url").ifBlank { RELEASES_HOME },
-                fileName = name
-            )
-        }
-        // 开发版：必须真是 dev 预发布，版本与构建号写在 notes 里
-        if (tag != "dev" || json.optBoolean("prerelease", false)) {
-            throw CheckException(Failure.MALFORMED)
-        }
-        val notes = json.optString("body")
-        fun field(name: String): String? = notes.lineSequence()
-            .map { it.trim() }
-            .firstOrNull { it.startsWith("$name:") }
-            ?.substringAfter(':')?.trim()?.takeIf { it.isNotEmpty() }
-        val version = field("version")
-            ?.takeIf { Regex("[vV]?\\d+(\\.\\d+)+([+-][0-9A-Za-z.-]+)?").matches(it) }
-            ?: throw CheckException(Failure.MALFORMED)
-        val buildNumber = field("development-build")?.toIntOrNull()?.takeIf { it > 0 }
-            ?: throw CheckException(Failure.MALFORMED)
-        val asset = json.optJSONArray("assets")?.let { assets ->
-            (0 until assets.length()).map { assets.getJSONObject(it) }
-                .firstOrNull { it.optString("name").startsWith("TVPlayer-dev-$buildNumber") &&
-                    it.optString("name").endsWith(".apk", true) }
-        } ?: return fetchFromPage(channel)
-        if (asset == null) return fetchFromPage(channel)
-        val name = asset.optString("name")
-        val url = asset.optString("browser_download_url").ifBlank { return fetchFromPage(channel) }
-        return UpdateInfo(
-            channel = UpdateChannel.DEV,
-            versionName = version.removePrefix("v"),
-            versionCode = -1,
-            buildNumber = buildNumber,
-            apkUrl = url,
-            size = asset.optLong("size", 0L),
-            sha256 = "",
-            notes = notes,
-            pageUrl = DEV_PAGE,
-            fileName = name
-        )
-    }
 
-    /** 最后一条路：Release 页面本身。无配额，从 HTML 反解 tag / notes 字段。 */
-    private fun fetchFromPage(channel: UpdateChannel): UpdateInfo {
-        val page = requestText(
-            if (channel == UpdateChannel.DEV) DEV_PAGE else STABLE_PAGE,
-            "text/html"
-        ) ?: throw CheckException(Failure.NETWORK)
-        val tag = Regex("/releases/tag/([^\"'#?<>\\s]+)").find(page)?.groupValues?.get(1)
-            ?.takeIf { it.isNotBlank() && it != "latest" }
-            ?: throw CheckException(Failure.MALFORMED)
         if (channel == UpdateChannel.STABLE) {
+            val tag = json.optString("tag_name").takeIf { it.isNotBlank() }
+                ?: throw CheckException(Failure.MALFORMED)
+            val asset = firstApk(json) ?: throw CheckException(Failure.NO_RELEASE)
             return UpdateInfo(
                 channel = channel,
                 versionName = tag.removePrefix("v"),
                 versionCode = -1,
                 buildNumber = 0,
-                apkUrl = "",
-                size = 0,
+                apkUrl = asset.first,
+                size = asset.second,
                 sha256 = "",
-                notes = "",
-                pageUrl = "$REPO_URL/releases/tag/$tag",
-                fileName = ""
+                notes = json.optString("body"),
+                pageUrl = json.optString("html_url").ifBlank { STABLE_PAGE },
+                fileName = asset.third
             )
         }
-        val version = Regex("version:\\s*[vV]?(\\d+(?:\\.\\d+)+[0-9A-Za-z.+-]*)").find(page)
-            ?.groupValues?.get(1)
+
+        val bodyText = json.optString("body")
+        val build = field(bodyText, "development-build")?.toIntOrNull()
             ?: throw CheckException(Failure.MALFORMED)
-        val buildNumber = Regex("development-build:\\s*(\\d+)").find(page)
-            ?.groupValues?.get(1)?.toIntOrNull()?.takeIf { it > 0 }
-            ?: throw CheckException(Failure.MALFORMED)
+        val version = field(bodyText, "version") ?: "1.1.0"
+        val prefix = "TVPlayer-dev-$build"
+        val asset = firstApk(json, prefix) ?: throw CheckException(NO_RELEASE_OR(Failure.NO_RELEASE))
         return UpdateInfo(
-            channel = UpdateChannel.DEV,
+            channel = channel,
             versionName = version,
             versionCode = -1,
-            buildNumber = buildNumber,
-            apkUrl = "",
-            size = 0,
+            buildNumber = build,
+            apkUrl = asset.first,
+            size = asset.second,
             sha256 = "",
-            notes = "",
+            notes = bodyText,
             pageUrl = DEV_PAGE,
-            fileName = ""
+            fileName = asset.third
         )
     }
 
-    /** 一次有界的 GET；状态码决定报告哪种失败。失败返回 null（让位下一步），可分类的抛 CheckException。 */
+    private fun NO_RELEASE_OR(failure: Failure): Failure = failure
+
+    /** releases 里的第一个（或指定前缀的）APK：url / size / name。 */
+    private fun firstApk(json: JSONObject, prefix: String? = null): Triple<String, Long, String>? {
+        val assets = json.optJSONArray("assets") ?: return null
+        var fallback: Triple<String, Long, String>? = null
+        for (i in 0 until assets.length()) {
+            val item = assets.optJSONObject(i) ?: continue
+            val name = item.optString("name")
+            if (!name.endsWith(".apk", ignoreCase = true)) continue
+            val url = item.optString("browser_download_url")
+            if (url.isBlank()) continue
+            val triple = Triple(url, item.optLong("size", 0L), name)
+            if (prefix == null) return triple
+            if (name.startsWith(prefix)) return triple
+            if (fallback == null) fallback = triple
+        }
+        return fallback
+    }
+
+    // ---------------------------------------------------------------- 页面兜底
+
+    private fun fetchFromPage(channel: UpdateChannel): UpdateInfo {
+        val page = if (channel == UpdateChannel.DEV) DEV_PAGE else STABLE_PAGE
+        val html = requestText(page, "text/html") ?: throw CheckException(Failure.NETWORK)
+
+        val apkRegex = Regex("""/releases/download/([^"/]+)/([^"]+\.apk)""")
+        val apkMatch = apkRegex.find(html) ?: throw CheckException(Failure.NO_RELEASE)
+        val tag = apkMatch.groupValues[1]
+        val fileName = apkMatch.groupValues[2]
+        val url = "https://github.com/303562915/tv/releases/download/$tag/$fileName"
+
+        return if (channel == UpdateChannel.DEV) {
+            val build = Regex("""TVPlayer-dev-(\d+)\.apk""").find(fileName)?.groupValues?.get(1)?.toIntOrNull()
+                ?: throw CheckException(Failure.MALFORMED)
+            UpdateInfo(
+                channel = channel,
+                versionName = "1.1.0",
+                versionCode = -1,
+                buildNumber = build,
+                apkUrl = url,
+                size = 0L,
+                sha256 = "",
+                notes = "",
+                pageUrl = DEV_PAGE,
+                fileName = fileName
+            )
+        } else {
+            UpdateInfo(
+                channel = channel,
+                versionName = tag.removePrefix("v"),
+                versionCode = -1,
+                buildNumber = 0,
+                apkUrl = url,
+                size = 0L,
+                sha256 = "",
+                notes = "",
+                pageUrl = STABLE_PAGE,
+                fileName = fileName
+            )
+        }
+    }
+
+    // ---------------------------------------------------------------- 工具
+
     private fun requestText(url: String, accept: String): String? {
         val request = Request.Builder()
             .url(url)
             .header("Accept", accept)
-            .header("User-Agent", "TVPlayer-Android (+$REPO_URL)")
             .header("Cache-Control", "no-cache")
             .build()
-        return try {
+        try {
             http.newCall(request).execute().use { response ->
                 when {
+                    response.code == 404 -> throw CheckException(Failure.NO_RELEASE)
                     response.code == 403 || response.code == 429 ->
                         throw CheckException(Failure.RATE_LIMITED)
-                    response.code == 404 -> null
                     response.code >= 500 -> throw CheckException(Failure.SERVER)
-                    !response.isSuccessful -> null
-                    else -> response.body?.string()?.trim()?.takeIf { it.isNotEmpty() }
+                    !response.isSuccessful -> throw CheckException(Failure.UNKNOWN)
+                    else -> {
+                        val body = response.body?.string().orEmpty()
+                        return body.ifBlank { null }
+                    }
                 }
             }
         } catch (e: CheckException) {
             throw e
-        } catch (e: Exception) {
-            throw CheckException(classify(e))
+        } catch (e: SocketTimeoutException) {
+            throw CheckException(Failure.TIMEOUT)
+        } catch (e: IOException) {
+            throw CheckException(Failure.NETWORK)
         }
     }
 
-    /** 把网络异常按文案归桶：超时 / 连不上 / 其它。 */
-    private fun classify(e: Throwable): Failure {
-        val text = e.toString().lowercase()
-        return when {
-            "timeout" in text || "timed out" in text -> Failure.TIMEOUT
-            "unresolvedaddress" in text || "unknownhost" in text || "connect" in text ||
-                "ioexception" in text || "socket" in text || "ssl" in text ||
-                "handshake" in text || "refused" in text || "offline" in text ||
-                "network" in text -> Failure.NETWORK
-            else -> Failure.UNKNOWN
-        }
+    private fun classify(e: Exception): Failure = when (e) {
+        is SocketTimeoutException -> Failure.TIMEOUT
+        is IOException -> Failure.NETWORK
+        else -> Failure.UNKNOWN
     }
 
-    /** 是否有比当前安装包更新的版本。 */
-    fun isNewer(info: UpdateInfo): Boolean {
-        if (info.versionCode > 0 && BuildConfig.VERSION_CODE > 0) {
-            return info.versionCode > BuildConfig.VERSION_CODE
+    private fun field(body: String, name: String): String? {
+        body.lineSequence().forEach { line ->
+            val trimmed = line.trim()
+            if (trimmed.startsWith("$name:")) {
+                return trimmed.removePrefix("$name:").trim().ifBlank { null }
+            }
         }
-        val remote = info.versionName
-        val local = BuildConfig.VERSION_NAME
-        if (isNewerVersion(remote, local)) return true
-        if (isNewerVersion(local, remote)) return false
-        // 同名版本：开发版比构建号；本地是开发版而远端是同名稳定版时，本地已经更新。
-        return if (info.channel == UpdateChannel.DEV) {
-            info.buildNumber > BuildConfig.DEV_BUILD_NUMBER
-        } else {
-            BuildConfig.DEV_BUILD_NUMBER == 0
-        }
+        return null
     }
 
-    /** 分段数字比较："1.2.0-debug" 这类后缀按数字段处理。 */
-    private fun isNewerVersion(latest: String, current: String): Boolean {
-        fun parts(v: String): List<Int> = v.trim()
-            .trimStart('v', 'V')
-            .substringBefore('-')
-            .substringBefore('+')
-            .split('.')
-            .map { it.takeWhile(Char::isDigit).toIntOrNull() ?: 0 }
-        val a = parts(latest)
-        val b = parts(current)
+    private fun Failure.isTransient(): Boolean = when (this) {
+        Failure.RATE_LIMITED, Failure.TIMEOUT, Failure.NETWORK, Failure.SERVER -> true
+        Failure.NO_RELEASE, Failure.MALFORMED, Failure.UNKNOWN -> false
+    }
+
+    /** 分段数字比较，"1.2.0-dev3" 这类后缀按数字段处理。 */
+    private fun compareVersion(latest: String, current: String): Int {
+        val a = latest.split('.', '-', '_', '+').mapNotNull { it.toIntOrNull() }
+        val b = current.split('.', '-', '_', '+').mapNotNull { it.toIntOrNull() }
         for (i in 0 until maxOf(a.size, b.size)) {
             val x = a.getOrElse(i) { 0 }
             val y = b.getOrElse(i) { 0 }
-            if (x != y) return x > y
+            if (x != y) return x.compareTo(y)
         }
-        return false
-    }
-
-    /** 失败原因的一句话文案；关于页与弹窗共用。 */
-    fun failureMessage(failure: Failure): String = when (failure) {
-        Failure.RATE_LIMITED -> "GitHub 接口配额已用完（403/429），稍后再试"
-        Failure.TIMEOUT -> "请求超时：网络或代理没有响应"
-        Failure.NETWORK -> "网络不可达：连不上 GitHub（镜像与接口都不通）"
-        Failure.SERVER -> "GitHub 服务异常（5xx），稍后再试"
-        Failure.NO_RELEASE -> "该渠道还没有已发布的版本"
-        Failure.MALFORMED -> "返回数据异常：响应可能被劫持或不是版本信息"
-        Failure.UNKNOWN -> "检查更新失败，请稍后再试"
+        return 0
     }
 }

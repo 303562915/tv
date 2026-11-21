@@ -108,8 +108,8 @@ class VideoPlayerActivity : AppCompatActivity() {
     // 获取长按加速倍数：优先用 F004 倍速曲线里配的长按档位，没配过再回落旧键
     private fun getLongPressSpeed(): Float {
         val curveSpeed = runCatching {
-            com.tv.ball.feature.f004.F004Engine.get(this).curveLongPressPreset()
-        }.getOrDefault(0f)
+            com.tv.ball.feature.f004.F004Engine.get(this).longPressPreset
+        }.getOrNull() ?: 0f
         if (curveSpeed > 0f) return curveSpeed
         val prefs = getSharedPreferences("player_settings", MODE_PRIVATE)
         return prefs.getFloat("long_press_speed", 3.0f)
