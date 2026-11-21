@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -13,6 +14,7 @@ import com.tv.ball.R
 import com.tv.ball.data.VideoSourceManager
 import com.tv.ball.data.VideoSourceConfigs
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
@@ -25,8 +27,12 @@ class VideoSourceFragment : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: VideoSourceAdapter
+    private lateinit var btnRefresh: ImageButton
 
     private val videoSources = mutableListOf<VideoSource>()
+
+    /** 正在跑的那轮测速；重新刷新时先取消，避免两轮的写回互相错位。 */
+    private var refreshJob: Job? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,6 +47,11 @@ class VideoSourceFragment : Fragment() {
 
         recyclerView = view.findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        // 刷新：图标抄 FlClash 的 refresh 字形（drawable/ic_fl_refresh.xml），
+        // 点一下重新拉源列表并重测延迟，转一圈表示这一轮在跑
+        btnRefresh = view.findViewById(R.id.btnRefresh)
+        btnRefresh.setOnClickListener { refreshSources() }
 
         // 从云端配置加载视频源列表
         loadVideoSources()
@@ -60,6 +71,16 @@ class VideoSourceFragment : Fragment() {
         }
 
         recyclerView.adapter = adapter
+    }
+
+    /** 刷新按钮：图标转一圈 + 重拉列表、重测延迟。 */
+    private fun refreshSources() {
+        btnRefresh.animate()
+            .rotationBy(360f)
+            .setDuration(600L)
+            .withEndAction { btnRefresh.rotation = 0f }
+            .start()
+        loadVideoSources()
     }
 
     private fun loadVideoSources() {
@@ -82,6 +103,11 @@ class VideoSourceFragment : Fragment() {
         // 更新选中状态
         updateSelectedState()
 
+        // 刷新时列表已经接上了 adapter，得让它重画一遍
+        if (this::adapter.isInitialized) {
+            adapter.notifyDataSetChanged()
+        }
+
         // 测试响应时间
         testResponseTimes()
     }
@@ -95,7 +121,10 @@ class VideoSourceFragment : Fragment() {
     }
 
     private fun testResponseTimes() {
-        lifecycleScope.launch {
+        // 上一轮还没跑完就先掐掉：否则两轮的写回会按旧下标往新列表里塞
+        refreshJob?.cancel()
+        val snapshot = videoSources.toList()
+        refreshJob = lifecycleScope.launch {
             val client = OkHttpClient.Builder()
                 .connectTimeout(2, TimeUnit.SECONDS)
                 .readTimeout(2, TimeUnit.SECONDS)
@@ -103,26 +132,26 @@ class VideoSourceFragment : Fragment() {
                 .build()
 
             // 并发测试所有源
-            videoSources.indices.map { i ->
+            snapshot.indices.map { i ->
                 async(Dispatchers.IO) {
-                    val source = videoSources[i]
+                    val source = snapshot[i]
                     val config = VideoSourceConfigs.getConfig(source.sourceKey)
-                    
+
                     val responseTime = if (config != null) {
                         try {
                             // 提取基础URL进行测试
                             val testUrl = extractBaseUrl(config.baseUrl)
                             val startTime = System.currentTimeMillis()
-                            
+
                             val request = Request.Builder()
                                 .url(testUrl)
                                 .head() // 使用HEAD请求减少数据传输
                                 .build()
-                            
+
                             val response = client.newCall(request).execute()
                             response.close()
                             val endTime = System.currentTimeMillis()
-                            
+
                             if (response.isSuccessful) {
                                 (endTime - startTime).toInt()
                             } else {
@@ -135,15 +164,23 @@ class VideoSourceFragment : Fragment() {
                     } else {
                         null
                     }
-                    
+
                     // 返回索引和响应时间
                     i to responseTime
                 }
             }.awaitAll().forEach { (index, responseTime) ->
                 // 在主线程更新UI
                 withContext(Dispatchers.Main) {
+                    // 期间列表被刷新过就丢掉这一轮的结果
+                    if (index >= videoSources.size ||
+                        videoSources[index].sourceKey != snapshot[index].sourceKey
+                    ) {
+                        return@withContext
+                    }
                     videoSources[index] = videoSources[index].copy(responseTime = responseTime)
-                    adapter.notifyItemChanged(index)
+                    if (this@VideoSourceFragment::adapter.isInitialized) {
+                        adapter.notifyItemChanged(index)
+                    }
                 }
             }
         }

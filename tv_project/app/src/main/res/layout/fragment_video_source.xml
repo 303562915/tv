@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -24,18 +25,18 @@
             android:textAppearance="@style/TextAppearance.TVPlayer.PageTitle"
             android:gravity="start" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="刷新"
-            android:textSize="14sp"
-            android:textColor="?attr/colorPrimary"
-            android:gravity="center"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:background="?attr/selectableItemBackground" />
+        <!-- 刷新：图标照抄 FlClash 的 AppGlyphs.refresh（见 drawable/ic_fl_refresh.xml），
+             只留图标不留文字；44dp 触摸区、图标 24dp，与其他页工具条图标按钮一致 -->
+        <ImageButton
+            android:id="@+id/btnRefresh"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="刷新"
+            android:padding="10dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_fl_refresh"
+            app:tint="@color/theme_primary" />
 
     </LinearLayout>
 
