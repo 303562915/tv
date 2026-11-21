@@ -30,4 +30,10 @@
     <string name="fav_toast_category_name_empty">分类名不能为空</string>
     <string name="fav_toast_category_name_too_long">分类名最多 16 个字</string>
     <string name="fav_toast_new_category_needs_item">先长按一条收藏，再新建分类，它会被放进新分类</string>
+
+    <!-- 左滑删除方式（入口在分类条上方那一行） -->
+    <string name="fav_delete_mode">删除方式</string>
+    <string name="fav_delete_mode_reveal">滑动露出删除按钮</string>
+    <string name="fav_delete_mode_direct">滑动即删除</string>
+    <string name="fav_count">共 %1$d 条</string>
 </resources>

@@ -1,99 +1,119 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+  收藏卡片（三列网格，每项约 106dp）：封面 + 标题 + 收藏时间 + 分类标签。
+  外层是 SwipeRevealLayout：第一个孩子是右侧 44dp 删除区（先写、画在底层），
+  第二个孩子是卡片（后写、画在顶层）。左滑把卡片平移出去，删除区才露出来。
+  三列太窄，删除区只放图标不写字，写字会被挤成两行。
+-->
+<com.tv.ball.widget.SwipeRevealLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    style="@style/Widget.TVPlayer.Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="4dp"
-    android:clickable="true"
-    android:focusable="true"
-    android:foreground="?attr/selectableItemBackground"
-    app:cardBackgroundColor="@color/surface_card"
-    app:cardCornerRadius="@dimen/radius_md"
-    app:cardElevation="0dp"
-    app:strokeWidth="0dp">
+    android:layout_margin="4dp">
 
+    <!-- 删除区：藏在卡片下面，卡片左滑 44dp 后才露出来 -->
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:id="@+id/btnSwipeDelete"
+        android:layout_width="44dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="@color/theme_error"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
         android:orientation="vertical">
 
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="160dp">
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_delete"
+            app:tint="@color/white" />
+    </LinearLayout>
 
-            <ImageView
-                android:id="@+id/ivCover"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/surface_inset"
-                android:scaleType="centerCrop"
-                android:src="@drawable/player" />
-
-            <ImageButton
-                android:id="@+id/btnDelete"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_gravity="top|end"
-                android:layout_margin="8dp"
-                android:background="@drawable/bg_icon_well"
-                android:contentDescription="删除收藏"
-                android:padding="8dp"
-                android:src="@android:drawable/ic_menu_delete"
-                app:tint="@color/theme_text_secondary" />
-
-        </FrameLayout>
+    <com.google.android.material.card.MaterialCardView
+        style="@style/Widget.TVPlayer.Card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        app:cardBackgroundColor="@color/surface_card"
+        app:cardCornerRadius="@dimen/radius_md"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="@dimen/card_padding">
+            android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tvTitle"
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="160dp">
+
+                <ImageView
+                    android:id="@+id/ivCover"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/surface_inset"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/player" />
+
+            </FrameLayout>
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="2"
-                android:text="视频标题"
-                android:textColor="@color/theme_text_primary"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                tools:ignore="HardcodedText" />
+                android:orientation="vertical"
+                android:padding="@dimen/card_padding">
 
-            <TextView
-                android:id="@+id/tvAddedTime"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="收藏于 12-25 18:30"
-                android:textColor="@color/theme_text_secondary"
-                android:textSize="12sp"
-                tools:ignore="HardcodedText" />
+                <TextView
+                    android:id="@+id/tvTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    android:text="视频标题"
+                    android:textColor="@color/theme_text_primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    tools:ignore="HardcodedText" />
 
-            <!-- 分类标签：未分类时隐藏 -->
-            <TextView
-                android:id="@+id/tvCategory"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:background="@drawable/bg_tag_inset"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:paddingStart="8dp"
-                android:paddingTop="2dp"
-                android:paddingEnd="8dp"
-                android:paddingBottom="2dp"
-                android:textColor="@color/theme_text_secondary"
-                android:textSize="11sp"
-                android:visibility="gone"
-                tools:text="电影"
-                tools:visibility="visible" />
+                <TextView
+                    android:id="@+id/tvAddedTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="收藏于 12-25 18:30"
+                    android:textColor="@color/theme_text_secondary"
+                    android:textSize="12sp"
+                    tools:ignore="HardcodedText" />
+
+                <!-- 分类标签：未分类时隐藏 -->
+                <TextView
+                    android:id="@+id/tvCategory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_tag_inset"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:paddingStart="8dp"
+                    android:paddingTop="2dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="2dp"
+                    android:textColor="@color/theme_text_secondary"
+                    android:textSize="11sp"
+                    android:visibility="gone"
+                    tools:text="电影"
+                    tools:visibility="visible" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
-    </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
-</com.google.android.material.card.MaterialCardView>
+</com.tv.ball.widget.SwipeRevealLayout>

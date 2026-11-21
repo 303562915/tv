@@ -129,6 +129,33 @@ class FavoriteViewModel(
         }
     }
 
+    /**
+     * 撤销删除：按原样写回一条收藏。
+     *
+     * 字段全部用原值（id / addedAt / category / 解析缓存都不重置），所以撤销后
+     * 这条收藏的位置、分类、播放进度信息跟删除前一致，不会跳到列表最前。
+     * id 传原值 → REPLACE 会顶掉同 id 的行（理论上已被删掉，等于原样恢复）；
+     * id 为 0（自动生成没回填的极端情况）时由 Room 自增分配。
+     */
+    fun restoreFavorite(item: FavoriteItem) {
+        viewModelScope.launch {
+            favoriteDao.insertFavorite(
+                FavoriteEntity(
+                    id = item.id,
+                    videoId = item.videoId,
+                    title = item.title,
+                    thumbnailUrl = item.thumbnailUrl,
+                    detailUrl = item.detailUrl,
+                    episodesJson = item.episodesJson,
+                    parsedVideoUrl = item.parsedVideoUrl,
+                    videoHeaders = item.videoHeaders,
+                    addedAt = item.addedAt,
+                    category = item.category
+                )
+            )
+        }
+    }
+
     fun clearAllFavorites() {
         viewModelScope.launch {
             favoriteDao.deleteAllFavorites()

@@ -23,8 +23,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.tv.ball.R
 import com.tv.ball.databinding.FragmentFavoriteBinding
+import com.tv.ball.di.Dependencies
 import com.tv.ball.presentation.detail.VideoDetailActivity
 import com.tv.ball.presentation.player.VideoPlayerActivity
+import com.tv.ball.widget.SwipeRevealLayout
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
@@ -36,6 +38,9 @@ class FavoriteFragment : Fragment() {
         ViewModelProvider(this)[FavoriteViewModel::class.java]
     }
     private lateinit var adapter: FavoriteAdapter
+
+    /** 当前挂着的滑删 helper；切换删除方式时要先摘掉，再决定挂不挂 */
+    private var swipeHelper: ItemTouchHelper? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -50,6 +55,7 @@ class FavoriteFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
         setupSwipeToDelete()
+        setupDeleteModeEntry()
         setupClearButton()
         observeViewModel()
         // 订阅已在 ViewModel init 里启动，这里只是保证语义不变（重复调用不会多起 collector）
@@ -98,6 +104,39 @@ class FavoriteFragment : Fragment() {
     }
 
     private fun setupSwipeToDelete() {
+        // 列表一开始滚动就把露出来的删除区收起，保证同时只有一项展开
+        binding.rvFavorite.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) closeRevealedRows()
+            }
+
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                if (dy != 0) closeRevealedRows()
+            }
+        })
+        applySwipeMode()
+    }
+
+    /**
+     * 按当前删除方式挂 / 摘滑删手势：
+     * - 露出按钮（默认）：不挂 ItemTouchHelper，横向手势交给 SwipeRevealLayout；
+     * - 滑动即删除：挂上 ItemTouchHelper，左右滑走直接删。
+     * 模式先写进 adapter 再刷绑定，避免两套手势抢同一次左滑。
+     */
+    private fun applySwipeMode() {
+        val direct = Dependencies.configRepository.isSwipeDeleteDirect()
+
+        adapter.swipeEnabled = !direct
+        adapter.notifyDataSetChanged()
+
+        swipeHelper?.attachToRecyclerView(null)
+        swipeHelper = null
+        closeRevealedRows()
+
+        if (direct) attachSwipeHelper()
+    }
+
+    private fun attachSwipeHelper() {
         val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
             0,
             ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
@@ -109,14 +148,44 @@ class FavoriteFragment : Fragment() {
             ): Boolean = false
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                val position = viewHolder.adapterPosition
+                val position = viewHolder.bindingAdapterPosition
                 if (position == RecyclerView.NO_POSITION) return
                 val favorite = adapter.currentList.getOrNull(position) ?: return
                 deleteFavoriteItem(favorite)
             }
         })
-
+        swipeHelper = itemTouchHelper
         itemTouchHelper.attachToRecyclerView(binding.rvFavorite)
+    }
+
+    /** 收起所有已经滑出删除区的条目 */
+    private fun closeRevealedRows() {
+        val recyclerView = binding.rvFavorite
+        for (i in 0 until recyclerView.childCount) {
+            val child = recyclerView.getChildAt(i)
+            if (child is SwipeRevealLayout && child.isOpened()) child.close()
+        }
+    }
+
+    private fun setupDeleteModeEntry() {
+        binding.btnDeleteMode.setOnClickListener { showDeleteModeDialog() }
+    }
+
+    private fun showDeleteModeDialog() {
+        val direct = Dependencies.configRepository.isSwipeDeleteDirect()
+        val options = arrayOf(
+            getString(R.string.fav_delete_mode_reveal),
+            getString(R.string.fav_delete_mode_direct)
+        )
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.fav_delete_mode)
+            .setSingleChoiceItems(options, if (direct) 1 else 0) { dialog, which ->
+                Dependencies.configRepository.setSwipeDeleteDirect(which == 1)
+                dialog.dismiss()
+                // 选完立刻生效：重挂手势，不让用户重进页面
+                applySwipeMode()
+            }
+            .show()
     }
 
     private fun setupClearButton() {
@@ -140,9 +209,10 @@ class FavoriteFragment : Fragment() {
 
     private fun deleteFavoriteItem(favoriteItem: FavoriteItem) {
         viewModel.deleteFavorite(favoriteItem.videoId)
-        Snackbar.make(binding.root, "已取消收藏", Snackbar.LENGTH_SHORT)
+        Snackbar.make(binding.root, "已取消收藏", Snackbar.LENGTH_LONG)
             .setAction("撤销") {
-                // 撤销功能可以在后续版本中实现
+                // 按原 id / 原收藏时间原样写回：撤销后分类与排序位置都不变
+                viewModel.restoreFavorite(favoriteItem)
             }
             .show()
     }
@@ -168,6 +238,9 @@ class FavoriteFragment : Fragment() {
             }.collect { (favorites, selected) ->
                 adapter.submitList(favorites)
                 binding.tvEmpty.visibility = if (favorites.isEmpty()) View.VISIBLE else View.GONE
+                // 计数 + 删除方式入口：空列表时整行不显示
+                binding.layoutFavModeRow.visibility = if (favorites.isEmpty()) View.GONE else View.VISIBLE
+                binding.tvFavHint.text = getString(R.string.fav_count, favorites.size)
                 binding.tvEmptyText.setText(
                     if (selected == null) R.string.fav_empty_all else R.string.fav_empty_category
                 )
@@ -243,7 +316,11 @@ class FavoriteFragment : Fragment() {
             )
             isClickable = true
             isFocusable = true
-            setOnClickListener { onClick() }
+            setOnClickListener {
+                // 分类切换也算换了一屏，先把滑出来的删除区收起
+                closeRevealedRows()
+                onClick()
+            }
         }
         bar.addView(
             chip,
