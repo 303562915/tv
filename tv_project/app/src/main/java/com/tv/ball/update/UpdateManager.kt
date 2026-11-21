@@ -81,24 +81,29 @@ object UpdateManager {
     fun install(activity: Activity, apk: File, onDone: () -> Unit = {}) {
         clearReceiver(activity)
 
-        val outcome = ApkInstaller.install(
-            context = activity,
-            apk = apk,
-            // 现在只有最后一步（系统安装器）会让流程停在「等用户确认」，
-            // 不再用 PackageInstaller 会话，也就没有安装结果的广播要听了。
-            onPending = { onDone() },
-            onMessage = { toast(activity, it) }
-        )
-
-        when (outcome) {
-            is ApkInstaller.Outcome.Pending -> Unit
-            is ApkInstaller.Outcome.InstalledByShizuku -> {
-                toast(activity, "已安装新版本，请重新打开应用")
-                onDone()
+        showProgress(activity, "安装更新", "正在安装…")
+        scope.launch {
+            // pm install 会阻塞，必须在 IO 线程；只有最后的系统安装器要回主线程发 Intent。
+            val outcome = withContext(Dispatchers.IO) {
+                ApkInstaller.install(
+                    context = activity,
+                    apk = apk,
+                    onPending = {},
+                    onMessage = { }
+                )
             }
-            is ApkInstaller.Outcome.Failed -> {
-                toast(activity, outcome.reason)
-                askOpenPage(activity, onDone)
+            dismissProgress()
+
+            when (outcome) {
+                is ApkInstaller.Outcome.Pending -> onDone()
+                is ApkInstaller.Outcome.InstalledSilently -> {
+                    toast(activity, "已静默安装新版本，请重新打开应用")
+                    onDone()
+                }
+                is ApkInstaller.Outcome.Failed -> {
+                    toast(activity, outcome.reason)
+                    askOpenPage(activity, onDone)
+                }
             }
         }
     }
@@ -135,31 +140,6 @@ object UpdateManager {
                 return@launch
             }
             install(activity, apk, onDone)
-        }
-    }
-
-    private fun fallbackToShizuku(activity: Activity, apk: File, onDone: () -> Unit) {
-        if (ShizukuBridge.isAvailable() && !ShizukuBridge.hasPermission()) {
-            ShizukuBridge.requestPermission(ApkInstaller.REQUEST_SHIZUKU)
-            toast(activity, "请在 Shizuku 里授权本应用，然后再点一次检查更新")
-            onDone()
-            return
-        }
-
-        showProgress(activity, "安装更新", "正在通过 Shizuku / root 安装…")
-        scope.launch {
-            val installed = withContext(Dispatchers.IO) {
-                (ShizukuBridge.isAvailable() && ShizukuBridge.install(apk)) ||
-                    RootBridge.install(apk)
-            }
-            dismissProgress()
-            if (installed) {
-                toast(activity, "已通过 Shizuku / root 安装，请重新打开应用")
-                onDone()
-            } else {
-                toast(activity, "自动安装失败，请手动安装")
-                askOpenPage(activity, onDone)
-            }
         }
     }
 
