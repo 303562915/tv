@@ -23,12 +23,12 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 /**
- * 「关于页与许可证」页 —— 结构对照 unicanta 的 AboutScreen 一比一翻译成 View 体系：
+ * 「关于」页 —— 结构对照 unicanta 的 AboutScreen 一比一翻译成 View 体系：
  *
  * 1. **AppHero**：图标块 + 应用名 + 版本行（开发版带 dev 构建号）+ 安装时间 + 一句话定位；
  * 2. **UpdateCard**：整行就是按钮——空闲提示 / 检查中 / 已是最新 / 发现新版本（再点下载）/
- *    失败原因（点名被墙、配额、超时、上游故障），失败的再点一次就是重试；
- * 3. **UpdateChannelCard**：稳定版 / 开发版两块渠道芯片，确认键切换；
+ *    正在下载 / 失败原因（点名被墙、配额、超时、上游故障），失败的再点一次就是重试；
+ * 3. **UpdateChannelCard**：稳定版 / 开发版两块渠道芯片，确认键切换（默认开发版）；
  * 4. **自动下载安装开关**；
  * 5. **外链卡**：下载页 / 源码仓库，交给系统浏览器，没有浏览器时只提示、不崩；
  * 6. **第三方依赖 + 许可证全文**（本项目自有的开源合规区）。
@@ -46,6 +46,13 @@ class F086Activity : AppCompatActivity() {
         data object Checking : UiState
         data object Latest : UiState
         data class Available(val info: UpdateInfo) : UiState
+
+        /**
+         * 新版本已在后台下载（自动安装开关开着，或用户点了「下载安装」）。
+         * 下载链路本身不在这里，页面只负责如实说一句「正在下载」，不能报成「已是最新」。
+         */
+        data object Downloading : UiState
+
         data class Failed(val failure: UpdateChecker.Failure) : UiState
     }
 
@@ -100,11 +107,15 @@ class F086Activity : AppCompatActivity() {
 
     // ===== 检查更新 =====
 
-    /** 整行即按钮：空闲/失败 = 检查，发现新版本 = 下载，检查中忽略。 */
+    /** 整行即按钮：空闲/失败 = 检查，发现新版本 = 下载，检查中与下载中忽略。 */
     private fun onUpdateCardTap() {
         when (val current = state) {
             is UiState.Checking -> Unit
+            is UiState.Downloading -> Unit
             is UiState.Available -> {
+                // 点了就开始下载：先把页面切到「正在下载」，完成回调再把状态收回空闲
+                state = UiState.Downloading
+                render(state)
                 UpdateManager.downloadAndInstall(this, current.info) { renderIdle() }
             }
             else -> checkUpdate()
@@ -116,17 +127,17 @@ class F086Activity : AppCompatActivity() {
         render(state)
         lifecycleScope.launch {
             val result = runCatching { UpdateChecker.check(channel) }
-            state = result.fold(
+            var autoStart: UpdateInfo? = null
+            val next = result.fold(
                 onSuccess = { info ->
-                    if (UpdateChecker.isNewer(info)) {
-                        if (binding.f086AutoInstall.isChecked) {
-                            UpdateManager.downloadAndInstall(this@F086Activity, info) { renderIdle() }
-                            UiState.Latest
-                        } else {
-                            UiState.Available(info)
+                    when {
+                        !UpdateChecker.isNewer(info) -> UiState.Latest
+                        // 自动安装开着：不询问直接下载，页面照实说「正在下载」，不能报「已是最新」
+                        binding.f086AutoInstall.isChecked -> {
+                            autoStart = info
+                            UiState.Downloading
                         }
-                    } else {
-                        UiState.Latest
+                        else -> UiState.Available(info)
                     }
                 },
                 onFailure = { e ->
@@ -135,7 +146,9 @@ class F086Activity : AppCompatActivity() {
                     )
                 }
             )
+            state = next
             render(state)
+            autoStart?.let { UpdateManager.downloadAndInstall(this@F086Activity, it) { renderIdle() } }
         }
     }
 
@@ -171,11 +184,15 @@ class F086Activity : AppCompatActivity() {
     // ===== 状态渲染 =====
 
     private fun render(target: UiState) {
-        val busy = target is UiState.Checking
+        // 检查中与下载中都是「在动」的状态，行首转圈；两者的整行点击都忽略
+        val busy = target is UiState.Checking || target is UiState.Downloading
         binding.f086UpdateProgress.visibility = if (busy) View.VISIBLE else View.GONE
         binding.f086UpdateAction.setText(
             if (target is UiState.Available) R.string.f086_download_now else R.string.f086_check_action
         )
+        // 下载中整行不接受点击，右侧就别再挂着「立即检查」这种可点的字样
+        binding.f086UpdateAction.visibility =
+            if (target is UiState.Downloading) View.INVISIBLE else View.VISIBLE
         val statusText: String
         val statusColor: Int
         when (val current = target) {
@@ -186,6 +203,10 @@ class F086Activity : AppCompatActivity() {
             UiState.Checking -> {
                 statusText = getString(R.string.f086_checking)
                 statusColor = color(R.color.theme_text_secondary)
+            }
+            UiState.Downloading -> {
+                statusText = getString(R.string.f086_downloading)
+                statusColor = color(R.color.theme_primary)
             }
             UiState.Latest -> {
                 statusText = getString(R.string.f086_up_to_date)

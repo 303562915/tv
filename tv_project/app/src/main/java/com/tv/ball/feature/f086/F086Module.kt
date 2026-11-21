@@ -15,7 +15,7 @@ object F086Module : FeatureModule {
 
     override val id: String = "F086"
 
-    override val title: String = "关于页与许可证"
+    override val title: String = "关于"
 
     override val description: String = "版本信息、更新渠道（稳定版 / 开发版）、检查更新、依赖清单与各自许可证集中一页"
 

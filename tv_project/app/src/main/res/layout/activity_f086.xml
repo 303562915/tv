@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  「关于页与许可证」页 · 沿用功能页的 FlClash 视觉语言，
-  结构对照 unicanta 的 AboutScreen（Compose）一比一翻译成 View 体系：
+  「关于」页 · 结构对照 unicanta 的 AboutScreen（Compose）一比一翻译成 View 体系：
 
   1. AppHero：图标块 + 应用名 + 版本行（开发版带 dev 构建号）+ 安装时间 + 一句话定位；
   2. UpdateCard：整行可点的「检查更新」——空闲提示 / 检查中 / 已是最新 / 发现新版本 /
      失败原因（点名网络、配额、超时），失败再点一次就是重试；
-  3. UpdateChannelCard：稳定版 / 开发版 两个渠道块（遥控器确认切换）；
+  3. UpdateChannelCard：稳定版 / 开发版 两个渠道芯片（遥控器确认切换），
+     提示行由 F086Activity 按当前渠道填 f086_check_hint_channel；
   4. 自动下载安装开关；
   5. 下载页 / 源码仓库两个外链；
   6. 第三方依赖 + 许可证全文（本项目自有的开源合规区，unicanta 没有对应物，保留）。
+
+  行几何与「我的」页同一套 token（对照 unicanta SettingsItem.kt：
+  GroupInset 13 / GroupCorner 12 / RowPaddingH 14 / RowPaddingV 9 / RowMinHeight 44 /
+  LeadingIcon 19 / LeadingGap 11 / TrailingIcon 18），组间距 group_gap，组标题距底
+  group_title_gap；卡片自己圆角 group_corner，行底用 bg_profile_row 的焦点/按下色。
+  卡片本身是焦点目标时，行底靠 android:duplicateParentState 承接卡片焦点态。
 
   电视遥控器操作：焦点链  返回 → 检查更新 → 稳定版 → 开发版 → 自动安装 →
   下载页 → 打开仓库 → 许可证长文本区；依赖行与说明文字不抢焦点。
@@ -29,15 +35,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingStart="@dimen/page_margin"
+        android:paddingStart="0dp"
         android:paddingTop="@dimen/page_margin"
-        android:paddingEnd="@dimen/page_margin"
+        android:paddingEnd="0dp"
         android:paddingBottom="96dp">
 
         <!-- 标题行：返回 + 页标题 -->
+        <!-- 容器横向不再留 padding，卡片只靠 group_inset 定位，与「我的」页横向位置一致 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/page_margin"
+            android:layout_marginEnd="@dimen/page_margin"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
@@ -68,6 +77,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/page_margin"
+            android:layout_marginEnd="@dimen/page_margin"
             android:layout_marginTop="@dimen/card_padding"
             android:gravity="center_vertical"
             android:orientation="horizontal">
@@ -127,8 +138,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
-                    android:maxLines="2"
                     android:ellipsize="end"
+                    android:maxLines="2"
                     android:text="@string/f086_tagline"
                     android:textColor="@color/theme_text_secondary"
                     android:textSize="12sp" />
@@ -141,22 +152,28 @@
             style="@style/Widget.TVPlayer.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/card_gap"
+            android:layout_marginStart="@dimen/group_inset"
+            android:layout_marginTop="@dimen/group_gap"
+            android:layout_marginEnd="@dimen/group_inset"
             android:clickable="true"
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:nextFocusUp="@id/btnBack"
-            android:nextFocusDown="@id/f086ChannelStable">
+            android:nextFocusDown="@id/f086ChannelStable"
+            app:cardCornerRadius="@dimen/group_corner">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@drawable/bg_profile_row"
+                android:duplicateParentState="true"
                 android:gravity="center_vertical"
+                android:minHeight="@dimen/row_min_height"
                 android:orientation="horizontal"
-                android:paddingStart="14dp"
-                android:paddingTop="12dp"
-                android:paddingEnd="14dp"
-                android:paddingBottom="12dp">
+                android:paddingStart="@dimen/row_padding_h"
+                android:paddingTop="@dimen/row_padding_v"
+                android:paddingEnd="@dimen/row_padding_h"
+                android:paddingBottom="@dimen/row_padding_v">
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -175,6 +192,7 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
@@ -182,16 +200,17 @@
                             android:id="@+id/f086UpdateProgress"
                             android:layout_width="11dp"
                             android:layout_height="11dp"
+                            android:layout_marginEnd="6dp"
                             android:indeterminateTint="@color/theme_primary"
                             android:visibility="gone" />
 
                         <TextView
                             android:id="@+id/f086UpdateStatus"
-                            android:layout_width="match_parent"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:maxLines="3"
+                            android:layout_weight="1"
                             android:ellipsize="end"
+                            android:maxLines="3"
                             android:text="@string/f086_check_hint"
                             android:textColor="@color/theme_text_secondary"
                             android:textSize="12sp" />
@@ -214,13 +233,19 @@
             style="@style/Widget.TVPlayer.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp">
+            android:layout_marginStart="@dimen/group_inset"
+            android:layout_marginTop="@dimen/group_gap"
+            android:layout_marginEnd="@dimen/group_inset"
+            app:cardCornerRadius="@dimen/group_corner">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="@dimen/card_padding">
+                android:paddingStart="@dimen/row_padding_h"
+                android:paddingTop="@dimen/row_padding_v"
+                android:paddingEnd="@dimen/row_padding_h"
+                android:paddingBottom="@dimen/row_padding_v">
 
                 <TextView
                     android:layout_width="match_parent"
@@ -239,7 +264,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="@dimen/group_gap"
                     android:orientation="horizontal">
 
                     <TextView
@@ -252,12 +277,13 @@
                         android:focusable="true"
                         android:focusableInTouchMode="true"
                         android:gravity="center"
-                        android:nextFocusUp="@id/f086UpdateCard"
+                        android:minHeight="@dimen/row_min_height"
                         android:nextFocusDown="@id/f086ChannelDev"
+                        android:nextFocusLeft="@id/f086ChannelDev"
+                        android:nextFocusRight="@id/f086ChannelDev"
+                        android:nextFocusUp="@id/f086UpdateCard"
                         android:paddingStart="12dp"
-                        android:paddingTop="10dp"
                         android:paddingEnd="12dp"
-                        android:paddingBottom="10dp"
                         android:text="@string/f086_channel_stable"
                         android:textColor="@color/theme_text_primary"
                         android:textSize="14sp" />
@@ -266,19 +292,20 @@
                         android:id="@+id/f086ChannelDev"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
+                        android:layout_marginStart="@dimen/group_gap"
                         android:layout_weight="1"
                         android:background="@drawable/bg_channel_chip"
                         android:clickable="true"
                         android:focusable="true"
                         android:focusableInTouchMode="true"
                         android:gravity="center"
-                        android:nextFocusUp="@id/f086ChannelStable"
+                        android:minHeight="@dimen/row_min_height"
                         android:nextFocusDown="@id/f086AutoInstall"
+                        android:nextFocusLeft="@id/f086ChannelStable"
+                        android:nextFocusRight="@id/f086ChannelStable"
+                        android:nextFocusUp="@id/f086ChannelStable"
                         android:paddingStart="12dp"
-                        android:paddingTop="10dp"
                         android:paddingEnd="12dp"
-                        android:paddingBottom="10dp"
                         android:text="@string/f086_channel_dev"
                         android:textColor="@color/theme_text_primary"
                         android:textSize="14sp" />
@@ -291,17 +318,21 @@
             style="@style/Widget.TVPlayer.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp">
+            android:layout_marginStart="@dimen/group_inset"
+            android:layout_marginTop="@dimen/group_gap"
+            android:layout_marginEnd="@dimen/group_inset"
+            app:cardCornerRadius="@dimen/group_corner">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
+                android:minHeight="@dimen/row_min_height"
                 android:orientation="horizontal"
-                android:paddingStart="14dp"
-                android:paddingTop="11dp"
-                android:paddingEnd="14dp"
-                android:paddingBottom="11dp">
+                android:paddingStart="@dimen/row_padding_h"
+                android:paddingTop="@dimen/row_padding_v"
+                android:paddingEnd="@dimen/row_padding_h"
+                android:paddingBottom="@dimen/row_padding_v">
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -328,6 +359,7 @@
                     android:id="@+id/f086AutoInstall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/row_leading_gap"
                     android:focusable="true"
                     android:focusableInTouchMode="true"
                     android:nextFocusUp="@id/f086ChannelDev"
@@ -341,22 +373,28 @@
             style="@style/Widget.TVPlayer.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginStart="@dimen/group_inset"
+            android:layout_marginTop="@dimen/group_gap"
+            android:layout_marginEnd="@dimen/group_inset"
             android:clickable="true"
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:nextFocusUp="@id/f086AutoInstall"
-            android:nextFocusDown="@id/f086RepoButton">
+            android:nextFocusDown="@id/f086RepoButton"
+            app:cardCornerRadius="@dimen/group_corner">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@drawable/bg_profile_row"
+                android:duplicateParentState="true"
                 android:gravity="center_vertical"
+                android:minHeight="@dimen/row_min_height"
                 android:orientation="horizontal"
-                android:paddingStart="14dp"
-                android:paddingTop="12dp"
-                android:paddingEnd="14dp"
-                android:paddingBottom="12dp">
+                android:paddingStart="@dimen/row_padding_h"
+                android:paddingTop="@dimen/row_padding_v"
+                android:paddingEnd="@dimen/row_padding_h"
+                android:paddingBottom="@dimen/row_padding_v">
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -381,12 +419,15 @@
                         android:textSize="11sp" />
                 </LinearLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/f086_chevron"
-                    android:textColor="@color/theme_text_secondary"
-                    android:textSize="16sp" />
+                <ImageView
+                    android:layout_width="@dimen/row_trailing_icon"
+                    android:layout_height="@dimen/row_trailing_icon"
+                    android:layout_marginStart="@dimen/row_leading_gap"
+                    android:contentDescription="@null"
+                    android:importantForAccessibility="no"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_arrow_right"
+                    app:tint="@color/theme_text_secondary" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -395,25 +436,28 @@
             style="@style/Widget.TVPlayer.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp">
+            android:layout_marginStart="@dimen/group_inset"
+            android:layout_marginTop="@dimen/group_gap"
+            android:layout_marginEnd="@dimen/group_inset"
+            app:cardCornerRadius="@dimen/group_corner">
 
             <LinearLayout
                 android:id="@+id/f086RepoButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_card_surface"
+                android:background="@drawable/bg_profile_row"
                 android:clickable="true"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:gravity="center_vertical"
-                android:minHeight="@dimen/list_row_min_height"
-                android:nextFocusUp="@id/f086DownloadCard"
+                android:minHeight="@dimen/row_min_height"
                 android:nextFocusDown="@id/f086LicenseScroll"
+                android:nextFocusUp="@id/f086DownloadCard"
                 android:orientation="horizontal"
-                android:paddingStart="14dp"
-                android:paddingTop="12dp"
-                android:paddingEnd="14dp"
-                android:paddingBottom="12dp">
+                android:paddingStart="@dimen/row_padding_h"
+                android:paddingTop="@dimen/row_padding_v"
+                android:paddingEnd="@dimen/row_padding_h"
+                android:paddingBottom="@dimen/row_padding_v">
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -438,12 +482,15 @@
                         android:textSize="11sp" />
                 </LinearLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/f086_chevron"
-                    android:textColor="@color/theme_text_secondary"
-                    android:textSize="16sp" />
+                <ImageView
+                    android:layout_width="@dimen/row_trailing_icon"
+                    android:layout_height="@dimen/row_trailing_icon"
+                    android:layout_marginStart="@dimen/row_leading_gap"
+                    android:contentDescription="@null"
+                    android:importantForAccessibility="no"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_arrow_right"
+                    app:tint="@color/theme_text_secondary" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -451,21 +498,30 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/group_inset"
             android:layout_marginTop="@dimen/card_padding"
-            android:layout_marginBottom="@dimen/card_gap"
+            android:layout_marginBottom="@dimen/group_title_gap"
+            android:paddingStart="@dimen/row_padding_h"
+            android:paddingEnd="@dimen/row_padding_h"
             android:text="@string/f086_section_deps"
             android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
 
         <com.google.android.material.card.MaterialCardView
             style="@style/Widget.TVPlayer.Card"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/group_inset"
+            android:layout_marginEnd="@dimen/group_inset"
+            app:cardCornerRadius="@dimen/group_corner">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="@dimen/card_padding">
+                android:paddingStart="@dimen/row_padding_h"
+                android:paddingTop="@dimen/row_padding_v"
+                android:paddingEnd="@dimen/row_padding_h"
+                android:paddingBottom="@dimen/row_padding_v">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -505,21 +561,30 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/group_inset"
             android:layout_marginTop="@dimen/card_padding"
-            android:layout_marginBottom="@dimen/card_gap"
+            android:layout_marginBottom="@dimen/group_title_gap"
+            android:paddingStart="@dimen/row_padding_h"
+            android:paddingEnd="@dimen/row_padding_h"
             android:text="@string/f086_section_license"
             android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
 
         <com.google.android.material.card.MaterialCardView
             style="@style/Widget.TVPlayer.Card"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/group_inset"
+            android:layout_marginEnd="@dimen/group_inset"
+            app:cardCornerRadius="@dimen/group_corner">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="@dimen/card_padding">
+                android:paddingStart="@dimen/row_padding_h"
+                android:paddingTop="@dimen/row_padding_v"
+                android:paddingEnd="@dimen/row_padding_h"
+                android:paddingBottom="@dimen/row_padding_v">
 
                 <TextView
                     android:layout_width="match_parent"
@@ -542,7 +607,7 @@
                     android:id="@+id/f086LicenseScroll"
                     android:layout_width="match_parent"
                     android:layout_height="260dp"
-                    android:layout_marginTop="@dimen/card_gap"
+                    android:layout_marginTop="@dimen/group_gap"
                     android:background="@color/surface_inset"
                     android:fillViewport="true"
                     android:focusable="true"

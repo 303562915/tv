@@ -3,7 +3,7 @@
      结构对照 unicanta 的 AboutScreen：应用英雄区 / 检查更新卡 / 渠道卡 / 自动安装 /
      外链卡，文案命名也对齐（check_update / channel / auto_install / download_page）。 -->
 <resources>
-    <string name="f086_title">关于页与许可证</string>
+    <string name="f086_title">关于</string>
     <string name="f086_action_back">返回</string>
 
     <!-- AppHero -->
@@ -16,17 +16,19 @@
 
     <!-- 检查更新卡（UpdateCard） -->
     <string name="f086_check_update">检查更新</string>
-    <string name="f086_check_hint">点这里检查 stable 渠道的最新发布</string>
+    <string name="f086_check_hint">点这里检查当前渠道的最新发布</string>
     <string name="f086_check_action">立即检查</string>
     <string name="f086_download_now">下载安装</string>
     <string name="f086_checking">正在检查…</string>
+    <!-- 自动安装开着、或用户点了「下载安装」时，行内如实报下载中（不能报「已是最新」） -->
+    <string name="f086_downloading">正在下载更新，完成后会先征求同意再安装</string>
     <string name="f086_up_to_date">已是最新版本</string>
     <string name="f086_update_available">发现新版本 %1$s，再点一次开始下载</string>
     <string name="f086_check_retry">点这里重试</string>
 
     <!-- 更新渠道卡（UpdateChannelCard） -->
     <string name="f086_channel_label">更新渠道</string>
-    <string name="f086_channel_hint">稳定版跟 v* 标签发布；开发版每次提交代码都会出一个新构建（dev 编号递增），两者同一签名，可互相覆盖安装</string>
+    <string name="f086_channel_hint">未选过渠道时默认开发版；稳定版跟 v* 标签发布，开发版每次提交代码都会出一个新构建（dev 编号递增），两者同一签名，可互相覆盖安装</string>
     <string name="f086_channel_stable">稳定版</string>
     <string name="f086_channel_dev">开发版</string>
 

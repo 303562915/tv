@@ -31,6 +31,25 @@
     <dimen name="nav_max_item_extent">86dp</dimen>
     <dimen name="nav_icon_size">28dp</dimen>
 
+    <!--
+      「我的」页：尺寸逐条对照 unicanta SettingsItem.kt 的常量
+      （GroupInset 13 / GroupCorner 12 / RowPaddingH 14 / RowPaddingV 9 /
+      RowMinHeight 44 / LeadingIcon 19 / LeadingGap 11 / TrailingIcon 18），
+      「关于」页复用同一套，保证两页行高与缩进完全一致。
+    -->
+    <dimen name="group_inset">13dp</dimen>
+    <dimen name="group_corner">12dp</dimen>
+    <dimen name="row_padding_h">14dp</dimen>
+    <dimen name="row_padding_v">9dp</dimen>
+    <dimen name="row_min_height">44dp</dimen>
+    <dimen name="row_leading_icon">19dp</dimen>
+    <dimen name="row_leading_gap">11dp</dimen>
+    <dimen name="row_trailing_icon">18dp</dimen>
+    <dimen name="group_gap">12dp</dimen>
+    <dimen name="group_title_gap">5dp</dimen>
+    <dimen name="avatar_size">38dp</dimen>
+    <dimen name="hairline">1dp</dimen>
+
     <!-- 既有尺寸（保留原引用） -->
     <dimen name="tab_padding">12dp</dimen>
     <dimen name="speed_dialog_width">400dp</dimen>

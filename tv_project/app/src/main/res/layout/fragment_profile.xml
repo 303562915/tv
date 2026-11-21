@@ -1,454 +1,607 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  「我的」页 · FlClash 视觉语言
-  用填充表达结构（page → card → block → inset），用颜色表达状态；
-  卡片 16dp 圆角、无阴影、无描边；分隔线用 theme_divider，左侧与文字对齐。
+  「我的」页 · 对照 unicanta SettingsScreen（Compose）一比一翻译成 View 体系。
+
+  结构：SettingsGroup（无标题 · UserCard）→ 分组标题「内容」+ 卡片（3 行 + 2 条 hairline）
+        → 分组标题「设置」+ 卡片（3 行 + 2 条 hairline）→ 无标题卡片（关于本应用单行）。
+  几何逐条取 unicanta SettingsItem.kt 的常量（GroupInset 13 / GroupCorner 12 /
+  RowPaddingH 14 / RowPaddingV 9 / RowMinHeight 44 / LeadingIcon 19 / LeadingGap 11 /
+  TrailingIcon 18），组与组之间统一用 group_gap 的 View 占位，不再用 marginTop 混写。
+
+  四条硬约定：
+  1) 整页不可滚动（根节点是普通 LinearLayout，不是 NestedScrollView），内容必须一屏放下；
+  2) 每行统一 background=@drawable/bg_profile_row，焦点/按下由该 selector 给底色，
+     禁止再叠 ?attr/selectableItemBackground；
+  3) 遥控器焦点链 profileUserCard → rowLocalVideo → rowFavorite → rowHistory →
+     rowTheme → rowSettings → rowClearCache → rowAbout，首行 nextFocusUp=@null、
+     末行 nextFocusDown=@null；非交互 TextView / hairline / 间隔一律不聚焦；
+  4) 关于/更新/渠道全部已搬到 F086 关于页，本页只留一个「关于本应用」入口，
+     旧版的「检查更新」行与 about_desc 说明文字不再出现。
 -->
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?android:attr/colorBackground"
-    android:clipToPadding="false"
-    android:fillViewport="true"
-    android:overScrollMode="never"
-    android:paddingBottom="96dp">
+    android:background="@color/theme_background"
+    android:orientation="vertical"
+    android:paddingStart="0dp"
+    android:paddingTop="12dp"
+    android:paddingEnd="0dp"
+    android:paddingBottom="12dp">
 
-    <LinearLayout
+    <!-- 页面标题（SettingsScreen 的 ScreenTopBar 标题位置） -->
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingStart="@dimen/page_margin"
-        android:paddingTop="@dimen/page_margin"
-        android:paddingEnd="@dimen/page_margin"
-        android:paddingBottom="96dp">
+        android:layout_marginStart="@dimen/page_margin"
+        android:layout_marginEnd="@dimen/page_margin"
+        android:layout_marginBottom="8dp"
+        android:text="@string/profile"
+        android:textAppearance="@style/TextAppearance.TVPlayer.PageTitle" />
 
-        <!-- 页面标题 -->
-        <TextView
+    <!-- ===== 用户卡（对照 SettingsScreen.UserCard，无分组标题） ===== -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/group_inset"
+        android:layout_marginEnd="@dimen/group_inset"
+        app:cardBackgroundColor="@color/surface_card"
+        app:cardCornerRadius="@dimen/group_corner"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp">
+
+        <LinearLayout
+            android:id="@+id/profileUserCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/card_padding"
-            android:text="@string/profile"
-            android:textAppearance="@style/TextAppearance.TVPlayer.PageTitle" />
+            android:background="@drawable/bg_profile_row"
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:gravity="center_vertical"
+            android:minHeight="56dp"
+            android:nextFocusDown="@id/rowLocalVideo"
+            android:nextFocusUp="@null"
+            android:orientation="horizontal"
+            android:paddingStart="8dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="8dp">
 
-        <!-- 头部卡：头像 + 昵称 + 说明 -->
-        <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.TVPlayer.Card"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:clickable="false"
-            android:focusable="false">
+            <!-- 字母头像（对照 LetterAvatar，38dp 圆底） -->
+            <FrameLayout
+                android:layout_width="@dimen/avatar_size"
+                android:layout_height="@dimen/avatar_size"
+                android:background="@drawable/bg_avatar_circle">
+
+                <TextView
+                    android:id="@+id/profileAvatarLetter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:textColor="@color/theme_primary"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="@dimen/card_padding">
+                android:layout_marginStart="11dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-                <FrameLayout
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:background="@drawable/bg_avatar_circle">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_gravity="center"
-                        android:contentDescription="@string/profile"
-                        android:src="@drawable/ic_nav_profile"
-                        app:tint="@color/theme_text_secondary" />
-                </FrameLayout>
-
+                <!-- 第一行：名字 + 「还没起名字」徽标 -->
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/card_padding"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
                     <TextView
-                        android:layout_width="match_parent"
+                        android:id="@+id/profileUserName"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="本机用户"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="@string/profile_user_default"
                         android:textColor="@color/theme_text_primary"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
                         android:textStyle="bold" />
 
                     <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="@string/profile_subtitle"
-                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
-                </LinearLayout>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- 小节：内容 -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/card_padding"
-            android:layout_marginBottom="@dimen/card_gap"
-            android:text="@string/section_content"
-            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
-
-        <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.TVPlayer.Card"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:id="@+id/layoutLocalVideo"
-                    style="@style/Widget.TVPlayer.ListRow"
-                    android:paddingTop="10dp"
-                    android:paddingBottom="10dp">
-
-                    <FrameLayout
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:background="@drawable/bg_icon_well">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:contentDescription="@string/local_video"
-                            android:src="@drawable/ic_nav_local_video"
-                            app:tint="@color/theme_text_secondary" />
-                    </FrameLayout>
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="28dp"
-                        android:layout_weight="1"
-                        android:text="@string/local_video"
-                        android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
-
-                    <ImageView
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_arrow_right"
-                        app:tint="@color/theme_text_secondary" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginStart="80dp"
-                    android:layout_marginEnd="@dimen/card_padding"
-                    android:background="@color/theme_divider" />
-
-                <LinearLayout
-                    android:id="@+id/layoutFavorite"
-                    style="@style/Widget.TVPlayer.ListRow"
-                    android:paddingTop="10dp"
-                    android:paddingBottom="10dp">
-
-                    <FrameLayout
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:background="@drawable/bg_icon_well">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:contentDescription="@string/my_favorite"
-                            android:src="@drawable/ic_nav_favorite"
-                            app:tint="@color/theme_text_secondary" />
-                    </FrameLayout>
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="28dp"
-                        android:layout_weight="1"
-                        android:text="@string/my_favorite"
-                        android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
-
-                    <ImageView
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_arrow_right"
-                        app:tint="@color/theme_text_secondary" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginStart="80dp"
-                    android:layout_marginEnd="@dimen/card_padding"
-                    android:background="@color/theme_divider" />
-
-                <LinearLayout
-                    android:id="@+id/layoutHistory"
-                    style="@style/Widget.TVPlayer.ListRow"
-                    android:paddingTop="10dp"
-                    android:paddingBottom="10dp">
-
-                    <FrameLayout
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:background="@drawable/bg_icon_well">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:contentDescription="@string/watch_history"
-                            android:src="@drawable/ic_nav_history"
-                            app:tint="@color/theme_text_secondary" />
-                    </FrameLayout>
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="28dp"
-                        android:layout_weight="1"
-                        android:text="@string/watch_history"
-                        android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
-
-                    <ImageView
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_arrow_right"
-                        app:tint="@color/theme_text_secondary" />
-                </LinearLayout>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- 小节：设置 -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/card_gap"
-            android:layout_marginBottom="@dimen/card_gap"
-            android:text="@string/section_settings"
-            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
-
-        <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.TVPlayer.Card"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:id="@+id/layoutTheme"
-                    style="@style/Widget.TVPlayer.ListRow"
-                    android:paddingTop="10dp"
-                    android:paddingBottom="10dp">
-
-                    <FrameLayout
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:background="@drawable/bg_icon_well">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:contentDescription="@string/theme_setting"
-                            android:src="@drawable/ic_row_theme"
-                            app:tint="@color/theme_text_secondary" />
-                    </FrameLayout>
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="28dp"
-                        android:layout_weight="1"
-                        android:text="@string/theme_setting"
-                        android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
-
-                    <ImageView
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_arrow_right"
-                        app:tint="@color/theme_text_secondary" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginStart="80dp"
-                    android:layout_marginEnd="@dimen/card_padding"
-                    android:background="@color/theme_divider" />
-
-                <LinearLayout
-                    android:id="@+id/layoutSettings"
-                    style="@style/Widget.TVPlayer.ListRow"
-                    android:paddingTop="10dp"
-                    android:paddingBottom="10dp">
-
-                    <FrameLayout
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:background="@drawable/bg_icon_well">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:contentDescription="@string/playback_setting"
-                            android:src="@drawable/ic_row_settings"
-                            app:tint="@color/theme_text_secondary" />
-                    </FrameLayout>
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="28dp"
-                        android:layout_weight="1"
-                        android:text="@string/playback_setting"
-                        android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
-
-                    <ImageView
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_arrow_right"
-                        app:tint="@color/theme_text_secondary" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginStart="80dp"
-                    android:layout_marginEnd="@dimen/card_padding"
-                    android:background="@color/theme_divider" />
-
-                <LinearLayout
-                    android:id="@+id/layoutClearCache"
-                    style="@style/Widget.TVPlayer.ListRow"
-                    android:paddingTop="10dp"
-                    android:paddingBottom="10dp">
-
-                    <FrameLayout
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:background="@drawable/bg_icon_well">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:contentDescription="@string/clear_cache"
-                            android:src="@drawable/ic_row_clean"
-                            app:tint="@color/theme_text_secondary" />
-                    </FrameLayout>
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="28dp"
-                        android:layout_weight="1"
-                        android:text="@string/clear_cache"
-                        android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
-
-                    <TextView
-                        android:id="@+id/tvCacheSize"
+                        android:id="@+id/profileUserBadge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
-                </LinearLayout>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- 小节：关于 -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/card_gap"
-            android:layout_marginBottom="@dimen/card_gap"
-            android:text="@string/section_about"
-            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
-
-        <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.TVPlayer.Card"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:id="@+id/layoutCheckUpdate"
-                    style="@style/Widget.TVPlayer.ListRow"
-                    android:paddingTop="10dp"
-                    android:paddingBottom="10dp">
-
-                    <FrameLayout
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:background="@drawable/bg_icon_well">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            android:contentDescription="@string/check_update"
-                            android:src="@drawable/ic_row_about"
-                            app:tint="@color/theme_text_secondary" />
-                    </FrameLayout>
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="28dp"
-                        android:layout_weight="1"
-                        android:text="@string/check_update"
-                        android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
-
-                    <TextView
-                        android:id="@+id/tvVersion"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
-
-                    <ProgressBar
-                        android:id="@+id/updateProgress"
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:layout_marginStart="@dimen/card_gap"
-                        android:indeterminateTint="?attr/colorPrimary"
+                        android:layout_marginStart="6dp"
+                        android:background="@drawable/bg_profile_badge"
+                        android:paddingStart="5dp"
+                        android:paddingTop="1dp"
+                        android:paddingEnd="5dp"
+                        android:paddingBottom="1dp"
+                        android:text="@string/profile_unnamed_badge"
+                        android:textColor="#FF6B5400"
+                        android:textSize="9sp"
                         android:visibility="gone" />
                 </LinearLayout>
 
-                <View
+                <!-- 第二行：改名提示（未命名时由代码换成起名话术） -->
+                <TextView
+                    android:id="@+id/profileUserHint"
                     android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginStart="80dp"
-                    android:layout_marginEnd="@dimen/card_padding"
-                    android:background="@color/theme_divider" />
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@string/profile_edit_name"
+                    android:textColor="@color/theme_text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginStart="8dp"
+                android:contentDescription="@null"
+                android:src="@drawable/edit"
+                app:tint="@color/theme_text_secondary" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/group_gap" />
+
+    <!-- ===== 分组一「内容」（SettingsGroup(title=...)） ===== -->
+    <!-- 标题左右 27dp = group_inset 13 + row_padding_h 14，与卡片内文字左缘对齐 -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="27dp"
+        android:layout_marginEnd="27dp"
+        android:layout_marginBottom="@dimen/group_title_gap"
+        android:text="@string/section_content"
+        android:textColor="@color/theme_text_secondary"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/group_inset"
+        android:layout_marginEnd="@dimen/group_inset"
+        app:cardBackgroundColor="@color/surface_card"
+        app:cardCornerRadius="@dimen/group_corner"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- 本地视频 -->
+            <LinearLayout
+                android:id="@+id/rowLocalVideo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_profile_row"
+                android:clickable="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/row_min_height"
+                android:nextFocusDown="@id/rowFavorite"
+                android:nextFocusUp="@id/profileUserCard"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/row_padding_h"
+                android:paddingTop="@dimen/row_padding_v"
+                android:paddingEnd="@dimen/row_padding_h"
+                android:paddingBottom="@dimen/row_padding_v">
+
+                <ImageView
+                    android:layout_width="@dimen/row_leading_icon"
+                    android:layout_height="@dimen/row_leading_icon"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_nav_local_video"
+                    app:tint="@color/theme_primary" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/row_leading_gap"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    android:text="@string/local_video"
+                    android:textColor="@color/theme_text_primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:layout_width="@dimen/row_trailing_icon"
+                    android:layout_height="@dimen/row_trailing_icon"
+                    android:layout_marginStart="8dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_arrow_right"
+                    app:tint="@color/theme_text_secondary" />
+            </LinearLayout>
+
+            <!-- hairline（只在还有下一行时画） -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/hairline"
+                android:layout_marginStart="@dimen/row_padding_h"
+                android:layout_marginEnd="@dimen/row_padding_h"
+                android:background="@color/theme_divider" />
+
+            <!-- 我的收藏 -->
+            <LinearLayout
+                android:id="@+id/rowFavorite"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_profile_row"
+                android:clickable="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/row_min_height"
+                android:nextFocusDown="@id/rowHistory"
+                android:nextFocusUp="@id/rowLocalVideo"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/row_padding_h"
+                android:paddingTop="@dimen/row_padding_v"
+                android:paddingEnd="@dimen/row_padding_h"
+                android:paddingBottom="@dimen/row_padding_v">
+
+                <ImageView
+                    android:layout_width="@dimen/row_leading_icon"
+                    android:layout_height="@dimen/row_leading_icon"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_nav_favorite"
+                    app:tint="@color/theme_primary" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/row_leading_gap"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    android:text="@string/my_favorite"
+                    android:textColor="@color/theme_text_primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:layout_width="@dimen/row_trailing_icon"
+                    android:layout_height="@dimen/row_trailing_icon"
+                    android:layout_marginStart="8dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_arrow_right"
+                    app:tint="@color/theme_text_secondary" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/hairline"
+                android:layout_marginStart="@dimen/row_padding_h"
+                android:layout_marginEnd="@dimen/row_padding_h"
+                android:background="@color/theme_divider" />
+
+            <!-- 观看历史（本组末行，不画 hairline） -->
+            <LinearLayout
+                android:id="@+id/rowHistory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_profile_row"
+                android:clickable="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/row_min_height"
+                android:nextFocusDown="@id/rowTheme"
+                android:nextFocusUp="@id/rowFavorite"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/row_padding_h"
+                android:paddingTop="@dimen/row_padding_v"
+                android:paddingEnd="@dimen/row_padding_h"
+                android:paddingBottom="@dimen/row_padding_v">
+
+                <ImageView
+                    android:layout_width="@dimen/row_leading_icon"
+                    android:layout_height="@dimen/row_leading_icon"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_nav_history"
+                    app:tint="@color/theme_primary" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/row_leading_gap"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    android:text="@string/watch_history"
+                    android:textColor="@color/theme_text_primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:layout_width="@dimen/row_trailing_icon"
+                    android:layout_height="@dimen/row_trailing_icon"
+                    android:layout_marginStart="8dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_arrow_right"
+                    app:tint="@color/theme_text_secondary" />
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/group_gap" />
+
+    <!-- ===== 分组二「设置」 ===== -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="27dp"
+        android:layout_marginEnd="27dp"
+        android:layout_marginBottom="@dimen/group_title_gap"
+        android:text="@string/section_settings"
+        android:textColor="@color/theme_text_secondary"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/group_inset"
+        android:layout_marginEnd="@dimen/group_inset"
+        app:cardBackgroundColor="@color/surface_card"
+        app:cardCornerRadius="@dimen/group_corner"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- 主题 -->
+            <LinearLayout
+                android:id="@+id/rowTheme"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_profile_row"
+                android:clickable="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/row_min_height"
+                android:nextFocusDown="@id/rowSettings"
+                android:nextFocusUp="@id/rowHistory"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/row_padding_h"
+                android:paddingTop="@dimen/row_padding_v"
+                android:paddingEnd="@dimen/row_padding_h"
+                android:paddingBottom="@dimen/row_padding_v">
+
+                <ImageView
+                    android:layout_width="@dimen/row_leading_icon"
+                    android:layout_height="@dimen/row_leading_icon"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_row_theme"
+                    app:tint="@color/theme_primary" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/row_leading_gap"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    android:text="@string/theme_setting"
+                    android:textColor="@color/theme_text_primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:layout_width="@dimen/row_trailing_icon"
+                    android:layout_height="@dimen/row_trailing_icon"
+                    android:layout_marginStart="8dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_arrow_right"
+                    app:tint="@color/theme_text_secondary" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/hairline"
+                android:layout_marginStart="@dimen/row_padding_h"
+                android:layout_marginEnd="@dimen/row_padding_h"
+                android:background="@color/theme_divider" />
+
+            <!-- 播放设置 -->
+            <LinearLayout
+                android:id="@+id/rowSettings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_profile_row"
+                android:clickable="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/row_min_height"
+                android:nextFocusDown="@id/rowClearCache"
+                android:nextFocusUp="@id/rowTheme"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/row_padding_h"
+                android:paddingTop="@dimen/row_padding_v"
+                android:paddingEnd="@dimen/row_padding_h"
+                android:paddingBottom="@dimen/row_padding_v">
+
+                <ImageView
+                    android:layout_width="@dimen/row_leading_icon"
+                    android:layout_height="@dimen/row_leading_icon"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_row_settings"
+                    app:tint="@color/theme_primary" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/row_leading_gap"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    android:text="@string/playback_setting"
+                    android:textColor="@color/theme_text_primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:layout_width="@dimen/row_trailing_icon"
+                    android:layout_height="@dimen/row_trailing_icon"
+                    android:layout_marginStart="8dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_arrow_right"
+                    app:tint="@color/theme_text_secondary" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/hairline"
+                android:layout_marginStart="@dimen/row_padding_h"
+                android:layout_marginEnd="@dimen/row_padding_h"
+                android:background="@color/theme_divider" />
+
+            <!-- 清理缓存：末尾是缓存在大小文字，不是 chevron -->
+            <LinearLayout
+                android:id="@+id/rowClearCache"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_profile_row"
+                android:clickable="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/row_min_height"
+                android:nextFocusDown="@id/rowAbout"
+                android:nextFocusUp="@id/rowSettings"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/row_padding_h"
+                android:paddingTop="@dimen/row_padding_v"
+                android:paddingEnd="@dimen/row_padding_h"
+                android:paddingBottom="@dimen/row_padding_v">
+
+                <ImageView
+                    android:layout_width="@dimen/row_leading_icon"
+                    android:layout_height="@dimen/row_leading_icon"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_row_clean"
+                    app:tint="@color/theme_primary" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/row_leading_gap"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    android:text="@string/clear_cache"
+                    android:textColor="@color/theme_text_primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/profileCacheSize"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:textColor="@color/theme_text_secondary"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/group_gap" />
+
+    <!-- ===== 分组三「关于入口」（对照 SettingsItem(about_us, description=版本)） ===== -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/group_inset"
+        android:layout_marginEnd="@dimen/group_inset"
+        app:cardBackgroundColor="@color/surface_card"
+        app:cardCornerRadius="@dimen/group_corner"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp">
+
+        <LinearLayout
+            android:id="@+id/rowAbout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_profile_row"
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/row_min_height"
+            android:nextFocusDown="@null"
+            android:nextFocusUp="@id/rowClearCache"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/row_padding_h"
+            android:paddingTop="@dimen/row_padding_v"
+            android:paddingEnd="@dimen/row_padding_h"
+            android:paddingBottom="@dimen/row_padding_v">
+
+            <ImageView
+                android:layout_width="@dimen/row_leading_icon"
+                android:layout_height="@dimen/row_leading_icon"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_row_about"
+                app:tint="@color/theme_primary" />
+
+            <!-- 这一行是 title + description 两行，用纵向容器承载 -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/row_leading_gap"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingStart="80dp"
-                    android:paddingTop="12dp"
-                    android:paddingEnd="@dimen/card_padding"
-                    android:paddingBottom="12dp"
-                    android:text="@string/about_desc"
-                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    android:text="@string/profile_about_app"
+                    android:textColor="@color/theme_text_primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/profileVersionValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/theme_text_secondary"
+                    android:textSize="12sp" />
             </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-    </LinearLayout>
-</androidx.core.widget.NestedScrollView>
+
+            <ImageView
+                android:layout_width="@dimen/row_trailing_icon"
+                android:layout_height="@dimen/row_trailing_icon"
+                android:layout_marginStart="8dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_arrow_right"
+                app:tint="@color/theme_text_secondary" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+</LinearLayout>
