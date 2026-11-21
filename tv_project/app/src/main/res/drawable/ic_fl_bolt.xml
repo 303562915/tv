@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  测速图标：照抄 FlClash 开源项目的 AppGlyphs.bolt（lib/ui/icons/app_glyphs.dart）。
+  原字形是一条闭合折线（每个顶点自带圆角半径），不是贴图也不是三角拼接闪电：
+    顶点 (14.5,2.8,r1) → (5,13.7,r1) → (11.2,13.7,r0.6) → (9.5,21.2,r1)
+        → (19,10.3,r1) → (12.8,10.3,r0.6)，closed = true
+  折线规则同 GlyphPolyline：每个顶点用 quadraticBezierTo 走 0.6~1 的圆角，
+  下面是按该规则逐点算出的等价 pathData（不是手画的近似）。
+  画线参数同 FlClash：24x24 网格、strokeWidth 1.8、线端与拐角都是圆头。
+  颜色固定白色，由使用方用 app:tint 上色（和底栏 ic_nav_* 一致）。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <path
+        android:pathData="M13.843,3.554 L5.657,12.946 Q5,13.7 6,13.7 L10.6,13.7 Q11.2,13.7 11.067,14.285 L9.721,20.225 Q9.5,21.2 10.157,20.446 L18.343,11.054 Q19,10.3 18,10.3 L13.4,10.3 Q12.8,10.3 12.933,9.715 L14.279,3.775 Q14.5,2.8 13.843,3.554 Z"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+</vector>

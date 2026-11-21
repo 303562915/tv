@@ -48,8 +48,8 @@ class VideoSourceFragment : Fragment() {
         recyclerView = view.findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        // 刷新：图标抄 FlClash 的 refresh 字形（drawable/ic_fl_refresh.xml），
-        // 点一下重新拉源列表并重测延迟，转一圈表示这一轮在跑
+        // 测速：图标抄 FlClash 的 bolt 闪电字形（drawable/ic_fl_bolt.xml），
+        // 点一下重新拉源列表并重测延迟，闪一下表示这一轮在跑
         btnRefresh = view.findViewById(R.id.btnRefresh)
         btnRefresh.setOnClickListener { refreshSources() }
 
@@ -73,13 +73,11 @@ class VideoSourceFragment : Fragment() {
         recyclerView.adapter = adapter
     }
 
-    /** 刷新按钮：图标转一圈 + 重拉列表、重测延迟。 */
+    /** 测速按钮：闪电闪一下 + 重拉列表、重测延迟。 */
     private fun refreshSources() {
-        btnRefresh.animate()
-            .rotationBy(360f)
-            .setDuration(600L)
-            .withEndAction { btnRefresh.rotation = 0f }
-            .start()
+        btnRefresh.animate().alpha(0.35f).setDuration(110L).withEndAction {
+            btnRefresh.animate().alpha(1f).setDuration(220L).start()
+        }.start()
         loadVideoSources()
     }
 

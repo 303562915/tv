@@ -25,17 +25,17 @@
             android:textAppearance="@style/TextAppearance.TVPlayer.PageTitle"
             android:gravity="start" />
 
-        <!-- 刷新：图标照抄 FlClash 的 AppGlyphs.refresh（见 drawable/ic_fl_refresh.xml），
+        <!-- 测速刷新：图标照抄 FlClash 的 AppGlyphs.bolt（见 drawable/ic_fl_bolt.xml），
              只留图标不留文字；44dp 触摸区、图标 24dp，与其他页工具条图标按钮一致 -->
         <ImageButton
             android:id="@+id/btnRefresh"
             android:layout_width="44dp"
             android:layout_height="44dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="刷新"
+            android:contentDescription="重新测速"
             android:padding="10dp"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_fl_refresh"
+            android:src="@drawable/ic_fl_bolt"
             app:tint="@color/theme_primary" />
 
     </LinearLayout>
