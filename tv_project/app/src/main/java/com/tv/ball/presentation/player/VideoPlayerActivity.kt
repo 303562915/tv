@@ -1609,10 +1609,8 @@ class VideoPlayerActivity : AppCompatActivity() {
         // 更新二创 / 讨论 的「暂无内容」占位
         detailSection.findViewById<TextView>(R.id.tabPlaceholderText)?.setTextColor(secondaryTextColor)
 
-        // 更新功能按钮下方的文字（推荐、一起看、下载、收藏、投屏、分享、解析）
+        // 更新功能按钮下方的文字（下载、收藏、投屏、分享、解析）
         val buttonTextViews = listOf(
-            detailSection.findViewById<LinearLayout>(R.id.recommendButton),
-            detailSection.findViewById<LinearLayout>(R.id.watchTogetherButton),
             detailSection.findViewById<LinearLayout>(R.id.downloadButton),
             detailSection.findViewById<LinearLayout>(R.id.favoriteButton),
             detailSection.findViewById<LinearLayout>(R.id.castButton),
@@ -1632,10 +1630,9 @@ class VideoPlayerActivity : AppCompatActivity() {
             }
         }
         
-        // 更新图标颜色
+        // 更新图标颜色（setColorFilter 会盖掉 XML 里的 tint：
+        // 普通模式传进来的就是 detail_action_tint，电影模式仍走次要金色）
         val iconViews = listOf(
-            detailSection.findViewById<LinearLayout>(R.id.recommendButton),
-            detailSection.findViewById<LinearLayout>(R.id.watchTogetherButton),
             detailSection.findViewById<LinearLayout>(R.id.downloadButton),
             detailSection.findViewById<LinearLayout>(R.id.favoriteButton),
             detailSection.findViewById<LinearLayout>(R.id.castButton),
@@ -1735,10 +1732,19 @@ class VideoPlayerActivity : AppCompatActivity() {
             binding.speedButton.visibility = View.GONE
             binding.screenshotButton.visibility = View.GONE
 
-            // 横屏：顶部右侧 投屏/分享/更多 显示文字标签
+            // 横屏顶部：返回 / 标题 / 跳过片头 / TV 投屏 / 分享 / 更多（逐个显式给可见性，不靠默认值）
+            binding.backButton.visibility = View.VISIBLE
+            binding.titleText.visibility = View.VISIBLE
+            binding.castButton.visibility = View.VISIBLE
             binding.castLabel.visibility = View.VISIBLE
+            binding.shareButton.visibility = View.VISIBLE
             binding.shareLabel.visibility = View.VISIBLE
+            binding.menuButton.visibility = View.VISIBLE
             binding.menuLabel.visibility = View.VISIBLE
+            // 「跳过片头」仍是片头区间内才出现，由 checkSkipIntro() 决定，这里不强行置可见
+
+            // 横屏顶栏顶部内边距回到 12dp
+            applyTopToolbarPadding(isLandscape = true)
 
             // 横屏：有下一集时才显示下一集按钮
             updateNextButtonVisibility()
@@ -1768,11 +1774,25 @@ class VideoPlayerActivity : AppCompatActivity() {
             binding.downloadButton.visibility = View.GONE
             binding.parseRecordButton.visibility = View.GONE
             binding.speedButton.visibility = View.GONE
+            binding.screenshotButton.visibility = View.GONE
 
-            // 竖屏：顶部右侧恢复纯图标（不显示文字标签）
-            binding.castLabel.visibility = View.GONE
-            binding.shareLabel.visibility = View.GONE
+            // 竖屏底部控制条与横屏保持同一套：有下一集才显示「下一集」
+            updateNextButtonVisibility()
+
+            // 竖屏顶部与横屏同一套：返回 / 标题 / TV 投屏 / 分享 / 更多（更多竖屏用纯图标）
+            binding.backButton.visibility = View.VISIBLE
+            binding.titleText.visibility = View.VISIBLE
+            ensurePortraitTitleText()
+            binding.castButton.visibility = View.VISIBLE
+            binding.castLabel.visibility = View.VISIBLE
+            binding.shareButton.visibility = View.VISIBLE
+            binding.shareLabel.visibility = View.VISIBLE
+            binding.menuButton.visibility = View.VISIBLE
             binding.menuLabel.visibility = View.GONE
+            // 「跳过片头」两边一致：由 checkSkipIntro() 在片头区间内控制，不在这里强制隐藏
+
+            // 竖屏顶栏往下挪：12dp + 状态栏高度，别压住状态栏
+            applyTopToolbarPadding(isLandscape = false)
 
             // 添加竖屏详情视图
             addPortraitDetailView()
@@ -1782,6 +1802,56 @@ class VideoPlayerActivity : AppCompatActivity() {
         binding.playerView.post {
             applyAspectRatio(aspectRatioManager.getCurrentMode())
         }
+    }
+
+    /** 当前是否竖屏（非横屏一律按竖屏处理，和 updateOrientationUI 的判定保持一致）。 */
+    private fun isPortraitNow(): Boolean =
+        resources.configuration.orientation != android.content.res.Configuration.ORIENTATION_LANDSCAPE
+
+    /** dp → px。 */
+    private fun dpToPixel(dp: Int): Int = (dp * resources.displayMetrics.density).toInt()
+
+    /** 状态栏高度（px）：取不到系统资源时退回 24dp。 */
+    private fun statusBarHeightPixel(): Int {
+        val resId = resources.getIdentifier("status_bar_height", "dimen", "android")
+        val height = if (resId > 0) resources.getDimensionPixelSize(resId) else 0
+        return if (height > 0) height else dpToPixel(24)
+    }
+
+    /**
+     * 顶栏顶部内边距：横屏 12dp；竖屏 12dp + 状态栏高度（顶栏整体下移，不压状态栏）。
+     */
+    private fun applyTopToolbarPadding(isLandscape: Boolean) {
+        val base = dpToPixel(12)
+        val top = if (isLandscape) base else base + statusBarHeightPixel()
+        val toolbar = binding.topToolbar
+        toolbar.setPadding(toolbar.paddingLeft, top, toolbar.paddingRight, toolbar.paddingBottom)
+    }
+
+    /** 竖屏标题文案：沿用「$videoTitle - ${episode.name}」，拿不到集名时兜底成 videoTitle。 */
+    private fun ensurePortraitTitleText() {
+        val current = binding.titleText.text?.toString().orEmpty()
+        if (current.isNotBlank()) return
+        val episodeName = playlistManager.getCurrentEpisode()?.name.orEmpty()
+        binding.titleText.text =
+            if (episodeName.isNotBlank()) "$videoTitle - $episodeName" else videoTitle
+    }
+
+    /**
+     * 竖屏顶部与横屏保持同一套按钮：返回 / 标题 / TV 投屏 / 分享 / 更多。
+     * 「跳过片头」交给 checkSkipIntro() 按片头区间控制，这里不碰。
+     */
+    private fun enforcePortraitTopBar() {
+        if (!isPortraitNow()) return
+        binding.backButton.visibility = View.VISIBLE
+        binding.titleText.visibility = View.VISIBLE
+        ensurePortraitTitleText()
+        binding.castButton.visibility = View.VISIBLE
+        binding.castLabel.visibility = View.VISIBLE
+        binding.shareButton.visibility = View.VISIBLE
+        binding.shareLabel.visibility = View.VISIBLE
+        binding.menuButton.visibility = View.VISIBLE
+        binding.menuLabel.visibility = View.GONE
     }
 
     private fun addPortraitDetailView() {
@@ -1828,15 +1898,7 @@ class VideoPlayerActivity : AppCompatActivity() {
     }
 
     private fun setupPortraitButtons() {
-        // 推荐按钮（占位，不接后端）
-        portraitDetailView?.findViewById<LinearLayout>(R.id.recommendButton)?.setOnClickListener {
-            Toast.makeText(this, "已推荐", Toast.LENGTH_SHORT).show()
-        }
-
-        // 一起看按钮（占位，不接后端）
-        portraitDetailView?.findViewById<LinearLayout>(R.id.watchTogetherButton)?.setOnClickListener {
-            Toast.makeText(this, "一起看开发中", Toast.LENGTH_SHORT).show()
-        }
+        // 功能行只保留真正可用的 5 项：下载 / 收藏 / 投屏 / 分享 / 解析
 
         // 下载按钮
         portraitDetailView?.findViewById<LinearLayout>(R.id.downloadButton)?.setOnClickListener {
@@ -4397,6 +4459,11 @@ class VideoPlayerActivity : AppCompatActivity() {
         binding.topToolbar.visibility = if (isLocked) View.GONE else View.VISIBLE
         binding.bottomControlBar.visibility = if (isLocked) View.GONE else View.VISIBLE
         binding.leftControlBar.visibility = View.VISIBLE
+        if (isPortraitNow() && !isLocked) {
+            // 竖屏：顶部常显，顺带把不该出现的顶部按钮收一遍
+            binding.topToolbar.alpha = 1f
+            enforcePortraitTopBar()
+        }
         resetHideControlsTimer()
     }
     
@@ -4405,10 +4472,17 @@ class VideoPlayerActivity : AppCompatActivity() {
         
         // 淡入动画
         if (!isLocked) {
-            binding.topToolbar.apply {
-                visibility = View.VISIBLE
-                alpha = 0f
-                animate().alpha(1f).setDuration(300).start()
+            if (isPortraitNow()) {
+                // 竖屏：顶部标题常显，只做底部控制条淡入
+                binding.topToolbar.visibility = View.VISIBLE
+                binding.topToolbar.alpha = 1f
+                enforcePortraitTopBar()
+            } else {
+                binding.topToolbar.apply {
+                    visibility = View.VISIBLE
+                    alpha = 0f
+                    animate().alpha(1f).setDuration(300).start()
+                }
             }
             binding.bottomControlBar.apply {
                 visibility = View.VISIBLE
@@ -4428,19 +4502,50 @@ class VideoPlayerActivity : AppCompatActivity() {
     
     private fun hideControls() {
         isControlsVisible = false
+
+        // 竖屏：顶部标题常显，只收起底部控制条；锁定态仍按原逻辑全收
+        if (isPortraitNow() && !isLocked) {
+            binding.topToolbar.visibility = View.VISIBLE
+            binding.topToolbar.alpha = 1f
+            enforcePortraitTopBar()
+            binding.bottomControlBar.visibility = View.GONE
+            binding.leftControlBar.visibility = View.GONE
+            return
+        }
+
         binding.topToolbar.visibility = View.GONE
         binding.bottomControlBar.visibility = View.GONE
         binding.leftControlBar.visibility = if (isLocked) View.VISIBLE else View.GONE
     }
     
     private fun hideControlsWithAnimation() {
-        // 「跳过片头」胶囊在顶部控制栏内，它可见时先不淡出，避免用户点不到
+        val isPortrait = isPortraitNow()
+
+        // 「跳过片头」胶囊可见时先不淡出，避免用户点不到（横竖屏一致）
         if (binding.skipIntroButton.visibility == View.VISIBLE) {
             resetHideControlsTimer()
             return
         }
 
         isControlsVisible = false
+
+        if (isPortrait && !isLocked) {
+            // 竖屏：只淡出底部控制条，顶部标题保持可见
+            binding.topToolbar.visibility = View.VISIBLE
+            binding.topToolbar.alpha = 1f
+            enforcePortraitTopBar()
+
+            binding.bottomControlBar.animate().alpha(0f).setDuration(300).withEndAction {
+                binding.bottomControlBar.visibility = View.GONE
+                binding.bottomControlBar.alpha = 1f
+            }.start()
+
+            binding.leftControlBar.animate().alpha(0f).setDuration(300).withEndAction {
+                binding.leftControlBar.visibility = View.GONE
+                binding.leftControlBar.alpha = 1f
+            }.start()
+            return
+        }
         
         // 淡出动画
         binding.topToolbar.animate().alpha(0f).setDuration(300).withEndAction {
@@ -4463,6 +4568,12 @@ class VideoPlayerActivity : AppCompatActivity() {
     
     private fun resetHideControlsTimer() {
         hideControlsHandler.removeCallbacks(hideControlsRunnable)
+        if (isPortraitNow() && !isLocked) {
+            // 竖屏：定时器只负责收底部控制条，顶部标题一直亮着
+            binding.topToolbar.visibility = View.VISIBLE
+            binding.topToolbar.alpha = 1f
+            enforcePortraitTopBar()
+        }
         hideControlsHandler.postDelayed(hideControlsRunnable, 5000)
     }
     

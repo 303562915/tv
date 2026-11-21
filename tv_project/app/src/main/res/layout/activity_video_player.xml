@@ -98,7 +98,7 @@
                 android:layout_width="10dp"
                 android:layout_height="10dp"
                 android:src="@drawable/ic_play_arrow_small"
-                android:tint="@android:color/white"
+                android:tint="@color/player_control_icon"
                 android:contentDescription="加速" />
 
             <ImageView
@@ -107,7 +107,7 @@
                 android:layout_height="10dp"
                 android:layout_marginStart="2dp"
                 android:src="@drawable/ic_play_arrow_small"
-                android:tint="@android:color/white"
+                android:tint="@color/player_control_icon"
                 android:contentDescription="加速" />
 
             <ImageView
@@ -116,7 +116,7 @@
                 android:layout_height="10dp"
                 android:layout_marginStart="2dp"
                 android:src="@drawable/ic_play_arrow_small"
-                android:tint="@android:color/white"
+                android:tint="@color/player_control_icon"
                 android:contentDescription="加速" />
         </LinearLayout>
     </LinearLayout>
@@ -326,7 +326,8 @@
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:layout_gravity="center_vertical"
-                android:src="@android:drawable/ic_lock_idle_charging" />
+                android:src="@android:drawable/ic_lock_idle_charging"
+                android:tint="@color/player_control_icon" />
         </LinearLayout>
 
         <!-- 标题栏：左 = 返回 + 标题；右 = 跳过片头 / TV 投屏 / 分享 / 更多 -->

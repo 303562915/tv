@@ -301,7 +301,7 @@
 
         </LinearLayout>
 
-        <!-- ④ 功能行：推荐 / 一起看 / 下载 / 收藏 / 投屏 / 分享 / 解析 -->
+        <!-- ④ 功能行：下载 / 收藏 / 投屏 / 分享 / 解析（本站没有的功能不上这条行，5 个等分） -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -311,60 +311,6 @@
             android:paddingStart="@dimen/page_margin"
             android:paddingEnd="@dimen/page_margin"
             android:paddingBottom="@dimen/page_margin">
-
-            <!-- 推荐（占位） -->
-            <LinearLayout
-                android:id="@+id/recommendButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackground">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_thumb_up_black_24dp"
-                    app:tint="@color/detail_action_tint" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="推荐"
-                    android:textColor="@color/detail_action_tint"
-                    android:textSize="11sp" />
-            </LinearLayout>
-
-            <!-- 一起看（占位） -->
-            <LinearLayout
-                android:id="@+id/watchTogetherButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackground">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_group_watch_black_24dp"
-                    app:tint="@color/detail_action_tint" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="一起看"
-                    android:textColor="@color/detail_action_tint"
-                    android:textSize="11sp" />
-            </LinearLayout>
 
             <!-- 下载 -->
             <LinearLayout
