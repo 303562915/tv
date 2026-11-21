@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  历史分组标题（今天 / 昨天 / 更早）。
+  列表按日期分段后，用户能直接看出「这条是多久前看的」，不用去猜。
+-->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/tvGroupTitle"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="4dp"
+    android:paddingTop="12dp"
+    android:paddingEnd="4dp"
+    android:paddingBottom="6dp"
+    android:textColor="@color/theme_text_secondary"
+    android:textSize="13sp"
+    android:textStyle="bold"
+    tools:text="今天" />

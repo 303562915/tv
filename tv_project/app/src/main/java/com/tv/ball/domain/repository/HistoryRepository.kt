@@ -35,8 +35,11 @@ class HistoryRepository(
         detailUrl: String? = null,
         episodesJson: String? = null,
         currentEpisode: String? = null,
-        videoSource: String? = null
+        videoSource: String? = null,
+        // 传入原始观看时间用于「撤销删除」这类回填：不传就按当前时间算
+        lastWatchedAt: Long? = null
     ): Long {
+        val stamp = lastWatchedAt ?: System.currentTimeMillis()
         // 查询是否已存在该剧该集该源的历史记录
         val existingHistory = localDataSource.getHistoryByTitleAndEpisode(videoTitle, currentEpisode, videoSource)
         
@@ -49,7 +52,7 @@ class HistoryRepository(
                 thumbnailUrl = thumbnailUrl,
                 watchedPosition = watchedPosition,
                 duration = duration,
-                lastWatchedAt = System.currentTimeMillis(),
+                lastWatchedAt = stamp,
                 detailUrl = detailUrl,
                 episodesJson = episodesJson,
                 currentEpisode = currentEpisode,
@@ -65,7 +68,7 @@ class HistoryRepository(
                 thumbnailUrl = thumbnailUrl,
                 watchedPosition = watchedPosition,
                 duration = duration,
-                lastWatchedAt = System.currentTimeMillis(),
+                lastWatchedAt = stamp,
                 detailUrl = detailUrl,
                 episodesJson = episodesJson,
                 currentEpisode = currentEpisode,

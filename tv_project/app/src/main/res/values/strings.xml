@@ -36,6 +36,27 @@
     <string name="cache_cleared">缓存已清理</string>
     <string name="watch_history">观看历史</string>
 
+    <!-- 观看历史页 -->
+    <string name="nav_back">返回</string>
+    <string name="history_hint">每部剧只保留最近一次观看，按时间倒序</string>
+    <string name="history_empty_title">还没有观看记录</string>
+    <string name="history_empty_subtitle">看过的片子和进度会记在这里，点一下就能接着看</string>
+    <string name="history_empty_action">返回</string>
+    <string name="history_continue">继续播放</string>
+    <string name="history_delete_one">删除这条记录</string>
+    <string name="history_delete_title">删除观看记录</string>
+    <string name="history_delete_message">确定删除《%1$s》的观看记录吗？</string>
+    <string name="history_clear_title">清空观看历史</string>
+    <string name="history_clear_message">会清掉全部观看记录和播放进度，清空后无法恢复。</string>
+    <string name="history_cleared">已清空观看历史</string>
+    <string name="history_deleted">已删除该记录</string>
+    <string name="history_undo">撤销</string>
+    <string name="history_remaining">剩余 %1$s</string>
+    <string name="history_percent">%1$d%%</string>
+    <string name="history_finished">已看完</string>
+    <string name="history_not_started">未开始</string>
+    <string name="history_nothing_to_clear">还没有可清空的记录</string>
+
     <!-- 「我的」页：用户卡与关于入口（对照 unicanta SettingsScreen 的 UserCard / about_us 行） -->
     <string name="profile_user_default">本机用户</string>
     <string name="profile_edit_name">点这里改名字</string>

@@ -1,84 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+  观看历史内容区：说明行 + 列表 + 空状态。
+  旧版这里又套了一个 56dp Toolbar 放「清空历史」，和 Activity 的标题栏重复；
+  现在清空按钮归到 Activity 工具条，本布局只剩内容。
+  也不再用 fitsSystemWindows：容器已经在工具条之下，再扣一次状态栏会多出一块空白。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/theme_background"
-    android:fitsSystemWindows="true">
+    android:orientation="vertical">
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/tvHint"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/page_margin"
+        android:paddingEnd="@dimen/page_margin"
+        android:paddingBottom="8dp"
+        android:text="@string/history_hint"
+        android:textColor="@color/theme_text_secondary"
+        android:textSize="12sp" />
 
-        <com.google.android.material.appbar.AppBarLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@android:color/transparent"
-            app:elevation="0dp">
-
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:background="@android:color/transparent">
-
-                <!-- 标题由 HistoryActivity 提供，这里只保留「清空」操作 -->
-                <Button
-                    android:id="@+id/btnClearAll"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="end"
-                    android:layout_marginEnd="8dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:text="@string/clear_history"
-                    android:textColor="?attr/colorPrimary"
-                    android:textSize="14sp" />
-
-            </androidx.appcompat.widget.Toolbar>
-
-        </com.google.android.material.appbar.AppBarLayout>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvHistory"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:paddingStart="@dimen/page_margin"
-            android:paddingEnd="@dimen/page_margin"
-            android:paddingTop="8dp"
-            android:paddingBottom="96dp"
             android:clipToPadding="false"
+            android:paddingStart="@dimen/page_margin"
+            android:paddingTop="4dp"
+            android:paddingEnd="@dimen/page_margin"
+            android:paddingBottom="32dp"
             android:scrollbars="none"
             tools:listitem="@layout/item_history" />
 
-    </LinearLayout>
-
-    <!-- 空状态：图标 + 一句说明，居中，不彩色 -->
-    <LinearLayout
-        android:id="@+id/tvEmpty"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <ImageView
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:contentDescription="@null"
-            android:src="@drawable/ic_nav_history"
-            app:tint="@color/theme_text_secondary" />
-
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/tvEmpty"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="暂无观看历史"
-            android:textColor="@color/theme_text_secondary"
-            android:textSize="14sp" />
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingStart="48dp"
+            android:paddingEnd="48dp"
+            android:visibility="gone">
 
-    </LinearLayout>
+            <ImageView
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_nav_history"
+                app:tint="@color/theme_outline" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/history_empty_title"
+                android:textColor="@color/theme_text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center"
+                android:lineSpacingExtra="2dp"
+                android:text="@string/history_empty_subtitle"
+                android:textColor="@color/theme_text_secondary"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/btnGoHome"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/bg_button_secondary"
+                android:gravity="center"
+                android:minHeight="40dp"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:text="@string/history_empty_action"
+                android:textColor="@color/theme_primary"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</LinearLayout>

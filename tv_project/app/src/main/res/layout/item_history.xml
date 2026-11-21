@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 历史项：三行以上信息块，自成一张卡：xl 圆角、card 底、无阴影、与下一张隔 8dp -->
+<!--
+  历史卡片：封面 96×128（3:4）+ 右侧信息列，右侧高度锁死等于封面高度，
+  信息用顶部标题 / 中部弹性 / 底部进度三段撑满，不再出现「上面两行字、下面大片空白」。
+  旧版封面 120×160、卡片圆角 24dp、右侧只有两行文字且顶部对齐，卡片整体又高又空。
+-->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -10,10 +14,7 @@
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
-    app:cardBackgroundColor="@color/surface_card"
-    app:cardCornerRadius="@dimen/radius_xl"
-    app:cardElevation="0dp"
-    app:strokeWidth="0dp">
+    app:cardCornerRadius="@dimen/radius_md">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -21,37 +22,47 @@
         android:orientation="horizontal"
         android:padding="12dp">
 
-        <FrameLayout
-            android:layout_width="120dp"
-            android:layout_height="160dp">
+        <!-- 封面：自身一张圆角卡，图裁剪在圆角内 -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="96dp"
+            android:layout_height="128dp"
+            app:cardBackgroundColor="@color/surface_block"
+            app:cardCornerRadius="@dimen/radius_sm"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
 
             <ImageView
                 android:id="@+id/videoCover"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@color/surface_inset"
-                android:scaleType="centerCrop" />
+                android:scaleType="centerCrop"
+                tools:ignore="ContentDescription" />
 
+            <!-- 集数角标：清洗掉线路名后只剩「第1集」，没有就不显示 -->
             <TextView
                 android:id="@+id/videoEpisode"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="top|end"
-                android:layout_margin="4dp"
+                android:layout_margin="6dp"
                 android:background="@drawable/bg_episode_badge"
-                android:paddingStart="8dp"
+                android:ellipsize="end"
+                android:maxWidth="88dp"
+                android:maxLines="1"
+                android:paddingStart="6dp"
                 android:paddingTop="2dp"
-                android:paddingEnd="8dp"
+                android:paddingEnd="6dp"
                 android:paddingBottom="2dp"
                 android:textColor="@color/theme_text_secondary"
                 android:textSize="10sp"
-                tools:ignore="HardcodedText" />
+                android:visibility="gone"
+                tools:text="第1集" />
 
-        </FrameLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="128dp"
             android:layout_marginStart="12dp"
             android:layout_weight="1"
             android:orientation="vertical">
@@ -63,28 +74,66 @@
                 android:ellipsize="end"
                 android:maxLines="2"
                 android:textColor="@color/theme_text_primary"
-                android:textSize="16sp"
+                android:textSize="15sp"
                 android:textStyle="bold"
-                tools:ignore="HardcodedText" />
+                tools:text="我和妈妈的长征" />
 
             <TextView
-                android:id="@+id/videoProgress"
+                android:id="@+id/videoMeta"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="4dp"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:textColor="@color/theme_text_secondary"
                 android:textSize="12sp"
-                tools:ignore="HardcodedText" />
+                tools:text="第1集 · 今天 21:06" />
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
 
             <ProgressBar
                 android:id="@+id/progressBar"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
-                android:layout_height="4dp"
-                android:layout_marginTop="8dp"
+                android:layout_height="3dp"
                 android:max="100"
                 android:progressBackgroundTint="@color/surface_inset"
-                android:progressTint="@color/theme_primary" />
+                android:progressTint="@color/theme_primary"
+                tools:progress="41" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvPercent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/theme_primary"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    tools:text="41%" />
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/tvRemaining"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/theme_text_secondary"
+                    android:textSize="12sp"
+                    tools:text="剩余 27:13" />
+
+            </LinearLayout>
 
         </LinearLayout>
 

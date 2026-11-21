@@ -20,6 +20,7 @@ data class HistoryItem(
     val duration: Long,
     val parsedVideoUrl: String?,
     val videoHeaders: String?,
+    val videoSource: String? = null,
     val lastWatchedAt: Long = System.currentTimeMillis()
 )
 
@@ -47,6 +48,11 @@ class HistoryViewModel(
     private val _selectedItems = MutableStateFlow<Set<String>>(emptySet())
     val selectedItems: StateFlow<Set<String>> = _selectedItems
 
+    init {
+        // 只在 ViewModel 创建时订阅一次：Fragment 每次重建都调 loadHistory() 会累积永不结束的 collector
+        loadHistory()
+    }
+
     fun loadHistory() {
         viewModelScope.launch {
             historyRepository.getAllHistory().collect { historyEntities ->
@@ -66,6 +72,7 @@ class HistoryViewModel(
                         duration = entity.duration,
                         parsedVideoUrl = entity.parsedVideoUrl,
                         videoHeaders = entity.videoHeaders,
+                        videoSource = entity.videoSource,
                         lastWatchedAt = entity.lastWatchedAt
                     )
                 }
@@ -138,7 +145,9 @@ class HistoryViewModel(
                 detailUrl = historyItem.detailUrl,
                 episodesJson = historyItem.episodesJson,
                 currentEpisode = historyItem.currentEpisode,
-                videoSource = null
+                videoSource = historyItem.videoSource,
+                // 撤销删除时沿用原观看时间，记录不会跳回列表最前面
+                lastWatchedAt = historyItem.lastWatchedAt
             )
         }
     }
