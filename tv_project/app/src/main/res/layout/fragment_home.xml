@@ -211,6 +211,11 @@
         app:tabTextAppearance="@style/TabTextAppearance"
         app:tabTextColor="@color/theme_text_secondary" />
 
+    <!--
+        ViewPager2 自己不会滚，纵向滚动发生在当前页的 RecyclerView 上，
+        父类只看 child.canScrollVertically(-1)（ViewPager2 恒为 false）会导致列表滚到中间再下拉也刷新，
+        手势判定由 HomeFragment 里的 setOnChildScrollUpCallback 转问当前页的 RecyclerView。
+    -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefresh"
         android:layout_width="0dp"
@@ -227,17 +232,105 @@
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <TextView
+    <!-- 空态：与历史、收藏同一套结构（图标 56dp + 标题 15sp 粗 + 说明 13sp + 可选按钮） -->
+    <LinearLayout
         android:id="@+id/emptyView"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="暂无视频"
-        android:textColor="@color/theme_text_secondary"
-        android:textSize="16sp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingStart="48dp"
+        android:paddingEnd="48dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_nav_home"
+            app:tint="@color/theme_outline" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="暂无视频"
+            android:textColor="@color/theme_text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:lineSpacingExtra="2dp"
+            android:text="换个分类看看，或者下拉刷新重试"
+            android:textColor="@color/theme_text_secondary"
+            android:textSize="13sp" />
+
+    </LinearLayout>
+
+    <!-- 错误态：复用空态结构，说明行写实际错误，按钮重新触发 ViewModel 加载 -->
+    <LinearLayout
+        android:id="@+id/errorView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingStart="48dp"
+        android:paddingEnd="48dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_error"
+            app:tint="@color/theme_outline" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="加载失败"
+            android:textColor="@color/theme_text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvErrorMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:lineSpacingExtra="2dp"
+            android:text="网络不太顺畅，点重试再试一次"
+            android:textColor="@color/theme_text_secondary"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/btnErrorRetry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/bg_button_secondary"
+            android:gravity="center"
+            android:minHeight="40dp"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:text="@string/retry"
+            android:textColor="@color/theme_primary"
+            android:textSize="14sp" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

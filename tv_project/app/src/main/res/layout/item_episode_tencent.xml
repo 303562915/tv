@@ -50,7 +50,7 @@
             android:textSize="15sp"
             android:textStyle="bold"
             android:autoSizeTextType="uniform"
-            android:autoSizeMinTextSize="10sp"
+            android:autoSizeMinTextSize="12sp"
             android:autoSizeMaxTextSize="15sp"
             android:autoSizeStepGranularity="1sp"
             android:maxLines="1" />
@@ -67,8 +67,8 @@
             android:maxLines="1"
             android:ellipsize="end"
             android:autoSizeTextType="uniform"
-            android:autoSizeMinTextSize="7sp"
-            android:autoSizeMaxTextSize="8sp"
+            android:autoSizeMinTextSize="9sp"
+            android:autoSizeMaxTextSize="9sp"
             android:autoSizeStepGranularity="1sp" />
     </LinearLayout>
 

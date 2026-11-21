@@ -1768,8 +1768,13 @@ class VideoPlayerActivity : AppCompatActivity() {
 
             // 竖屏：启用滚动，设置播放器高度
             scrollView?.isNestedScrollingEnabled = true
+            val screenWidth = resources.displayMetrics.widthPixels
             val screenHeight = resources.displayMetrics.heightPixels
-            val playerHeight = (screenHeight * 0.35).toInt()
+            // 竖屏播放器高度按 16:9 画面比例算，再夹在屏幕高度的 28%~45% 之间，避免小屏过高/大屏过小
+            val heightByRatio = screenWidth * 9 / 16
+            val minHeight = (screenHeight * 0.28f).toInt()
+            val maxHeight = (screenHeight * 0.45f).toInt()
+            val playerHeight = heightByRatio.coerceIn(minHeight, maxHeight)
             val playerParams = binding.root.layoutParams
             playerParams.height = playerHeight
             binding.root.layoutParams = playerParams
@@ -2547,6 +2552,35 @@ class VideoPlayerActivity : AppCompatActivity() {
     }
     
     /**
+     * 播放失败后的「点击重试」：重新 prepare 当前播放 URL（沿用当前请求头）。
+     * 成功后 PlayerState.Ready/Playing 分支会把 errorText 置 GONE。
+     */
+    private fun retryPlayback() {
+        val url = currentPlayingUrl.ifEmpty {
+            playlistManager.getCurrentEpisode()?.url ?: ""
+        }
+        if (url.isEmpty()) {
+            Toast.makeText(this, "没有可重试的播放地址", Toast.LENGTH_SHORT).show()
+            return
+        }
+        android.util.Log.d("VideoPlayer", "点击错误提示，重试播放: $url")
+        binding.errorText.visibility = View.GONE
+        binding.loadingView.visibility = View.VISIBLE
+        updateStatusText("重新加载")
+        try {
+            val headers = viewModel.getVideoHeaders()
+            exoPlayerManager.prepareMedia(url, headers)
+            exoPlayerManager.play()
+        } catch (e: Exception) {
+            android.util.Log.e("VideoPlayer", "重试播放失败: ${e.message}")
+            binding.loadingView.visibility = View.GONE
+            binding.errorText.visibility = View.VISIBLE
+            binding.errorText.text = "播放失败，点击重试"
+            Toast.makeText(this, "重试失败：${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    /**
      * 下载指定URL
      */
     private fun downloadUrl(url: String) {
@@ -3090,7 +3124,21 @@ class VideoPlayerActivity : AppCompatActivity() {
                 // 数据更新后，滚动到当前播放的集数
                 if (indexInSelectedLine >= 0) {
                     recyclerView.post {
-                        recyclerView.scrollToPosition(indexInSelectedLine)
+                        // 让当前集停在屏幕中间：offset = 屏幕宽一半 - 半个格子宽
+                        // 格子尺寸与 EpisodeSelectorAdapter 里的 CHIP_* 保持一致（宽 56dp + 边距 3dp）
+                        val density = resources.displayMetrics.density
+                        val screenWidth = resources.displayMetrics.widthPixels
+                        val chipWidthDp = 56f
+                        val chipMarginDp = 3f
+                        val halfChipPx = (chipWidthDp + chipMarginDp) * density / 2f
+                        val offset = (screenWidth / 2f - halfChipPx).toInt().coerceAtLeast(0)
+                        val linearLayoutManager = recyclerView.layoutManager
+                            as? androidx.recyclerview.widget.LinearLayoutManager
+                        if (linearLayoutManager != null) {
+                            linearLayoutManager.scrollToPositionWithOffset(indexInSelectedLine, offset)
+                        } else {
+                            recyclerView.scrollToPosition(indexInSelectedLine)
+                        }
                     }
                 }
             }
@@ -3276,6 +3324,12 @@ class VideoPlayerActivity : AppCompatActivity() {
         // 选中当前tab
         if (currentEpisode != null) {
             tabLayout.getTabAt(selectedTabIndex)?.select()
+        }
+
+        // 弹窗打开期间停掉自动隐藏计时器，避免控制栏在弹窗背后被收掉（不改播放状态）
+        hideControlsHandler.removeCallbacks(hideControlsRunnable)
+        bottomSheet.setOnDismissListener {
+            resetHideControlsTimer()
         }
 
         bottomSheet.show()
@@ -4009,9 +4063,19 @@ class VideoPlayerActivity : AppCompatActivity() {
                             }
                             is PlayerState.Error -> {
                                 binding.loadingView.visibility = View.GONE
+                                // 失败时给可点重试的提示（点击重新 prepare 当前 URL）
                                 binding.errorText.visibility = View.VISIBLE
-                                binding.errorText.text = state.message
+                                binding.errorText.text = "播放失败，点击重试"
+                                binding.errorText.setOnClickListener { retryPlayback() }
                                 updateStatusText("播放失败")
+                                android.util.Log.e("VideoPlayer", "播放失败: ${state.message}")
+                                // Toast 只带第一行原因，完整信息在 errorText 点击重试与日志里
+                                val reason = state.message.lineSequence().firstOrNull().orEmpty()
+                                Toast.makeText(
+                                    this@VideoPlayerActivity,
+                                    if (reason.isEmpty()) "播放失败，点击重试" else "播放失败：$reason",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                             else -> {}
                         }

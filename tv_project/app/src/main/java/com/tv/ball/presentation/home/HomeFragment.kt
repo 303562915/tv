@@ -37,6 +37,9 @@ class HomeFragment : Fragment() {
     private val BANNER_EXPANDED_HEIGHT = 180 // dp
     private val BANNER_COLLAPSED_HEIGHT = 60 // dp
 
+    /** 待恢复的滚动位置：页下标 -> (首个可见项, 顶部偏移)。对应页拿到数据后再滚，否则位置会被 LayoutManager 丢掉 */
+    private val pendingScroll = mutableMapOf<Int, Pair<Int, Int>>()
+
     private val categories = listOf(
         Category("国产剧", 6),
         Category("日韩剧", 8),
@@ -64,9 +67,42 @@ class HomeFragment : Fragment() {
         setupViewPager()
         setupTabs()
         setupSwipeRefresh()
+        setupErrorState()
         observeViewModel()
+        // 恢复上次停留的分类页与滚动位置（切 Tab 会重建整个 Fragment，位置得自己记）
+        restoreScrollPositions(savedInstanceState)
 
-        viewModel.loadVideos(categories[0].id, refresh = true)
+        viewModel.loadVideos(currentCategoryId(), refresh = true)
+    }
+
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+        // Fragment 被重建时 savedInstanceState 才带得到旧的页签 / 位置；换 Tab 的 replace() 不留状态，
+        // 那种情况由 companion 里的进程级记忆兜底
+        if (savedInstanceState != null) restoreScrollPositions(savedInstanceState)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // MainActivity 用 replace() 换页，离开后这里拿不到 savedInstanceState，必须主动记进进程级缓存
+        captureScrollPositions()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        captureScrollPositions()
+
+        val positions = IntArray(categories.size) { -1 }
+        val offsets = IntArray(categories.size)
+        categories.forEachIndexed { index, category ->
+            scrollMemory[category.id]?.let { saved ->
+                positions[index] = saved.first
+                offsets[index] = saved.second
+            }
+        }
+        outState.putIntArray(KEY_SCROLL_POSITIONS, positions)
+        outState.putIntArray(KEY_SCROLL_OFFSETS, offsets)
+        outState.putInt(KEY_CURRENT_PAGE, rememberedPage)
     }
     
 //    private fun setupBanner() {
@@ -463,10 +499,69 @@ class HomeFragment : Fragment() {
 //    }
     
     private fun setupSwipeRefresh() {
+        // ViewPager2 自己不响应 canScrollVertically，认它会让「列表滚到中间再下拉」也触发刷新，
+        // 所以直接问当前页的 RecyclerView 还能不能往上滚
+        binding.swipeRefresh.setOnChildScrollUpCallback { _, _ ->
+            pagerAdapter.getRecyclerView(binding.viewPager.currentItem)
+                ?.canScrollVertically(-1) ?: false
+        }
         binding.swipeRefresh.setOnRefreshListener {
-            val selectedTab = binding.tabLayout.getTabAt(binding.tabLayout.selectedTabPosition)
-            val categoryId = selectedTab?.tag as? Int ?: 6
-            viewModel.loadVideos(categoryId, refresh = true)
+            viewModel.loadVideos(currentCategoryId(), refresh = true)
+        }
+    }
+
+    /** 当前 ViewPager 页对应的分类 id（Tab 上没挂 tag，只能按位置取） */
+    private fun currentCategoryId(): Int =
+        categories.getOrNull(binding.viewPager.currentItem)?.id ?: categories.first().id
+
+    /** 错误态：整页换成「加载失败 + 重试」，重试重新拉当前分类 */
+    private fun setupErrorState() {
+        binding.errorView.visibility = View.GONE
+        binding.btnErrorRetry.setOnClickListener {
+            binding.errorView.visibility = View.GONE
+            viewModel.loadVideos(currentCategoryId(), refresh = true)
+        }
+    }
+
+    /** 记下当前页滚动位置，供 onPause / onSaveInstanceState 使用 */
+    private fun captureScrollPositions() {
+        if (_binding == null || !this::pagerAdapter.isInitialized) return
+        val recyclerView = pagerAdapter.getRecyclerView(binding.viewPager.currentItem) ?: return
+        val layoutManager = recyclerView.layoutManager as? androidx.recyclerview.widget.LinearLayoutManager ?: return
+        val position = layoutManager.findFirstVisibleItemPosition()
+        if (position == RecyclerView.NO_POSITION) return
+        val offset = layoutManager.findViewByPosition(position)?.top ?: 0
+        scrollMemory[currentCategoryId()] = position to offset
+        rememberedPage = binding.viewPager.currentItem
+    }
+
+    /** 恢复页签；滚动位置先记下，等数据回来再滚 */
+    private fun restoreScrollPositions(savedInstanceState: Bundle?) {
+        if (savedInstanceState != null) {
+            val positions = savedInstanceState.getIntArray(KEY_SCROLL_POSITIONS)
+            val offsets = savedInstanceState.getIntArray(KEY_SCROLL_OFFSETS)
+            if (positions != null && offsets != null) {
+                categories.forEachIndexed { index, category ->
+                    if (index < positions.size && positions[index] >= 0) {
+                        scrollMemory[category.id] = positions[index] to offsets.getOrElse(index) { 0 }
+                    }
+                }
+            }
+            val savedPage = savedInstanceState.getInt(KEY_CURRENT_PAGE, -1)
+            if (savedPage in categories.indices) rememberedPage = savedPage
+        }
+        if (rememberedPage in categories.indices && rememberedPage != binding.viewPager.currentItem) {
+            binding.viewPager.setCurrentItem(rememberedPage, false)
+        }
+    }
+
+    /** 数据回来后再滚：这时 LayoutManager 才有子项可定位 */
+    private fun applyPendingScroll() {
+        val saved = scrollMemory[currentCategoryId()] ?: return
+        val recyclerView = pagerAdapter.getRecyclerView(binding.viewPager.currentItem) ?: return
+        recyclerView.post {
+            (recyclerView.layoutManager as? androidx.recyclerview.widget.LinearLayoutManager)
+                ?.scrollToPositionWithOffset(saved.first, saved.second)
         }
     }
     
@@ -475,10 +570,15 @@ class HomeFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     viewModel.videos.collect { videos ->
-                        // 更新当前页面的适配器
+                        // 只把结果交给「当前页」的适配器
                         val currentPosition = binding.viewPager.currentItem
-                        pagerAdapter.getAdapter(currentPosition)?.submitList(videos)
-                        binding.emptyView.visibility = if (videos.isEmpty()) View.VISIBLE else View.GONE
+                        pagerAdapter.getAdapter(currentPosition)?.submitList(videos) {
+                            // 数据到位后再恢复滚动位置，此时才有子项可定位
+                            applyPendingScroll()
+                        }
+                        binding.emptyView.visibility = if (
+                            videos.isEmpty() && binding.errorView.visibility != View.VISIBLE
+                        ) View.VISIBLE else View.GONE
 
                         // 预加载前30张图片
                         if (videos.isNotEmpty()) {
@@ -495,12 +595,20 @@ class HomeFragment : Fragment() {
 
                 launch {
                     viewModel.error.collect { error ->
-                        error?.let {
+                        if (error == null) {
+                            binding.errorView.visibility = View.GONE
+                        } else {
+                            // 列表为空时把整页切成「加载失败 + 重试」，否则只做轻提示
+                            if (binding.emptyView.visibility == View.VISIBLE || viewModel.videos.value.isEmpty()) {
+                                binding.tvErrorMessage.text = error
+                                binding.errorView.visibility = View.VISIBLE
+                                binding.emptyView.visibility = View.GONE
+                            }
                             // 如果错误消息包含"已自动切换"，使用更长的显示时间
-                            if (it.contains("已自动切换")) {
-                                com.tv.ball.util.CustomToast.showLong(requireContext(), it)
+                            if (error.contains("已自动切换")) {
+                                com.tv.ball.util.CustomToast.showLong(requireContext(), error)
                             } else {
-                                com.tv.ball.util.CustomToast.show(requireContext(), it)
+                                com.tv.ball.util.CustomToast.show(requireContext(), error)
                             }
                         }
                     }
@@ -578,6 +686,16 @@ class HomeFragment : Fragment() {
         super.onDestroyView()
         bannerHandler.removeCallbacksAndMessages(null)
         _binding = null
+    }
+
+    companion object {
+        private const val KEY_SCROLL_POSITIONS = "home_scroll_positions"
+        private const val KEY_SCROLL_OFFSETS = "home_scroll_offsets"
+        private const val KEY_CURRENT_PAGE = "home_current_page"
+
+        /** 进程内记忆：MainActivity 用 replace() 换页时拿不到 savedInstanceState，这里兜底 */
+        private val scrollMemory = mutableMapOf<Int, Pair<Int, Int>>()
+        private var rememberedPage = 0
     }
 }
 

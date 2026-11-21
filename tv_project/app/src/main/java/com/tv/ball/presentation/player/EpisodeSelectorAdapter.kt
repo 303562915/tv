@@ -1,5 +1,6 @@
 package com.tv.ball.presentation.player
 
+import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -57,6 +58,9 @@ class EpisodeSelectorAdapter(
         private val binding: ItemEpisodeTencentBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
+        private fun dpToPx(dp: Float): Int =
+            (dp * binding.root.resources.displayMetrics.density + 0.5f).toInt()
+
         fun bind(episode: Episode, position: Int) {
             // 提取集数（假设格式为"第X集"）
             val episodeNumber = episode.name.replace("第", "").replace("集", "")
@@ -69,7 +73,7 @@ class EpisodeSelectorAdapter(
             val isSelected = currentPosition != RecyclerView.NO_POSITION && currentPosition == currentIndex
 
             if (compact) {
-                // 竖屏小格子：只显示集数，灰底；当前集只换文字颜色，不用实心色块
+                // 竖屏小格子：只显示集数，灰底；当前集换字色 + 加粗 + 主题色描边，不用实心色块
                 binding.episodeNameText.visibility = android.view.View.GONE
                 binding.episodeCard.setCardBackgroundColor(
                     ContextCompat.getColor(
@@ -83,6 +87,17 @@ class EpisodeSelectorAdapter(
                         if (isSelected) R.color.episode_chip_text_selected else R.color.episode_chip_text
                     )
                 )
+                // 当前集再加粗（复用 holder 时要显式回落，否则未选中项会残留粗体）
+                binding.episodeNumber.typeface = if (isSelected) Typeface.DEFAULT_BOLD else Typeface.DEFAULT
+                // 当前集 1dp 主题色描边，未选中不描边
+                if (isSelected) {
+                    binding.episodeCard.strokeWidth = dpToPx(1f)
+                    binding.episodeCard.setStrokeColor(
+                        ContextCompat.getColor(binding.root.context, R.color.theme_primary)
+                    )
+                } else {
+                    binding.episodeCard.strokeWidth = 0
+                }
                 binding.episodeCard.setOnClickListener {
                     val clickPosition = bindingAdapterPosition
                     if (clickPosition != RecyclerView.NO_POSITION) {
