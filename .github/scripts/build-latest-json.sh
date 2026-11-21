@@ -231,12 +231,15 @@ except Exception as e:
         target.unlink()
 
 checksum_file = sums[0]["browser_download_url"] if sums else None
+# Release 的 published_at 只在创建时写一次；开发版每次构建都覆盖/追加资产，
+# 用资产自身的 updated_at 才能显示「这一次构建」的时间。
+published_at = apk.get("updated_at") or rel.get("updated_at") or rel.get("published_at")
 entry = {
     "version_name": version,
     "version_code": version_code,
     "build_number": int(build),
     "tag": "dev",
-    "published_at": rel.get("published_at"),
+    "published_at": published_at,
     "file": file_rel,
     "file_name": apk["name"],
     "size": apk.get("size", 0),
