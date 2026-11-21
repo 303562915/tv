@@ -25,10 +25,8 @@ class ShortDramaFragment : Fragment() {
     }
     private lateinit var adapter: ShortDramaAdapter
     
-    private val categories = listOf(
-        "霸总", "逆袭", "现代言情", "打脸虐渣", "豪门恩怨", 
-        "神豪", "马甲", "都市日常", "战神归来", "小人物"
-    )
+    // 分类由数据源提供，和列表页共用同一套词表
+    private val categories = ShortDramaRepository.tabs.map { it.label }
     
     override fun onCreateView(
         inflater: LayoutInflater,

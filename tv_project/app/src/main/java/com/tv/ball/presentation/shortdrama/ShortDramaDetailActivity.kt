@@ -14,6 +14,7 @@ import com.tv.ball.util.ImageLoader
 import com.tv.ball.databinding.ActivityShortDramaDetailBinding
 import com.tv.ball.presentation.player.VideoPlayerActivity
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 class ShortDramaDetailActivity : AppCompatActivity() {
     
@@ -72,10 +73,10 @@ class ShortDramaDetailActivity : AppCompatActivity() {
         lifecycleScope.launch {
             viewModel.detail.collect { detail ->
                 detail?.let {
-                    binding.tvAuthor.text = "作者: ${it.author}"
+                    binding.tvAuthor.text = "演员: ${it.author}"
                     binding.tvType.text = it.type
-                    binding.tvPlayCount.text = "${formatPlayCount(it.playCnt)}播放"
-                    binding.tvEpisodeCount.text = "共${it.episodeCnt}集"
+                    binding.tvPlayCount.text = if (it.playCnt == "0" || it.playCnt.isEmpty()) "" else "${formatPlayCount(it.playCnt)}播放"
+                    binding.tvEpisodeCount.text = if (it.episodeCnt.isNotEmpty()) "共${it.episodeCnt}集" else ""
                     binding.tvIntro.text = it.intro
                 }
             }
@@ -104,57 +105,48 @@ class ShortDramaDetailActivity : AppCompatActivity() {
     }
     
     private fun playEpisode(episode: EpisodeItem) {
-        // 显示加载提示
-        Toast.makeText(this, "正在获取播放地址...", Toast.LENGTH_SHORT).show()
-        
-        // 获取视频播放地址
-        viewModel.getVideoUrl(episode.videoId) { videoUrl ->
-            if (videoUrl.isNotEmpty()) {
-                // 构建剧集列表 JSON
-                val episodesJson = buildEpisodesJson()
-                val currentIndex = viewModel.episodes.value.indexOf(episode)
-                
-                val intent = Intent(this, VideoPlayerActivity::class.java).apply {
-                    putExtra("VIDEO_ID", System.currentTimeMillis())
-                    putExtra("VIDEO_URL", videoUrl)
-                    putExtra("VIDEO_TITLE", binding.tvTitle.text.toString())
-                    putExtra("THUMBNAIL_URL", getIntent().getStringExtra("COVER"))
-                    putExtra("EPISODES_JSON", episodesJson)
-                    putExtra("START_INDEX", currentIndex)
-                    putExtra("CURRENT_EPISODE", "第${episode.episodeNum}集")
-                    putExtra("IS_SHORT_DRAMA", true)  // 标记为短剧
-                }
-                startActivity(intent)
-            } else {
-                Toast.makeText(this, "获取播放地址失败", Toast.LENGTH_SHORT).show()
-            }
+        // 详情接口已经把 m3u8 直链带回来了，直接用；不再「点一集再问接口要地址」
+        val videoUrl = episode.videoUrl.ifEmpty { ShortDramaRepository.resolvePlayUrl(episode.videoId) }
+        if (videoUrl.isEmpty()) {
+            Toast.makeText(this, "这一集没有可用的播放地址", Toast.LENGTH_SHORT).show()
+            return
         }
+
+        // 构建剧集列表 JSON
+        val episodesJson = buildEpisodesJson()
+        val currentIndex = viewModel.episodes.value.indexOf(episode)
+
+        val intent = Intent(this, VideoPlayerActivity::class.java).apply {
+            putExtra("VIDEO_ID", System.currentTimeMillis())
+            putExtra("VIDEO_URL", videoUrl)
+            putExtra("VIDEO_TITLE", binding.tvTitle.text.toString())
+            putExtra("THUMBNAIL_URL", getIntent().getStringExtra("COVER"))
+            putExtra("EPISODES_JSON", episodesJson)
+            putExtra("START_INDEX", currentIndex)
+            putExtra("CURRENT_EPISODE", "第${episode.episodeNum}集")
+            putExtra("IS_SHORT_DRAMA", true)  // 标记为短剧
+        }
+        startActivity(intent)
     }
-    
+
     /**
-     * 构建剧集列表 JSON
+     * 构建剧集列表 JSON（url 直接写直链，播放器切集不必再联网解析）
      */
     private fun buildEpisodesJson(): String {
         val episodes = viewModel.episodes.value
         val jsonBuilder = StringBuilder("[")
-        
-        android.util.Log.d("ShortDramaDetail", "构建剧集列表，共 ${episodes.size} 集")
-        
+
         episodes.forEachIndexed { index, episode ->
             if (index > 0) jsonBuilder.append(",")
             jsonBuilder.append("{")
-            jsonBuilder.append("\"name\":\"第${episode.episodeNum}集\",")
-            jsonBuilder.append("\"videoId\":\"${episode.videoId}\",")
-            jsonBuilder.append("\"url\":\"\"")  // URL 需要动态获取
+            jsonBuilder.append("\"name\":").append(JSONObject.quote("第${episode.episodeNum}集")).append(",")
+            jsonBuilder.append("\"videoId\":").append(JSONObject.quote(episode.videoId)).append(",")
+            jsonBuilder.append("\"url\":").append(JSONObject.quote(episode.videoUrl))
             jsonBuilder.append("}")
-            
-            android.util.Log.d("ShortDramaDetail", "剧集[$index]: 第${episode.episodeNum}集, videoId=${episode.videoId}")
         }
-        
+
         jsonBuilder.append("]")
-        val result = jsonBuilder.toString()
-        android.util.Log.d("ShortDramaDetail", "生成的JSON: $result")
-        return result
+        return jsonBuilder.toString()
     }
     
     private fun formatPlayCount(count: String): String {

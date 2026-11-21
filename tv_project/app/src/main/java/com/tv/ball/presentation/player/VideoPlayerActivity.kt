@@ -5304,100 +5304,15 @@ class VideoPlayerActivity : AppCompatActivity() {
     }
 
     /**
-     * 获取短剧视频播放地址
+     * 获取短剧视频播放地址。
+     *
+     * 原先这里去问 api-v2.cenguigui.cn 要地址 —— 那个接口整站已经下线（api-v2 连 A 记录都没有，
+     * api.cenguigui.cn 回 Cloudflare 521），所以切集 / 自动下一集全都卡在「获取播放地址失败」。
+     * 现在详情接口把 m3u8 直链一起带回来，episode.url 直接可用；只有历史遗留的纯 id 才会走到这里，
+     * 没有可用的解析接口就返回空让上层提示，绝不再去请求死域名。
      */
     private suspend fun fetchShortDramaVideoUrl(videoId: String): String {
-        return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            try {
-                android.util.Log.d("VideoPlayer", "========== 开始获取播放地址 ==========")
-                android.util.Log.d("VideoPlayer", "videoId: $videoId")
-                
-                // 使用正确的短剧 API 地址
-                val apiBase = "https://api-v2.cenguigui.cn/api/duanju/api.php"
-                val url = "$apiBase?video_id=$videoId"
-                android.util.Log.d("VideoPlayer", "请求URL: $url")
-                
-                val headers = mapOf(
-                    "User-Agent" to "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Mobile Safari/537.36",
-                    "Accept" to "application/json, text/plain, */*",
-                    "Accept-Language" to "zh-CN,zh;q=0.9",
-                    "Referer" to "https://api-v2.cenguigui.cn/"
-                )
-                
-                // 使用NetworkDataSource获取数据
-                val networkDataSource = Dependencies.networkDataSource
-                when (val result = networkDataSource.get(url, headers)) {
-                    is com.tv.ball.data.remote.NetworkResult.Success -> {
-                        android.util.Log.d("VideoPlayer", "API响应成功")
-                        android.util.Log.d("VideoPlayer", "响应数据: ${result.data}")
-                        val parsedUrl = parseVideoUrl(result.data)
-                        android.util.Log.d("VideoPlayer", "解析后的URL: $parsedUrl")
-                        android.util.Log.d("VideoPlayer", "========== 获取播放地址结束 ==========")
-                        parsedUrl
-                    }
-                    is com.tv.ball.data.remote.NetworkResult.Error -> {
-                        android.util.Log.e("VideoPlayer", "API调用失败: ${result.message}")
-                        android.util.Log.d("VideoPlayer", "========== 获取播放地址失败 ==========")
-                        ""
-                    }
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("VideoPlayer", "API调用异常: ${e.message}", e)
-                android.util.Log.e("VideoPlayer", "异常堆栈: ${e.stackTraceToString()}")
-                android.util.Log.d("VideoPlayer", "========== 获取播放地址异常 ==========")
-                ""
-            }
-        }
-    }
-    
-    /**
-     * 解析视频URL
-     */
-    private fun parseVideoUrl(json: String): String {
-        return try {
-            android.util.Log.d("VideoPlayer", "开始解析视频URL")
-            android.util.Log.d("VideoPlayer", "JSON长度: ${json.length}")
-            
-            // 方法1: 尝试从 "url":"xxx" 获取
-            android.util.Log.d("VideoPlayer", "尝试方法1: 直接匹配 url 字段")
-            val urlPattern1 = """"url"\s*:\s*"([^"]+)"""".toRegex()
-            val match1 = urlPattern1.find(json)
-            if (match1 != null) {
-                val url = match1.groupValues[1].replace("\\/", "/")
-                android.util.Log.d("VideoPlayer", "方法1找到URL: $url")
-                if (url.isNotEmpty() && url.startsWith("http")) {
-                    android.util.Log.d("VideoPlayer", "方法1成功，返回URL")
-                    return url
-                } else {
-                    android.util.Log.w("VideoPlayer", "方法1找到的URL无效: $url")
-                }
-            } else {
-                android.util.Log.d("VideoPlayer", "方法1未找到匹配")
-            }
-            
-            // 方法2: 尝试从 data 对象中的 url 获取
-            android.util.Log.d("VideoPlayer", "尝试方法2: 从 data 对象中匹配")
-            val urlPattern2 = """"data"\s*:\s*\{[^}]*"url"\s*:\s*"([^"]+)"""".toRegex(RegexOption.DOT_MATCHES_ALL)
-            val match2 = urlPattern2.find(json)
-            if (match2 != null) {
-                val url = match2.groupValues[1].replace("\\/", "/")
-                android.util.Log.d("VideoPlayer", "方法2找到URL: $url")
-                if (url.isNotEmpty() && url.startsWith("http")) {
-                    android.util.Log.d("VideoPlayer", "方法2成功，返回URL")
-                    return url
-                } else {
-                    android.util.Log.w("VideoPlayer", "方法2找到的URL无效: $url")
-                }
-            } else {
-                android.util.Log.d("VideoPlayer", "方法2未找到匹配")
-            }
-            
-            android.util.Log.w("VideoPlayer", "所有解析方法都失败，返回空字符串")
-            ""
-        } catch (e: Exception) {
-            android.util.Log.e("VideoPlayer", "解析URL异常: ${e.message}", e)
-            ""
-        }
+        return com.tv.ball.presentation.shortdrama.ShortDramaRepository.resolvePlayUrl(videoId)
     }
     
     /**

@@ -34,8 +34,9 @@ class ShortDramaAdapter(
 
         fun bind(item: ShortDramaItem) {
             binding.tvTitle.text = item.title
-            binding.tvEpisodes.text = "${item.episodeCnt}集"
-            binding.tvPlayCount.text = formatPlayCount(item.playCnt)
+            // 采集源不一定给总集数，给了才显示，否则留空而不是显示一个「集」字
+            binding.tvEpisodes.text = if (item.episodeCnt.isNotEmpty()) "${item.episodeCnt}集" else ""
+            binding.tvPlayCount.text = if (item.playCnt == "0") "" else formatPlayCount(item.playCnt)
             
             ImageLoader.load(
                 context = binding.root.context,

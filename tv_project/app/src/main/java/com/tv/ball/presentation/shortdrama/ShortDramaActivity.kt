@@ -21,10 +21,8 @@ class ShortDramaActivity : AppCompatActivity() {
     }
     private lateinit var adapter: ShortDramaAdapter
     
-    private val categories = listOf(
-        "霸总", "逆袭", "现代言情", "打脸虐渣", "豪门恩怨", 
-        "神豪", "马甲", "都市日常", "战神归来", "小人物"
-    )
+    // 分类由数据源提供（都与采集源实测有货），改词表只需改 ShortDramaRepository.tabs
+    private val categories = ShortDramaRepository.tabs.map { it.label }
     
     override fun onCreate(savedInstanceState: Bundle?) {
         // 夜间模式与其它页一致：必须在 super.onCreate 之前应用
