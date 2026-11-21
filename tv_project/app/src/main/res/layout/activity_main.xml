@@ -22,23 +22,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- 主操作：实心 primary + onPrimary 图标（FlClash 唯一的主操作用色） -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabOpenLocalVideo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="@dimen/page_margin"
-        android:layout_marginBottom="4dp"
-        android:contentDescription="@string/open_local_video"
-        android:src="@drawable/ic_nav_local_video"
-        app:backgroundTint="?attr/colorPrimary"
-        app:borderWidth="0dp"
-        app:elevation="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/navDock"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:rippleColor="?attr/colorOnPrimary"
-        app:tint="?attr/colorOnPrimary" />
-
+    <!-- 本地视频入口在「我的」页（rowLocalVideo），这里不再挂常显悬浮按钮 -->
     <com.tv.ball.presentation.nav.FloatingNavDock
         android:id="@+id/navDock"
         android:layout_width="wrap_content"

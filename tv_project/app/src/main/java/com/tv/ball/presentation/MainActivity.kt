@@ -21,7 +21,6 @@ import androidx.lifecycle.lifecycleScope
 import com.tv.ball.R
 import com.tv.ball.databinding.ActivityMainBinding
 import com.tv.ball.presentation.home.HomeFragment
-import com.tv.ball.presentation.localvideo.LocalVideoActivity
 import com.tv.ball.presentation.nav.FloatingNavDock
 import com.tv.ball.presentation.profile.ProfileFragment
 import com.tv.ball.presentation.videosource.VideoSourceFragment
@@ -57,10 +56,6 @@ class MainActivity : AppCompatActivity() {
 
         // 加载云端视频源配置
         loadCloudVideoSources()
-
-        binding.fabOpenLocalVideo.setOnClickListener {
-            startActivity(Intent(this, LocalVideoActivity::class.java))
-        }
 
         setupBottomNav(savedInstanceState == null)
 
