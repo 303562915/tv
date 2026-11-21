@@ -17,6 +17,7 @@
     <string name="clear_history">清空历史</string>
     <string name="clear_playlist">清空播放列表</string>
     <string name="local_video">本地视频</string>
+    <string name="free_short_drama">免费短剧</string>
 
     <!-- 底栏与我的页面 -->
     <string name="source">视频源</string>

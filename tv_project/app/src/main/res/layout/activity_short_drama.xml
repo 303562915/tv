@@ -1,21 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  免费短剧列表：一层工具条（返回 + 标题）+ 分类 Tab + 下拉刷新的格子列表。
+  旧版这里没有工具条，进去只能靠系统返回键退出，也没有标题。
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:background="@color/theme_background"
     android:fitsSystemWindows="true"
-    android:background="@color/theme_background">
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/page_toolbar_height"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+
+        <!-- 返回：44dp 触摸区，图标 24dp -->
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/nav_back"
+            android:padding="10dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_back"
+            app:tint="@color/theme_text_primary" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:gravity="start"
+            android:text="@string/free_short_drama"
+            android:textAppearance="@style/TextAppearance.TVPlayer.PageTitle" />
+
+    </LinearLayout>
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white"
+        android:background="@android:color/transparent"
+        app:tabIndicatorColor="@color/theme_primary"
         app:tabMode="scrollable"
-        app:tabTextColor="@color/theme_text_secondary"
-        app:tabSelectedTextColor="@color/theme_accent"
-        app:tabIndicatorColor="@color/theme_accent" />
+        app:tabSelectedTextColor="@color/theme_primary"
+        app:tabTextColor="@color/theme_text_secondary" />
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefresh"
@@ -30,8 +65,11 @@
                 android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:padding="8dp"
-                android:clipToPadding="false" />
+                android:clipToPadding="false"
+                android:paddingStart="12dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="24dp" />
 
             <TextView
                 android:id="@+id/emptyView"
@@ -39,8 +77,8 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:text="暂无短剧"
-                android:textSize="16sp"
                 android:textColor="@color/theme_text_secondary"
+                android:textSize="16sp"
                 android:visibility="gone" />
 
         </FrameLayout>

@@ -27,10 +27,16 @@ class ShortDramaActivity : AppCompatActivity() {
     )
     
     override fun onCreate(savedInstanceState: Bundle?) {
+        // 夜间模式与其它页一致：必须在 super.onCreate 之前应用
+        val nightMode = com.tv.ball.di.Dependencies.configRepository.getNightMode()
+        com.tv.ball.utils.ThemeUtils.applyNightMode(nightMode)
         super.onCreate(savedInstanceState)
         binding = ActivityShortDramaBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        
+        com.tv.ball.utils.StatusBarUtils.setupTransparentStatusBar(this)
+
+        binding.btnBack.setOnClickListener { finish() }
+
         setupTabs()
         setupRecyclerView()
         setupSwipeRefresh()

@@ -22,9 +22,17 @@ class ShortDramaDetailActivity : AppCompatActivity() {
     private lateinit var episodeAdapter: EpisodeAdapter
     
     override fun onCreate(savedInstanceState: Bundle?) {
+        // 夜间模式与其它页一致：必须在 super.onCreate 之前应用
+        val nightMode = com.tv.ball.di.Dependencies.configRepository.getNightMode()
+        com.tv.ball.utils.ThemeUtils.applyNightMode(nightMode)
         super.onCreate(savedInstanceState)
         binding = ActivityShortDramaDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        com.tv.ball.utils.StatusBarUtils.setupTransparentStatusBar(this)
+
+        // 详情页顶部是折叠 Toolbar：给它一个返回箭头，否则只能靠系统返回键
+        binding.toolbar.setNavigationIcon(com.tv.ball.R.drawable.ic_back)
+        binding.toolbar.setNavigationOnClickListener { finish() }
         
         viewModel = ViewModelProvider(this)[ShortDramaDetailViewModel::class.java]
         
@@ -110,7 +118,7 @@ class ShortDramaDetailActivity : AppCompatActivity() {
                     putExtra("VIDEO_ID", System.currentTimeMillis())
                     putExtra("VIDEO_URL", videoUrl)
                     putExtra("VIDEO_TITLE", binding.tvTitle.text.toString())
-                    putExtra("THUMBNAIL_URL", intent.getStringExtra("COVER"))
+                    putExtra("THUMBNAIL_URL", getIntent().getStringExtra("COVER"))
                     putExtra("EPISODES_JSON", episodesJson)
                     putExtra("START_INDEX", currentIndex)
                     putExtra("CURRENT_EPISODE", "第${episode.episodeNum}集")

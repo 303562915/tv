@@ -283,6 +283,13 @@ class HomeFragment : Fragment() {
             // 切换到历史页面（悬浮胶囊底栏）
             (activity as? com.tv.ball.presentation.MainActivity)?.switchToHistory()
         }
+
+        // 短剧入口：免费短剧列表（分类 Tab + 下拉刷新 + 自动连播下一集）
+        binding.chipShortDrama.setOnClickListener {
+            startActivity(
+                Intent(requireContext(), com.tv.ball.presentation.shortdrama.ShortDramaActivity::class.java)
+            )
+        }
     }
     
     private fun showKekeFilterDialog() {

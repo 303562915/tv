@@ -72,6 +72,33 @@
             android:src="@drawable/history"
             app:tint="@color/theme_text_secondary" />
 
+        <!-- 短剧入口：与搜索胶囊同一套填充，点了进「免费短剧」列表 -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/chipShortDrama"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_marginStart="@dimen/card_gap"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            app:cardBackgroundColor="@color/surface_inset"
+            app:cardCornerRadius="@dimen/radius_full"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:text="@string/free_short_drama"
+                android:textColor="@color/theme_primary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+        </com.google.android.material.card.MaterialCardView>
+
     </LinearLayout>
 
     <!-- 首页轮播已停用（需要时取消下面整段注释即可恢复）
