@@ -37,10 +37,13 @@ import com.tv.ball.data.VideoSourceManager
 import com.tv.ball.databinding.ActivityVideoPlayerBinding
 import com.tv.ball.di.Dependencies
 import com.tv.ball.domain.model.Episode
+import com.tv.ball.data.model.FavoriteEntity
+import com.tv.ball.presentation.favorite.FavoriteViewModel
 import com.tv.ball.util.VideoFlowLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
@@ -240,6 +243,9 @@ class VideoPlayerActivity : AppCompatActivity() {
         setupControls()
         observeViewModel()
         loadVideoFromIntent()
+        // videoId / videoTitle 在 loadVideoFromIntent() 里才赋好，这里按库里的真实状态刷一次收藏图标
+        // （横屏没有竖屏详情区那条刷新路径，必须在 Activity 级刷）
+        updateFavoriteIcon()
         startTimeUpdate()
         startNetworkMonitoring()
 
@@ -1371,17 +1377,18 @@ class VideoPlayerActivity : AppCompatActivity() {
             toggleOrientation()
         }
 
-        // 画面比例按钮：横屏切画面比例，竖屏仍按旋转处理
-        binding.rotateButton.setOnClickListener {
-            val isLandscape = resources.configuration.orientation ==
-                android.content.res.Configuration.ORIENTATION_LANDSCAPE
-            if (isLandscape) {
-                showAspectRatioDialog()
-            } else {
-                toggleOrientation()
-            }
-        }
+        // 底栏右侧只留一个「展开」图标：fullscreenButton
+        // 竖屏点 = 转横屏全屏，横屏点 = 退出全屏；「画面比例」已收到「⋯ 更多」菜单里
         
+        // 收藏按钮（底部控制栏，横竖屏共用；长按可选分类）
+        binding.btnFavorite.setOnClickListener {
+            toggleFavorite()
+        }
+        binding.btnFavorite.setOnLongClickListener {
+            showFavoriteCategoryPicker()
+            true
+        }
+
         // 倍速按钮 - 打开倍速设置对话框
         binding.speedButton.setOnClickListener {
             showSpeedSettingsDialog()
@@ -1786,20 +1793,20 @@ class VideoPlayerActivity : AppCompatActivity() {
             binding.speedButton.visibility = View.GONE
             binding.screenshotButton.visibility = View.GONE
 
-            // 竖屏底部控制条与横屏保持同一套：有下一集才显示「下一集」
-            updateNextButtonVisibility()
+            // 竖屏底部控制条：播放/暂停、时间+进度条+总时长、收藏、全屏（「下一集」竖屏不给）
 
-            // 竖屏顶部与横屏同一套：返回 / 标题 / TV 投屏 / 分享 / 更多（更多竖屏用纯图标）
+            // 竖屏顶部：返回 + TV 投屏 + 分享 + 更多，全是纯图标；不显示标题，也不显示任何文字标签
             binding.backButton.visibility = View.VISIBLE
-            binding.titleText.visibility = View.VISIBLE
-            ensurePortraitTitleText()
+            binding.titleText.visibility = View.GONE
             binding.castButton.visibility = View.VISIBLE
-            binding.castLabel.visibility = View.VISIBLE
+            binding.castLabel.visibility = View.GONE
             binding.shareButton.visibility = View.VISIBLE
-            binding.shareLabel.visibility = View.VISIBLE
+            binding.shareLabel.visibility = View.GONE
             binding.menuButton.visibility = View.VISIBLE
             binding.menuLabel.visibility = View.GONE
             // 「跳过片头」两边一致：由 checkSkipIntro() 在片头区间内控制，不在这里强制隐藏
+            // 竖屏底栏不要「下一集」：转横屏后才给（横屏分支走 updateNextButtonVisibility()）
+            binding.nextButton.visibility = View.GONE
 
             // 竖屏顶栏往下挪：12dp + 状态栏高度，别压住状态栏
             applyTopToolbarPadding(isLandscape = false)
@@ -1838,30 +1845,21 @@ class VideoPlayerActivity : AppCompatActivity() {
         toolbar.setPadding(toolbar.paddingLeft, top, toolbar.paddingRight, toolbar.paddingBottom)
     }
 
-    /** 竖屏标题文案：沿用「$videoTitle - ${episode.name}」，拿不到集名时兜底成 videoTitle。 */
-    private fun ensurePortraitTitleText() {
-        val current = binding.titleText.text?.toString().orEmpty()
-        if (current.isNotBlank()) return
-        val episodeName = playlistManager.getCurrentEpisode()?.name.orEmpty()
-        binding.titleText.text =
-            if (episodeName.isNotBlank()) "$videoTitle - $episodeName" else videoTitle
-    }
-
     /**
-     * 竖屏顶部与横屏保持同一套按钮：返回 / 标题 / TV 投屏 / 分享 / 更多。
-     * 「跳过片头」交给 checkSkipIntro() 按片头区间控制，这里不碰。
+     * 竖屏控件收口：顶部只留 返回 / TV 投屏 / 分享 / 更多（纯图标，无标题、无文字标签）；
+     * 底栏不收「下一集」。「跳过片头」交给 checkSkipIntro() 按片头区间控制，这里不碰。
      */
     private fun enforcePortraitTopBar() {
         if (!isPortraitNow()) return
         binding.backButton.visibility = View.VISIBLE
-        binding.titleText.visibility = View.VISIBLE
-        ensurePortraitTitleText()
+        binding.titleText.visibility = View.GONE
         binding.castButton.visibility = View.VISIBLE
-        binding.castLabel.visibility = View.VISIBLE
+        binding.castLabel.visibility = View.GONE
         binding.shareButton.visibility = View.VISIBLE
-        binding.shareLabel.visibility = View.VISIBLE
+        binding.shareLabel.visibility = View.GONE
         binding.menuButton.visibility = View.VISIBLE
         binding.menuLabel.visibility = View.GONE
+        binding.nextButton.visibility = View.GONE
     }
 
     private fun addPortraitDetailView() {
@@ -1918,6 +1916,11 @@ class VideoPlayerActivity : AppCompatActivity() {
         // 收藏按钮
         portraitDetailView?.findViewById<LinearLayout>(R.id.favoriteButton)?.setOnClickListener {
             toggleFavorite()
+        }
+        // 长按收藏按钮：收藏到指定分类（已收藏则只改分类）
+        portraitDetailView?.findViewById<LinearLayout>(R.id.favoriteButton)?.setOnLongClickListener {
+            showFavoriteCategoryPicker()
+            true
         }
 
         // 投屏按钮
@@ -2785,21 +2788,8 @@ class VideoPlayerActivity : AppCompatActivity() {
                 favoriteDao.deleteFavoriteByVideoId(videoId)
                 Toast.makeText(this@VideoPlayerActivity, "已取消收藏", Toast.LENGTH_SHORT).show()
             } else {
-                // 添加收藏，保存解析后的URL和请求头
-                val favorite = com.tv.ball.data.model.FavoriteEntity(
-                    videoId = videoId,
-                    title = videoTitle,
-                    thumbnailUrl = intent.getStringExtra("THUMBNAIL_URL"),
-                    detailUrl = intent.getStringExtra("DETAIL_URL"),
-                    episodesJson = intent.getStringExtra("EPISODES_JSON"),
-                    parsedVideoUrl = currentPlayingUrl.takeIf { it.isNotEmpty() },
-                    videoHeaders = viewModel.getVideoHeaders()?.let { headers ->
-                        headers.entries.joinToString(",", "{", "}") { (key, value) ->
-                            "\"$key\":\"${value.replace("\"", "\\\"")}\""
-                        }
-                    }
-                )
-                favoriteDao.insertFavorite(favorite)
+                // 添加收藏（未分类；要指定分类请长按收藏按钮），字段口径与长按路径共用
+                favoriteDao.insertFavorite(buildFavoriteEntity(null))
                 Toast.makeText(this@VideoPlayerActivity, "已添加到收藏", Toast.LENGTH_SHORT).show()
             }
 
@@ -2813,6 +2803,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             val favoriteDao = (application as VideoPlayerApplication).database.favoriteDao()
             val isFavorite = favoriteDao.isFavorite(videoId)
 
+            // 竖屏详情区的收藏图标
             portraitDetailView?.findViewById<android.widget.ImageView>(R.id.favoriteIcon)?.apply {
                 if (isFavorite) {
                     setImageResource(android.R.drawable.btn_star_big_on)
@@ -2822,7 +2813,167 @@ class VideoPlayerActivity : AppCompatActivity() {
                     clearColorFilter()
                 }
             }
+
+            // 底部控制栏的收藏按钮（横屏 / 竖屏都有），状态跟竖屏详情区保持一致
+            binding.btnFavorite.setImageResource(
+                if (isFavorite) android.R.drawable.btn_star_big_on else R.drawable.ic_favorite_border_black_24dp
+            )
+            binding.btnFavorite.setColorFilter(
+                ContextCompat.getColor(
+                    this@VideoPlayerActivity,
+                    if (isFavorite) R.color.primary else R.color.player_control_icon
+                )
+            )
+            binding.btnFavorite.contentDescription = if (isFavorite) {
+                getString(R.string.fav_player_unfavorite)
+            } else {
+                getString(R.string.fav_player_favorite)
+            }
         }
+    }
+
+    /**
+     * 与 [toggleFavorite] 同口径构造收藏实体，避免两条写入路径字段不一致。
+     * [category] 为分类名，null 表示未分类（沿用 FavoriteEntity 的约定）。
+     */
+    private fun buildFavoriteEntity(category: String? = null): FavoriteEntity {
+        return FavoriteEntity(
+            videoId = videoId,
+            title = videoTitle,
+            thumbnailUrl = intent.getStringExtra("THUMBNAIL_URL"),
+            detailUrl = intent.getStringExtra("DETAIL_URL"),
+            episodesJson = intent.getStringExtra("EPISODES_JSON"),
+            parsedVideoUrl = currentPlayingUrl.takeIf { it.isNotEmpty() },
+            videoHeaders = viewModel.getVideoHeaders()?.let { headers ->
+                headers.entries.joinToString(",", "{", "}") { (key, value) ->
+                    "\"$key\":\"${value.replace("\"", "\\\"")}\""
+                }
+            },
+            category = category
+        )
+    }
+
+    /**
+     * 长按收藏按钮：把这条视频收藏到某个分类。
+     *
+     * 两条路径：
+     * - 还没收藏：插入一条收藏（沿用 [buildFavoriteEntity] 的字段口径），带上选中的分类；
+     * - 已收藏：只 `updateCategory`，不动其它字段。
+     *
+     * 「不分类」对应 category = null；列表里的分类来自 `getCategories()`，
+     * 末尾一项是「新建分类…」，走 [showNewFavoriteCategoryDialog]。
+     */
+    private fun showFavoriteCategoryPicker() {
+        lifecycleScope.launch {
+            val favoriteDao = (application as VideoPlayerApplication).database.favoriteDao()
+            // Room 的 Flow 取一次快照；查询在 IO 线程，这里不会阻塞主线程
+            val categories = try {
+                favoriteDao.getCategories().first()
+            } catch (e: Exception) {
+                emptyList()
+            }
+            if (isFinishing || isDestroyed) return@launch
+
+            val isFavorite = favoriteDao.isFavorite(videoId)
+            val currentCategory = if (isFavorite) {
+                favoriteDao.getFavoriteByVideoId(videoId)?.category?.takeIf { it.isNotBlank() }
+            } else {
+                null
+            }
+
+            val labels = ArrayList<String>(categories.size + 2).apply {
+                add(getString(R.string.fav_player_uncategorized))
+                addAll(categories)
+                add(getString(R.string.fav_player_new_category))
+            }
+            val newEntryIndex = labels.size - 1
+            val checkedIndex = if (currentCategory == null) 0 else (categories.indexOf(currentCategory) + 1)
+
+            AlertDialog.Builder(this@VideoPlayerActivity)
+                .setTitle(R.string.fav_player_pick_category)
+                .setSingleChoiceItems(
+                    labels.toTypedArray(),
+                    if (checkedIndex in labels.indices) checkedIndex else 0
+                ) { dialog, which ->
+                    dialog.dismiss()
+                    when {
+                        which == newEntryIndex -> showNewFavoriteCategoryDialog(isFavorite)
+                        which == 0 -> applyFavoriteCategory(null, isFavorite)
+                        else -> applyFavoriteCategory(categories[which - 1], isFavorite)
+                    }
+                }
+                .setNegativeButton(R.string.fav_dialog_cancel, null)
+                .show()
+        }
+    }
+
+    /**
+     * 按分类落库：未收藏先插入（带分类），已收藏只更新分类，然后刷新图标。
+     */
+    private fun applyFavoriteCategory(category: String?, alreadyFavorite: Boolean) {
+        lifecycleScope.launch {
+            val favoriteDao = (application as VideoPlayerApplication).database.favoriteDao()
+            if (alreadyFavorite) {
+                favoriteDao.updateCategory(videoId, category)
+            } else {
+                favoriteDao.insertFavorite(buildFavoriteEntity(category))
+            }
+            updateFavoriteIcon()
+
+            val text = when {
+                category != null && alreadyFavorite -> getString(R.string.fav_player_moved_to, category)
+                category != null -> getString(R.string.fav_player_saved_to, category)
+                alreadyFavorite -> getString(R.string.fav_player_category_cleared)
+                else -> getString(R.string.fav_player_saved)
+            }
+            Toast.makeText(this@VideoPlayerActivity, text, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /** 新建分类并把当前视频收藏进去（未收藏则先插入）。 */
+    private fun showNewFavoriteCategoryDialog(alreadyFavorite: Boolean) {
+        val input = android.widget.EditText(this).apply {
+            hint = getString(R.string.fav_dialog_category_hint)
+            filters = arrayOf<android.text.InputFilter>(
+                android.text.InputFilter.LengthFilter(FavoriteViewModel.MAX_CATEGORY_NAME_LENGTH)
+            )
+            setSingleLine(true)
+            setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14f)
+            setTextColor(ContextCompat.getColor(this@VideoPlayerActivity, R.color.theme_text_primary))
+            setHintTextColor(ContextCompat.getColor(this@VideoPlayerActivity, R.color.theme_text_secondary))
+            val pad = (12 * resources.displayMetrics.density).toInt()
+            val padV = (10 * resources.displayMetrics.density).toInt()
+            setPadding(pad, padV, pad, padV)
+            background = ContextCompat.getDrawable(this@VideoPlayerActivity, R.drawable.bg_dialog_input)
+        }
+        val container = FrameLayout(this).apply {
+            val padH = (20 * resources.displayMetrics.density).toInt()
+            val padTop = (8 * resources.displayMetrics.density).toInt()
+            setPadding(padH, padTop, padH, 0)
+        }
+        container.addView(
+            input,
+            FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        )
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.fav_dialog_new_category_title)
+            .setView(container)
+            .setPositiveButton(R.string.fav_dialog_confirm) { _, _ ->
+                val name = input.text.toString().trim()
+                when {
+                    name.isEmpty() ->
+                        Toast.makeText(this, R.string.fav_toast_category_name_empty, Toast.LENGTH_SHORT).show()
+                    name.length > FavoriteViewModel.MAX_CATEGORY_NAME_LENGTH ->
+                        Toast.makeText(this, R.string.fav_toast_category_name_too_long, Toast.LENGTH_SHORT).show()
+                    else -> applyFavoriteCategory(name, alreadyFavorite)
+                }
+            }
+            .setNegativeButton(R.string.fav_dialog_cancel, null)
+            .show()
     }
 
     private fun removePortraitDetailView() {
@@ -3520,7 +3671,8 @@ class VideoPlayerActivity : AppCompatActivity() {
     }
     
     private fun updateNextButtonVisibility() {
-        binding.nextButton.visibility = if (playlistManager.hasNext()) {
+        // 「下一集」只在横屏给；竖屏底栏不出现（见 updateOrientationUI 竖屏分支）
+        binding.nextButton.visibility = if (!isPortraitNow() && playlistManager.hasNext()) {
             android.view.View.VISIBLE
         } else {
             android.view.View.GONE

@@ -36,4 +36,15 @@
     <string name="fav_delete_mode_reveal">滑动露出删除按钮</string>
     <string name="fav_delete_mode_direct">滑动即删除</string>
     <string name="fav_count">共 %1$d 条</string>
+
+    <!-- 播放页：收藏按钮 + 长按选分类 -->
+    <string name="fav_player_favorite">收藏</string>
+    <string name="fav_player_unfavorite">取消收藏</string>
+    <string name="fav_player_pick_category">收藏到分类</string>
+    <string name="fav_player_uncategorized">不分类</string>
+    <string name="fav_player_new_category">新建分类…</string>
+    <string name="fav_player_saved_to">已收藏到「%1$s」</string>
+    <string name="fav_player_saved">已收藏</string>
+    <string name="fav_player_moved_to">已移到「%1$s」</string>
+    <string name="fav_player_category_cleared">已设为未分类</string>
 </resources>
