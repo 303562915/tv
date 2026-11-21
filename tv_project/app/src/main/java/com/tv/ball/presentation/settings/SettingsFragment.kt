@@ -417,6 +417,27 @@ class SettingsFragment : Fragment() {
         }.getOrDefault(Preset.BALANCED.label)
         b.tvRetryCount.text = retryLabel(prefs.getPlaybackRetryCount())
         b.tvAspectRatio.text = aspectRatioManager.getCurrentMode().displayName
+
+        // 本地视频组：开关状态与「排除的后缀」整行的显示值一起回填
+        syncSwitch(b.switchLocalVideoExcludeTs, prefs.isLocalVideoExcludeTs())
+        refreshLocalVideoRow()
+    }
+
+    /**
+     * 「排除的后缀」整行的显示值：开关关闭时没有排除项，整行置灰且不可点；
+     * 打开时把真正生效的后缀列出来（读的是 [LocalVideoMedia.excludedExtensions] 这个唯一口径）。
+     */
+    private fun refreshLocalVideoRow() {
+        val b = _binding ?: return
+        val enabled = b.switchLocalVideoExcludeTs.isChecked
+        b.rowLocalVideoExcludeExt.alpha = if (enabled) 1f else 0.45f
+        b.rowLocalVideoExcludeExt.isEnabled = enabled
+        val exts = LocalVideoMedia.excludedExtensions(requireContext())
+        b.tvLocalVideoExcludeExt.text = if (exts.isEmpty()) {
+            "—"
+        } else {
+            exts.sorted().joinToString("、") { ".$it" }
+        }
     }
 
     // ============================================================
