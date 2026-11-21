@@ -2,6 +2,7 @@ package com.tv.ball.presentation.history
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.tv.ball.R
 import com.tv.ball.databinding.ActivityHistoryBinding
 import com.tv.ball.utils.StatusBarUtils
 
