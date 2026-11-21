@@ -59,6 +59,17 @@
         <item name="cardCornerRadius">16dp</item>
         <item name="cardElevation">0dp</item>
         <item name="strokeWidth">0dp</item>
+        <!--
+          显式关掉 Material3 卡片的按压抬升动画。
+          库里的 Base.Widget.Material3.CardView 指向 @animator/m3_card_state_list_anim，
+          其中的 android:duration="?attr/motionDurationLong2"、
+          android:startDelay="?attr/motionDurationMedium1" 是整数型主题属性引用；
+          一旦所在主题不是 Theme.Material3.*（例如 Theme.AppCompat.NoActionBar），
+          attr 解析不出来，Android 16 的 TypedArray.getInt 会把 "?2130969487" 这种字符串
+          直接 parseInt，抛 NumberFormatException，卡片 inflate 直接崩。
+          卡片本身 elevation 是 0/2dp，抬升动画没有视觉收益，关掉最稳。
+        -->
+        <item name="android:stateListAnimator">@null</item>
     </style>
 
     <style name="Widget.TVPlayer.Card.Raised" parent="Widget.TVPlayer.Card">

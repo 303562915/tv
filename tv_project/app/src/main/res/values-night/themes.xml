@@ -53,6 +53,9 @@
         <item name="cardCornerRadius">16dp</item>
         <item name="cardElevation">0dp</item>
         <item name="strokeWidth">0dp</item>
+        <!-- 关掉 Material3 卡片按压抬升动画，见 values/themes.xml 同名说明：
+             ?attr/motionDuration* 在非 Material3 主题下解析失败，Android 16 上卡片 inflate 崩溃。 -->
+        <item name="android:stateListAnimator">@null</item>
     </style>
 
     <style name="Widget.TVPlayer.Card.Raised" parent="Widget.TVPlayer.Card">

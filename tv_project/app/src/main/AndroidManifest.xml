@@ -60,13 +60,13 @@
         <activity
             android:name=".presentation.localvideo.LocalVideoActivity"
             android:label="本地视频"
-            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:theme="@style/Theme.影视星球"
             android:exported="true" />
 
         <activity
             android:name=".presentation.localvideo.LocalVideoFolderActivity"
             android:label="视频文件夹"
-            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:theme="@style/Theme.影视星球"
             android:exported="true" />
 
         <activity
