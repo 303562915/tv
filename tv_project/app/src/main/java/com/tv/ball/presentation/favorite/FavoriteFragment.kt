@@ -20,7 +20,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.snackbar.Snackbar
 import com.tv.ball.R
 import com.tv.ball.databinding.FragmentFavoriteBinding
 import com.tv.ball.di.Dependencies
@@ -209,12 +208,8 @@ class FavoriteFragment : Fragment() {
 
     private fun deleteFavoriteItem(favoriteItem: FavoriteItem) {
         viewModel.deleteFavorite(favoriteItem.videoId)
-        Snackbar.make(binding.root, "已取消收藏", Snackbar.LENGTH_LONG)
-            .setAction("撤销") {
-                // 按原 id / 原收藏时间原样写回：撤销后分类与排序位置都不变
-                viewModel.restoreFavorite(favoriteItem)
-            }
-            .show()
+        // 删除提示走轻量 toast，不再用带「撤销」的 Snackbar
+        com.tv.ball.util.CustomToast.show(requireContext(), "已取消收藏")
     }
 
     private fun observeViewModel() {
@@ -440,7 +435,7 @@ class FavoriteFragment : Fragment() {
     }
 
     private fun snack(message: String) {
-        Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
+        com.tv.ball.util.CustomToast.show(requireContext(), message)
     }
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()

@@ -12,7 +12,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.snackbar.Snackbar
 import com.tv.ball.R
 import com.tv.ball.databinding.FragmentHistoryBinding
 import com.tv.ball.di.Dependencies
@@ -257,7 +256,10 @@ class HistoryFragment : Fragment() {
 
     private fun confirmClearAll() {
         if (!hasHistory) {
-            Snackbar.make(binding.root, R.string.history_nothing_to_clear, Snackbar.LENGTH_SHORT).show()
+            com.tv.ball.util.CustomToast.show(
+                requireContext(),
+                getString(R.string.history_nothing_to_clear)
+            )
             return
         }
 
@@ -266,7 +268,7 @@ class HistoryFragment : Fragment() {
             .setMessage(R.string.history_clear_message)
             .setPositiveButton(R.string.confirm) { _, _ ->
                 viewModel.clearAllHistory()
-                Snackbar.make(binding.root, R.string.history_cleared, Snackbar.LENGTH_SHORT).show()
+                com.tv.ball.util.CustomToast.show(requireContext(), getString(R.string.history_cleared))
             }
             .setNegativeButton(R.string.cancel, null)
             .show()
@@ -274,13 +276,8 @@ class HistoryFragment : Fragment() {
 
     private fun deleteItem(historyItem: HistoryItem) {
         viewModel.deleteHistory(historyItem.videoItem.title)
-
-        Snackbar.make(binding.root, R.string.history_deleted, Snackbar.LENGTH_LONG)
-            .setAction(R.string.history_undo) {
-                // 撤销：按原观看时间写回，位置不会因为这个操作跳到最前
-                viewModel.addHistory(historyItem)
-            }
-            .show()
+        // 删除提示走轻量 toast：不再用带「撤销」的 Snackbar，避免遮挡列表底部
+        com.tv.ball.util.CustomToast.show(requireContext(), getString(R.string.history_deleted))
     }
 
     private fun parseEpisodesFromJson(json: String): List<com.tv.ball.domain.model.Episode> {

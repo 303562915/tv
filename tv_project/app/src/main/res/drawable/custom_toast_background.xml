@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  全站共用的 toast 底：深色半透明 (#E6151A22) + 20dp 圆角。
+  比原来的浅灰块在浅色页和播放页都更清楚，圆角保留胶囊感但不做满圆。
+  内边距统一收在这里（18dp / 10dp），布局里不再重复加，避免内外叠加把 toast 撑胖。
+-->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="@color/surface_block" />
-    <corners android:radius="@dimen/radius_full" />
+    <solid android:color="#E6151A22" />
+    <corners android:radius="@dimen/radius_lg" />
     <padding
-        android:left="16dp"
-        android:top="8dp"
-        android:right="16dp"
-        android:bottom="8dp" />
+        android:left="18dp"
+        android:top="10dp"
+        android:right="18dp"
+        android:bottom="10dp" />
 </shape>
