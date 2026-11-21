@@ -4510,7 +4510,8 @@ class VideoPlayerActivity : AppCompatActivity() {
             // 预加载下一集：在视频快结束前提前获取下一集播放地址
             checkAndPreloadNextEpisode(position, duration)
         } else {
-            binding.durationText.text = "--:--"
+            // 占位统一成 00:00（不用 --:--），字符数不跳变，时间文字宽度恒定
+            binding.durationText.text = "00:00"
         }
 
         // 更新清晰度显示（只在视频尺寸改变时更新）
