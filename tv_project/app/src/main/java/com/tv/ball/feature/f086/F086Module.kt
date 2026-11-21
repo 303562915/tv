@@ -5,7 +5,7 @@ import android.content.Intent
 import com.tv.ball.feature.FeatureModule
 
 /**
- * 「关于页与许可证」在功能中心里的登记项。
+ * 「关于」在功能中心里的登记项。
  *
  * title / description 用字面量而不是 `getString`：FeatureModule 接口只给字符串、不传 Context，
  * 在功能中心列表绑定里读属性时再去取资源会引入 Application 未初始化的时序风险。
@@ -17,7 +17,7 @@ object F086Module : FeatureModule {
 
     override val title: String = "关于"
 
-    override val description: String = "版本信息、更新渠道（稳定版 / 开发版）、检查更新、依赖清单与各自许可证集中一页"
+    override val description: String = "版本信息、更新渠道（稳定版 / 开发版）、检查更新与自动安装、下载页与源码仓库、依赖清单与各自许可证集中一页"
 
     override val group: String = "设置"
 

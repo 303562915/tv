@@ -24,7 +24,7 @@
     <string name="f086_downloading">正在下载更新，完成后会先征求同意再安装</string>
     <string name="f086_up_to_date">已是最新版本</string>
     <string name="f086_update_available">发现新版本 %1$s，再点一次开始下载</string>
-    <string name="f086_check_retry">点这里重试</string>
+    
 
     <!-- 更新渠道卡（UpdateChannelCard） -->
     <string name="f086_channel_label">更新渠道</string>
@@ -39,7 +39,7 @@
     <!-- 外链（LinkCard） -->
     <string name="f086_download_page">下载页</string>
     <string name="f086_download_url">https://303562915.github.io/tv/</string>
-    <string name="f086_chevron">›</string>
+    
 
     <!-- 依赖卡 -->
     <string name="f086_section_deps">第三方依赖</string>
