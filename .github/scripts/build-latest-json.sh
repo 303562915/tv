@@ -151,8 +151,12 @@ def write(data):
     out.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(data, ensure_ascii=False)[:400])
 
-pages = json.loads(pathlib.Path(releases_path).read_text(encoding="utf-8"))
-releases = [r for page in pages for r in page]
+# GitHub API 的 /releases 返回扁平数组；兼容个别分页写法时兜底抹平一层
+data = json.loads(pathlib.Path(releases_path).read_text(encoding="utf-8"))
+if isinstance(data, list):
+    releases = [r for page in data for r in (page if isinstance(page, list) else [page]) if isinstance(r, dict)]
+else:
+    releases = []
 matches = [r for r in releases if r.get("tag_name") == "dev" and not r.get("draft")]
 if not matches:
     write(empty)
