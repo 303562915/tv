@@ -13,16 +13,42 @@
     android:background="@color/theme_background"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/tvHint"
+    <!-- 说明行：左边文案占满，右边一个「删除方式」小字入口（不是按钮胶囊） -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
         android:paddingStart="@dimen/page_margin"
+        android:paddingTop="2dp"
         android:paddingEnd="@dimen/page_margin"
-        android:paddingBottom="8dp"
-        android:text="@string/history_hint"
-        android:textColor="@color/theme_text_secondary"
-        android:textSize="12sp" />
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:id="@+id/tvHint"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/history_hint"
+            android:textColor="@color/theme_text_secondary"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/btnDeleteMode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:paddingStart="4dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="4dp"
+            android:paddingBottom="4dp"
+            android:text="@string/history_delete_mode"
+            android:textColor="@color/theme_primary"
+            android:textSize="12sp" />
+    </LinearLayout>
 
     <FrameLayout
         android:layout_width="match_parent"

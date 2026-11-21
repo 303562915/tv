@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 「我的收藏」分类功能文案（本文件独立，不写进 values/strings.xml） -->
+<resources>
+    <!-- 分类筛选条 -->
+    <string name="fav_category_all">全部</string>
+    <string name="fav_category_uncategorized">未分类</string>
+    <string name="fav_category_new">＋ 新建</string>
+
+    <!-- 空状态 -->
+    <string name="fav_empty_all">暂无收藏</string>
+    <string name="fav_empty_category">这个分类还没有内容</string>
+
+    <!-- 长按菜单 -->
+    <string name="fav_menu_move_to_category">移动到分类</string>
+    <string name="fav_menu_new_category">新建分类</string>
+    <string name="fav_menu_unfavorite">取消收藏</string>
+
+    <!-- 对话框 -->
+    <string name="fav_dialog_pick_category_title">移动到分类</string>
+    <string name="fav_dialog_new_category_title">新建分类</string>
+    <string name="fav_dialog_category_hint">输入分类名称</string>
+    <string name="fav_dialog_confirm">确定</string>
+    <string name="fav_dialog_cancel">取消</string>
+    <!-- 分类选择列表末尾项：在列表里直接新建并移入 -->
+    <string name="fav_dialog_category_new_in_list">＋ 新建分类…</string>
+
+    <!-- 提示 -->
+    <string name="fav_toast_category_assigned">已移动到「%1$s」</string>
+    <string name="fav_toast_moved_to_uncategorized">已移回「未分类」</string>
+    <string name="fav_toast_category_name_empty">分类名不能为空</string>
+    <string name="fav_toast_category_name_too_long">分类名最多 16 个字</string>
+    <string name="fav_toast_new_category_needs_item">先长按一条收藏，再新建分类，它会被放进新分类</string>
+</resources>

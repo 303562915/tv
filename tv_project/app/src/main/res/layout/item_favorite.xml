@@ -73,6 +73,25 @@
                 android:textSize="12sp"
                 tools:ignore="HardcodedText" />
 
+            <!-- 分类标签：未分类时隐藏 -->
+            <TextView
+                android:id="@+id/tvCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_tag_inset"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:paddingStart="8dp"
+                android:paddingTop="2dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="2dp"
+                android:textColor="@color/theme_text_secondary"
+                android:textSize="11sp"
+                android:visibility="gone"
+                tools:text="电影"
+                tools:visibility="visible" />
+
         </LinearLayout>
 
     </LinearLayout>

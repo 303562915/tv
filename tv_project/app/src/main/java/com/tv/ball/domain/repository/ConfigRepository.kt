@@ -17,6 +17,7 @@ class ConfigRepository constructor(
         private const val KEY_PLAYBACK_SPEED = "playback_speed"
         private const val KEY_THEME_COLOR = "theme_color"
         private const val KEY_NIGHT_MODE = "night_mode"
+        private const val KEY_SWIPE_DELETE_DIRECT = "swipe_delete_direct"
 
         const val QUALITY_HIGH = "high"
         const val QUALITY_MEDIUM = "medium"
@@ -59,6 +60,17 @@ class ConfigRepository constructor(
     
     fun setGestureControlEnabled(enabled: Boolean) {
         localDataSource.putBoolean(KEY_GESTURE_CONTROL_ENABLED, enabled)
+    }
+
+    /**
+     * 观看历史左滑行为：true = 滑动即删除，false = 滑动只露出删除按钮（默认）。
+     */
+    fun isSwipeDeleteDirect(): Boolean {
+        return localDataSource.getBoolean(KEY_SWIPE_DELETE_DIRECT, false)
+    }
+
+    fun setSwipeDeleteDirect(enabled: Boolean) {
+        localDataSource.putBoolean(KEY_SWIPE_DELETE_DIRECT, enabled)
     }
     
     fun getPlaybackSpeed(): Float {

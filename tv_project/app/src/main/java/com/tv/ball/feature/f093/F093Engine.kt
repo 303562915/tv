@@ -148,8 +148,8 @@ object F093Engine {
         "app_database"
     )
 
-    /** 代码期望的库版本 = `AppDatabase` 的 `version`。迁移脚本补到 9→10 时为 10。 */
-    const val EXPECTED_VERSION: Int = 10
+    /** 代码期望的库版本 = `AppDatabase` 的 `version`。迁移脚本补到 10→11（收藏分类）时为 11。 */
+    const val EXPECTED_VERSION: Int = 11
 
     /** 导出报告的目录名（放应用外部私有目录，用户能用文件管理器找到）。 */
     const val REPORT_DIR: String = "report"
@@ -203,7 +203,9 @@ object F093Engine {
             ColumnSpec("episodesJson", "TEXT", notNull = false),
             ColumnSpec("parsedVideoUrl", "TEXT", notNull = false),
             ColumnSpec("videoHeaders", "TEXT", notNull = false),
-            ColumnSpec("addedAt", "INTEGER", notNull = true, default = "0")
+            ColumnSpec("addedAt", "INTEGER", notNull = true, default = "0"),
+            // 10→11 新增：用户自定义分类名，可空（NULL/空串都算「未分类」）
+            ColumnSpec("category", "TEXT", notNull = false)
         )
     )
 

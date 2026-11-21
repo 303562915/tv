@@ -29,8 +29,16 @@ sealed class HistoryRow {
 
 class HistoryAdapter(
     private val onItemClick: (HistoryItem) -> Unit,
-    private val onItemLongClick: (HistoryItem) -> Unit
+    private val onItemLongClick: (HistoryItem) -> Unit,
+    private val onItemDelete: (HistoryItem) -> Unit
 ) : ListAdapter<HistoryRow, RecyclerView.ViewHolder>(DiffCallback()) {
+
+    /**
+     * 条目是否可以左滑露出删除区。
+     * 直接删除模式下 Fragment 把它置 false：容器不再抢横向手势，留给 ItemTouchHelper。
+     * bind 时会把这个值同步给每一行的 SwipeRevealLayout，所以滚入屏幕的新行也是对的。
+     */
+    var swipeEnabled: Boolean = true
 
     override fun getItemViewType(position: Int): Int =
         if (getItem(position) is HistoryRow.Header) TYPE_HEADER else TYPE_ENTRY
@@ -43,7 +51,9 @@ class HistoryAdapter(
             EntryViewHolder(
                 ItemHistoryBinding.inflate(inflater, parent, false),
                 onItemClick,
-                onItemLongClick
+                onItemLongClick,
+                onItemDelete,
+                { swipeEnabled }
             )
         }
     }
@@ -66,7 +76,9 @@ class HistoryAdapter(
     private class EntryViewHolder(
         private val binding: ItemHistoryBinding,
         private val onItemClick: (HistoryItem) -> Unit,
-        private val onItemLongClick: (HistoryItem) -> Unit
+        private val onItemLongClick: (HistoryItem) -> Unit,
+        private val onItemDelete: (HistoryItem) -> Unit,
+        private val isSwipeEnabled: () -> Boolean
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(historyItem: HistoryItem) {
@@ -128,11 +140,18 @@ class HistoryAdapter(
                 placeholder = R.drawable.ic_launcher_background
             )
 
-            binding.root.setOnClickListener { onItemClick(historyItem) }
-            binding.root.setOnLongClickListener {
+            // 每次绑定都把当前的滑动模式同步给容器，滚入屏幕的新行不会拿到旧状态
+            binding.root.swipeEnabled = isSwipeEnabled()
+
+            // 根节点现在是 SwipeRevealLayout，里面的卡片自己 clickable，点击到不了根节点，
+            // 所以条目点击要挂到内容卡片上；滑出来的删除区单独走 onItemDelete
+            val content = binding.root.contentView ?: binding.root
+            content.setOnClickListener { onItemClick(historyItem) }
+            content.setOnLongClickListener {
                 onItemLongClick(historyItem)
                 true
             }
+            binding.btnSwipeDelete.setOnClickListener { onItemDelete(historyItem) }
         }
     }
 

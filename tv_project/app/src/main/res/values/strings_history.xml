@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  观看历史：左滑删除方式的文案。
+  单独一个文件是为了不和其它正在改 strings.xml 的改动互相覆盖。
+-->
+<resources>
+    <string name="history_delete_mode">删除方式</string>
+    <string name="history_delete_mode_reveal">滑动露出删除按钮</string>
+    <string name="history_delete_mode_direct">滑动即删除</string>
+</resources>

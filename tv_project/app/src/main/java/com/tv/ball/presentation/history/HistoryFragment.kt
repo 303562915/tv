@@ -15,13 +15,18 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.tv.ball.R
 import com.tv.ball.databinding.FragmentHistoryBinding
+import com.tv.ball.di.Dependencies
+import com.tv.ball.widget.SwipeRevealLayout
 import kotlinx.coroutines.launch
 
 /**
  * 观看历史内容。
  *
  * 列表结构：按「今天 / 昨天 / 更早」分段（分组由 ViewModel 给出），
- * 点击 = 接着上次的位置继续播，长按 = 菜单（继续播放 / 删除），左右滑 = 删除。
+ * 点击 = 接着上次的位置继续播，长按 = 菜单（继续播放 / 删除）。
+ * 删除有两种左滑行为，入口是顶部说明行右侧的「删除方式」：
+ * - 露出按钮（默认）：左滑把卡片平移出去露出右侧「删除」按钮，点按钮才删；
+ * - 滑动即删除：ItemTouchHelper 左右滑走直接删。
  * 「清空历史」按钮在 [HistoryActivity] 的工具条上，通过回调驱动，不在这里重复造一条工具栏。
  */
 class HistoryFragment : Fragment() {
@@ -36,6 +41,9 @@ class HistoryFragment : Fragment() {
     private lateinit var adapter: HistoryAdapter
     private var hasHistory = false
 
+    /** 当前挂着的滑删 helper；切换删除方式时要先摘掉，再决定挂不挂 */
+    private var swipeHelper: ItemTouchHelper? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -49,6 +57,7 @@ class HistoryFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
         setupSwipeToDelete()
+        setupDeleteModeEntry()
         setupEmptyState()
         bindHostToolbar()
         observeViewModel()
@@ -57,7 +66,8 @@ class HistoryFragment : Fragment() {
     private fun setupRecyclerView() {
         adapter = HistoryAdapter(
             onItemClick = { historyItem -> openItem(historyItem) },
-            onItemLongClick = { historyItem -> showItemMenu(historyItem) }
+            onItemLongClick = { historyItem -> showItemMenu(historyItem) },
+            onItemDelete = { historyItem -> deleteItem(historyItem) }
         )
         binding.rvHistory.apply {
             layoutManager = LinearLayoutManager(requireContext())
@@ -66,6 +76,63 @@ class HistoryFragment : Fragment() {
     }
 
     private fun setupSwipeToDelete() {
+        // 列表一开始滚动就把露出来的删除区收起，保证同时只有一项展开
+        binding.rvHistory.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) closeRevealedRows(recyclerView)
+            }
+
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                if (dy != 0) closeRevealedRows(recyclerView)
+            }
+        })
+        applySwipeMode()
+    }
+
+    /**
+     * 按当前删除方式挂 / 摘滑删手势：
+     * - 露出按钮（默认）：不挂 ItemTouchHelper，横向手势交给 SwipeRevealLayout；
+     * - 滑动即删除：挂上 ItemTouchHelper，左右滑走直接删。
+     * 切换时原地重挂，不用退出页面。
+     */
+    private fun applySwipeMode() {
+        val direct = Dependencies.configRepository.isSwipeDeleteDirect()
+
+        // 先改模式再刷绑定：容器手势和 ItemTouchHelper 只能有一个生效，避免两套手势抢同一次左滑
+        adapter.swipeEnabled = !direct
+        adapter.notifyDataSetChanged()
+
+        swipeHelper?.attachToRecyclerView(null)
+        swipeHelper = null
+        closeRevealedRows(binding.rvHistory)
+
+        if (direct) {
+            attachSwipeToDeleteHelper()
+        }
+    }
+
+    private fun setupDeleteModeEntry() {
+        binding.btnDeleteMode.setOnClickListener { showDeleteModeDialog() }
+    }
+
+    private fun showDeleteModeDialog() {
+        val direct = Dependencies.configRepository.isSwipeDeleteDirect()
+        val options = arrayOf(
+            getString(R.string.history_delete_mode_reveal),
+            getString(R.string.history_delete_mode_direct)
+        )
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.history_delete_mode)
+            .setSingleChoiceItems(options, if (direct) 1 else 0) { dialog, which ->
+                Dependencies.configRepository.setSwipeDeleteDirect(which == 1)
+                dialog.dismiss()
+                // 选完立刻生效：重挂手势，不让用户重进页面
+                applySwipeMode()
+            }
+            .show()
+    }
+
+    private fun attachSwipeToDeleteHelper() {
         val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
             0,
             ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
@@ -87,7 +154,16 @@ class HistoryFragment : Fragment() {
                 }
             }
         })
+        swipeHelper = itemTouchHelper
         itemTouchHelper.attachToRecyclerView(binding.rvHistory)
+    }
+
+    /** 收起所有已经滑出删除区的条目 */
+    private fun closeRevealedRows(recyclerView: RecyclerView) {
+        for (i in 0 until recyclerView.childCount) {
+            val child = recyclerView.getChildAt(i)
+            if (child is SwipeRevealLayout && child.isOpened()) child.close()
+        }
     }
 
     private fun setupEmptyState() {

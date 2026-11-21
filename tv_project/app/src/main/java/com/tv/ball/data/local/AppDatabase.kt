@@ -17,7 +17,7 @@ import com.tv.ball.data.model.VideoEntity
         FavoriteEntity::class,
         com.tv.ball.data.model.DownloadTaskEntity::class
     ],
-    version = 10,
+    version = 11,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -274,6 +274,13 @@ abstract class AppDatabase : RoomDatabase() {
                 
                 // 5. 重命名新表
                 database.execSQL("ALTER TABLE history_new RENAME TO history")
+            }
+        }
+
+        val MIGRATION_10_11 = object : Migration(10, 11) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // 收藏分类：TEXT 可空，旧记录自动为 NULL（=「未分类」），无需回填
+                database.execSQL("ALTER TABLE favorites ADD COLUMN category TEXT")
             }
         }
     }
