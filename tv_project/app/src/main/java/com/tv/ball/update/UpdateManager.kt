@@ -15,6 +15,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -29,17 +30,17 @@ import java.util.concurrent.atomic.AtomicBoolean
  * 失败原因，直接用 [UpdateChecker.check] 并把 [failureMessage] 显示在页面上，
  * 下载安装仍委托 [downloadAndInstall]。
  *
- * 启动自动检查（[autoCheckOnStart]）是第四条入口：它不弹对话框，只用
- * [UpdatePrompt] 挂一条主题化轻提示，24 小时内只查一次（节流存在 SharedPreferences）。
+ * 前台自动检查（[autoCheckLoop]）是第四条入口：它不弹对话框，只用
+ * [UpdatePrompt] 挂一条主题化轻提示，在前台期间每 30 秒查一次（同一版本只提示一次）。
  */
 object UpdateManager {
 
     private const val DOWNLOAD_PAGE = "https://303562915.github.io/tv/"
 
-    /** 启动自动检查的节流：同一台设备 24 小时内只自动查一次。 */
+    /** 前台自动检查的节流与周期：每 30 秒查一次（进前台立刻查一次）。 */
     private const val AUTO_PREFS = "update_auto"
     private const val KEY_LAST_AUTO_CHECK = "last_auto_check_at"
-    private const val AUTO_CHECK_INTERVAL_MILLIS = 24L * 60L * 60L * 1000L
+    private const val AUTO_CHECK_INTERVAL_MILLIS = 30L * 1000L
 
     /** 关于页「自动安装」开关的键（与 F086Activity 共用同一份 SharedPreferences）。 */
     private const val KEY_AUTO_INSTALL = "auto_install"
@@ -48,6 +49,9 @@ object UpdateManager {
 
     /** 同一时刻只跑一次检查：重复触发（启动 + 手动 + 回前台）直接丢掉后到的那个。 */
     private val checkRunning = AtomicBoolean(false)
+
+    /** 已经提示（或已自动开始下载）过的版本标识：30 秒轮询时同一版本只打扰一次。 */
+    private var handledVersion: String? = null
 
     private var dialog: AlertDialog? = null
     private var progressBar: ProgressBar? = null
@@ -124,26 +128,42 @@ object UpdateManager {
     // ---------------------------------------------------------------- 启动自动检查
 
     /**
-     * 启动时的自动检查（对照 Canta 的启动自动检查 + 主题化提示）。
+     * 前台周期自动检查：进入前台先查一次，之后每 30 秒查一次。
      *
-     * 时机与节流：
-     *  - 只在进入主界面那一次查，24 小时内不重复（时间戳存 `update_auto`），
-     *    所以切后台再回前台不会再弹；
-     *  - 已是最新、检查失败都**静默**：启动不该被网络问题变成一次弹窗，
+     * 周期与节流：
+     *  - 每 [AUTO_CHECK_INTERVAL_MILLIS]（30 秒）查一次，时间戳存 `update_auto`，
+     *    同一进程里重复进前台不会把间隔压碎；
+     *  - 已是最新、检查失败都**静默**：自动轮询不该被网络问题变成一串弹窗，
      *    失败原因留给关于页的手动检查去说；
-     *  - 只有「发现新版本」才提示：主题化轻提示 + 版本号 + 「立即更新 / 稍后」。
+     *  - 只有「发现新版本」才提示：主题化轻提示 + 版本号 + 「立即更新 / 稍后」，
+     *    并且同一个版本只提示（或自动下载）一次，否则每 30 秒会挂出一条同样的提示。
      *
-     * 关于页的「自动安装」开关开着时直接走下载→安装（不再多问一次），
+     * 关于页的「自动下载更新」开关开着时直接走下载→安装（不再多问一次），
      * 关着就提示；两条路的下载与安装都复用 [downloadQuietly] / [downloadAndInstall] /
      * [install]，安装顺序仍是 Shizuku → root → 系统安装器 → 提示降级。
      *
-     * @param scope 调用方的作用域：Activity 传 `lifecycleScope`，Application 传应用级作用域
+     * 轮询由调用方的作用域控制：主界面用 `repeatOnLifecycle(RESUMED)` 调用，
+     * 切后台就停，回前台立刻再查一次。
+     *
+     * @param scope 调用方的作用域：Activity 传前台生命周期作用域，Application 传应用级作用域
      */
-    fun autoCheckOnStart(activity: Activity, scope: CoroutineScope = this.scope) {
+    fun autoCheckLoop(activity: Activity, scope: CoroutineScope = this.scope) {
         if (!activity.alive()) return
+        if (!scope.isActive) return
+        scope.launch {
+            while (scope.isActive) {
+                if (!activity.alive()) break
+                autoCheckOnce(activity, scope)
+                delay(AUTO_CHECK_INTERVAL_MILLIS)
+            }
+        }
+    }
+
+    /** 一轮自动检查：没到期就什么都不做，结果按 [autoCheckLoop] 的规则处理。 */
+    private fun autoCheckOnce(activity: Activity, scope: CoroutineScope) {
         val app = activity.applicationContext
         if (!autoCheckDue(app)) return
-        // 先盖时间戳再查：这次没查成也不该在下次启动继续追问，用户要的是不被打扰
+        // 先盖时间戳再查：这次没查成也不该在这轮里继续追问
         markAutoChecked(app)
 
         checkForUpdate(
@@ -153,13 +173,18 @@ object UpdateManager {
         ) { status ->
             if (!activity.alive()) return@checkForUpdate
             when (status) {
-                is Status.Available ->
+                is Status.Available -> {
+                    // 30 秒一轮：同一个版本只处理一次，后来的轮次静默等到新构建出现
+                    val key = labelOf(status.info)
+                    if (key == handledVersion) return@checkForUpdate
+                    handledVersion = key
                     if (autoInstallEnabled(app)) {
                         downloadQuietly(activity, status.info, scope)
                     } else {
                         askByPrompt(activity, status.info)
                     }
-                // 检查中 / 已是最新 / 失败：启动时不打扰
+                }
+                // 检查中 / 已是最新 / 失败：自动检查不打扰
                 else -> Unit
             }
         }
@@ -285,7 +310,7 @@ object UpdateManager {
 
     // ---------------------------------------------------------------- 节流与开关
 
-    /** 距上次自动检查是否已过 24 小时；系统时间被回拨时也算到期，免得永远不再检查。 */
+    /** 距上次自动检查是否已过 30 秒；系统时间被回拨时也算到期，免得永远不再检查。 */
     private fun autoCheckDue(context: Context): Boolean = runCatching {
         val prefs = context.getSharedPreferences(AUTO_PREFS, Context.MODE_PRIVATE)
         val last = prefs.getLong(KEY_LAST_AUTO_CHECK, 0L)

@@ -17,7 +17,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.launch
 import com.tv.ball.R
 import com.tv.ball.databinding.ActivityMainBinding
 import com.tv.ball.presentation.home.HomeFragment
@@ -59,10 +62,14 @@ class MainActivity : AppCompatActivity() {
 
         setupBottomNav(savedInstanceState == null)
 
-        // 启动自动检查更新（对照 Canta 的启动自动检查）：
-        // 24 小时内只查一次（时间戳存 update_auto），查到新版本才挂一条主题化轻提示，
-        // 已是最新或检查失败都静默。作用域用 activity 的 lifecycleScope，页面走了就停。
-        UpdateManager.autoCheckOnStart(this, lifecycleScope)
+        // 前台自动检查更新：进前台立刻查一次，之后每 30 秒查一次，切后台就停。
+        // 查到新版本才挂一条主题化轻提示，同一个版本只提示一次；
+        // 已是最新或检查失败都静默，失败原因留给关于页的手动检查去说。
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                UpdateManager.autoCheckLoop(this@MainActivity, this)
+            }
+        }
 
         showLastCrashIfAny()
     }
