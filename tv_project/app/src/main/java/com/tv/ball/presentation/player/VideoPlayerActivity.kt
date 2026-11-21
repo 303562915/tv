@@ -97,6 +97,7 @@ class VideoPlayerActivity : AppCompatActivity() {
     private var isLocked = false
     private var isSeeking = false
     private var hasSkippedIntro = false
+    private var hasSkippedAd = false  // 片头广告是否已跳过（每个视频只跳一次）
     
     // 长按倍速相关
     private var isLongPressActive = false
@@ -150,7 +151,13 @@ class VideoPlayerActivity : AppCompatActivity() {
     private var isPreloadingNextEpisode = false  // 是否正在预加载
     private var preloadedNextEpisodeUrl: String? = null  // 预加载的下一集URL
     private var hasTriggeredPreload = false  // 是否已触发预加载（避免重复）
-    private val preloadThresholdSeconds = 10  // 提前10秒开始预加载
+    /** 预加载提前量（秒）：取「播放设置 → 预加载与缓冲」里的提前量，改完设置立即生效。 */
+    private val preloadThresholdSeconds: Int
+        get() = com.tv.ball.di.Dependencies.userPreferences.getPlaybackPreloadLeadSeconds()
+
+    /** 「记忆播放进度」开关：关闭时不从历史位置续播，但恢复流程照走（只跳过 seek）。 */
+    private val rememberPlaybackProgress: Boolean
+        get() = com.tv.ball.di.Dependencies.userPreferences.isPlaybackRememberProgress()
     
     // 后台播放器预加载
     private var backgroundPlayer: ExoPlayer? = null  // 后台预加载播放器
@@ -1181,7 +1188,8 @@ class VideoPlayerActivity : AppCompatActivity() {
                 
                 // 恢复播放进度（如果有保存的进度且还没恢复过）
                 if (!hasRestoredPlaybackPosition) {
-                    val savedPosition = viewModel.getSavedPosition()
+                    // 「记忆播放进度」关掉时视为没有保存进度：不 seek，但仍然标记已恢复，避免反复判断
+                    val savedPosition = if (rememberPlaybackProgress) viewModel.getSavedPosition() else 0L
                     if (savedPosition > 0) {
                         android.util.Log.d("VideoPlayer", "恢复播放进度: ${savedPosition}ms")
                         exoPlayerManager.seekTo(savedPosition)
@@ -1275,7 +1283,9 @@ class VideoPlayerActivity : AppCompatActivity() {
                 viewModel.onPlaybackError(message)
                 
                 // 如果有多个解析链接，自动尝试下一个
-                if (!isAutoSwitchingLink && sniffedVideoLinks.size > 1 && currentLinkIndex < sniffedVideoLinks.size - 1) {
+                // 「失败自动切换线路」关掉后不再自动换线（播放设置 → 预加载与缓冲）
+                if (com.tv.ball.di.Dependencies.userPreferences.isPlaybackAutoSwitchRoute() &&
+                    !isAutoSwitchingLink && sniffedVideoLinks.size > 1 && currentLinkIndex < sniffedVideoLinks.size - 1) {
                     isAutoSwitchingLink = true
                     currentLinkIndex++
                     
@@ -3436,6 +3446,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             
             binding.titleText.text = "$videoTitle - ${episode.name}"
             hasSkippedIntro = false
+            hasSkippedAd = false  // 新的一集：片头广告重新可跳
             hasStartedRouteTest = false  // 重置线路测试标志
             
             // 清空之前的嗅探链接，避免干扰
@@ -3854,7 +3865,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                                 }
                                 
                                 // 播放器准备好或开始播放后，如果有待恢复的位置且还没恢复过，则恢复播放位置
-                                if (!hasRestoredPlaybackPosition && pendingSeekPosition > 0) {
+                                if (!hasRestoredPlaybackPosition && rememberPlaybackProgress && pendingSeekPosition > 0) {
                                     android.util.Log.d("VideoPlayerActivity", "播放器准备好，从历史记录恢复播放位置: $pendingSeekPosition ms")
                                     // 延迟一点再 seek，确保播放器完全准备好
                                     lifecycleScope.launch {
@@ -3880,7 +3891,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                     viewModel.currentPosition.collect { position ->
                         android.util.Log.d("VideoPlayerActivity", "currentPosition 更新: $position ms, hasRestoredPlaybackPosition=$hasRestoredPlaybackPosition")
                         // 只在还没恢复过位置时，保存待恢复的位置
-                        if (!hasRestoredPlaybackPosition && position > 0) {
+                        if (!hasRestoredPlaybackPosition && rememberPlaybackProgress && position > 0) {
                             if (exoPlayerManager.isPlayerReady()) {
                                 android.util.Log.d("VideoPlayerActivity", "播放器已准备好，立即恢复播放位置: $position ms")
                                 exoPlayerManager.seekTo(position)
@@ -4119,8 +4130,13 @@ class VideoPlayerActivity : AppCompatActivity() {
         
         when (networkType) {
             NetworkStatusMonitor.NetworkType.MOBILE -> {
-                // 使用移动数据时提示用户
-                showNetworkSwitchToast("⚡ $message\n正在使用移动数据加速播放")
+                // 「允许移动网络播放」关掉时：立刻暂停并提示，别让流量继续跑
+                if (!com.tv.ball.di.Dependencies.userPreferences.isPlaybackAllowMobileData()) {
+                    exoPlayerManager.pause()
+                    showNetworkSwitchToast("已暂停：未开启「允许移动网络播放」")
+                } else {
+                    showNetworkSwitchToast("⚡ $message\n正在使用移动数据加速播放")
+                }
             }
             NetworkStatusMonitor.NetworkType.WIFI -> {
                 showNetworkSwitchToast("✓ $message")
@@ -4226,6 +4242,11 @@ class VideoPlayerActivity : AppCompatActivity() {
     }
     
     private fun checkSkipIntro() {
+        // 跳过片头广告：开播后一次性快进前段广告（播放设置 → 跳过与省时 → 跳过片头广告）
+        if (skipIntroManager.shouldSkipAd(exoPlayerManager.getCurrentPosition(), hasSkippedAd)) {
+            exoPlayerManager.seekTo(skipIntroManager.getAdSkipPositionMs())
+            hasSkippedAd = true
+        }
         if (hasSkippedIntro) return
         
         val currentPosition = exoPlayerManager.getCurrentPosition()
@@ -4642,7 +4663,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         // 如果不是画中画模式，恢复播放
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.N || !isInPictureInPictureMode) {
             // 恢复播放进度
-            val savedPosition = viewModel.getSavedPosition()
+            val savedPosition = if (rememberPlaybackProgress) viewModel.getSavedPosition() else 0L
             if (savedPosition > 0 && exoPlayerManager.getCurrentPosition() == 0L) {
                 android.util.Log.d("VideoPlayer", "▶️ [生命周期] 恢复播放进度: ${savedPosition}ms")
                 exoPlayerManager.seekTo(savedPosition)
@@ -4701,6 +4722,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         
         binding.titleText.text = "$videoTitle - ${episode.name}"
         hasSkippedIntro = false
+        hasSkippedAd = false  // 新的一集：片头广告重新可跳
         
         // 检查是否有预加载的URL
         if (preloadedNextEpisodeUrl != null && preloadedNextEpisodeUrl!!.isNotEmpty()) {
@@ -4800,6 +4822,9 @@ class VideoPlayerActivity : AppCompatActivity() {
      * 在视频快结束前（默认10秒）提前在后台获取下一集播放地址
      */
     private fun checkAndPreloadNextEpisode(currentPosition: Long, duration: Long) {
+        // 「预加载下一集」关掉就完全不预加载（播放设置 → 预加载与缓冲）
+        if (!com.tv.ball.di.Dependencies.userPreferences.isPlaybackPreloadNext()) return
+
         // 计算剩余时间（秒）
         val remainingSeconds = (duration - currentPosition) / 1000
         
