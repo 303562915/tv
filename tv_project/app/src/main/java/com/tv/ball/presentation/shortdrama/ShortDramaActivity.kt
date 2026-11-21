@@ -4,8 +4,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
@@ -36,11 +39,37 @@ class ShortDramaActivity : AppCompatActivity() {
         binding.btnBack.setOnClickListener { finish() }
 
         setupTabs()
+        setupSearch()
         setupRecyclerView()
         setupSwipeRefresh()
         observeViewModel()
         
         viewModel.loadDramas(categories[0], page = 1, refresh = true)
+    }
+
+    private fun setupSearch() {
+        binding.etSearch.setOnEditorActionListener { _, actionId, event ->
+            val submitted = actionId == EditorInfo.IME_ACTION_SEARCH ||
+                (event != null && event.keyCode == android.view.KeyEvent.KEYCODE_ENTER)
+            if (submitted) {
+                hideKeyboard()
+                viewModel.search(binding.etSearch.text?.toString().orEmpty())
+            }
+            submitted
+        }
+
+        // 清空输入框 = 退出搜索，回到原来的分类
+        binding.etSearch.doAfterTextChanged { text ->
+            if (text.isNullOrEmpty() && viewModel.searchKeyword.value.isNotEmpty()) {
+                viewModel.exitSearch()
+            }
+        }
+    }
+
+    private fun hideKeyboard() {
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager ?: return
+        imm.hideSoftInputFromWindow(binding.etSearch.windowToken, 0)
+        binding.etSearch.clearFocus()
     }
     
     private fun setupTabs() {
@@ -92,9 +121,14 @@ class ShortDramaActivity : AppCompatActivity() {
     
     private fun setupSwipeRefresh() {
         binding.swipeRefresh.setOnRefreshListener {
-            val selectedTab = binding.tabLayout.selectedTabPosition
-            val category = categories[selectedTab]
-            viewModel.loadDramas(category, page = 1, refresh = true)
+            if (viewModel.searchKeyword.value.isNotEmpty()) {
+                // 搜索态下拉 = 重搜当前关键词
+                viewModel.search(viewModel.searchKeyword.value)
+            } else {
+                val selectedTab = binding.tabLayout.selectedTabPosition
+                val category = categories[selectedTab.coerceAtLeast(0)]
+                viewModel.loadDramas(category, page = 1, refresh = true)
+            }
         }
     }
     
@@ -112,6 +146,14 @@ class ShortDramaActivity : AppCompatActivity() {
             viewModel.isLoading.collect { isLoading ->
                 Log.d("ShortDramaActivity", "Loading state: $isLoading")
                 binding.swipeRefresh.isRefreshing = isLoading
+            }
+        }
+
+        lifecycleScope.launch {
+            viewModel.searchKeyword.collect { keyword ->
+                // 搜索态隐藏分类 Tab（否则继续点 Tab 会和搜索结果打架），清空关键词就恢复
+                binding.tabLayout.visibility = if (keyword.isEmpty()) View.VISIBLE else View.GONE
+                binding.emptyView.text = if (keyword.isEmpty()) "暂无短剧" else "没搜到相关短剧"
             }
         }
 

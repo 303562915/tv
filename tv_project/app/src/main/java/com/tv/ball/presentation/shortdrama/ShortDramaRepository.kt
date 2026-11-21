@@ -85,6 +85,17 @@ object ShortDramaRepository {
     /** 列表/搜索。同一页在多个源之间失败互备，全挂才抛错。 */
     suspend fun fetchList(categoryLabel: String, page: Int): List<ShortDramaItem> {
         val tab = tabs.firstOrNull { it.label == categoryLabel } ?: tabs.first()
+        return fetch(tab, page)
+    }
+
+    /** 关键词搜索：站内搜索框走这里，仍然是多源互备。 */
+    suspend fun search(keyword: String, page: Int): List<ShortDramaItem> {
+        val kw = keyword.trim()
+        if (kw.isEmpty()) return emptyList()
+        return fetch(Tab("搜索", kw), page)
+    }
+
+    private suspend fun fetch(tab: Tab, page: Int): List<ShortDramaItem> {
         // 整库刷优先用带短剧分类的源，其余源作为关键词兜底
         val candidates = if (tab.wholeLibrary) {
             providers.filter { it.dramaType != null } + providers.filter { it.dramaType == null }

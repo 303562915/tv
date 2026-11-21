@@ -42,6 +42,33 @@
 
     </LinearLayout>
 
+    <!-- 搜索：与搜索页同一套胶囊输入框；有关键词时隐藏分类 Tab，清空即回到分类 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="4dp">
+
+        <EditText
+            android:id="@+id/etSearch"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="@drawable/search_input_bg"
+            android:hint="搜短剧名"
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:maxLines="1"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textColor="@color/theme_text_primary"
+            android:textColorHint="@color/theme_text_secondary"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"
         android:layout_width="match_parent"
