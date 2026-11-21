@@ -1,71 +1,229 @@
 package com.tv.ball.feature.f086
 
 import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.tv.ball.R
 import com.tv.ball.databinding.ActivityF086Binding
+import com.tv.ball.update.UpdateChannel
+import com.tv.ball.update.UpdateChecker
+import com.tv.ball.update.UpdateInfo
+import com.tv.ball.update.UpdateManager
 import com.tv.ball.util.CustomToast
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 /**
- * 「关于页与许可证」页。
+ * 「关于页与许可证」页 —— 结构对照 unicanta 的 AboutScreen 一比一翻译成 View 体系：
  *
- * 四段：
- * 1. **应用信息**：版本行（[F086Engine.versionText]）、包名、更新日期；
- * 2. **第三方依赖**：每行一个库（名字 / 版本 / 许可证 / 上游地址），清单来自 [F086Engine.deps]，
- *    与 README 的表格同源，页面不另写一份；
- * 3. **源码与仓库**：「打开仓库」发 `ACTION_VIEW` 交给浏览器，没有浏览器时只提示、不崩；
- * 4. **许可证全文**：一个固定高度的滚动区长文本，逐条列出依赖与 Apache-2.0 要点。
+ * 1. **AppHero**：图标块 + 应用名 + 版本行（开发版带 dev 构建号）+ 安装时间 + 一句话定位；
+ * 2. **UpdateCard**：整行就是按钮——空闲提示 / 检查中 / 已是最新 / 发现新版本（再点下载）/
+ *    失败原因（点名被墙、配额、超时、上游故障），失败的再点一次就是重试；
+ * 3. **UpdateChannelCard**：稳定版 / 开发版两块渠道芯片，确认键切换；
+ * 4. **自动下载安装开关**；
+ * 5. **外链卡**：下载页 / 源码仓库，交给系统浏览器，没有浏览器时只提示、不崩；
+ * 6. **第三方依赖 + 许可证全文**（本项目自有的开源合规区）。
  *
- * 这一页是纯只读的：不发请求、不写任何文件、不改任何设置。所以也就没有状态机，
- * `onCreate` 里把三块内容一次性画完即可。
- *
- * 电视遥控器操作：只有「返回」与「打开仓库」两个焦点，依赖行与长文本区都不抢焦点——
- * 十二行依赖如果每行都可聚焦，方向键要按十几次才能走到按钮；焦点顺序在布局里
- * 用 nextFocus 串成 返回 → 打开仓库 → 文本区。
+ * 电视遥控器：焦点链 返回 → 检查更新 → 稳定版 → 开发版 → 自动安装 → 下载页 →
+ * 打开仓库 → 许可证长文本区；依赖行不可聚焦（见 addDepRow 注释）。
  */
 class F086Activity : AppCompatActivity() {
 
     private lateinit var binding: ActivityF086Binding
+
+    /** 检查更新的状态机（对照 unicanta UpdateState 的页面可见子集）。 */
+    private sealed interface UiState {
+        data object Idle : UiState
+        data object Checking : UiState
+        data object Latest : UiState
+        data class Available(val info: UpdateInfo) : UiState
+        data class Failed(val failure: UpdateChecker.Failure) : UiState
+    }
+
+    private var state: UiState = UiState.Idle
+    private var channel: UpdateChannel = UpdateChannel.STABLE
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityF086Binding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val prefs = prefs()
+        channel = UpdateChannel.from(prefs.getString(KEY_CHANNEL, null))
+
         binding.btnBack.setOnClickListener { finish() }
+        binding.f086UpdateCard.setOnClickListener { onUpdateCardTap() }
+        binding.f086ChannelStable.setOnClickListener { switchChannel(UpdateChannel.STABLE) }
+        binding.f086ChannelDev.setOnClickListener { switchChannel(UpdateChannel.DEV) }
+        binding.f086AutoInstall.isChecked = prefs.getBoolean(KEY_AUTO_INSTALL, false)
+        binding.f086AutoInstall.setOnCheckedChangeListener { _, checked ->
+            prefs().edit().putBoolean(KEY_AUTO_INSTALL, checked).apply()
+            // 打开开关时若已有版本在等，直接开始下载（对照 unicanta ToggleCard 的行为）
+            val available = (state as? UiState.Available)?.info
+            if (checked && available != null) {
+                UpdateManager.downloadAndInstall(this, available) { renderIdle() }
+            }
+        }
+        binding.f086DownloadCard.setOnClickListener {
+            openUrl(F086Engine.DOWNLOAD_PAGE_URL, R.string.f086_download_page)
+        }
         binding.f086RepoButton.setOnClickListener { openRepo() }
 
-        renderAppInfo()
+        renderHero()
         renderDeps()
         renderLicense()
+        renderChannel()
+        render(state)
     }
 
-    // ===== 应用信息 =====
+    // ===== AppHero =====
 
-    /**
-     * 三行应用信息。
-     *
-     * 版本行已经含安装时间，第三行「更新日期」再单独给一次是因为两张卡要能分开扫：
-     * 版本行是给人读的一整句，更新日期这一行只有日期，方便一眼对"手上这份是不是最新的"。
-     * 两处都走 [F086Engine.formatDate]，同一个时间戳不会出现两种写法。
-     */
-    private fun renderAppInfo() {
-        val info = F086Engine.appInfo(this)
+    /** 版本行与安装时间；开发版显示 (dev N)，由 [F086Engine.versionText] 决定。 */
+    private fun renderHero() {
         binding.f086VersionValue.text = F086Engine.versionText(this)
-        binding.f086PackageValue.text = info.packageName
+        val info = F086Engine.appInfo(this)
         binding.f086UpdatedValue.text = if (info.updatedAtMillis > 0L) {
-            F086Engine.formatDate(info.updatedAtMillis)
+            getString(R.string.f086_installed_at, F086Engine.formatDate(info.updatedAtMillis))
         } else {
             getString(R.string.f086_value_unknown)
         }
     }
+
+    // ===== 检查更新 =====
+
+    /** 整行即按钮：空闲/失败 = 检查，发现新版本 = 下载，检查中忽略。 */
+    private fun onUpdateCardTap() {
+        when (val current = state) {
+            is UiState.Checking -> Unit
+            is UiState.Available -> {
+                UpdateManager.downloadAndInstall(this, current.info) { renderIdle() }
+            }
+            else -> checkUpdate()
+        }
+    }
+
+    private fun checkUpdate() {
+        state = UiState.Checking
+        render(state)
+        lifecycleScope.launch {
+            val result = runCatching { UpdateChecker.check(channel) }
+            state = result.fold(
+                onSuccess = { info ->
+                    if (UpdateChecker.isNewer(info)) {
+                        if (binding.f086AutoInstall.isChecked) {
+                            UpdateManager.downloadAndInstall(this@F086Activity, info) { renderIdle() }
+                            UiState.Latest
+                        } else {
+                            UiState.Available(info)
+                        }
+                    } else {
+                        UiState.Latest
+                    }
+                },
+                onFailure = { e ->
+                    UiState.Failed(
+                        (e as? UpdateChecker.CheckException)?.failure ?: UpdateChecker.Failure.UNKNOWN
+                    )
+                }
+            )
+            render(state)
+        }
+    }
+
+    // ===== 渠道 =====
+
+    private fun switchChannel(target: UpdateChannel) {
+        if (target == channel) return
+        channel = target
+        prefs().edit().putString(KEY_CHANNEL, if (target == UpdateChannel.DEV) "dev" else "stable").apply()
+        renderChannel()
+        renderIdle()
+    }
+
+    /** 渠道芯片的选中态：选中 = 主题色实底 + on_primary 文字，未选 = 原始灰底。 */
+    private fun renderChannel() {
+        val primary = ContextCompat.getColor(this, R.color.theme_primary)
+        val onPrimary = ContextCompat.getColor(this, R.color.theme_on_primary)
+        val plainText = ContextCompat.getColor(this, R.color.theme_text_primary)
+        bindChip(binding.f086ChannelStable, channel == UpdateChannel.STABLE, primary, onPrimary, plainText)
+        bindChip(binding.f086ChannelDev, channel == UpdateChannel.DEV, primary, onPrimary, plainText)
+    }
+
+    private fun bindChip(chip: TextView, selected: Boolean, primary: Int, onPrimary: Int, plain: Int) {
+        if (selected) {
+            chip.backgroundTintList = ColorStateList.valueOf(primary)
+            chip.setTextColor(onPrimary)
+        } else {
+            chip.backgroundTintList = null
+            chip.setTextColor(plain)
+        }
+    }
+
+    // ===== 状态渲染 =====
+
+    private fun render(target: UiState) {
+        val busy = target is UiState.Checking
+        binding.f086UpdateProgress.visibility = if (busy) View.VISIBLE else View.GONE
+        binding.f086UpdateAction.setText(
+            if (target is UiState.Available) R.string.f086_download_now else R.string.f086_check_action
+        )
+        val statusText: String
+        val statusColor: Int
+        when (val current = target) {
+            UiState.Idle -> {
+                statusText = getString(R.string.f086_check_hint_channel, channelLabel())
+                statusColor = color(R.color.theme_text_secondary)
+            }
+            UiState.Checking -> {
+                statusText = getString(R.string.f086_checking)
+                statusColor = color(R.color.theme_text_secondary)
+            }
+            UiState.Latest -> {
+                statusText = getString(R.string.f086_up_to_date)
+                statusColor = color(R.color.theme_primary)
+            }
+            is UiState.Available -> {
+                statusText = getString(R.string.f086_update_available, UpdateManager.labelOf(current.info))
+                statusColor = color(R.color.theme_primary)
+            }
+            is UiState.Failed -> {
+                statusText = failureText(current.failure)
+                statusColor = color(R.color.theme_error)
+            }
+        }
+        binding.f086UpdateStatus.text = statusText
+        binding.f086UpdateStatus.setTextColor(statusColor)
+    }
+
+    private fun renderIdle() {
+        state = UiState.Idle
+        render(state)
+    }
+
+    private fun channelLabel(): String =
+        getString(if (channel == UpdateChannel.DEV) R.string.f086_channel_dev else R.string.f086_channel_stable)
+
+    /** 失败原因的一句话（对照 unicanta UpdateFailure.reason()）。 */
+    private fun failureText(failure: UpdateChecker.Failure): String = getString(
+        when (failure) {
+            UpdateChecker.Failure.RATE_LIMITED -> R.string.f086_fail_rate_limited
+            UpdateChecker.Failure.TIMEOUT -> R.string.f086_fail_timeout
+            UpdateChecker.Failure.NETWORK -> R.string.f086_fail_network
+            UpdateChecker.Failure.SERVER -> R.string.f086_fail_server
+            UpdateChecker.Failure.NO_RELEASE -> R.string.f086_fail_no_release
+            UpdateChecker.Failure.MALFORMED -> R.string.f086_fail_malformed
+            UpdateChecker.Failure.UNKNOWN -> R.string.f086_fail_unknown
+        }
+    )
 
     // ===== 依赖列表 =====
 
@@ -80,9 +238,7 @@ class F086Activity : AppCompatActivity() {
 
     /**
      * 一行依赖：名字 / `版本 x · 许可证 y` / 上游地址。
-     *
-     * 行本身不可聚焦（见类注释）：它没有点击行为，可聚焦只会让遥控器的焦点停在死位置上。
-     * 背景用 bg_card_surface，与外层卡片的 surface 层次一致，等于"卡里再嵌一层块"。
+     * 行本身不可聚焦：它没有点击行为，可聚焦只会让遥控器的焦点停在死位置上。
      */
     private fun addDepRow(dep: Dep) {
         val row = LinearLayout(this).apply {
@@ -134,21 +290,17 @@ class F086Activity : AppCompatActivity() {
         binding.f086LicenseText.text = F086Engine.licenseText()
     }
 
-    // ===== 仓库 =====
+    // ===== 外链 =====
 
     /**
-     * 打开仓库。
-     *
-     * 只发 `ACTION_VIEW`，不自己拼浏览器：用户已经选过默认浏览器，这里尊重那个选择。
-     * 电视盒子上没装浏览器是很常见的情况，`startActivity` 会抛
-     * [ActivityNotFoundException]，捕获后给一句"地址是什么"，让用户能抄到别处去开——
-     * 关于页因为一个按钮把应用崩掉，比打不开链接难解释得多。
-     *
-     * 不用 `resolveActivity` 先探一遍：Android 11+ 的包可见性会让它在浏览器明明装着的
-     * 情况下也返回 null，探完再决定反而会误报"没有浏览器"。
+     * 打开仓库：只发 `ACTION_VIEW`，尊重用户已选的默认浏览器；没有可处理的 Activity
+     * 时只提示、不崩（电视盒子上没装浏览器很常见）。
      */
     private fun openRepo() {
-        val url = F086Engine.repoUrl()
+        openUrl(F086Engine.repoUrl(), R.string.f086_action_repo)
+    }
+
+    private fun openUrl(url: String, titleRes: Int) {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
         try {
             startActivity(intent)
@@ -156,14 +308,21 @@ class F086Activity : AppCompatActivity() {
         } catch (e: ActivityNotFoundException) {
             CustomToast.show(this, getString(R.string.f086_toast_repo_failed, url))
         } catch (e: SecurityException) {
-            // 少数定制 ROM 会把 ACTION_VIEW 也拦下来，同样只提示、不崩
             CustomToast.show(this, getString(R.string.f086_toast_repo_failed, url))
         }
     }
 
     // ===== 小工具 =====
 
+    private fun prefs() = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+
     private fun color(resId: Int): Int = ContextCompat.getColor(this, resId)
 
     private fun dp(value: Int): Int = (resources.displayMetrics.density * value).roundToInt()
+
+    private companion object {
+        const val PREFS = "f086_about"
+        const val KEY_CHANNEL = "update_channel"
+        const val KEY_AUTO_INSTALL = "auto_install"
+    }
 }

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 应用图形：圆角 TV 机身 + 镂空播放三角 + 底座横条（与下载页 favicon / 桌面图标同一形状语言）。
+     颜色不带死值：英雄块里 tint 成 on_primary，桌面图标里用黑色剪影。 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- TV 机身（圆角矩形，实心）+ 播放三角镂空：evenodd 让三角透出底色 -->
+    <path
+        android:fillColor="#FF000000"
+        android:fillType="evenOdd"
+        android:pathData="M4.5,6.5 L17.5,6.5 A2,2 0 0 1 19.5,8.5 L19.5,15.5 A2,2 0 0 1 17.5,17.5 L4.5,17.5 A2,2 0 0 1 2.5,15.5 L2.5,8.5 A2,2 0 0 1 4.5,6.5 Z M11.8,9.2 L9.6,14.2 L14.4,14.2 Z" />
+    <!-- 底座横条 -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M7.5,19 L14.5,19 A1,1 0 0 1 14.5,21 L7.5,21 A1,1 0 0 1 7.5,19 Z" />
+</vector>

@@ -100,11 +100,13 @@
     <color name="episode_normal_text">#FF1A1C1B</color>
 
     <!-- ===== 悬浮胶囊底栏（FlClash NavigationDock） ===== -->
-    <!-- 条形 = SurfaceLevel.floatingOf：浅色取 card -->
-    <color name="nav_capsule">#FFFBF9F7</color>
+    <!-- 两种模式共用同一组深色 token：浅色模式下白色胶囊会与近白背景融为一体、
+         图标几乎不可见（用户实测"纯白看不到按钮"），TV 优先的深色界面
+         始终用深色胶囊（FlClash 深色外观）。 -->
+    <color name="nav_capsule">#FF313332</color>
     <color name="nav_capsule_stroke">#00FFFFFF</color>
-    <!-- 透镜 = floatingOf 的下一级：浅色取 block -->
-    <color name="nav_lens">#FFEDEEEB</color>
-    <color name="nav_item_idle">#FF3F4944</color>
+    <!-- 透镜 = 胶囊的下一级深色 -->
+    <color name="nav_lens">#FF3E403F</color>
+    <color name="nav_item_idle">#FFBFC9C3</color>
     <color name="nav_badge">#FF006C53</color>
 </resources>

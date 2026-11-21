@@ -1,18 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  「关于页与许可证」页 · 沿用功能页的 FlClash 视觉语言：
-  卡片层 + 圆角由 Widget.TVPlayer.Card 给，块内用 bg_card_surface，分隔线走 theme_divider，
-  颜色只取 colors.xml 的 theme_* / surface_* 语义 token，这里不出现任何十六进制。
+  「关于页与许可证」页 · 沿用功能页的 FlClash 视觉语言，
+  结构对照 unicanta 的 AboutScreen（Compose）一比一翻译成 View 体系：
 
-  三段卡片：应用信息（版本 / 包名 / 更新日期）、第三方依赖（由代码按 F086Engine.deps() 逐行填充，
-  静态布局里只给容器 f086DepList）、源码与仓库（打开仓库按钮）、许可证全文（固定高度滚动区）。
+  1. AppHero：图标块 + 应用名 + 版本行（开发版带 dev 构建号）+ 安装时间 + 一句话定位；
+  2. UpdateCard：整行可点的「检查更新」——空闲提示 / 检查中 / 已是最新 / 发现新版本 /
+     失败原因（点名网络、配额、超时），失败再点一次就是重试；
+  3. UpdateChannelCard：稳定版 / 开发版 两个渠道块（遥控器确认切换）；
+  4. 自动下载安装开关；
+  5. 下载页 / 源码仓库两个外链；
+  6. 第三方依赖 + 许可证全文（本项目自有的开源合规区，unicanta 没有对应物，保留）。
 
-  电视没有触摸屏：只有「返回」与「打开仓库」可聚焦，nextFocus 串成
-  返回 → 打开仓库 → 许可证长文本区；依赖行由代码生成且不可聚焦，
-  否则十几行依赖会把方向键的路径拉得很长。
+  电视遥控器操作：焦点链  返回 → 检查更新 → 稳定版 → 开发版 → 自动安装 →
+  下载页 → 打开仓库 → 许可证长文本区；依赖行与说明文字不抢焦点。
 -->
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/f086Scroll"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/theme_background"
@@ -45,7 +49,7 @@
                 android:contentDescription="@string/f086_action_back"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
-                android:nextFocusDown="@id/f086RepoButton"
+                android:nextFocusDown="@id/f086UpdateCard"
                 android:padding="12dp"
                 android:scaleType="centerInside"
                 android:src="@drawable/ic_back"
@@ -60,39 +64,47 @@
                 android:textAppearance="@style/TextAppearance.TVPlayer.PageTitle" />
         </LinearLayout>
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="@string/f086_desc"
-            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
-
-        <!-- ===== 应用信息 ===== -->
-        <TextView
+        <!-- ===== AppHero（对照 unicanta AboutScreen.AppHero） ===== -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/card_padding"
-            android:layout_marginBottom="@dimen/card_gap"
-            android:text="@string/f086_section_app"
-            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.TVPlayer.Card"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            <!-- 图标块：主题色圆角块 + 应用图形（与桌面图标同一形状语言） -->
+            <FrameLayout
+                android:layout_width="62dp"
+                android:layout_height="62dp">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_icon_tile" />
+
+                <ImageView
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@string/f086_title"
+                    android:src="@drawable/ic_app_glyph"
+                    app:tint="@color/theme_on_primary" />
+            </FrameLayout>
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="@dimen/card_padding">
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-                <!-- 版本：BuildConfig 的版本名 / 版本码 + PackageManager 的安装时间 -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/f086_label_version"
-                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+                    android:text="@string/f086_app_name"
+                    android:textColor="@color/theme_text_primary"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/f086VersionValue"
@@ -100,57 +112,342 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:fontFamily="monospace"
-                    android:textColor="@color/theme_text_primary"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="@dimen/card_gap"
-                    android:layout_marginBottom="@dimen/card_gap"
-                    android:background="@color/theme_divider" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/f086_label_package"
-                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
-
-                <TextView
-                    android:id="@+id/f086PackageValue"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:fontFamily="monospace"
-                    android:textColor="@color/theme_text_primary"
-                    android:textSize="15sp" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="@dimen/card_gap"
-                    android:layout_marginBottom="@dimen/card_gap"
-                    android:background="@color/theme_divider" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/f086_label_updated"
-                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+                    android:textColor="@color/theme_text_secondary"
+                    android:textSize="13sp" />
 
                 <TextView
                     android:id="@+id/f086UpdatedValue"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:fontFamily="monospace"
-                    android:textColor="@color/theme_text_primary"
-                    android:textSize="15sp" />
+                    android:layout_marginTop="1dp"
+                    android:textColor="@color/theme_text_secondary"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    android:text="@string/f086_tagline"
+                    android:textColor="@color/theme_text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- ===== UpdateCard（对照 unicanta AboutScreen.UpdateCard） ===== -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/f086UpdateCard"
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_gap"
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:nextFocusUp="@id/btnBack"
+            android:nextFocusDown="@id/f086ChannelStable">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingTop="12dp"
+                android:paddingEnd="14dp"
+                android:paddingBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/f086_check_update"
+                        android:textColor="@color/theme_text_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ProgressBar
+                            android:id="@+id/f086UpdateProgress"
+                            android:layout_width="11dp"
+                            android:layout_height="11dp"
+                            android:indeterminateTint="@color/theme_primary"
+                            android:visibility="gone" />
+
+                        <TextView
+                            android:id="@+id/f086UpdateStatus"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:maxLines="3"
+                            android:ellipsize="end"
+                            android:text="@string/f086_check_hint"
+                            android:textColor="@color/theme_text_secondary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/f086UpdateAction"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/f086_check_action"
+                    android:textColor="@color/theme_primary"
+                    android:textSize="13sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- ===== 第三方依赖 ===== -->
+        <!-- ===== 更新渠道（对照 unicanta AboutScreen.UpdateChannelCard） ===== -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/card_padding">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/f086_channel_label"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Body"
+                    android:textColor="@color/theme_text_primary" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/f086_channel_hint"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/f086ChannelStable"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_channel_chip"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:gravity="center"
+                        android:nextFocusUp="@id/f086UpdateCard"
+                        android:nextFocusDown="@id/f086ChannelDev"
+                        android:paddingStart="12dp"
+                        android:paddingTop="10dp"
+                        android:paddingEnd="12dp"
+                        android:paddingBottom="10dp"
+                        android:text="@string/f086_channel_stable"
+                        android:textColor="@color/theme_text_primary"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/f086ChannelDev"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_channel_chip"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:gravity="center"
+                        android:nextFocusUp="@id/f086ChannelStable"
+                        android:nextFocusDown="@id/f086AutoInstall"
+                        android:paddingStart="12dp"
+                        android:paddingTop="10dp"
+                        android:paddingEnd="12dp"
+                        android:paddingBottom="10dp"
+                        android:text="@string/f086_channel_dev"
+                        android:textColor="@color/theme_text_primary"
+                        android:textSize="14sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ===== 自动下载安装开关（对照 unicanta AboutScreen.ToggleCard） ===== -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingTop="11dp"
+                android:paddingEnd="14dp"
+                android:paddingBottom="11dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/f086_auto_install"
+                        android:textColor="@color/theme_text_primary"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/f086_auto_install_hint"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+                </LinearLayout>
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/f086AutoInstall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:nextFocusUp="@id/f086ChannelDev"
+                    android:nextFocusDown="@id/f086DownloadCard" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ===== 外链：下载页 / 源码仓库（对照 unicanta AboutScreen.LinkCard） ===== -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/f086DownloadCard"
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:nextFocusUp="@id/f086AutoInstall"
+            android:nextFocusDown="@id/f086RepoButton">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingTop="12dp"
+                android:paddingEnd="14dp"
+                android:paddingBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/f086_download_page"
+                        android:textColor="@color/theme_text_primary"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="monospace"
+                        android:text="@string/f086_download_url"
+                        android:textColor="@color/theme_text_secondary"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/f086_chevron"
+                    android:textColor="@color/theme_text_secondary"
+                    android:textSize="16sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/f086RepoCard"
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp">
+
+            <LinearLayout
+                android:id="@+id/f086RepoButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card_surface"
+                android:clickable="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/list_row_min_height"
+                android:nextFocusUp="@id/f086DownloadCard"
+                android:nextFocusDown="@id/f086LicenseScroll"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingTop="12dp"
+                android:paddingEnd="14dp"
+                android:paddingBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/f086_action_repo"
+                        android:textColor="@color/theme_text_primary"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="monospace"
+                        android:text="@string/f086_repo_url"
+                        android:textColor="@color/theme_text_secondary"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/f086_chevron"
+                    android:textColor="@color/theme_text_secondary"
+                    android:textSize="16sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ===== 第三方依赖（本项目自有） ===== -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -204,76 +501,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- ===== 源码与仓库 ===== -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/card_padding"
-            android:layout_marginBottom="@dimen/card_gap"
-            android:text="@string/f086_section_repo"
-            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
-
-        <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.TVPlayer.Card"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="@dimen/card_padding">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/f086_repo_note"
-                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:fontFamily="monospace"
-                    android:text="@string/f086_repo_url"
-                    android:textColor="@color/theme_tertiary"
-                    android:textSize="12sp" />
-
-                <!-- 打开仓库：主操作，正文用主题色；确认键触发 ACTION_VIEW -->
-                <LinearLayout
-                    android:id="@+id/f086RepoButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/card_gap"
-                    android:background="@drawable/bg_card_surface"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:gravity="center_vertical"
-                    android:minHeight="@dimen/list_row_min_height"
-                    android:nextFocusUp="@id/btnBack"
-                    android:nextFocusDown="@id/f086LicenseScroll"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/f086_action_repo"
-                        android:textAppearance="@style/TextAppearance.TVPlayer.Body"
-                        android:textColor="@color/theme_primary" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/f086_action_repo_hint"
-                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
-                </LinearLayout>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- ===== 许可证全文 ===== -->
+        <!-- ===== 许可证全文（本项目自有） ===== -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -336,12 +564,5 @@
                 </ScrollView>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/section_gap"
-            android:text="@string/f086_engine_note"
-            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

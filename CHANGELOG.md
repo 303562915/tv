@@ -5,6 +5,28 @@
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.2.0] - 2026-11-21
+
+### Added
+
+- 双渠道发布（对照 unicanta）：每次 push 由 `Development APK` 工作流构建开发版并追加到
+  滚动 `dev` 预发布 Release（`TVPlayer-dev-<run>.apk` 独立命名），`v*` 标签发稳定版；
+  下载页新增开发版 / 稳定版切换（`development.json` + `latest.json`）。
+- 关于页重建：应用英雄区、检查更新卡（失败点名原因）、稳定版 / 开发版渠道切换、
+  自动下载安装开关、下载页与仓库外链（对照 unicanta AboutScreen 结构）。
+- 更新检查支持渠道与失败原因：配额烧完 / 超时 / 网络不可达 / 上游故障 / 无发布 /
+  响应异常，镜像 → GitHub API → Release 页面三级兜底，瞬态失败自动重试一次。
+- 桌面图标按 unicanta 风格重做：品牌绿渐变底 + 黑色 TV 剪影（含镂空播放三角与底座）。
+
+### Fixed
+
+- 悬浮胶囊底栏在浅色模式下与背景融为一体、按钮不可见：两种模式统一使用深色胶囊。
+- 检查更新镜像请求失败时 GitHub API 兜底永远不执行的问题（单层 runCatching 吞掉全部路径）。
+
+### Changed
+
+- versionCode 2 → 3，versionName 1.1.0 → 1.2.0。
+
 ## [1.0.0] - 2026-11-18
 
 首个开源版本。定位为**开源的 Android TV 视频播放器**：面向电视大屏与遥控器操作，

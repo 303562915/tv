@@ -9,10 +9,12 @@ on:
       - 'docs/**'
       - '.github/scripts/build-latest-json.sh'
       - '.github/workflows/pages.yml'
-  # Build 由 GITHUB_TOKEN 触发，不会级联触发 release 事件，这里直接接上刷新页面数据
+  # Build / Development APK 由 GITHUB_TOKEN 触发，不会级联触发 release 事件，
+  # 这里直接接上刷新页面数据
   workflow_run:
     workflows:
       - Build
+      - Development APK
     types:
       - completed
     branches:

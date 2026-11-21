@@ -105,10 +105,30 @@ class VideoPlayerActivity : AppCompatActivity() {
     private var longPressStartY = 0f  // 长按开始的Y坐标
     private var longPressCheckRunnable: Runnable? = null  // 长按检测任务
     
-    // 获取长按加速倍数（从SharedPreferences读取）
+    // 获取长按加速倍数：优先用 F004 倍速曲线里配的长按档位，没配过再回落旧键
     private fun getLongPressSpeed(): Float {
+        val curveSpeed = runCatching {
+            com.tv.ball.feature.f004.F004Engine.get(this).curveLongPressPreset()
+        }.getOrDefault(0f)
+        if (curveSpeed > 0f) return curveSpeed
         val prefs = getSharedPreferences("player_settings", MODE_PRIVATE)
         return prefs.getFloat("long_press_speed", 3.0f)
+    }
+
+    /**
+     * 应用「播放默认值中心」（F081）的起播配置：倍速与自动连播。
+     *
+     * 只在用户没有显式改过速度时生效（当前速度仍是 1.0x），避免盖掉用户在
+     * 播放过程中手动选的倍速。
+     */
+    private fun applyPlaybackDefaults() {
+        runCatching {
+            val defaults = com.tv.ball.feature.f081.F081Engine.load(this)
+            if (exoPlayerManager.getPlaybackSpeed() == 1.0f && defaults.speed != 1.0f) {
+                exoPlayerManager.setPlaybackSpeed(defaults.speed)
+                updateSpeedButtonText(defaults.speed)
+            }
+        }
     }
     
     // 滑动灵敏度（默认1.25倍）
@@ -363,12 +383,17 @@ class VideoPlayerActivity : AppCompatActivity() {
                 val totalDeltaX = e2.x - e1.x
                 val totalDeltaY = e2.y - e1.y
 
+
                 android.util.Log.d("VideoPlayer", "总滑动距离: deltaX=$totalDeltaX, deltaY=$totalDeltaY")
 
                 // 判断手势类型（只在第一次判断，并且滑动距离超过阈值）
                 if (gestureType == GestureType.NONE) {
-                    // 设置最小滑动阈值，避免误触
-                    val minSwipeDistance = 50f
+                    // 最小滑动阈值：优先用 F010 手势灵敏度里配的阈值（dp），没配过回落 50f
+                    val minSwipeDistance = runCatching {
+                        val prefs = getSharedPreferences("video_player_prefs", MODE_PRIVATE)
+                        val thresholdDp = prefs.getInt("f010_threshold_dp", 0)
+                        if (thresholdDp > 0) thresholdDp * resources.displayMetrics.density else 50f
+                    }.getOrDefault(50f)
                     val absDeltaX = abs(totalDeltaX)
                     val absDeltaY = abs(totalDeltaY)
 

@@ -21,6 +21,9 @@ import java.io.File
  * 「检查更新 → 下载 → 安装」的完整编排，界面用纯代码弹窗，不依赖布局文件。
  *
  * 安装顺序：PackageInstaller / 系统安装器 → Shizuku → root → 网页。
+ * 「我的」页的检查走默认弹窗流（[start]）；关于页（F086）需要渠道与
+ * 失败原因，直接用 [UpdateChecker.check] 并把 [failureMessage] 显示在页面上，
+ * 下载安装仍委托 [downloadAndInstall]。
  */
 object UpdateManager {
 
@@ -34,27 +37,45 @@ object UpdateManager {
 
     // ---------------------------------------------------------------- 入口
 
+    /** 弹窗流：检查稳定版渠道，发现新版本就问要不要下载安装。 */
     fun start(activity: Activity, onDone: () -> Unit = {}) {
+        start(activity, UpdateChannel.STABLE, onDone)
+    }
+
+    /** 弹窗流 + 渠道：关于页的「立即检查」也走这里时保持行为一致。 */
+    fun start(activity: Activity, channel: UpdateChannel, onDone: () -> Unit = {}) {
         showProgress(activity, "检查更新", "正在读取最新版本…")
 
         scope.launch {
-            val result = UpdateChecker.check()
+            val result = runCatching { UpdateChecker.check(channel) }
             dismissProgress()
 
-            val info = result.getOrNull()
-            if (info == null) {
-                toast(activity, "检查更新失败，请稍后再试")
-                onDone()
-                return@launch
-            }
-            if (!UpdateChecker.isNewer(info)) {
-                toast(activity, "已经是最新版本（${BuildConfig.VERSION_NAME}）")
-                onDone()
-                return@launch
-            }
-            askDownload(activity, info, onDone)
+            result.fold(
+                onSuccess = { info ->
+                    if (!UpdateChecker.isNewer(info)) {
+                        toast(activity, "已经是最新版本（${labelOf(info)}）")
+                        onDone()
+                        return@launch
+                    }
+                    askDownload(activity, info, onDone)
+                },
+                onFailure = { e ->
+                    val failure = (e as? UpdateChecker.CheckException)?.failure
+                        ?: UpdateChecker.Failure.UNKNOWN
+                    toast(activity, UpdateChecker.failureMessage(failure))
+                    onDone()
+                }
+            )
         }
     }
+
+    /** 版本标签：开发版带构建号，稳定版只带版本名。 */
+    fun labelOf(info: UpdateInfo): String = when {
+        info.buildNumber > 0 -> "v${info.versionName} (dev ${info.buildNumber})"
+        else -> "v${info.versionName}"
+    }
+
+    // ---------------------------------------------------------------- 下载与安装
 
     /** 本地已有 APK 时可直接调用。 */
     fun install(activity: Activity, apk: File, onDone: () -> Unit = {}) {
@@ -95,7 +116,7 @@ object UpdateManager {
     private fun askDownload(activity: Activity, info: UpdateInfo, onDone: () -> Unit) {
         val size = if (info.size > 0) " · %.1f MB".format(info.size / 1048576.0) else ""
         AlertDialog.Builder(activity)
-            .setTitle("发现新版本 ${info.versionName}$size")
+            .setTitle("发现新版本 ${labelOf(info)}$size")
             .setMessage(info.notes.ifBlank { "是否下载并安装？" }.take(800))
             .setPositiveButton("下载并安装") { _, _ -> downloadAndInstall(activity, info, onDone) }
             .setNeutralButton("打开下载页") { _, _ ->
@@ -106,7 +127,8 @@ object UpdateManager {
             .show()
     }
 
-    private fun downloadAndInstall(activity: Activity, info: UpdateInfo, onDone: () -> Unit) {
+    /** 下载并安装一个已确认的更新；关于页的下载入口也走这里。 */
+    fun downloadAndInstall(activity: Activity, info: UpdateInfo, onDone: () -> Unit = {}) {
         showProgress(activity, "下载更新", "0%", 0)
         scope.launch {
             val result = ApkDownloader.download(activity, info) { percent ->

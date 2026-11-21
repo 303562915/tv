@@ -29,8 +29,9 @@ git commit -m "type(scope): 说明"
 git push origin main
 ```
 
-`push` 到 `main` 即触发 `.github/workflows/build.yml`：构建 → 上传 artifact → 覆盖刷新
-`latest` 预发布 Release。
+`push` 到 `main` 即触发 `.github/workflows/development-release.yml`：构建 release APK →
+把 `TVPlayer-dev-<run_number>.apk` 追加到 `dev` 预发布 Release（每次构建独立命名，不覆盖）
+→ Pages 刷新 `docs/development.json`。
 
 ### 3️⃣ 看 CI 结果
 
@@ -39,7 +40,7 @@ gh run list -L 3
 gh run watch <run-id>
 ```
 
-- 成功 → 产物在 `latest` Release 与下载页。
+- 成功 → 产物在 `dev` Release（开发版）与下载页开发版渠道。
 - 失败 → **读日志改代码再推**，不要转去本地构建。
 
 ---
@@ -48,9 +49,9 @@ gh run watch <run-id>
 
 | 类型 | 地址 |
 | --- | --- |
-| 滚动预发布（每次 push 覆盖） | https://github.com/303562915/tv/releases/latest |
-| 正式版（`v*` 标签） | `git tag v1.1.0 && git push origin v1.1.0` |
-| 下载页（国内镜像 + SHA-256） | https://303562915.github.io/tv/ |
+| 开发版（每次 push 新增一个构建） | https://github.com/303562915/tv/releases/tag/dev |
+| 稳定版（`v*` 标签） | `git tag v1.2.0 && git push origin v1.2.0` |
+| 下载页（双渠道 + SHA-256） | https://303562915.github.io/tv/ |
 
 ---
 

@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Outline
+import android.graphics.PorterDuff
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -232,10 +233,19 @@ class FloatingNavDock @JvmOverloads constructor(
         }
     }
 
+    /** 胶囊的 Z（阴影高度）：上层视图必须比它高，否则会被胶囊整片盖住。 */
+    private val shadowZ = dpf(if (isDark) 10f else 6f)
+
     init {
         addView(capsuleView, LayoutParams(0, 0))
         addView(lens, LayoutParams(0, 0))
         addView(itemsContainer, LayoutParams(0, 0))
+
+        // FrameLayout 里带 elevation 的兄弟按 Z 排序绘制，不按 addView 顺序：
+        // 胶囊有 6/10dp elevation（用来出阴影），不把透镜和图标行抬到它上面的话，
+        // 整条底栏只剩一块纯色胶囊——图标、文字、选中透镜全被盖住。
+        lens.translationZ = shadowZ + dpf(1f)
+        itemsContainer.translationZ = shadowZ + dpf(2f)
 
         clipChildren = false
         clipToPadding = false
@@ -413,6 +423,9 @@ class FloatingNavDock @JvmOverloads constructor(
 
         // 抬升时透镜会画出胶囊轮廓，靠 clipChildren=false（init 已设）实现。
         syncLabelSize()
+        // 每次布局后重刷一次颜色：setDestinations 可能发生在 attach 之前，
+        // 那时 icon/label 还没量过，颜色容易丢。
+        renderItems()
         layoutLens()
     }
 
@@ -780,9 +793,15 @@ class FloatingNavDock @JvmOverloads constructor(
     private fun renderItems() {
         iconViews.forEachIndexed { index, icon ->
             val selected = index == selectedIndex
-            icon.setColorFilter(if (selected) activeColor else idleColor)
+            // 图标本身是全白描边矢量图，必须显式 SRC_IN 上色，否则在浅色胶囊上看不见。
+            icon.setColorFilter(
+                if (selected) activeColor else idleColor,
+                PorterDuff.Mode.SRC_IN
+            )
+            icon.alpha = 1f
             labelViews.getOrNull(index)?.let { label ->
                 label.setTextColor(if (selected) activeColor else idleColor)
+                label.alpha = 1f
             }
         }
     }

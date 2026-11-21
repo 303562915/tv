@@ -9,7 +9,7 @@ import com.tv.ball.feature.FeatureModule
  *
  * title / description 用字面量而不是 `getString`：FeatureModule 接口只给字符串、不传 Context，
  * 在功能中心列表绑定里读属性时再去取资源会引入 Application 未初始化的时序风险。
- * 界面里显示的同一份文案见 `res/values/strings_f086.xml` 的 f086_title / f086_desc。
+ * 界面里显示的同一份文案见 `res/values/strings_f086.xml` 的 f086_title / f086_tagline。
  */
 object F086Module : FeatureModule {
 
@@ -17,7 +17,7 @@ object F086Module : FeatureModule {
 
     override val title: String = "关于页与许可证"
 
-    override val description: String = "版本、包名、更新日期、依赖清单与各自许可证集中一页，一键打开源码仓库"
+    override val description: String = "版本信息、更新渠道（稳定版 / 开发版）、检查更新、依赖清单与各自许可证集中一页"
 
     override val group: String = "设置"
 

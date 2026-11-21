@@ -53,6 +53,9 @@ object F086Engine {
     /** 仓库地址：README 里下载页与 Releases 同源，指向同一个 GitHub 仓库。 */
     const val REPO_URL = "https://github.com/303562915/tv"
 
+    /** 下载页地址：CI 镜像 APK 与版本 JSON 的 Pages 站点。 */
+    const val DOWNLOAD_PAGE_URL = "https://303562915.github.io/tv/"
+
     /** 许可证标识；用常量而不是散落的字面量，[licenseSummary] 的归组才靠得住。 */
     const val LICENSE_APACHE = "Apache-2.0"
     const val LICENSE_MIT = "MIT"
@@ -135,10 +138,11 @@ object F086Engine {
     }
 
     /**
-     * 版本行：`1.0.0 (1) · 构建于 2026-11-20 22:10`。
+     * 版本行（对照 unicanta AppHero）：`v1.2.0 (3) · 安装于 2026-11-20 22:10`；
+     * CI 构建的开发版显示 `v1.2.0 (dev 42) · 安装于 …`——同名版本下，dev 构建号是
+     * 屏幕上唯一能把两个渠道区分开的东西。
      *
-     * 格式串放在字符串资源里（f086_version_line），中文标点与括号由资源决定；
-     * 安装时间读不到时第三段换成「未知」，不留一个 1970 年的假时间。
+     * 安装时间读不到时换成「未知」，不留一个 1970 年的假时间。
      */
     fun versionText(context: Context): String {
         val info = appInfo(context)
@@ -147,12 +151,12 @@ object F086Engine {
         } else {
             context.getString(R.string.f086_value_unknown)
         }
-        return context.getString(
-            R.string.f086_version_line,
-            info.versionName,
-            info.versionCode,
-            stamp
-        )
+        val dev = com.tv.ball.BuildConfig.DEV_BUILD_NUMBER
+        return if (dev > 0) {
+            context.getString(R.string.f086_version_line_dev, info.versionName, dev, stamp)
+        } else {
+            context.getString(R.string.f086_version_line, info.versionName, info.versionCode, stamp)
+        }
     }
 
     /** 绝对时间（本机时区，精确到分）。每次现建 SimpleDateFormat：它不是线程安全的。 */

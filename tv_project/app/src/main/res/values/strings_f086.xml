@@ -1,17 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 功能 F086「关于页与许可证」自身文案（功能中心外壳文案在 strings_feature_center.xml） -->
+<!-- 功能 F086「关于页与许可证」自身文案（功能中心外壳文案在 strings_feature_center.xml）。
+     结构对照 unicanta 的 AboutScreen：应用英雄区 / 检查更新卡 / 渠道卡 / 自动安装 /
+     外链卡，文案命名也对齐（check_update / channel / auto_install / download_page）。 -->
 <resources>
     <string name="f086_title">关于页与许可证</string>
-    <string name="f086_desc">版本、包名、更新日期、依赖清单与各自许可证集中一页：开源分发时要保留的版权与协议声明不再散落在 README 里</string>
     <string name="f086_action_back">返回</string>
 
-    <!-- 应用信息卡 -->
-    <string name="f086_section_app">应用信息</string>
-    <string name="f086_label_version">版本</string>
-    <string name="f086_label_package">包名</string>
-    <string name="f086_label_updated">更新日期</string>
+    <!-- AppHero -->
+    <string name="f086_app_name">TV Player</string>
+    <string name="f086_tagline">开源，在电视上放自己的片。Kotlin + ExoPlayer，本地文件与网络直链随点随播。</string>
+    <string name="f086_version_line">v%1$s (%2$d) · 安装于 %3$s</string>
+    <string name="f086_version_line_dev">v%1$s (dev %2$d) · 安装于 %3$s</string>
+    <string name="f086_installed_at">安装于 %1$s</string>
     <string name="f086_value_unknown">未知</string>
-    <string name="f086_version_line">%1$s (%2$d) · 构建于 %3$s</string>
+
+    <!-- 检查更新卡（UpdateCard） -->
+    <string name="f086_check_update">检查更新</string>
+    <string name="f086_check_hint">点这里检查 stable 渠道的最新发布</string>
+    <string name="f086_check_action">立即检查</string>
+    <string name="f086_download_now">下载安装</string>
+    <string name="f086_checking">正在检查…</string>
+    <string name="f086_up_to_date">已是最新版本</string>
+    <string name="f086_update_available">发现新版本 %1$s，再点一次开始下载</string>
+    <string name="f086_check_retry">点这里重试</string>
+
+    <!-- 更新渠道卡（UpdateChannelCard） -->
+    <string name="f086_channel_label">更新渠道</string>
+    <string name="f086_channel_hint">稳定版跟 v* 标签发布；开发版每次提交代码都会出一个新构建（dev 编号递增），两者同一签名，可互相覆盖安装</string>
+    <string name="f086_channel_stable">稳定版</string>
+    <string name="f086_channel_dev">开发版</string>
+
+    <!-- 自动安装 -->
+    <string name="f086_auto_install">自动下载更新</string>
+    <string name="f086_auto_install_hint">检查到新版本时不询问，直接开始下载，下载完仍会先征求同意再安装</string>
+
+    <!-- 外链（LinkCard） -->
+    <string name="f086_download_page">下载页</string>
+    <string name="f086_download_url">https://303562915.github.io/tv/</string>
+    <string name="f086_chevron">›</string>
 
     <!-- 依赖卡 -->
     <string name="f086_section_deps">第三方依赖</string>
@@ -20,11 +46,8 @@
     <string name="f086_dep_line">版本 %1$s · 许可证 %2$s</string>
 
     <!-- 仓库 -->
-    <string name="f086_section_repo">源码与仓库</string>
-    <string name="f086_repo_note">本应用以 MIT 协议发布，源码、问题跟踪与发行包都在这一个仓库；按钮会把地址交给系统浏览器</string>
+    <string name="f086_action_repo">源码仓库</string>
     <string name="f086_repo_url">https://github.com/303562915/tv</string>
-    <string name="f086_action_repo">打开仓库</string>
-    <string name="f086_action_repo_hint">确认键</string>
     <string name="f086_toast_repo_opening">正在用浏览器打开 %1$s</string>
     <string name="f086_toast_repo_failed">这台设备没有能打开网页的应用，地址：%1$s</string>
 
@@ -32,5 +55,15 @@
     <string name="f086_section_license">许可证全文</string>
     <string name="f086_license_intro">下面这段是可滚动长文：逐条列出每个依赖的版本、许可证与上游地址，末尾是 Apache-2.0 的要点摘录；要完整条文时打开对应仓库或本仓库的 LICENSE</string>
 
-    <string name="f086_engine_note">接线：F086Engine.deps() 给出与 README 同源的 11 条依赖（Dep: name / version / license / url），versionText(context) 用 BuildConfig.VERSION_NAME / VERSION_CODE 拼版本、用 PackageManager 的 lastUpdateTime 拼安装时间（读不到显示「未知」），licenseSummary() 按许可证归组给一行统计，licenseText() 生成长文本；「打开仓库」只发 ACTION_VIEW，没有可处理的 Activity 时只提示不崩。</string>
+    <!-- 检查更新失败原因（对照 unicanta UpdateFailure 的一句话文案） -->
+    <string name="f086_fail_rate_limited">GitHub 接口配额已用完（403/429）：换个出口 IP 或稍后再试</string>
+    <string name="f086_fail_timeout">请求超时：网络或代理活着但不通</string>
+    <string name="f086_fail_network">网络不可达：连不上 GitHub（镜像与接口都不通）</string>
+    <string name="f086_fail_server">GitHub 服务异常（5xx），稍后再试</string>
+    <string name="f086_fail_no_release">该渠道还没有已发布的版本</string>
+    <string name="f086_fail_malformed">返回数据异常：响应可能被劫持或不是版本信息</string>
+    <string name="f086_fail_unknown">检查更新失败，点这里重试</string>
+
+    <!-- 渠道切换后的提示行：告诉用户下一次检查读哪个渠道 -->
+    <string name="f086_check_hint_channel">点这里检查 %1$s 渠道的最新发布</string>
 </resources>
