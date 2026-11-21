@@ -41,11 +41,6 @@
     <string name="f086_download_url">https://303562915.github.io/tv/</string>
     
 
-    <!-- 依赖卡 -->
-    <string name="f086_section_deps">第三方依赖</string>
-    <string name="f086_deps_count">共 %1$d 项</string>
-    <string name="f086_dep_line">版本 %1$s · 许可证 %2$s</string>
-
     <!-- 仓库 -->
     <string name="f086_action_repo">源码仓库</string>
     <string name="f086_repo_url">https://github.com/303562915/tv</string>
@@ -54,7 +49,7 @@
 
     <!-- 许可证 -->
     <string name="f086_section_license">许可证全文</string>
-    <string name="f086_license_intro">下面这段是可滚动长文：逐条列出每个依赖的版本、许可证与上游地址，末尾是 Apache-2.0 的要点摘录；要完整条文时打开对应仓库或本仓库的 LICENSE</string>
+    <string name="f086_license_intro">下面这段是可滚动长文：本应用的 MIT 声明与第三方组件共用的 Apache-2.0 要点摘录；要完整条文时打开对应仓库或本仓库的 LICENSE</string>
 
     <!-- 检查更新失败原因（对照 unicanta UpdateFailure 的一句话文案） -->
     <string name="f086_fail_rate_limited">GitHub 接口配额已用完（403/429）：换个出口 IP 或稍后再试</string>
