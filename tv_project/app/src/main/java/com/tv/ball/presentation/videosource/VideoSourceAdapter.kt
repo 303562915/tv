@@ -1,14 +1,14 @@
 package com.tv.ball.presentation.videosource
 
+import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.tv.ball.R
-import com.tv.ball.util.ImageLoader
+import kotlin.math.abs
 
 class VideoSourceAdapter(
     private val sources: List<VideoSource>,
@@ -29,7 +29,7 @@ class VideoSourceAdapter(
     override fun getItemCount() = sources.size
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val iconImage: ImageView = itemView.findViewById(R.id.iconImage)
+        private val initialText: TextView = itemView.findViewById(R.id.initialText)
         private val nameText: TextView = itemView.findViewById(R.id.nameText)
         private val speedText: TextView = itemView.findViewById(R.id.speedText)
 
@@ -65,16 +65,47 @@ class VideoSourceAdapter(
                 }
             }
 
-            // 加载logo（失败时自动隐藏）
-            ImageLoader.loadLogo(
-                context = itemView.context,
-                url = source.iconUrl,
-                imageView = iconImage
-            )
+            bindInitial(source.name)
 
             itemView.setOnClickListener {
                 onItemClick(source)
             }
         }
+
+        /**
+         * 头像：名字首字 + 按名字定色的圆形底。
+         *
+         * 不再去拉远程 logo——源站大多没有可用的图标，失败就整块空着，不如首字稳定。
+         * 颜色由名字的 hash 决定，同一个源每次都同一个颜色，不会因为列表位置变化而跳。
+         */
+        private fun bindInitial(name: String) {
+            val initial = name.trim().firstOrNull()?.let { ch ->
+                when {
+                    ch.isLetterOrDigit() -> ch.uppercaseChar().toString()
+                    else -> "·"
+                }
+            } ?: "·"
+
+            val palette = AVATAR_COLORS
+            val color = palette[abs(name.hashCode()) % palette.size]
+            initialText.text = initial
+            initialText.backgroundTintList = ColorStateList.valueOf(color)
+        }
+    }
+
+    private companion object {
+        /**
+         * 头像底色：固定一组，亮 / 暗主题下都够深，白字压得住。
+         *
+         * 不用主题色：主题色只有一个，列表 6 条源全同色时首字头像反而不好区分。
+         */
+        val AVATAR_COLORS = intArrayOf(
+            0xFF2F6BFF.toInt(),
+            0xFF7A4BFF.toInt(),
+            0xFFB23BFF.toInt(),
+            0xFF00A3A3.toInt(),
+            0xFFD9631E.toInt(),
+            0xFFB0305A.toInt()
+        )
     }
 }

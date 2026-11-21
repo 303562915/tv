@@ -1,0 +1,5 @@
+<!-- 视频源首字头像底：34dp 圆形，颜色由代码按名字 hash 着色（backgroundTintList） -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@color/theme_primary" />
+</shape>
