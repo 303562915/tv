@@ -70,7 +70,19 @@ object UpdateChecker {
         var failure = Failure.UNKNOWN
         repeat(CHECK_ATTEMPTS) { attempt ->
             try {
-                return@withContext fetchMirror(channel) ?: fetchGithub(channel)
+                val mirrored = fetchMirror(channel)
+                // 下载页镜像由 Pages 生成，偶发部署失败就会落后好几版；
+                // 一落后应用就会一直判定「已是最新」。所以再问一次 GitHub API，
+                // 两份取更新的那个（API 挂了就用镜像，不影响可用性）。
+                val api = if (channel == UpdateChannel.DEV) {
+                    runCatching { fetchGithub(channel) }.getOrNull()
+                } else {
+                    null
+                }
+                if (mirrored != null && api != null) {
+                    return@withContext newestOf(mirrored, api)
+                }
+                return@withContext mirrored ?: api ?: fetchGithub(channel)
             } catch (e: CheckException) {
                 failure = e.failure
             } catch (e: Exception) {
@@ -105,6 +117,13 @@ object UpdateChecker {
         }
         if (info.versionCode > 0) return info.versionCode > BuildConfig.VERSION_CODE
         return compareVersion(info.versionName, BuildConfig.VERSION_NAME) > 0
+    }
+
+    /** 两份数据里取更新的那份：开发版比 buildNumber，稳定版比 versionCode。 */
+    private fun newestOf(a: UpdateInfo, b: UpdateInfo): UpdateInfo {
+        val aKey = if (a.buildNumber > 0) a.buildNumber else a.versionCode
+        val bKey = if (b.buildNumber > 0) b.buildNumber else b.versionCode
+        return if (bKey > aKey) b else a
     }
 
     // ---------------------------------------------------------------- 镜像
