@@ -234,25 +234,40 @@ object UpdateChecker {
         val html = requestText(page, "text/html") ?: throw CheckException(Failure.NETWORK)
 
         val apkRegex = Regex("""/releases/download/([^"/]+)/([^"]+\.apk)""")
-        val apkMatch = apkRegex.find(html) ?: throw CheckException(Failure.NO_RELEASE)
+        val apkMatches = apkRegex.findAll(html).toList()
+        if (apkMatches.isEmpty()) throw CheckException(Failure.NO_RELEASE)
+        val apkMatch = apkMatches.first()
         val tag = apkMatch.groupValues[1]
         val fileName = apkMatch.groupValues[2]
         val url = "https://github.com/303562915/tv/releases/download/$tag/$fileName"
 
         return if (channel == UpdateChannel.DEV) {
-            val build = Regex("""TVPlayer-dev-(\d+)\.apk""").find(fileName)?.groupValues?.get(1)?.toIntOrNull()
+            // 开发版 Release 上同时挂着多个历史构建（dev-4 / dev-10 / dev-15…），
+            // 页面里第一个 .apk 链接不一定是构建号最大的那个；拿它去比就会把
+            // 「有更新」误判成「已是最新」。所以扫全部链接，取 build 号最大的一个。
+            val devApkRegex = Regex("""TVPlayer-dev-(\d+)\.apk""")
+            val newest = apkMatches
+                .mapNotNull { m ->
+                    devApkRegex.find(m.groupValues[2])
+                        ?.groupValues?.get(1)?.toIntOrNull()
+                        ?.let { build -> build to m }
+                }
+                .maxByOrNull { it.first }
                 ?: throw CheckException(Failure.MALFORMED)
+            val build = newest.first
+            val devFileName = newest.second.groupValues[2]
             UpdateInfo(
                 channel = channel,
                 versionName = "1.1.0",
                 versionCode = -1,
                 buildNumber = build,
-                apkUrl = url,
+                apkUrl = "https://github.com/303562915/tv/releases/download/" +
+                    "${newest.second.groupValues[1]}/$devFileName",
                 size = 0L,
                 sha256 = "",
                 notes = "",
                 pageUrl = DEV_PAGE,
-                fileName = fileName
+                fileName = devFileName
             )
         } else {
             UpdateInfo(
