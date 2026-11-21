@@ -7,6 +7,7 @@ import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -19,6 +20,7 @@ import com.tv.ball.update.UpdateInfo
 import com.tv.ball.update.UpdateManager
 import com.tv.ball.util.CustomToast
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 /**
  * 「关于」页 —— 结构对照 unicanta 的 AboutScreen 一比一翻译成 View 体系：
@@ -29,10 +31,10 @@ import kotlinx.coroutines.launch
  * 3. **UpdateChannelCard**：稳定版 / 开发版两块渠道芯片，确认键切换（默认开发版）；
  * 4. **自动下载安装开关**；
  * 5. **外链卡**：下载页 / 源码仓库，交给系统浏览器，没有浏览器时只提示、不崩；
- * 6. **许可证全文**（本项目自有的开源合规区）。
+ * 6. **第三方依赖 + 许可证全文**（本项目自有的开源合规区）。
  *
  * 电视遥控器：焦点链 返回 → 检查更新 → 稳定版 → 开发版 → 自动安装 → 下载页 →
- * 打开仓库 → 许可证长文本区。
+ * 打开仓库 → 许可证长文本区；依赖行不可聚焦（见 addDepRow 注释）。
  */
 class F086Activity : AppCompatActivity() {
 
@@ -84,6 +86,7 @@ class F086Activity : AppCompatActivity() {
         binding.f086RepoButton.setOnClickListener { openRepo() }
 
         renderHero()
+        renderDeps()
         renderLicense()
         renderChannel()
         render(state)
@@ -243,10 +246,68 @@ class F086Activity : AppCompatActivity() {
         }
     )
 
+    // ===== 依赖列表 =====
+
+    /** 依赖卡：先写"共 N 项"，再按 [F086Engine.deps] 的顺序逐行生成。 */
+    private fun renderDeps() {
+        val deps = F086Engine.deps()
+        binding.f086DepsCount.text = getString(R.string.f086_deps_count, deps.size)
+
+        binding.f086DepList.removeAllViews()
+        deps.forEach { addDepRow(it) }
+    }
+
+    /**
+     * 一行依赖：名字 / `版本 x · 许可证 y` / 上游地址。
+     * 行本身不可聚焦：它没有点击行为，可聚焦只会让遥控器的焦点停在死位置上。
+     */
+    private fun addDepRow(dep: Dep) {
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(12), dp(10), dp(12), dp(10))
+            background = ContextCompat.getDrawable(this@F086Activity, R.drawable.bg_card_surface)
+        }
+
+        row.addView(
+            TextView(this).apply {
+                text = dep.name
+                setTextColor(color(R.color.theme_text_primary))
+                textSize = 15f
+            }
+        )
+
+        row.addView(
+            TextView(this).apply {
+                text = getString(R.string.f086_dep_line, dep.version, dep.license)
+                setTextColor(color(R.color.theme_text_secondary))
+                textSize = 12f
+                setPadding(0, dp(3), 0, 0)
+            }
+        )
+
+        row.addView(
+            TextView(this).apply {
+                text = dep.url
+                setTextColor(color(R.color.theme_primary))
+                textSize = 11f
+                setPadding(0, dp(2), 0, 0)
+            }
+        )
+
+        binding.f086DepList.addView(
+            row,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { topMargin = dp(6) }
+        )
+    }
+
     // ===== 许可证 =====
 
-    /** 许可证区：可滚动长文本，由引擎生成，页面不做字符串拼接。 */
+    /** 许可证区：一行统计 + 可滚动长文本，都由引擎生成，页面不做字符串拼接。 */
     private fun renderLicense() {
+        binding.f086LicenseSummary.text = F086Engine.licenseSummary()
         binding.f086LicenseText.text = F086Engine.licenseText()
     }
 
@@ -277,6 +338,8 @@ class F086Activity : AppCompatActivity() {
     private fun prefs() = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
     private fun color(resId: Int): Int = ContextCompat.getColor(this, resId)
+
+    private fun dp(value: Int): Int = (resources.displayMetrics.density * value).roundToInt()
 
     private companion object {
         const val PREFS = "f086_about"
