@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  左滑露出的删除区背景：和卡片同一套圆角（radius_md = 16dp）。
+  四个角都圆 —— 卡片滑开后这块红区是独立呈现的，只圆右侧会和卡片观感不一致。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/theme_error" />
+    <corners android:radius="@dimen/radius_md" />
+</shape>

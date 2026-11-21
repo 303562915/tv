@@ -12,24 +12,32 @@
     android:layout_height="wrap_content"
     android:layout_margin="4dp">
 
-    <!-- 删除区：藏在卡片下面，卡片左滑 44dp 后才露出来 -->
+    <!-- 删除区：藏在卡片下面，卡片左滑 72dp 后才露出来；背景用和卡片同圆角的红块 -->
     <LinearLayout
         android:id="@+id/btnSwipeDelete"
-        android:layout_width="44dp"
+        android:layout_width="72dp"
         android:layout_height="match_parent"
         android:layout_gravity="end"
-        android:background="@color/theme_error"
+        android:background="@drawable/bg_swipe_action"
         android:clickable="true"
         android:focusable="true"
         android:gravity="center"
         android:orientation="vertical">
 
         <ImageView
-            android:layout_width="22dp"
-            android:layout_height="22dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:importantForAccessibility="no"
             android:src="@drawable/ic_delete"
             app:tint="@color/white" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:text="删除"
+            android:textColor="@color/white"
+            android:textSize="11sp" />
     </LinearLayout>
 
     <com.google.android.material.card.MaterialCardView

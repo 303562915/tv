@@ -15,13 +15,13 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="@dimen/card_gap">
 
-    <!-- 删除区：藏在卡片下面，卡片左滑 64dp 后才露出来 -->
+    <!-- 删除区：藏在卡片下面，卡片左滑 96dp 后才露出来；背景用和卡片同圆角的红块 -->
     <LinearLayout
         android:id="@+id/btnSwipeDelete"
-        android:layout_width="64dp"
+        android:layout_width="96dp"
         android:layout_height="match_parent"
         android:layout_gravity="end"
-        android:background="@color/theme_error"
+        android:background="@drawable/bg_swipe_action"
         android:clickable="true"
         android:focusable="true"
         android:gravity="center"

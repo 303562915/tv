@@ -10,8 +10,10 @@ import android.view.VelocityTracker
 import android.view.View
 import android.view.View.MeasureSpec
 import android.view.ViewConfiguration
+import android.view.ViewParent
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
+import androidx.recyclerview.widget.RecyclerView
 import kotlin.math.abs
 
 /**
@@ -219,7 +221,27 @@ class SwipeRevealLayout @JvmOverloads constructor(
     private fun setOpened(open: Boolean) {
         if (opened == open) return
         opened = open
+        // 真正从「收起」变「展开」的这一下才做互斥收起（上面的 return 已挡住重复调用，
+        // onSizeChanged 的校正路径、复用复位路径都不会走到这里）
+        if (open) closeOtherRevealedRows()
         stateListener?.onRevealStateChanged(this, open)
+    }
+
+    /**
+     * 互斥展开：向上找到宿主 RecyclerView，把除自己以外已经展开的行收起。
+     * 不依赖调用方（Fragment / Adapter）接线 —— 组件自己保证「同时只有一项展开」。
+     * parent 链可能不止一层（本类 → 中间包裹层 → RecyclerView），所以循环往上找；
+     * 找不到（比如被放在别的容器里）就直接放弃，不影响本次展开。
+     */
+    private fun closeOtherRevealedRows() {
+        var node: ViewParent? = parent
+        while (node != null && node !is RecyclerView) node = node.parent
+        val recyclerView = node as? RecyclerView ?: return
+        for (i in 0 until recyclerView.childCount) {
+            val child = recyclerView.getChildAt(i)
+            if (child === this) continue
+            if (child is SwipeRevealLayout && child.isOpened()) child.close()
+        }
     }
 
     /**
@@ -344,6 +366,8 @@ class SwipeRevealLayout @JvmOverloads constructor(
                     dragStartTranslation = contentView?.translationX ?: 0f
                     // 真的接管了：禁止父级（RecyclerView / ItemTouchHelper）中途抢走
                     parent?.requestDisallowInterceptTouchEvent(true)
+                    // 手一接管就先把别的展开行收掉：滑到新的一行时，上一条应该立刻收
+                    closeOtherRevealedRows()
                     startVelocityTracker(ev)
                     return true
                 }
