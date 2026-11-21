@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  短剧卡片骨架（首屏加载用，被 skeletonRecycler 以与真实网格相同的列数铺 6 张）。
+  为什么要单独一个布局而不是复用 item_short_drama：
+  1. 真实卡片绑的是 ShortDramaItem，骨架没有数据，复用就得给 ViewHolder 塞空值分支；
+  2. 骨架要「外形尽量像真卡片」——封面 3:4、两行标题、一行信息，尺寸和真卡片一一对应，
+     数据到了以后卡片不会跳位；直接用固定灰块写死在布局里最省事。
+  刻意不加任何点击/焦点相关属性：骨架不可点（Activity 里也把 RecyclerView 置为不可用）。
+-->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    android:clickable="false"
+    android:focusable="false"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="10dp">
+
+        <!-- 封面占位：和真卡片一样的 3:4，列数变化时不会把灰块压扁 -->
+        <View
+            android:id="@+id/skCover"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@drawable/bg_skeleton_block"
+            app:layout_constraintDimensionRatio="H,3:4"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- 标题第一行 -->
+        <View
+            android:id="@+id/skTitle1"
+            android:layout_width="0dp"
+            android:layout_height="12dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/bg_skeleton_block"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/skCover" />
+
+        <!-- 标题第二行：右侧留白，避免两行一样长看起来像表格 -->
+        <View
+            android:id="@+id/skTitle2"
+            android:layout_width="0dp"
+            android:layout_height="12dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="28dp"
+            android:background="@drawable/bg_skeleton_block"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/skTitle1" />
+
+        <!-- 信息行（集数 / 评分） -->
+        <View
+            android:id="@+id/skMeta"
+            android:layout_width="56dp"
+            android:layout_height="10dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_skeleton_block"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/skTitle2" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

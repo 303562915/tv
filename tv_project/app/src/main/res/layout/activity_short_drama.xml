@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  免费短剧列表：一层工具条（返回 + 标题）+ 分类 Tab + 下拉刷新的格子列表。
-  旧版这里没有工具条，进去只能靠系统返回键退出，也没有标题。
+  免费短剧列表：一层工具条（返回 + 标题）+ 搜索框 + 热门词 chip 行 + 分类 Tab + 下拉刷新的格子列表 + 底部状态 footer。
+  本次改动（为什么）：
+  1. etSearch 改成 AutoCompleteTextView：搜索历史直接用系统下拉呈现，不额外写弹层（零新布局文件）。
+  2. 新增 chipRow：进入搜索态 / 搜不到结果时给一排热门词，点一下就能搜，少打字。
+  3. 内容区包一层竖向 LinearLayout，把三态 footer（加载中 / 没有更多 / 加载失败点我重试）固定在列表底部，
+     而不是浮在卡片上；SwipeRefresh 的子 View 变成 LinearLayout，需要在代码里指定 canChildScrollUp 回调，
+     否则列表往下滚的时候下拉还会误触发刷新。
+  4. 新增 skeletonRecycler：首屏加载用 6 个占位卡片铺网格，比一句「加载中…」更少跳动。
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/theme_background"
@@ -52,11 +59,12 @@
         android:paddingEnd="12dp"
         android:paddingBottom="4dp">
 
-        <EditText
+        <AutoCompleteTextView
             android:id="@+id/etSearch"
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:background="@drawable/search_input_bg"
+            android:completionThreshold="1"
             android:hint="搜短剧名"
             android:imeOptions="actionSearch"
             android:inputType="text"
@@ -68,6 +76,27 @@
             android:textSize="14sp" />
 
     </LinearLayout>
+
+    <!-- 热门词 chip 行：默认隐藏，进入搜索态 / 搜不到时出现 -->
+    <HorizontalScrollView
+        android:id="@+id/chipScroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="12dp"
+        android:paddingTop="2dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="6dp"
+        android:scrollbars="none"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <LinearLayout
+            android:id="@+id/chipContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+
+    </HorizontalScrollView>
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"
@@ -84,31 +113,66 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <FrameLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerView"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clipToPadding="false"
-                android:paddingStart="12dp"
-                android:paddingTop="8dp"
-                android:paddingEnd="12dp"
-                android:paddingBottom="24dp" />
+                android:layout_height="0dp"
+                android:layout_weight="1">
 
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:paddingStart="12dp"
+                    android:paddingTop="8dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="8dp" />
+
+                <!-- 首屏骨架：6 个占位卡片，和真实网格同一套 LayoutManager，列数一致 -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/skeletonRecycler"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:paddingStart="12dp"
+                    android:paddingTop="8dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="8dp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/emptyView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="暂无短剧"
+                    android:textColor="@color/theme_text_secondary"
+                    android:textSize="16sp"
+                    android:visibility="gone" />
+
+            </FrameLayout>
+
+            <!-- 三态 footer：加载中 / 没有更多了 / 加载失败，点我重试 -->
             <TextView
-                android:id="@+id/emptyView"
-                android:layout_width="wrap_content"
+                android:id="@+id/tvFooter"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="暂无短剧"
+                android:gravity="center"
+                android:minHeight="36dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="12dp"
                 android:textColor="@color/theme_text_secondary"
-                android:textSize="16sp"
-                android:visibility="gone" />
+                android:textSize="13sp"
+                android:visibility="gone"
+                tools:text="没有更多了"
+                tools:visibility="visible" />
 
-        </FrameLayout>
+        </LinearLayout>
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 

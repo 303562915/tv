@@ -1,15 +1,23 @@
 package com.tv.ball.presentation.shortdrama
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.tv.ball.R
 import com.tv.ball.databinding.ItemShortDramaBinding
 import com.tv.ball.util.ImageLoader
 
+/**
+ * 短剧卡片适配器。
+ *
+ * 为什么卡片信息（集数/年份、评分/播放量、完结角标、继续观看）都放在这里算：
+ * 布局已经由另一位同学铺好了 4 个信息位（tvEpisodes / tvPlayCount / tvBadge / tvProgress），
+ * 列表页（ShortDramaActivity）与首页「免费短剧」Tab（ShortDramaFragment）共用这个 Adapter，
+ * 把「有就显示、没有就留空」的规则集中在一处，两处界面才不会一边显示「集」一边不显示。
+ */
 class ShortDramaAdapter(
     private val onItemClick: (ShortDramaItem) -> Unit
 ) : ListAdapter<ShortDramaItem, ShortDramaAdapter.ViewHolder>(DiffCallback()) {
@@ -34,22 +42,56 @@ class ShortDramaAdapter(
 
         fun bind(item: ShortDramaItem) {
             binding.tvTitle.text = item.title
-            // 采集源不一定给总集数，给了才显示，否则留空而不是显示一个「集」字
-            binding.tvEpisodes.text = if (item.episodeCnt.isNotEmpty()) "${item.episodeCnt}集" else ""
-            binding.tvPlayCount.text = if (item.playCnt == "0") "" else formatPlayCount(item.playCnt)
-            
+
+            // 「集数 · 年份」：采集源经常只给其中一项，也可能给 "0"。
+            // 先各自算成「片段」，再 filter + join，空值不会拼出孤立的「集」字，
+            // 也不会留下 " · " 这种悬空分隔符。
+            val episodePart = item.episodeCnt.trim()
+                .takeIf { it.isNotEmpty() && it != "0" }
+                ?.let { "${it}集" }
+                .orEmpty()
+            val yearPart = item.year.trim()
+            binding.tvEpisodes.text = listOf(episodePart, yearPart)
+                .filter { it.isNotEmpty() }
+                .joinToString(" · ")
+
+            // 右侧信息位：有评分优先显示「x.x分」（比播放量更能影响点不点），
+            // 没评分才退回播放量；playCnt 为 "0"/空 = 源没给，留空而不是写个 0。
+            val score = item.score.trim()
+            binding.tvPlayCount.text = when {
+                score.isNotEmpty() -> "${score}分"
+                item.playCnt.isBlank() || item.playCnt == "0" -> ""
+                else -> formatPlayCount(item.playCnt)
+            }
+
+            // 完结角标：只有明确完结才显示。GONE 而不是 INVISIBLE，未完结时不留空档。
+            binding.tvBadge.visibility = if (item.finished) View.VISIBLE else View.GONE
+
+            // 继续观看：进度存在且 episodeNum > 0 才显示「看到第N集」。
+            // 这里读的是 SharedPreferences（首次读之后走内存缓存），onBind 里读不会触发磁盘 IO；
+            // 记录进度是详情/播放页的责任，列表页只读不写。
+            val watchedEpisode = ShortDramaProgressStore.progressOf(item.bookId)?.episodeNum ?: 0
+            if (watchedEpisode > 0) {
+                binding.tvProgress.text = "看到第${watchedEpisode}集"
+                binding.tvProgress.visibility = View.VISIBLE
+            } else {
+                // 文本也清掉：RecyclerView 复用 ViewHolder 时，否则会把上一部剧的进度带到下一张卡上
+                binding.tvProgress.text = ""
+                binding.tvProgress.visibility = View.GONE
+            }
+
             ImageLoader.load(
                 context = binding.root.context,
                 url = item.cover,
                 imageView = binding.ivCover,
                 placeholder = R.drawable.ic_placeholder
             )
-            
+
             binding.root.setOnClickListener {
                 onItemClick(item)
             }
         }
-        
+
         private fun formatPlayCount(count: String): String {
             return try {
                 val num = count.toLong()

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  骨架屏占位块。
+  为什么单独建一个：骨架里封面块、标题行、信息行三处都要同一套「浅灰圆角块」，
+  与其在三个 View 上各写一次 background，不如一个 drawable 复用；颜色沿用全站
+  的 surface_inset（比卡片底色深一档、比正文浅），不新增 colors.xml 条目。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/surface_inset" />
+    <corners android:radius="@dimen/radius_xs" />
+</shape>
