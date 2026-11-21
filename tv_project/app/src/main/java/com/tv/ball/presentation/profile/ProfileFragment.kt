@@ -97,8 +97,10 @@ class ProfileFragment : Fragment() {
         binding.profileUserHint.setText(
             if (unnamed) R.string.profile_unnamed_hint else R.string.profile_edit_name
         )
+        // 未起名字时用字面色值，已起名字时才是主题里的资源色：
+        // 两者不能走同一个 color(resId)，否则 0xFF8A6D00 会被当成资源 id 查表 → Resources$NotFoundException。
         binding.profileUserName.setTextColor(
-            color(if (unnamed) COLOR_UNNAMED_TEXT else R.color.theme_text_primary)
+            if (unnamed) COLOR_UNNAMED_TEXT else color(R.color.theme_text_primary)
         )
     }
 
