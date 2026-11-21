@@ -17,9 +17,10 @@ on:
       - Development APK
     types:
       - completed
-    branches:
-      - main
-      - master
+    # 不按分支过滤：打 v* 标签触发的 Build 跑在 refs/tags/vX.Y.Z 上，
+    # 一旦限定 branches 就匹配不到，latest.json 会一直停在旧版本——
+    # 稳定渠道的应用内更新因此永远发现不了新正式版。
+    # 这里放开分支过滤，任何一次 Build / Development APK 结束都刷新一次页面数据。
   schedule:
     - cron: '17 3 * * *'
   workflow_dispatch:
