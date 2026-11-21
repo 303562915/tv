@@ -84,17 +84,9 @@ object UpdateManager {
         val outcome = ApkInstaller.install(
             context = activity,
             apk = apk,
-            onPending = {
-                sessionReceiver = ApkInstaller.registerSessionResult(activity) { ok ->
-                    sessionReceiver = null
-                    if (ok) {
-                        onDone()
-                    } else {
-                        toast(activity, "系统安装未完成，改用 Shizuku 安装")
-                        fallbackToShizuku(activity, apk, onDone)
-                    }
-                }
-            },
+            // 现在只有最后一步（系统安装器）会让流程停在「等用户确认」，
+            // 不再用 PackageInstaller 会话，也就没有安装结果的广播要听了。
+            onPending = { onDone() },
             onMessage = { toast(activity, it) }
         )
 
@@ -157,8 +149,8 @@ object UpdateManager {
         showProgress(activity, "安装更新", "正在通过 Shizuku / root 安装…")
         scope.launch {
             val installed = withContext(Dispatchers.IO) {
-                (ShizukuBridge.isAvailable() && ShizukuBridge.install(apk.absolutePath)) ||
-                    RootBridge.install(apk.absolutePath)
+                (ShizukuBridge.isAvailable() && ShizukuBridge.install(apk)) ||
+                    RootBridge.install(apk)
             }
             dismissProgress()
             if (installed) {

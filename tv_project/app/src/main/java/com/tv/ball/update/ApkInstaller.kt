@@ -72,41 +72,42 @@ object ApkInstaller {
         onPending: () -> Unit,
         onMessage: (String) -> Unit
     ): Outcome {
-        // 1) 应用内 PackageInstaller
-        if (canRequestInstall(context) && installWithSession(context, apk)) {
-            onPending()
-            return Outcome.Pending
-        }
+        // 顺序照参考项目 Canta：先走有特权的安装（Shizuku → root），
+        // 装不动再把 APK 交给系统安装器让用户确认。
+        // 之前先走 PackageInstaller 会话，被系统拦下来只会拿到 STATUS_FAILURE_BLOCKED，
+        // 表现就是「提示没有安装权限」，所以把它降级到最后。
 
-        // 2) 系统安装器
-        if (canRequestInstall(context) && installWithIntent(context, apk)) {
-            onPending()
-            return Outcome.Pending
-        }
-
-        if (!canRequestInstall(context)) {
-            onMessage("应用没有「安装未知应用」权限，尝试 Shizuku")
-        }
-
-        // 3) Shizuku（adb 同款 pm install）
+        // 1) Shizuku（adb 同款：先落到 /data/local/tmp 再 pm install）
         if (ShizukuBridge.isAvailable()) {
             if (!ShizukuBridge.hasPermission()) {
                 ShizukuBridge.requestPermission(REQUEST_SHIZUKU)
-                return Outcome.Failed("需要先授予 Shizuku 权限，授权后再点一次更新")
+                onMessage("请在 Shizuku 里允许本应用，然后再点一次更新")
+                return Outcome.Failed("Shizuku 尚未授权")
             }
             onMessage("正在用 Shizuku 安装…")
-            if (ShizukuBridge.install(apk.absolutePath)) {
-                return Outcome.InstalledByShizuku
-            }
+            if (ShizukuBridge.install(apk)) return Outcome.InstalledByShizuku
+            onMessage("Shizuku 安装失败，改用系统安装器")
         }
 
-        // 4) root
-        onMessage("正在用 root 安装…")
-        if (RootBridge.install(apk.absolutePath)) {
-            return Outcome.InstalledByShizuku
+        // 2) root 兜底
+        if (RootBridge.isAvailable()) {
+            onMessage("正在用 root 安装…")
+            if (RootBridge.install(apk)) return Outcome.InstalledByShizuku
         }
 
-        return Outcome.Failed("系统安装器与 Shizuku 都不可用")
+        // 3) 系统安装器：content:// 交给安装器读，不依赖任何路径权限
+        if (installWithIntent(context, apk)) {
+            onPending()
+            return Outcome.Pending
+        }
+
+        // 4) 没有「安装未知应用」权限时，直接把设置页打开，别只报错
+        if (!canRequestInstall(context)) {
+            openUnknownSourceSettings(context)
+            return Outcome.Failed("请在「安装未知应用」里允许本应用，然后再点一次更新")
+        }
+
+        return Outcome.Failed("系统安装器与 Shizuku 都没能接手这个 APK")
     }
 
     // ---------------------------------------------------------------- 1. Session
