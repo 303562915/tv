@@ -164,8 +164,8 @@ object F077Engine {
         ),
         SettingItem(
             id = "about",
-            title = "关于页与许可证",
-            aliases = listOf("关于", "版本号", "许可证", "开源许可", "检查更新"),
+            title = "关于页与更新",
+            aliases = listOf("关于", "版本号", "版本", "检查更新", "更新渠道", "下载页", "源码仓库"),
             group = "设置",
             pageKey = "F086"
         ),

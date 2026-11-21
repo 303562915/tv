@@ -86,8 +86,13 @@ class LocalVideoActivity : AppCompatActivity() {
     private fun setupRecyclerView() {
         adapter = LocalVideoAdapter { videoFolder ->
             val intent = Intent(this, LocalVideoFolderActivity::class.java)
+            // 绝对路径可能失真（作用域存储下 _data 不一定可读），
+            // 所以把 MediaStore 的 BUCKET_ID / RELATIVE_PATH 一起传过去，
+            // 详情页优先按它们查，路径只作旧入口兼容与兜底。
             intent.putExtra("FOLDER_PATH", videoFolder.folderPath)
             intent.putExtra("FOLDER_NAME", videoFolder.folderName)
+            intent.putExtra("FOLDER_BUCKET_ID", videoFolder.bucketId)
+            intent.putExtra("FOLDER_RELATIVE_PATH", videoFolder.relativePath)
             startActivity(intent)
         }
         

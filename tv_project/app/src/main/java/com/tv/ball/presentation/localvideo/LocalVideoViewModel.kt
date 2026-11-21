@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
@@ -119,12 +120,19 @@ class LocalVideoViewModel : ViewModel() {
         val folderMap = mutableMapOf<String, VideoFolder>()
 
         try {
-            val projection = arrayOf(
+            // 多查 BUCKET_ID / RELATIVE_PATH：详情页按它们查同一批视频，
+            // 不再依赖 File.listFiles()（作用域存储下它经常返回 null）。
+            val columns = mutableListOf(
                 MediaStore.Video.Media._ID,
                 MediaStore.Video.Media.DATA,
+                MediaStore.Video.Media.BUCKET_ID,
                 MediaStore.Video.Media.BUCKET_DISPLAY_NAME,
                 MediaStore.Video.Media.DISPLAY_NAME
             )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                columns.add(MediaStore.MediaColumns.RELATIVE_PATH)
+            }
+            val projection = columns.toTypedArray()
 
             val sortOrder = "${MediaStore.Video.Media.DATE_ADDED} DESC"
 
@@ -135,28 +143,50 @@ class LocalVideoViewModel : ViewModel() {
                 null,
                 sortOrder
             )?.use { cursor ->
-                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
-                val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)
-                val bucketColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.BUCKET_DISPLAY_NAME)
+                val idColumn = cursor.getColumnIndex(MediaStore.Video.Media._ID)
+                val dataColumn = cursor.getColumnIndex(MediaStore.Video.Media.DATA)
+                val bucketIdColumn = cursor.getColumnIndex(MediaStore.Video.Media.BUCKET_ID)
+                val bucketColumn = cursor.getColumnIndex(MediaStore.Video.Media.BUCKET_DISPLAY_NAME)
+                val relativeColumn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    cursor.getColumnIndex(MediaStore.MediaColumns.RELATIVE_PATH)
+                } else {
+                    -1
+                }
 
                 while (cursor.moveToNext()) {
-                    val id = cursor.getLong(idColumn)
-                    val path = cursor.getString(dataColumn) ?: continue
-                    val bucketName = cursor.getString(bucketColumn) ?: "未知文件夹"
-                    val parentDir = File(path).parent ?: continue
+                    val id = if (idColumn >= 0) cursor.getLong(idColumn) else 0L
+                    val path = if (dataColumn >= 0) cursor.getString(dataColumn) else null
+                    val bucketId = if (bucketIdColumn >= 0) {
+                        cursor.getLong(bucketIdColumn)
+                    } else {
+                        LocalVideoMedia.NO_BUCKET_ID
+                    }
+                    val relativePath = if (relativeColumn >= 0) cursor.getString(relativeColumn) else null
+                    val bucketName = (if (bucketColumn >= 0) cursor.getString(bucketColumn) else null)
+                        ?.takeIf { it.isNotBlank() }
+                        ?: folderNameOf(path, relativePath)
+                    val parentDir = path?.let { File(it).parent }
+                    // _data 拿不到时退回 BUCKET_ID 当 key，别把整条视频丢掉
+                    val bucketKey = bucketId
+                        .takeIf { it != LocalVideoMedia.NO_BUCKET_ID }
+                        ?.let { "bucket:$it" }
+                    val folderKey: String? = parentDir ?: bucketKey
+                    if (folderKey == null) continue
 
-                    if (!folderMap.containsKey(parentDir)) {
+                    if (!folderMap.containsKey(folderKey)) {
                         // 先用占位图 - 完全照搬 Lua
-                        folderMap[parentDir] = VideoFolder(
+                        folderMap[folderKey] = VideoFolder(
                             folderName = bucketName,
-                            folderPath = parentDir,
+                            folderPath = folderKey,
                             thumbnail = LOADING_IMAGE,  // 先用占位图
                             videoCount = 1,
-                            videoId = id  // 保存 ID 用于后续加载缩略图
+                            videoId = id,  // 保存 ID 用于后续加载缩略图
+                            bucketId = bucketId,
+                            relativePath = relativePath
                         )
                     } else {
-                        folderMap[parentDir] = folderMap[parentDir]!!.copy(
-                            videoCount = folderMap[parentDir]!!.videoCount + 1
+                        folderMap[folderKey] = folderMap[folderKey]!!.copy(
+                            videoCount = folderMap[folderKey]!!.videoCount + 1
                         )
                     }
                 }
@@ -169,6 +199,14 @@ class LocalVideoViewModel : ViewModel() {
         scanDownloadDirectory(folderMap)
 
         return folderMap.values.toList()
+    }
+
+    /** 目录名兜底：优先取相对路径的最后一段，其次父目录名。 */
+    private fun folderNameOf(path: String?, relativePath: String?): String {
+        val fromRelative = relativePath?.trim()?.trim('/')?.substringAfterLast('/')?.takeIf { it.isNotBlank() }
+        if (fromRelative != null) return fromRelative
+        val fromPath = path?.substringBeforeLast('/', "")?.substringAfterLast('/')?.takeIf { it.isNotBlank() }
+        return fromPath ?: "未知文件夹"
     }
     
     /**
@@ -185,29 +223,31 @@ class LocalVideoViewModel : ViewModel() {
                 return
             }
             
-            val videoExtensions = listOf(".mp4", ".mkv", ".avi", ".mov", ".rmvb", ".flv", ".wmv", ".m3u8")
             val videoFiles = downloadDir.listFiles()?.filter { file ->
-                file.isFile && videoExtensions.any { ext -> file.name.lowercase().endsWith(ext) }
-            } ?: emptyList()
-            
+                file.isFile && LocalVideoMedia.hasVideoExtension(file.name)
+            }?.sortedBy { it.name } ?: emptyList()
+
             if (videoFiles.isNotEmpty()) {
                 val folderPath = downloadDir.absolutePath
-                
+
                 if (!folderMap.containsKey(folderPath)) {
                     // 使用第一个视频文件的ID（如果在MediaStore中）
-                    val firstVideoId = getVideoIdByPath(videoFiles[0].absolutePath) ?: 0L
-                    
+                    val firstVideoId = LocalVideoMedia.queryIdByPath(context, videoFiles[0].absolutePath)
+
                     folderMap[folderPath] = VideoFolder(
                         folderName = "下载的视频",
                         folderPath = folderPath,
                         thumbnail = LOADING_IMAGE,
                         videoCount = videoFiles.size,
-                        videoId = firstVideoId
+                        videoId = firstVideoId,
+                        bucketId = LocalVideoMedia.NO_BUCKET_ID,
+                        relativePath = "Download/TVBall/"
                     )
                 } else {
-                    // 更新视频数量
-                    folderMap[folderPath] = folderMap[folderPath]!!.copy(
-                        videoCount = videoFiles.size
+                    // 更新视频数量：只增不减，避免文件系统少看到几个时把 MediaStore 的统计改小
+                    val existing = folderMap[folderPath]!!
+                    folderMap[folderPath] = existing.copy(
+                        videoCount = maxOf(existing.videoCount, videoFiles.size)
                     )
                 }
             }
@@ -216,43 +256,9 @@ class LocalVideoViewModel : ViewModel() {
         }
     }
     
-    /**
-     * 根据文件路径获取MediaStore中的视频ID
-     */
-    private fun getVideoIdByPath(filePath: String): Long? {
-        val projection = arrayOf(MediaStore.Video.Media._ID)
-        val selection = "${MediaStore.Video.Media.DATA}=?"
-        val selectionArgs = arrayOf(filePath)
-        
-        context.contentResolver.query(
-            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-            projection,
-            selection,
-            selectionArgs,
-            null
-        )?.use { cursor ->
-            if (cursor.moveToFirst()) {
-                return cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID))
-            }
-        }
-        
-        return null
-    }
-    
-    // 完全照搬 Lua 的 getThumbnail 方法
-    @Suppress("DEPRECATION")
-    private fun getThumbnailFromMediaStore(videoId: Long): Bitmap? {
-        return try {
-            MediaStore.Video.Thumbnails.getThumbnail(
-                context.contentResolver,
-                videoId,
-                MediaStore.Video.Thumbnails.MINI_KIND,
-                null
-            )
-        } catch (e: Exception) {
-            null
-        }
-    }
+    // 缩略图：实现挪到 LocalVideoMedia，列表页/详情页共用一套
+    private fun getThumbnailFromMediaStore(videoId: Long): Bitmap? =
+        LocalVideoMedia.loadThumbnail(context, videoId)
     
     override fun onCleared() {
         super.onCleared()
@@ -262,9 +268,18 @@ class LocalVideoViewModel : ViewModel() {
 
 data class VideoFolder(
     val folderName: String,
+    /** 目录绝对路径；_data 缺失时会退化成 "bucket:<id>"，详情页按前缀 "/" 判断是否是真路径。 */
     val folderPath: String,
     val thumbnail: Bitmap?,
     val videoCount: Int,
-    val videoId: Long = 0  // 用于加载缩略图
+    val videoId: Long = 0,  // 用于加载缩略图
+    /**
+     * MediaStore 的 BUCKET_ID：详情页按它查同一批视频，避免依赖 File.listFiles()。
+     * 默认值即 LocalVideoMedia.NO_BUCKET_ID（Long.MIN_VALUE）——BUCKET_ID 是路径 hashCode，
+     * 可能是负数，所以不能用 0 或 -1 表达「没有」。
+     */
+    val bucketId: Long = Long.MIN_VALUE,
+    /** MediaStore 的 RELATIVE_PATH（API 29+），形如 Movies/MyFolder/。 */
+    val relativePath: String? = null
 )
 

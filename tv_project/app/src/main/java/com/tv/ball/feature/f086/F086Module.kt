@@ -17,7 +17,7 @@ object F086Module : FeatureModule {
 
     override val title: String = "关于"
 
-    override val description: String = "版本信息、更新渠道（稳定版 / 开发版）、检查更新与自动安装、下载页与源码仓库、许可证说明集中一页"
+    override val description: String = "版本信息、更新渠道（稳定版 / 开发版）、检查更新与自动安装、下载页与源码仓库集中一页"
 
     override val group: String = "设置"
 

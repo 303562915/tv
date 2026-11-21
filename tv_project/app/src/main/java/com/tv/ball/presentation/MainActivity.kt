@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.tv.ball.R
 import com.tv.ball.databinding.ActivityMainBinding
 import com.tv.ball.presentation.home.HomeFragment
@@ -24,6 +25,7 @@ import com.tv.ball.presentation.localvideo.LocalVideoActivity
 import com.tv.ball.presentation.nav.FloatingNavDock
 import com.tv.ball.presentation.profile.ProfileFragment
 import com.tv.ball.presentation.videosource.VideoSourceFragment
+import com.tv.ball.update.UpdateManager
 import com.tv.ball.utils.StatusBarUtils
 
 class MainActivity : AppCompatActivity() {
@@ -61,6 +63,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         setupBottomNav(savedInstanceState == null)
+
+        // 启动自动检查更新（对照 Canta 的启动自动检查）：
+        // 24 小时内只查一次（时间戳存 update_auto），查到新版本才挂一条主题化轻提示，
+        // 已是最新或检查失败都静默。作用域用 activity 的 lifecycleScope，页面走了就停。
+        UpdateManager.autoCheckOnStart(this, lifecycleScope)
 
         showLastCrashIfAny()
     }

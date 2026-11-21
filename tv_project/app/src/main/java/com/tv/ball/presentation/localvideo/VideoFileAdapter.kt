@@ -66,7 +66,7 @@ class VideoFileAdapter(
             // 显示/隐藏 CheckBox
             if (isMultiSelectMode()) {
                 binding.checkbox.visibility = View.VISIBLE
-                binding.checkbox.isChecked = isItemSelected(videoFile.path)
+                binding.checkbox.isChecked = isItemSelected(videoFile.key)
             } else {
                 binding.checkbox.visibility = View.GONE
             }
@@ -92,7 +92,7 @@ class VideoFileAdapter(
     
     private class DiffCallback : DiffUtil.ItemCallback<VideoFile>() {
         override fun areItemsTheSame(oldItem: VideoFile, newItem: VideoFile): Boolean {
-            return oldItem.path == newItem.path
+            return oldItem.key == newItem.key
         }
         
         override fun areContentsTheSame(oldItem: VideoFile, newItem: VideoFile): Boolean {
@@ -103,8 +103,15 @@ class VideoFileAdapter(
 
 data class VideoFile(
     val name: String,
+    /** 真实文件路径；MediaStore 没给 _data 时为空串，此时只能靠 videoId 定位。 */
     val path: String,
     val size: Long,
-    val thumbnail: Bitmap?
-)
+    val thumbnail: Bitmap?,
+    /** MediaStore 行 ID：删除与缩略图用；0 表示只来自文件系统扫描。 */
+    val videoId: Long = 0L
+) {
+    /** 选中态与 Diff 用的稳定标识：有路径用路径，没路径用 MediaStore ID。 */
+    val key: String
+        get() = if (path.isNotBlank()) path else "id:$videoId"
+}
 

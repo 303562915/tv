@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 功能 F086「关于页与许可证」自身文案（功能中心外壳文案在 strings_feature_center.xml）。
+<!-- 功能 F086「关于页」自身文案（功能中心外壳文案在 strings_feature_center.xml）。
      结构对照 unicanta 的 AboutScreen：应用英雄区 / 检查更新卡 / 渠道卡 / 自动安装 /
      外链卡，文案命名也对齐（check_update / channel / auto_install / download_page）。 -->
 <resources>
@@ -46,10 +46,6 @@
     <string name="f086_repo_url">https://github.com/303562915/tv</string>
     <string name="f086_toast_repo_opening">正在用浏览器打开 %1$s</string>
     <string name="f086_toast_repo_failed">这台设备没有能打开网页的应用，地址：%1$s</string>
-
-    <!-- 许可证 -->
-    <string name="f086_section_license">许可证全文</string>
-    <string name="f086_license_intro">下面这段是可滚动长文：本应用的 MIT 声明与第三方组件共用的 Apache-2.0 要点摘录；要完整条文时打开对应仓库或本仓库的 LICENSE</string>
 
     <!-- 检查更新失败原因（对照 unicanta UpdateFailure 的一句话文案） -->
     <string name="f086_fail_rate_limited">GitHub 接口配额已用完（403/429）：换个出口 IP 或稍后再试</string>

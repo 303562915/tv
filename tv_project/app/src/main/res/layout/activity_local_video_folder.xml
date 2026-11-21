@@ -42,12 +42,28 @@
             app:tint="@color/theme_text_secondary" />
 
         <TextView
+            android:id="@+id/emptyText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:gravity="center"
             android:text="该文件夹没有视频"
             android:textColor="@color/theme_text_secondary"
             android:textSize="14sp" />
+
+        <!-- 无权限 / 读取失败时给可点的动作按钮；目录真的空时不显示 -->
+        <Button
+            android:id="@+id/emptyAction"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_primary_button"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:text="重试"
+            android:textColor="@color/theme_on_primary"
+            android:visibility="gone" />
 
     </LinearLayout>
 

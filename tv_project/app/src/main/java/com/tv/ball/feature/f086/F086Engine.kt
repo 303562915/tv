@@ -21,14 +21,12 @@ data class AppInfo(
 )
 
 /**
- * F086「关于页与许可证」的能力层。
+ * F086「关于页」的能力层。
  *
  * 这一层只有几个纯函数，不碰任何界面：
  *
  * - [versionText]：版本号取 `BuildConfig`（编译期就确定的字面量），安装时间取
  *   `PackageManager`（运行期的事实），两段来源不同，所以必须各取各的，不能互相替代。
- * - [licenseText]：可滚动长文本区的内容。关于页不再列依赖清单（那张卡已删除），
- *   这里只保留分发时必须保留的两段声明：本应用自身的 MIT 与第三方组件共用的 Apache-2.0 要点。
  */
 object F086Engine {
 
@@ -37,9 +35,6 @@ object F086Engine {
 
     /** 下载页地址：CI 镜像 APK 与版本 JSON 的 Pages 站点。 */
     const val DOWNLOAD_PAGE_URL = "https://303562915.github.io/tv/"
-
-    /** 许可证标识；用常量而不是散落的字面量。 */
-    const val LICENSE_APACHE = "Apache-2.0"
 
     /** 仓库地址；页面里"打开仓库"按钮与文案共用同一份。 */
     fun repoUrl(): String = REPO_URL
@@ -90,26 +85,4 @@ object F086Engine {
     /** 绝对时间（本机时区，精确到分）。每次现建 SimpleDateFormat：它不是线程安全的。 */
     fun formatDate(millis: Long): String =
         SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(millis))
-
-    /**
-     * 可滚动长文本区的内容：先一句定位（本应用 MIT、依赖各自独立），再给 Apache-2.0 的要点摘录。
-     *
-     * 只摘要点、不复制整篇 LICENSE：许可证全文有 200 行，塞进页面没有人会读；
-     * 真正需要全文的场景是分发时的法务核对，那时候应该打开仓库里的 LICENSE 与各依赖的
-     * NOTICE 文件。关于页只负责说清"这份 APK 里的代码是谁的、各自什么协议"。
-     */
-    fun licenseText(): String = buildString {
-        appendLine("本应用以 MIT 协议发布；所用第三方组件（AndroidX 系列、ExoPlayer、OkHttp、")
-        appendLine("Glide、Room、Gson、Kotlin Coroutines、Material Components、NanoHTTPD 等）")
-        appendLine("各自保留其原始许可证与版权声明，分发本应用（含修改后分发）时需要一并保留。")
-        appendLine()
-        appendLine("Apache License 2.0 要点（$LICENSE_APACHE 组件共用）：")
-        appendLine("· 允许商用、修改与再分发，须保留版权声明、许可证副本与 NOTICE 文件；")
-        appendLine("· 修改过的文件需要标注改动；")
-        appendLine("· 不得使用贡献者的商标或名义为衍生产品背书；")
-        appendLine("· 按「现状」提供，不含任何明示或暗示的担保。")
-        appendLine()
-        appendLine("本应用自身的 MIT 协议：可自由使用、修改、分发，须保留版权与许可声明；")
-        appendLine("作者与贡献者不对使用本软件产生的任何后果负责。")
-    }
 }

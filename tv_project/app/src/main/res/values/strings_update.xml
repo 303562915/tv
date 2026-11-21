@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  应用内更新的提示文案（启动自动检查 + 主题化轻提示）。
+
+  统一用 update_prompt_ 前缀，避免和其它模块的 strings_*.xml 撞名；
+  「我的」页与关于页的文案仍在各自的 strings_f086.xml 里，这里不动它们。
+-->
+<resources>
+
+    <!-- 发现新版本：版本号就是正文，动作在右侧 -->
+    <string name="update_prompt_available">发现新版本 %1$s</string>
+
+    <!-- 两个动作 -->
+    <string name="update_prompt_update_now">立即更新</string>
+    <string name="update_prompt_later">稍后</string>
+
+    <!-- 下载中：服务器没给总大小时只说一句「正在下载」 -->
+    <string name="update_prompt_downloading">正在下载 %1$s…</string>
+    <string name="update_prompt_downloading_percent">正在下载 %1$s… %2$d%%</string>
+
+    <!-- 检查中 / 安装中 -->
+    <string name="update_prompt_checking">正在检查更新…</string>
+    <string name="update_prompt_installing">正在安装 %1$s…</string>
+
+    <!-- 失败降级：一条提示说清原因，重试入口留在关于页 -->
+    <string name="update_prompt_download_failed">下载失败：%1$s</string>
+    <string name="update_prompt_install_failed">安装没有完成：%1$s</string>
+    <string name="update_prompt_reason_unknown">未知错误</string>
+
+    <!-- 静默检查里给手动入口复用的一句话 -->
+    <string name="update_prompt_up_to_date">已经是最新版本（%1$s）</string>
+    <string name="update_prompt_failed">检查更新失败：%1$s</string>
+
+</resources>

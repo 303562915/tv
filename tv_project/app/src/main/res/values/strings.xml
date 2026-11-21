@@ -29,11 +29,11 @@
     <string name="theme_setting">主题</string>
     <string name="playback_setting">播放设置</string>
     <string name="clear_cache">清理缓存</string>
-    <string name="clear_cache_title">清理缓存</string>
-    <string name="clear_cache_message">当前缓存：%1$s\n\n确定要清理吗？</string>
     <string name="confirm">确定</string>
     <string name="cancel">取消</string>
     <string name="cache_cleared">缓存已清理</string>
+    <string name="cache_already_clean">缓存已是最小，无需清理</string>
+    <string name="cache_clear_failed">清理失败，请稍后再试</string>
     <string name="watch_history">观看历史</string>
 
     <!-- 观看历史页 -->
@@ -65,4 +65,75 @@
     <string name="profile_name_title">起个名字</string>
     <string name="profile_name_hint">最多 24 个字符</string>
     <string name="profile_about_app">关于本应用</string>
+
+    <!-- ============ 播放设置页（「我的」→ 播放设置） ============ -->
+    <!-- 分组标题 -->
+    <string name="ps_section_behavior">播放行为</string>
+    <string name="ps_section_skip">跳过与省时</string>
+    <string name="ps_section_buffer">预加载与缓冲</string>
+    <string name="ps_section_display">画面与网络</string>
+
+    <!-- 播放行为 -->
+    <string name="ps_auto_next">自动连播下一集</string>
+    <string name="ps_auto_next_hint">结束行为选「自动下一集」时，播完自动进入下一集</string>
+    <string name="ps_remember_progress">记忆播放进度</string>
+    <string name="ps_remember_progress_hint">下次打开同一集时从上次位置继续</string>
+    <string name="ps_ended_behavior">播放结束行为</string>
+    <string name="ps_ended_behavior_hint">播完之后怎么处理；「循环当前集」由播放器自己循环</string>
+    <string name="ps_ended_stop">停在最后一帧</string>
+    <string name="ps_ended_loop">循环当前集</string>
+    <string name="ps_ended_next">自动下一集</string>
+    <string name="ps_default_speed">默认倍速</string>
+    <string name="ps_default_speed_hint">新开一集时的起播速度</string>
+    <string name="ps_seek_step">快进步长</string>
+    <string name="ps_seek_step_hint">双击左右两侧快进 / 快退的秒数</string>
+    <string name="ps_long_press_lock">长按锁定倍速</string>
+    <string name="ps_long_press_lock_hint">长按拖动时保持加速，松手前不被打断</string>
+
+    <!-- 跳过与省时 -->
+    <string name="ps_skip_intro">片头跳过按钮</string>
+    <string name="ps_skip_intro_hint">起播时在画面上显示「跳过片头」，点一下直接进正片</string>
+    <string name="ps_intro_duration">片头时长</string>
+    <string name="ps_intro_duration_hint">从 0 秒算起，到这里之后是正片</string>
+    <string name="ps_skip_outro">自动跳过片尾</string>
+    <string name="ps_skip_outro_hint">进入片尾直接进下一集</string>
+    <string name="ps_outro_duration">片尾时长</string>
+    <string name="ps_outro_duration_hint">距结束多少秒开始算片尾</string>
+    <string name="ps_ad_skip">跳过片头广告</string>
+    <string name="ps_ad_skip_hint">开播后自动快进过前段广告</string>
+    <string name="ps_ad_seconds">广告时长</string>
+    <string name="ps_ad_seconds_hint">起播快进到第几秒（不影响记忆进度）</string>
+
+    <!-- 预加载与缓冲 -->
+    <string name="ps_preload_next">预加载下一集</string>
+    <string name="ps_preload_next_hint">播完前提前取到下一集地址，切换更快</string>
+    <string name="ps_preload_lead">预加载提前量</string>
+    <string name="ps_preload_lead_hint">剩余多少秒时开始预加载</string>
+    <string name="ps_buffer_preset">缓冲区档位</string>
+    <string name="ps_buffer_preset_hint">省流起播快，激进更抗卡顿</string>
+    <string name="ps_retry_count">断线重试次数</string>
+    <string name="ps_retry_count_hint">加载失败时自动重试几次（0 表示不重试）</string>
+    <string name="ps_auto_route">失败自动切换线路</string>
+    <string name="ps_auto_route_hint">当前线路播不动时自动换下一条</string>
+
+    <!-- 画面与网络 -->
+    <string name="ps_aspect_ratio">默认画面比例</string>
+    <string name="ps_aspect_ratio_hint">播放页起播时的显示比例</string>
+    <string name="ps_exact_seek">精确跳转</string>
+    <string name="ps_exact_seek_hint">关掉后只按关键帧跳，跳得更快但落点略粗</string>
+    <string name="ps_mobile_data">允许移动网络播放</string>
+    <string name="ps_mobile_data_hint">关掉后只在 Wi-Fi 下播放，用流量时会暂停</string>
+
+    <!-- 恢复默认与反馈 -->
+    <string name="ps_reset">恢复默认播放设置</string>
+    <string name="ps_reset_hint">本页所有开关与档位回到出厂值</string>
+    <string name="ps_reset_title">恢复默认播放设置</string>
+    <string name="ps_reset_message">本页所有播放设置会回到出厂值，其它设置与观看记录不受影响。</string>
+    <string name="ps_reset_done">已恢复默认播放设置</string>
+    <string name="ps_saved">已保存</string>
+    <string name="ps_switched_on">%1$s已开启</string>
+    <string name="ps_switched_off">%1$s已关闭</string>
+    <string name="ps_unit_seconds">%1$d 秒</string>
+    <string name="ps_retry_none">不重试</string>
+    <string name="ps_retry_times">%1$d 次</string>
 </resources>

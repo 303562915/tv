@@ -28,11 +28,10 @@ import kotlinx.coroutines.launch
  *    正在下载 / 失败原因（点名被墙、配额、超时、上游故障），失败的再点一次就是重试；
  * 3. **UpdateChannelCard**：稳定版 / 开发版两块渠道芯片，确认键切换（默认开发版）；
  * 4. **自动下载安装开关**；
- * 5. **外链卡**：下载页 / 源码仓库，交给系统浏览器，没有浏览器时只提示、不崩；
- * 6. **许可证全文**（本项目自有的开源合规区）。
+ * 5. **外链卡**：下载页 / 源码仓库，交给系统浏览器，没有浏览器时只提示、不崩（末位区块）。
  *
  * 电视遥控器：焦点链 返回 → 检查更新 → 稳定版 → 开发版 → 自动安装 → 下载页 →
- * 打开仓库 → 许可证长文本区。
+ * 打开仓库（末位，不再向下延伸）。
  */
 class F086Activity : AppCompatActivity() {
 
@@ -84,7 +83,6 @@ class F086Activity : AppCompatActivity() {
         binding.f086RepoButton.setOnClickListener { openRepo() }
 
         renderHero()
-        renderLicense()
         renderChannel()
         render(state)
     }
@@ -242,13 +240,6 @@ class F086Activity : AppCompatActivity() {
             UpdateChecker.Failure.UNKNOWN -> R.string.f086_fail_unknown
         }
     )
-
-    // ===== 许可证 =====
-
-    /** 许可证区：可滚动长文本，由引擎生成，页面不做字符串拼接。 */
-    private fun renderLicense() {
-        binding.f086LicenseText.text = F086Engine.licenseText()
-    }
 
     // ===== 外链 =====
 

@@ -29,6 +29,21 @@ class ExoPlayerManager constructor(
     
     private var player: ExoPlayer? = null
     private var playerListener: PlayerListener? = null
+
+    /**
+     * 「播放设置 → 断线重试次数」落到 ExoPlayer 的加载失败策略上。
+     *
+     * ExoPlayer 2.19 的 Builder 已经不再提供 setLoadErrorHandlingPolicy，
+     * 这个策略是挂在媒体源工厂（[createMediaSource] 里的 Progressive / HLS factory）上的；
+     * 策略对象本身可以复用同一个实例。
+     */
+    private val loadErrorHandlingPolicy by lazy {
+        val retry = runCatching {
+            com.tv.ball.data.local.UserPreferences(context).getPlaybackRetryCount()
+        }.getOrDefault(2)
+        Log.d(TAG, "加载失败自动重试次数: $retry")
+        com.google.android.exoplayer2.upstream.DefaultLoadErrorHandlingPolicy(retry)
+    }
     
     // 缓存实例
     private val cache: com.google.android.exoplayer2.upstream.cache.SimpleCache by lazy {
@@ -40,13 +55,28 @@ class ExoPlayerManager constructor(
     
     fun initializePlayer(): ExoPlayer {
         if (player == null) {
-            // 创建缓冲控制 - 优化配置以确保丝滑播放
+            // ===== 播放设置（「我的」→ 播放设置页写入的值，起播这一刻读一次）=====
+            // 每个键都有对应读取点：缓冲区档位走 F057 引擎，其余走 UserPreferences。
+            // 读失败一律退回原来的硬编码值，保证设置页坏数据不会把播放器带崩。
+            val settings = runCatching { com.tv.ball.data.local.UserPreferences(context) }.getOrNull()
+            val buffer = runCatching {
+                com.tv.ball.feature.f057.F057Engine.current(context)
+            }.getOrNull()
+            // 缓冲区档位：省流 / 均衡 / 激进三档；拿不到就用原来的 10/60/2.5/5 秒
+            val minBufferMs = buffer?.minBufferMs ?: 10000
+            val maxBufferMs = buffer?.maxBufferMs ?: 60000
+            val bufferForPlaybackMs = buffer?.bufferForPlaybackMs ?: 2500
+            val bufferAfterRebufferMs = buffer?.bufferForPlaybackAfterRebufferMs ?: 5000
+            // 快进步长：双击 / 拖动快进快退的档位，默认 10 秒
+            val seekStepMs = (settings?.getPlaybackSeekStepSec() ?: 10) * 1000L
+
+            // 创建缓冲控制 - 参数来自「播放设置 → 缓冲区档位」
             val loadControl = DefaultLoadControl.Builder()
                 .setBufferDurationsMs(
-                    10000,  // 最小缓冲时间 10秒（确保流畅播放的基础）
-                    60000,  // 最大缓冲时间 60秒（提供充足的缓冲空间）
-                    2500,   // 开始播放的最小缓冲 2.5秒（平衡启动速度和流畅度）
-                    5000    // seek后重新缓冲 5秒（避免seek后立即卡顿）
+                    minBufferMs,        // 最小缓冲时间：低于这个水位立刻继续加载
+                    maxBufferMs,        // 最大缓冲时间：攒到这里停止加载
+                    bufferForPlaybackMs,   // 起播前至少要攒这么多
+                    bufferAfterRebufferMs  // 断流后重新攒这么多
                 )
                 .setTargetBufferBytes(C.LENGTH_UNSET) // 不限制缓冲大小
                 .setPrioritizeTimeOverSizeThresholds(true) // 优先时间而非大小（保证流畅）
@@ -62,15 +92,39 @@ class ExoPlayerManager constructor(
 
             player = ExoPlayer.Builder(context)
                 .setLoadControl(loadControl)
-                .setSeekBackIncrementMs(10000) // 后退10秒
-                .setSeekForwardIncrementMs(10000) // 前进10秒
+                .setSeekBackIncrementMs(seekStepMs) // 后退一个步长
+                .setSeekForwardIncrementMs(seekStepMs) // 前进一个步长
                 .build()
                 .apply {
                     // 设置播放参数以优化本地文件播放
                     playWhenReady = true
                     
-                    // 设置seek参数 - 使用精确seek，不等待关键帧（秒播）
-                    setSeekParameters(com.google.android.exoplayer2.SeekParameters.EXACT)
+                    // 精确跳转：关掉后只对齐关键帧，跳得更快（落点略粗）——「播放设置 → 精确跳转」
+                    // 设置读不到时按默认的精确跳转走，和改动前一致
+                    val exactSeek = settings?.isPlaybackExactSeek() ?: true
+                    setSeekParameters(
+                        if (exactSeek) {
+                            com.google.android.exoplayer2.SeekParameters.EXACT
+                        } else {
+                            com.google.android.exoplayer2.SeekParameters.CLOSEST_SYNC
+                        }
+                    )
+
+                    // 播放结束行为=循环当前集：交给播放器自己循环，这一集根本不会走到 ENDED
+                    repeatMode = if (endedBehaviorLoops(settings)) {
+                        Player.REPEAT_MODE_ONE
+                    } else {
+                        Player.REPEAT_MODE_OFF
+                    }
+
+                    // 默认倍速：来自「播放设置 → 默认倍速」（F081 播放默认值中心）
+                    runCatching { com.tv.ball.feature.f081.F081Engine.load(context).speed }
+                        .getOrNull()
+                        ?.takeIf { it > 0f }
+                        ?.let { speed ->
+                            setPlaybackSpeed(speed)
+                            Log.d(TAG, "起播默认倍速: ${speed}x")
+                        }
                     
                     // 设置视频缩放模式 - 快速渲染
                     videoScalingMode = com.google.android.exoplayer2.C.VIDEO_SCALING_MODE_SCALE_TO_FIT
@@ -144,7 +198,14 @@ class ExoPlayerManager constructor(
                                 }
                                 Player.STATE_ENDED -> {
                                     Log.d(TAG, "✓ 播放结束")
-                                    playerListener?.onEnded()
+                                    // 「播放设置」里的自动连播 / 播放结束行为在这里生效：
+                                    // 只有「自动连播下一集」打开且结束行为是「自动下一集」时才把
+                                    // onEnded 交给界面（界面收到它才会 playNextEpisode）。
+                                    if (shouldDispatchEnded(settings)) {
+                                        playerListener?.onEnded()
+                                    } else {
+                                        Log.d(TAG, "播放结束：按设置停在最后一帧（未开启自动连播，或结束行为不是自动下一集）")
+                                    }
                                 }
                                 Player.STATE_IDLE -> {
                                     Log.d(TAG, "播放器空闲状态")
@@ -246,6 +307,32 @@ class ExoPlayerManager constructor(
                 }
         }
         return player!!
+    }
+
+    /**
+     * 「播放设置 → 播放结束行为」是不是「循环当前集」。
+     *
+     * 循环交给播放器自己做（REPEAT_MODE_ONE）：这一集播到尾部会自动回到开头，
+     * 根本不会走到 STATE_ENDED，界面那边也就不需要额外配合。
+     */
+    private fun endedBehaviorLoops(settings: com.tv.ball.data.local.UserPreferences?): Boolean =
+        settings?.getPlaybackEndedBehavior() ==
+            com.tv.ball.data.local.UserPreferences.ENDED_BEHAVIOR_LOOP
+
+    /**
+     * 播完之后要不要把 onEnded 交给界面。
+     *
+     * 界面收到 onEnded 会做的事里包含「自动进入下一集」，所以这里就是
+     * 「自动连播下一集」与「播放结束行为」两个开关的真正落点：
+     * · 自动连播关掉 → 不交出去，停在最后一帧；
+     * · 结束行为是停止 / 循环 → 也不交出去（循环已经由 REPEAT_MODE_ONE 负责）；
+     * · 读不到设置（老数据、单元测试）→ 保持原来的行为。
+     */
+    private fun shouldDispatchEnded(settings: com.tv.ball.data.local.UserPreferences?): Boolean {
+        if (settings == null) return true
+        return settings.isPlaybackAutoNext() &&
+            settings.getPlaybackEndedBehavior() ==
+            com.tv.ball.data.local.UserPreferences.ENDED_BEHAVIOR_NEXT
     }
     
     fun setPlayerListener(listener: PlayerListener) {
@@ -414,9 +501,10 @@ class ExoPlayerManager constructor(
                     Log.d(TAG, "数据源工厂类型: ${dataSourceFactory.javaClass.name}")
                     Log.d(TAG, "数据源工厂: ${dataSourceFactory.javaClass.simpleName}")
                     
-                    // 创建HLS媒体源
+                    // 创建HLS媒体源（重试次数来自「播放设置 → 断线重试次数」）
                     val hlsFactory = HlsMediaSource.Factory(dataSourceFactory)
                         .setAllowChunklessPreparation(true)
+                        .setLoadErrorHandlingPolicy(loadErrorHandlingPolicy)
                     
                     Log.d(TAG, "HLS Factory创建完成")
                     
@@ -430,20 +518,23 @@ class ExoPlayerManager constructor(
                 }
                 url.contains(".mpd") -> {
                     Log.d(TAG, "创建 DASH 媒体源")
-                    // DASH格式支持
+                    // DASH格式支持（重试次数来自「播放设置 → 断线重试次数」）
                     ProgressiveMediaSource.Factory(dataSourceFactory)
+                        .setLoadErrorHandlingPolicy(loadErrorHandlingPolicy)
                         .createMediaSource(MediaItem.fromUri(uri))
                 }
                 url.contains(".mp4") || url.contains(".mkv") || url.contains(".avi") || 
                 url.contains(".flv") || url.contains(".webm") || url.contains(".mov") -> {
                     Log.d(TAG, "创建 Progressive 媒体源（带缓存）")
                     ProgressiveMediaSource.Factory(dataSourceFactory)
+                        .setLoadErrorHandlingPolicy(loadErrorHandlingPolicy)
                         .createMediaSource(MediaItem.fromUri(uri))
                 }
                 else -> {
                     Log.d(TAG, "创建 Progressive 媒体源（默认，带缓存）")
                     // 默认尝试 Progressive，如果失败会触发错误
                     ProgressiveMediaSource.Factory(dataSourceFactory)
+                        .setLoadErrorHandlingPolicy(loadErrorHandlingPolicy)
                         .createMediaSource(MediaItem.fromUri(uri))
                 }
             }
