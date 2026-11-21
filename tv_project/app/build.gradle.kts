@@ -43,14 +43,14 @@ android {
         targetSdk = 36
         // 开发版通道：CI 把 run_number 注入成 DEV_BUILD_NUMBER，
         // 应用内更新用它判断「有没有比手上这个更新的 dev 构建」。
-        // versionCode 保持静态（2），避免离线构建与 CI 构建互相覆盖安装。
+        // versionCode 保持静态递增，避免离线构建与 CI 构建互相覆盖安装。
         val devBuildNumber = (
             System.getenv("TVPLAYER_DEV_BUILD_NUMBER")
                 ?: project.findProperty("TVPLAYER_DEV_BUILD_NUMBER") as String?
             )?.toIntOrNull() ?: 0
 
-        versionCode = 3
-        versionName = "1.2.0"
+        versionCode = 4
+        versionName = "1.2.1"
         buildConfigField("int", "DEV_BUILD_NUMBER", "$devBuildNumber")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

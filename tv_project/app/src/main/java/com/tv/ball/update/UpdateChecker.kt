@@ -82,6 +82,17 @@ object UpdateChecker {
         throw CheckException(failure)
     }
 
+    /** 失败原因给人话，界面上直接用。 */
+    fun failureMessage(failure: Failure): String = when (failure) {
+        Failure.RATE_LIMITED -> "GitHub 接口限流，请稍后再试"
+        Failure.TIMEOUT -> "连接超时，检查网络后再试"
+        Failure.NETWORK -> "网络不可用，检查网络后再试"
+        Failure.SERVER -> "GitHub 服务异常，请稍后再试"
+        Failure.NO_RELEASE -> "这个渠道还没有已发布的版本"
+        Failure.MALFORMED -> "拿到的版本数据不完整，请稍后再试"
+        Failure.UNKNOWN -> "检查更新失败，请稍后再试"
+    }
+
     /** 手上这个包是否比远端旧。 */
     fun isNewer(info: UpdateInfo): Boolean {
         if (info.buildNumber > 0) {
@@ -164,7 +175,7 @@ object UpdateChecker {
             ?: throw CheckException(Failure.MALFORMED)
         val version = field(bodyText, "version") ?: "1.1.0"
         val prefix = "TVPlayer-dev-$build"
-        val asset = firstApk(json, prefix) ?: throw CheckException(NO_RELEASE_OR(Failure.NO_RELEASE))
+        val asset = firstApk(json, prefix) ?: throw CheckException(Failure.NO_RELEASE)
         return UpdateInfo(
             channel = channel,
             versionName = version,
@@ -178,8 +189,6 @@ object UpdateChecker {
             fileName = asset.third
         )
     }
-
-    private fun NO_RELEASE_OR(failure: Failure): Failure = failure
 
     /** releases 里的第一个（或指定前缀的）APK：url / size / name。 */
     private fun firstApk(json: JSONObject, prefix: String? = null): Triple<String, Long, String>? {

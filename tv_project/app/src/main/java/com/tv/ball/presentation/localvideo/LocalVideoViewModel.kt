@@ -19,21 +19,36 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-class LocalVideoViewModel(
-    private val context: Context = Dependencies.context
-) : ViewModel() {
-    
+class LocalVideoViewModel : ViewModel() {
+
+    /**
+     * ViewModel 由 ViewModelProvider 反射创建（走无参构造），
+     * 上下文按需取 Application，不通过构造参数注入，避免反射创建时踩初始化顺序。
+     */
+    private val context: Context
+        get() = Dependencies.context
+
     companion object {
-        // 创建默认占位图（灰色）- 完全照搬 Lua 代码
-        private val LOADING_IMAGE: Bitmap by lazy {            Bitmap.createBitmap(320, 180, Bitmap.Config.ARGB_8888).apply {
-                val canvas = Canvas(this)
-                val paint = Paint().apply {
-                    color = androidx.core.content.ContextCompat.getColor(
-                        Dependencies.context,
-                        com.tv.ball.R.color.surface_inset
-                    )
+        /**
+         * 占位图（灰色）- 完全照搬 Lua 代码。
+         * 低内存盒子上 320x180 ARGB_8888 的分配仍可能失败，
+         * 失败退化 1x1 空图，不能把整页带崩。
+         */
+        private val LOADING_IMAGE: Bitmap by lazy {
+            try {
+                Bitmap.createBitmap(320, 180, Bitmap.Config.ARGB_8888).apply {
+                    val canvas = Canvas(this)
+                    val paint = Paint().apply {
+                        color = androidx.core.content.ContextCompat.getColor(
+                            Dependencies.context,
+                            com.tv.ball.R.color.surface_inset
+                        )
+                    }
+                    canvas.drawRect(0f, 0f, 320f, 180f, paint)
                 }
-                canvas.drawRect(0f, 0f, 320f, 180f, paint)
+            } catch (e: Throwable) {
+                android.util.Log.e("LocalVideoViewModel", "创建占位图失败: ${e.message}", e)
+                Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
             }
         }
     }
@@ -50,8 +65,13 @@ class LocalVideoViewModel(
     fun loadLocalVideos() {
         viewModelScope.launch {
             _isLoading.value = true
-            val folders = withContext(Dispatchers.IO) {
-                scanVideoFolders()
+            // 定制 ROM 的 MediaProvider 可能被裁剪 / 中途死亡（DeadObjectException），
+            // 扫描失败只降级成空列表，不能把协程异常抛成闪退。
+            val folders = try {
+                withContext(Dispatchers.IO) { scanVideoFolders() }
+            } catch (e: Throwable) {
+                android.util.Log.e("LocalVideoViewModel", "扫描本地视频失败: ${e.message}", e)
+                emptyList()
             }
             // 先用占位图显示列表
             _videoFolders.value = folders
@@ -97,53 +117,57 @@ class LocalVideoViewModel(
     
     private fun scanVideoFolders(): List<VideoFolder> {
         val folderMap = mutableMapOf<String, VideoFolder>()
-        
-        val projection = arrayOf(
-            MediaStore.Video.Media._ID,
-            MediaStore.Video.Media.DATA,
-            MediaStore.Video.Media.BUCKET_DISPLAY_NAME,
-            MediaStore.Video.Media.DISPLAY_NAME
-        )
-        
-        val sortOrder = "${MediaStore.Video.Media.DATE_ADDED} DESC"
-        
-        context.contentResolver.query(
-            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-            projection,
-            null,
-            null,
-            sortOrder
-        )?.use { cursor ->
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
-            val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)
-            val bucketColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.BUCKET_DISPLAY_NAME)
-            
-            while (cursor.moveToNext()) {
-                val id = cursor.getLong(idColumn)
-                val path = cursor.getString(dataColumn)
-                val bucketName = cursor.getString(bucketColumn) ?: "未知文件夹"
-                val parentDir = File(path).parent ?: continue
-                
-                if (!folderMap.containsKey(parentDir)) {
-                    // 先用占位图 - 完全照搬 Lua
-                    folderMap[parentDir] = VideoFolder(
-                        folderName = bucketName,
-                        folderPath = parentDir,
-                        thumbnail = LOADING_IMAGE,  // 先用占位图
-                        videoCount = 1,
-                        videoId = id  // 保存 ID 用于后续加载缩略图
-                    )
-                } else {
-                    folderMap[parentDir] = folderMap[parentDir]!!.copy(
-                        videoCount = folderMap[parentDir]!!.videoCount + 1
-                    )
+
+        try {
+            val projection = arrayOf(
+                MediaStore.Video.Media._ID,
+                MediaStore.Video.Media.DATA,
+                MediaStore.Video.Media.BUCKET_DISPLAY_NAME,
+                MediaStore.Video.Media.DISPLAY_NAME
+            )
+
+            val sortOrder = "${MediaStore.Video.Media.DATE_ADDED} DESC"
+
+            context.contentResolver.query(
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                projection,
+                null,
+                null,
+                sortOrder
+            )?.use { cursor ->
+                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
+                val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)
+                val bucketColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.BUCKET_DISPLAY_NAME)
+
+                while (cursor.moveToNext()) {
+                    val id = cursor.getLong(idColumn)
+                    val path = cursor.getString(dataColumn) ?: continue
+                    val bucketName = cursor.getString(bucketColumn) ?: "未知文件夹"
+                    val parentDir = File(path).parent ?: continue
+
+                    if (!folderMap.containsKey(parentDir)) {
+                        // 先用占位图 - 完全照搬 Lua
+                        folderMap[parentDir] = VideoFolder(
+                            folderName = bucketName,
+                            folderPath = parentDir,
+                            thumbnail = LOADING_IMAGE,  // 先用占位图
+                            videoCount = 1,
+                            videoId = id  // 保存 ID 用于后续加载缩略图
+                        )
+                    } else {
+                        folderMap[parentDir] = folderMap[parentDir]!!.copy(
+                            videoCount = folderMap[parentDir]!!.videoCount + 1
+                        )
+                    }
                 }
             }
+        } catch (e: Throwable) {
+            android.util.Log.e("LocalVideoViewModel", "MediaStore 查询失败: ${e.message}", e)
         }
-        
+
         // 额外扫描下载目录（即使MediaStore中没有）
         scanDownloadDirectory(folderMap)
-        
+
         return folderMap.values.toList()
     }
     

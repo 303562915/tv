@@ -139,12 +139,16 @@ class LocalVideoFolderActivity : AppCompatActivity() {
     }
     
     private fun deleteVideoFromMediaStore(filePath: String): Boolean {
-        val uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-        val selection = "${MediaStore.Video.Media.DATA}=?"
-        val selectionArgs = arrayOf(filePath)
-        
-        val rows = contentResolver.delete(uri, selection, selectionArgs)
-        return rows > 0
+        return try {
+            val uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+            val selection = "${MediaStore.Video.Media.DATA}=?"
+            val selectionArgs = arrayOf(filePath)
+
+            contentResolver.delete(uri, selection, selectionArgs) > 0
+        } catch (e: Throwable) {
+            android.util.Log.e("LocalVideoFolder", "MediaStore 删除失败: ${e.message}", e)
+            false
+        }
     }
     
     private fun deleteVideoFile(filePath: String): Boolean {
@@ -159,12 +163,15 @@ class LocalVideoFolderActivity : AppCompatActivity() {
     private fun loadVideos() {
         folderPath?.let { path ->
             // 在后台线程扫描视频
-            lifecycleScope.launch(Dispatchers.IO) {
-                val videos = scanVideosInFolder(path)
-                withContext(Dispatchers.Main) {
-                    adapter.submitList(videos)
-                    binding.emptyView.visibility = if (videos.isEmpty()) View.VISIBLE else View.GONE
+            lifecycleScope.launch {
+                val videos = try {
+                    withContext(Dispatchers.IO) { scanVideosInFolder(path) }
+                } catch (e: Throwable) {
+                    android.util.Log.e("LocalVideoFolder", "扫描文件夹失败: ${e.message}", e)
+                    emptyList()
                 }
+                adapter.submitList(videos)
+                binding.emptyView.visibility = if (videos.isEmpty()) View.VISIBLE else View.GONE
             }
         }
     }
@@ -179,8 +186,9 @@ class LocalVideoFolderActivity : AppCompatActivity() {
         
         dir.listFiles()?.forEach { file ->
             if (file.isFile) {
-                val extension = file.extension.lowercase()
-                if (videoExtensions.any { it.endsWith(extension) }) {
+                val lowerName = file.name.lowercase()
+                // 用「文件名以扩展名结尾」判断；反过来比较会让无扩展名的文件（后缀为空串）全部命中
+                if (videoExtensions.any { lowerName.endsWith(it) }) {
                     // 完全照搬 Lua 逻辑：获取 ID 并加载缩略图
                     val videoId = getVideoId(file.absolutePath)
                     val thumbnail = videoId?.let { getThumbnailFromMediaStore(it) }
@@ -216,23 +224,28 @@ class LocalVideoFolderActivity : AppCompatActivity() {
     }
     
     private fun getVideoId(filePath: String): Long? {
-        val projection = arrayOf(MediaStore.Video.Media._ID)
-        val selection = "${MediaStore.Video.Media.DATA}=?"
-        val selectionArgs = arrayOf(filePath)
-        
-        contentResolver.query(
-            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-            projection,
-            selection,
-            selectionArgs,
-            null
-        )?.use { cursor ->
-            if (cursor.moveToFirst()) {
-                return cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID))
+        return try {
+            val projection = arrayOf(MediaStore.Video.Media._ID)
+            val selection = "${MediaStore.Video.Media.DATA}=?"
+            val selectionArgs = arrayOf(filePath)
+
+            contentResolver.query(
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                projection,
+                selection,
+                selectionArgs,
+                null
+            )?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID))
+                } else {
+                    null
+                }
             }
+        } catch (e: Throwable) {
+            android.util.Log.e("LocalVideoFolder", "查询视频 ID 失败: ${e.message}", e)
+            null
         }
-        
-        return null
     }
     
     override fun onBackPressed() {

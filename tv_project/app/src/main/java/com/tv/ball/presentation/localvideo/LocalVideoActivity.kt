@@ -25,7 +25,14 @@ class LocalVideoActivity : AppCompatActivity() {
     
     private lateinit var binding: ActivityLocalVideoBinding
     private val viewModel: LocalVideoViewModel by lazy {
-        ViewModelProvider(this)[LocalVideoViewModel::class.java]
+        // ViewModelProvider 走反射创建；万一工厂路径出问题（镜像 ROM / 类加载异常），
+        // 退回直接构造，宁可少一份 ViewModelStore 托管也不能让入口闪退。
+        try {
+            ViewModelProvider(this)[LocalVideoViewModel::class.java]
+        } catch (e: Throwable) {
+            android.util.Log.e("LocalVideoActivity", "创建 LocalVideoViewModel 失败: ${e.message}", e)
+            LocalVideoViewModel()
+        }
     }
     private lateinit var adapter: LocalVideoAdapter
     
@@ -98,19 +105,26 @@ class LocalVideoActivity : AppCompatActivity() {
     }
     
     private fun checkPermissionAndLoad() {
-        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            Manifest.permission.READ_MEDIA_VIDEO
-        } else {
-            Manifest.permission.READ_EXTERNAL_STORAGE
-        }
-        
-        when {
-            ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED -> {
-                viewModel.loadLocalVideos()
+        // 权限查询 / 拉起授权框在部分定制 ROM 上会抛异常（权限组被裁剪、Activity 已销毁），
+        // 这里兜住并给出可读提示，不让入口闪退。
+        try {
+            val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                Manifest.permission.READ_MEDIA_VIDEO
+            } else {
+                Manifest.permission.READ_EXTERNAL_STORAGE
             }
-            else -> {
-                requestPermissionLauncher.launch(permission)
+
+            when {
+                ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED -> {
+                    viewModel.loadLocalVideos()
+                }
+                else -> {
+                    requestPermissionLauncher.launch(permission)
+                }
             }
+        } catch (e: Throwable) {
+            android.util.Log.e("LocalVideoActivity", "检查存储权限失败: ${e.message}", e)
+            Toast.makeText(this, "无法读取本地视频：${e.javaClass.simpleName}", Toast.LENGTH_LONG).show()
         }
     }
 }
