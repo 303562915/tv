@@ -1,27 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 图标取自参考项目 unicanta（composeApp/.../ui/fl/FlGlyphs.kt）：ic_nav_profile
+     24x24 网格、沿描边中线、stroke 1.8 圆头圆角，由 ImageView 的 SRC_IN 上色。 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp" android:height="24dp"
-    android:viewportWidth="24" android:viewportHeight="24">
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
     <path
+        android:pathData="M5,3 L13.5,3 L19,8.5 L19,21 L5,21 Z"
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="1.8"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:fillColor="#00000000"
-        android:pathData="M5.8,7h12.4a2.8,2.8 0 0 1 2.8,2.8v7.4a2.8,2.8 0 0 1 -2.8,2.8H5.8a2.8,2.8 0 0 1 -2.8,-2.8V9.8A2.8,2.8 0 0 1 5.8,7z" />
+        android:fillColor="#00000000" />
     <path
+        android:pathData="M13.5,3.2 L13.5,8.5 L18.8,8.5"
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="1.8"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:fillColor="#00000000"
-        android:pathData="M9,7V5.6a1.4,1.4 0 0 1 1.4,-1.4h3.2A1.4,1.4 0 0 1 15,5.6V7" />
+        android:fillColor="#00000000" />
     <path
+        android:pathData="M8.5,12.5 L15.5,12.5"
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="1.8"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:fillColor="#00000000"
-        android:pathData="M3.2,12.6h5.2M15.6,12.6h5.2" />
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M8.5,16 L13,16"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
 </vector>
-

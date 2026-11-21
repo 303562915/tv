@@ -9,6 +9,9 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
 import android.view.View
+import android.view.ViewGroup
+import android.widget.ScrollView
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -58,6 +61,46 @@ class MainActivity : AppCompatActivity() {
         }
 
         setupBottomNav(savedInstanceState == null)
+
+        showLastCrashIfAny()
+    }
+
+    /**
+     * 上次进程崩过就把崩溃堆栈弹出来（可长按复制）。
+     *
+     * 播放器这类页面崩了就整个进程退出，用户既打不开文件管理器也不方便连电脑，
+     * 与其让问题只能靠猜，不如进主界面就直接把堆栈摆出来，截一张图即可定位。
+     */
+    private fun showLastCrashIfAny() {
+        Thread {
+            val report = com.tv.ball.util.GlobalExceptionHandler.takeUnshownReport() ?: return@Thread
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                val text = TextView(this).apply {
+                    this.text = report.content
+                    textSize = 10f
+                    setPadding(32, 24, 32, 24)
+                    setTextIsSelectable(true)
+                }
+                val scroll = ScrollView(this).apply {
+                    addView(
+                        text,
+                        ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            (resources.displayMetrics.heightPixels * 0.55f).toInt()
+                        )
+                    )
+                }
+                AlertDialog.Builder(this)
+                    .setTitle("上次崩溃：${report.fileName}")
+                    .setView(scroll)
+                    .setPositiveButton("知道了") { _, _ ->
+                        com.tv.ball.util.GlobalExceptionHandler.markReportShown(report.fileName)
+                    }
+                    .setCancelable(false)
+                    .show()
+            }
+        }.start()
     }
 
     /**

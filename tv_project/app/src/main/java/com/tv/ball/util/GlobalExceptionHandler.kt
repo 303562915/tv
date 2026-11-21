@@ -19,6 +19,8 @@ class GlobalExceptionHandler private constructor(
 
     companion object {
         private const val TAG = "GlobalExceptionHandler"
+        private const val SHOWN_PREFS = "crash_reports"
+        private const val KEY_LAST_SHOWN = "last_shown_crash"
         private var instance: GlobalExceptionHandler? = null
 
         /**
@@ -32,7 +34,44 @@ class GlobalExceptionHandler private constructor(
                 Log.i(TAG, "全局异常处理器已初始化")
             }
         }
+
+        /**
+         * 取「还没给用户看过」的最新崩溃报告；没有新崩溃返回 null。
+         *
+         * 崩溃后进程直接退出，用户没法翻 Android/data 目录，所以下次启动时由界面层
+         * 直接把这份内容显示出来——不然线上定位只能靠盲猜。主线程外调用。
+         */
+        fun takeUnshownReport(): CrashReport? {
+            val ctx = instance?.context ?: return null
+            return try {
+                val logDir = ctx.getExternalFilesDir("crash_logs") ?: return null
+                val newest = logDir.listFiles()?.maxByOrNull { it.lastModified() } ?: return null
+                val lastShown = ctx.getSharedPreferences(SHOWN_PREFS, Context.MODE_PRIVATE)
+                    .getString(KEY_LAST_SHOWN, null)
+                if (newest.name == lastShown) return null
+                CrashReport(newest.name, newest.readText())
+            } catch (e: Exception) {
+                Log.e(TAG, "读取崩溃日志失败", e)
+                null
+            }
+        }
+
+        /** 标记某份报告已经展示过，下次启动不再弹。 */
+        fun markReportShown(fileName: String) {
+            val ctx = instance?.context ?: return
+            try {
+                ctx.getSharedPreferences(SHOWN_PREFS, Context.MODE_PRIVATE)
+                    .edit()
+                    .putString(KEY_LAST_SHOWN, fileName)
+                    .apply()
+            } catch (e: Exception) {
+                Log.e(TAG, "记录崩溃日志展示状态失败", e)
+            }
+        }
     }
+
+    /** 一份崩溃报告：文件名 + 全文。 */
+    data class CrashReport(val fileName: String, val content: String)
 
     override fun uncaughtException(thread: Thread, throwable: Throwable) {
         try {

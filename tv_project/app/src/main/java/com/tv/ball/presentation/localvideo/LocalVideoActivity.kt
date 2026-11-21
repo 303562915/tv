@@ -49,15 +49,38 @@ class LocalVideoActivity : AppCompatActivity() {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityLocalVideoBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        
-        // 设置透明沉浸式状态栏
-        com.tv.ball.utils.StatusBarUtils.setupTransparentStatusBar(this)
-        
-        setupRecyclerView()
-        observeViewModel()
-        checkPermissionAndLoad()
+        // 页面自身初始化再兜一层：布局/状态栏/适配器任一环节抛异常时，
+        // 就地显示异常摘要并保留已建好的内容，而不是让进程整个退出。
+        try {
+            binding = ActivityLocalVideoBinding.inflate(layoutInflater)
+            setContentView(binding.root)
+
+            // 设置透明沉浸式状态栏
+            com.tv.ball.utils.StatusBarUtils.setupTransparentStatusBar(this)
+
+            setupRecyclerView()
+            observeViewModel()
+            checkPermissionAndLoad()
+        } catch (e: Throwable) {
+            android.util.Log.e("LocalVideoActivity", "本地视频页初始化失败", e)
+            showInitFailure(e)
+        }
+    }
+
+    /** 初始化失败时的兜底提示：给出异常类型与消息，方便截图反馈。 */
+    private fun showInitFailure(e: Throwable) {
+        val detail = "${e.javaClass.name}\n\n${e.message ?: "无详情"}"
+        try {
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("本地视频页初始化失败")
+                .setMessage(detail)
+                .setPositiveButton("关闭") { _, _ -> finish() }
+                .setCancelable(false)
+                .show()
+        } catch (ignored: Throwable) {
+            Toast.makeText(this, "本地视频页初始化失败：${e.javaClass.simpleName}", Toast.LENGTH_LONG).show()
+            finish()
+        }
     }
     
     private fun setupRecyclerView() {
