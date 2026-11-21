@@ -90,6 +90,14 @@
     <color name="episode_movie_text">#FF0E448E</color>
     <color name="episode_normal_text">#FF181C23</color>
 
+    <!-- ===== 竖屏选集小格子：灰底 + 深灰字，当前集只用主色文字区分 ===== -->
+    <color name="episode_chip_bg">#FFF2F1F5</color>
+    <color name="episode_chip_bg_selected">#FFE6E5EC</color>
+    <color name="episode_chip_text">#FF3A3F4A</color>
+    <color name="episode_chip_text_selected">#FF007AFF</color>
+    <!-- 竖屏详情功能行（下载/收藏/投屏/分享/解析）图标与文字 -->
+    <color name="detail_action_tint">#FF7C818C</color>
+
     <!-- ===== 悬浮胶囊底栏：浅色是白胶囊 + 淡灰透镜 ===== -->
     <color name="nav_capsule">#FFFCF8F9</color>
     <color name="nav_capsule_stroke">#00FFFFFF</color>

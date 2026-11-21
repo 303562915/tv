@@ -33,7 +33,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="8.5分 · 8118播放"
-            android:textColor="@color/theme_text_secondary"
+            android:textColor="@color/detail_action_tint"
             android:textSize="12sp" />
 
     </LinearLayout>
@@ -64,14 +64,14 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_file_download_black_24dp"
-                app:tint="@color/theme_text_secondary" />
+                app:tint="@color/detail_action_tint" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="下载"
-                android:textColor="@color/theme_text_secondary"
+                android:textColor="@color/detail_action_tint"
                 android:textSize="11sp" />
         </LinearLayout>
 
@@ -92,14 +92,14 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_favorite_border_black_24dp"
-                app:tint="@color/theme_text_secondary" />
+                app:tint="@color/detail_action_tint" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="收藏"
-                android:textColor="@color/theme_text_secondary"
+                android:textColor="@color/detail_action_tint"
                 android:textSize="11sp" />
         </LinearLayout>
 
@@ -119,14 +119,14 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_cast_black_24dp"
-                app:tint="@color/theme_text_secondary" />
+                app:tint="@color/detail_action_tint" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="投屏"
-                android:textColor="@color/theme_text_secondary"
+                android:textColor="@color/detail_action_tint"
                 android:textSize="11sp" />
         </LinearLayout>
 
@@ -146,14 +146,14 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_share_black_24dp"
-                app:tint="@color/theme_text_secondary" />
+                app:tint="@color/detail_action_tint" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="分享"
-                android:textColor="@color/theme_text_secondary"
+                android:textColor="@color/detail_action_tint"
                 android:textSize="11sp" />
         </LinearLayout>
 
@@ -173,14 +173,14 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_link_black_24dp"
-                app:tint="@color/theme_text_secondary" />
+                app:tint="@color/detail_action_tint" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="解析"
-                android:textColor="@color/theme_text_secondary"
+                android:textColor="@color/detail_action_tint"
                 android:textSize="11sp" />
         </LinearLayout>
 
@@ -227,7 +227,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="全25集"
-                    android:textColor="@color/theme_text_secondary"
+                    android:textColor="@color/detail_action_tint"
                     android:textSize="13sp" />
 
                 <ImageView
@@ -235,7 +235,7 @@
                     android:layout_height="16dp"
                     android:layout_marginStart="4dp"
                     android:src="@drawable/ic_expand_more"
-                    app:tint="@color/theme_text_secondary" />
+                    app:tint="@color/detail_action_tint" />
             </LinearLayout>
         </LinearLayout>
 
@@ -249,7 +249,7 @@
             app:tabMode="scrollable"
             app:tabIndicatorColor="@color/theme_primary"
             app:tabSelectedTextColor="@color/theme_primary"
-            app:tabTextColor="@color/theme_text_secondary"
+            app:tabTextColor="@color/detail_action_tint"
             app:tabIndicatorHeight="2dp"
             app:tabTextAppearance="@style/TabTextSmall"
             app:tabRippleColor="@null"

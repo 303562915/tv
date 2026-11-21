@@ -89,6 +89,13 @@
     <color name="episode_movie_text">#FFD8E2FF</color>
     <color name="episode_normal_text">#FFF5F6FF</color>
 
+    <!-- ===== 竖屏选集小格子（夜间） ===== -->
+    <color name="episode_chip_bg">#FF2A2A2E</color>
+    <color name="episode_chip_bg_selected">#FF3A3A41</color>
+    <color name="episode_chip_text">#FFD7DAE2</color>
+    <color name="episode_chip_text_selected">#FF7FB4FF</color>
+    <color name="detail_action_tint">#FFA8AEBA</color>
+
     <!-- ===== 悬浮胶囊底栏（夜间） ===== -->
     <color name="nav_capsule">#FF323235</color>
     <color name="nav_capsule_stroke">#00FFFFFF</color>

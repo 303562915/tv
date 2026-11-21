@@ -1571,8 +1571,8 @@ class VideoPlayerActivity : AppCompatActivity() {
                 )
             }
         } else {
-            // 普通模式：次要文字使用灰色
-            0xFFAAAAAA.toInt()
+            // 普通模式：次要文字与功能图标统一用中性灰，和选集小格子同一套灰
+            ContextCompat.getColor(this, R.color.detail_action_tint)
         }
         
         // 更新标题
@@ -2620,7 +2620,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         }
         
         // 创建Adapter，使用当前线路中的索引
-        portraitEpisodeAdapter = EpisodeSelectorAdapter(indexInSelectedLine) { index, episode ->
+        portraitEpisodeAdapter = EpisodeSelectorAdapter(indexInSelectedLine, compact = true) { index, episode ->
             android.util.Log.d("VideoPlayer", "点击集数: index=$index, name=${episode.name}, url=${episode.url}")
             
             // 需要找到原始索引（在完整列表中的位置）
