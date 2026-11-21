@@ -9,7 +9,7 @@
      提示行由 F086Activity 按当前渠道填 f086_check_hint_channel；
   4. 自动下载安装开关；
   5. 下载页 / 源码仓库两个外链；
-  6. 第三方依赖 + 许可证全文（本项目自有的开源合规区，unicanta 没有对应物，保留）。
+  6. 许可证要点（本项目自有的开源合规区）。
 
   行几何与「我的」页同一套 token（对照 unicanta SettingsItem.kt：
   GroupInset 13 / GroupCorner 12 / RowPaddingH 14 / RowPaddingV 9 / RowMinHeight 44 /
@@ -18,7 +18,7 @@
   卡片本身是焦点目标时，行底靠 android:duplicateParentState 承接卡片焦点态。
 
   电视遥控器操作：焦点链  返回 → 检查更新 → 稳定版 → 开发版 → 自动安装 →
-  下载页 → 打开仓库 → 许可证长文本区；依赖行与说明文字不抢焦点。
+  下载页 → 打开仓库 → 许可证长文本区。
 -->
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
