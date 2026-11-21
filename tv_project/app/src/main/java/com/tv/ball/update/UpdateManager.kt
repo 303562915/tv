@@ -37,9 +37,9 @@ object UpdateManager {
 
     // ---------------------------------------------------------------- 入口
 
-    /** 弹窗流：检查稳定版渠道，发现新版本就问要不要下载安装。 */
+    /** 弹窗流：按当前渠道（默认开发版）检查，发现新版本就问要不要下载安装。 */
     fun start(activity: Activity, onDone: () -> Unit = {}) {
-        start(activity, UpdateChannel.STABLE, onDone)
+        start(activity, UpdateChannel.read(activity), onDone)
     }
 
     /** 弹窗流 + 渠道：关于页的「立即检查」也走这里时保持行为一致。 */

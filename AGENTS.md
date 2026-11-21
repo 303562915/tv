@@ -47,7 +47,9 @@ CI 失败就**读日志改代码再推**，不要转去本地构建。
 | 稳定版 | `https://303562915.github.io/tv/latest.json` | `v*` 正式 Release | `version_code` vs `BuildConfig.VERSION_CODE` |
 | 开发版 | `https://303562915.github.io/tv/development.json` | 滚动 `dev` 预发布 | `build_number` vs `BuildConfig.DEV_BUILD_NUMBER` |
 
-- 检查顺序：稳定版优先，稳定版无更新再看开发版；两份镜像都拿不到才退 GitHub API。
+- 默认渠道：**开发版**（`UpdateChannel.DEFAULT = DEV`，未设置过渠道时「我的」页与关于页都走开发版）；
+  关于页的渠道芯片可切到稳定版，选择存 `f086_about/update_channel`。
+- 检查顺序：只看当前渠道；该渠道的下载页镜像拿不到才退 GitHub API，再退 Release 页面。
 - 下载：落到应用私有缓存目录，校验体积/`sha256`。
 - 安装顺序：① 应用内 `PackageInstaller` → ② 系统安装器（`ACTION_VIEW` + FileProvider）→
   ③ 前两步失败时回退 Shizuku（`pm install -r -t <path>`）→ ④ root → ⑤ 全失败才给网页链接。

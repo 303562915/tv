@@ -66,7 +66,8 @@ gh run watch <run-id>
 
 改这一块必须守住顺序（详见仓库根 `AGENTS.md` A3）：
 
-1. 检查：`https://303562915.github.io/tv/latest.json`（GitHub API 兜底）
+1. 检查：默认**开发版**渠道 `https://303562915.github.io/tv/development.json`
+   （关于页可切稳定版 `latest.json`；镜像拿不到退 GitHub API / Release 页面）
 2. 下载：私有缓存目录 + 体积/SHA-256 校验
 3. 安装：`PackageInstaller` → 系统安装器（FileProvider）→ **失败回退 Shizuku**
    （`pm install -r -t <path>`）→ 全失败才给网页链接

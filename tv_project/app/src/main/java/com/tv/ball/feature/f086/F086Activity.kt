@@ -50,7 +50,7 @@ class F086Activity : AppCompatActivity() {
     }
 
     private var state: UiState = UiState.Idle
-    private var channel: UpdateChannel = UpdateChannel.STABLE
+    private var channel: UpdateChannel = UpdateChannel.DEFAULT
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,7 +58,7 @@ class F086Activity : AppCompatActivity() {
         setContentView(binding.root)
 
         val prefs = prefs()
-        channel = UpdateChannel.from(prefs.getString(KEY_CHANNEL, null))
+        channel = UpdateChannel.read(this)
 
         binding.btnBack.setOnClickListener { finish() }
         binding.f086UpdateCard.setOnClickListener { onUpdateCardTap() }
@@ -144,7 +144,7 @@ class F086Activity : AppCompatActivity() {
     private fun switchChannel(target: UpdateChannel) {
         if (target == channel) return
         channel = target
-        prefs().edit().putString(KEY_CHANNEL, if (target == UpdateChannel.DEV) "dev" else "stable").apply()
+        UpdateChannel.save(this, target)
         renderChannel()
         renderIdle()
     }
@@ -322,7 +322,6 @@ class F086Activity : AppCompatActivity() {
 
     private companion object {
         const val PREFS = "f086_about"
-        const val KEY_CHANNEL = "update_channel"
         const val KEY_AUTO_INSTALL = "auto_install"
     }
 }
