@@ -98,6 +98,11 @@
     <!-- 竖屏详情功能行（下载/收藏/投屏/分享/解析）图标与文字 -->
     <color name="detail_action_tint">#FF7C818C</color>
 
+    <!-- ===== 播放器横屏控件（视频底色恒为黑，深浅色一致用白系） ===== -->
+    <color name="player_control_icon">#FFFFFFFF</color>
+    <color name="player_control_icon_dim">#B3FFFFFF</color>
+    <color name="player_control_text">#FFFFFFFF</color>
+
     <!-- ===== 悬浮胶囊底栏：浅色是白胶囊 + 淡灰透镜 ===== -->
     <color name="nav_capsule">#FFFCF8F9</color>
     <color name="nav_capsule_stroke">#00FFFFFF</color>

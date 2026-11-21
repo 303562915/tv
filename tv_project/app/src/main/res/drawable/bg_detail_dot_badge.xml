@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 「讨论」计数小红点：胶囊底，颜色沿用已有 theme_error，不新增颜色资源 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/theme_error" />
+    <corners android:radius="@dimen/radius_full" />
+</shape>

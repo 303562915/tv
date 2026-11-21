@@ -116,12 +116,21 @@
         <item name="bottomSheetStyle">@style/FullWidthBottomSheet</item>
         <item name="android:windowIsFloating">false</item>
         <item name="android:windowSoftInputMode">adjustResize</item>
-        <item name="android:colorBackground">@color/theme_surface_container_low</item>
+        <!-- 窗口底色与弹层内容同色（surface_card），圆角外不再透出浅灰底 -->
+        <item name="android:colorBackground">@color/surface_card</item>
+        <!-- 弹窗窗口自身透明：颜色只由内容里的圆角形状绘制 -->
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <!-- 关掉弹窗背后的灰色遮罩（压暗层），弹窗打开时页面不再整体变灰 -->
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:backgroundDimAmount">0.0</item>
     </style>
 
     <style name="FullWidthBottomSheet" parent="Widget.Design.BottomSheet.Modal">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:background">@color/theme_surface_container_low</item>
+        <!-- 弹层容器透明：避免方形底色在 24dp 圆角外露出灰色直角块 -->
+        <item name="android:background">@android:color/transparent</item>
+        <!-- 去掉弹层投影：投影会在弹层上缘/两侧形成灰色渐变带 -->
+        <item name="android:elevation">0dp</item>
     </style>
 
     <!-- 我的页面列表项 -->

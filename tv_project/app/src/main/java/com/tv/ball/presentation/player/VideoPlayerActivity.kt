@@ -1361,9 +1361,15 @@ class VideoPlayerActivity : AppCompatActivity() {
             toggleOrientation()
         }
 
-        // 旋转按钮
+        // 画面比例按钮：横屏切画面比例，竖屏仍按旋转处理
         binding.rotateButton.setOnClickListener {
-            toggleOrientation()
+            val isLandscape = resources.configuration.orientation ==
+                android.content.res.Configuration.ORIENTATION_LANDSCAPE
+            if (isLandscape) {
+                showAspectRatioDialog()
+            } else {
+                toggleOrientation()
+            }
         }
         
         // 倍速按钮 - 打开倍速设置对话框
@@ -1588,9 +1594,25 @@ class VideoPlayerActivity : AppCompatActivity() {
         
         // 更新集数统计文字
         detailSection.findViewById<TextView>(R.id.episodeCountText)?.setTextColor(secondaryTextColor)
-        
-        // 更新功能按钮下方的文字（下载、收藏、投屏、分享、解析）
+
+        // 更新标签行文字（评分 / 播放量 / 高清 / 会员）
+        listOf(R.id.tagRating, R.id.tagPlayCount, R.id.tagHd, R.id.tagVip).forEach { tagId ->
+            detailSection.findViewById<TextView>(tagId)?.setTextColor(secondaryTextColor)
+        }
+
+        // 更新「简介」入口与简介正文
+        detailSection.findViewById<TextView>(R.id.introLinkText)?.setTextColor(secondaryTextColor)
+        detailSection.findViewById<TextView>(R.id.videoIntroText)?.setTextColor(secondaryTextColor)
+        detailSection.findViewById<android.widget.ImageView>(R.id.introExpandIcon)
+            ?.setColorFilter(secondaryTextColor)
+
+        // 更新二创 / 讨论 的「暂无内容」占位
+        detailSection.findViewById<TextView>(R.id.tabPlaceholderText)?.setTextColor(secondaryTextColor)
+
+        // 更新功能按钮下方的文字（推荐、一起看、下载、收藏、投屏、分享、解析）
         val buttonTextViews = listOf(
+            detailSection.findViewById<LinearLayout>(R.id.recommendButton),
+            detailSection.findViewById<LinearLayout>(R.id.watchTogetherButton),
             detailSection.findViewById<LinearLayout>(R.id.downloadButton),
             detailSection.findViewById<LinearLayout>(R.id.favoriteButton),
             detailSection.findViewById<LinearLayout>(R.id.castButton),
@@ -1612,6 +1634,8 @@ class VideoPlayerActivity : AppCompatActivity() {
         
         // 更新图标颜色
         val iconViews = listOf(
+            detailSection.findViewById<LinearLayout>(R.id.recommendButton),
+            detailSection.findViewById<LinearLayout>(R.id.watchTogetherButton),
             detailSection.findViewById<LinearLayout>(R.id.downloadButton),
             detailSection.findViewById<LinearLayout>(R.id.favoriteButton),
             detailSection.findViewById<LinearLayout>(R.id.castButton),
@@ -1630,6 +1654,9 @@ class VideoPlayerActivity : AppCompatActivity() {
                 }
             }
         }
+
+        // 顶部 Tab 也跟随当前模式换色（选中=主文字色，未选中=次要色）
+        updatePortraitTabStyle(currentPortraitTabIndex())
     }
     
     private fun toggleOrientation() {
@@ -1695,27 +1722,26 @@ class VideoPlayerActivity : AppCompatActivity() {
             playerParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             binding.root.layoutParams = playerParams
 
-            // 判断是否是本地视频
-            val isLocalVideo = isLocalVideo()
-
-            // 横屏：显示所有控制按钮
+            // 横屏：只保留 播放/暂停、下一集、进度条（当前时间+总时长）、画面比例、全屏
+            // 竖屏专用项（清晰度/选集/下载/解析/倍速/截屏）在横屏一律隐藏
             try {
-                binding.qualityButton?.visibility = View.VISIBLE
+                binding.qualityButton?.visibility = View.GONE
             } catch (e: Exception) {
                 // 忽略
             }
-            binding.episodeButton.visibility = View.VISIBLE
-            
-            // 本地视频时隐藏下载和解析按钮
-            if (isLocalVideo) {
-                binding.downloadButton.visibility = View.GONE
-                binding.parseRecordButton.visibility = View.GONE
-            } else {
-                binding.downloadButton.visibility = View.VISIBLE
-                binding.parseRecordButton.visibility = View.VISIBLE
-            }
-            
-            binding.speedButton.visibility = View.VISIBLE
+            binding.episodeButton.visibility = View.GONE
+            binding.downloadButton.visibility = View.GONE
+            binding.parseRecordButton.visibility = View.GONE
+            binding.speedButton.visibility = View.GONE
+            binding.screenshotButton.visibility = View.GONE
+
+            // 横屏：顶部右侧 投屏/分享/更多 显示文字标签
+            binding.castLabel.visibility = View.VISIBLE
+            binding.shareLabel.visibility = View.VISIBLE
+            binding.menuLabel.visibility = View.VISIBLE
+
+            // 横屏：有下一集时才显示下一集按钮
+            updateNextButtonVisibility()
 
             // 移除竖屏详情视图
             removePortraitDetailView()
@@ -1742,6 +1768,11 @@ class VideoPlayerActivity : AppCompatActivity() {
             binding.downloadButton.visibility = View.GONE
             binding.parseRecordButton.visibility = View.GONE
             binding.speedButton.visibility = View.GONE
+
+            // 竖屏：顶部右侧恢复纯图标（不显示文字标签）
+            binding.castLabel.visibility = View.GONE
+            binding.shareLabel.visibility = View.GONE
+            binding.menuLabel.visibility = View.GONE
 
             // 添加竖屏详情视图
             addPortraitDetailView()
@@ -1776,6 +1807,15 @@ class VideoPlayerActivity : AppCompatActivity() {
         // 设置视频标题
         portraitDetailView?.findViewById<TextView>(R.id.videoTitleDetail)?.text = videoTitle
 
+        // 顶部 详情 / 二创 / 讨论 Tab（默认详情）
+        setupPortraitTabs()
+
+        // 标题右侧「简介」入口 + 简介占位文案（只用现有数据拼，不发请求）
+        setupPortraitIntro()
+
+        // 标签行：评分 / 播放量 / 固定静态标签，拿不到的数据直接不显示
+        setupPortraitTagRow()
+
         // 立即设置默认背景色（白色，普通影视模式）
         // 等视频加载完成后会根据实际时长更新
         setDetailSectionStyle(isMovie = false)
@@ -1788,6 +1828,16 @@ class VideoPlayerActivity : AppCompatActivity() {
     }
 
     private fun setupPortraitButtons() {
+        // 推荐按钮（占位，不接后端）
+        portraitDetailView?.findViewById<LinearLayout>(R.id.recommendButton)?.setOnClickListener {
+            Toast.makeText(this, "已推荐", Toast.LENGTH_SHORT).show()
+        }
+
+        // 一起看按钮（占位，不接后端）
+        portraitDetailView?.findViewById<LinearLayout>(R.id.watchTogetherButton)?.setOnClickListener {
+            Toast.makeText(this, "一起看开发中", Toast.LENGTH_SHORT).show()
+        }
+
         // 下载按钮
         portraitDetailView?.findViewById<LinearLayout>(R.id.downloadButton)?.setOnClickListener {
             showDownloadDialog()
@@ -1821,7 +1871,180 @@ class VideoPlayerActivity : AppCompatActivity() {
         // 更新收藏状态
         updateFavoriteIcon()
     }
-    
+
+    /**
+     * 顶部 详情 / 二创 / 讨论 Tab：只做基础切换，详情=当前信息区，
+     * 二创/讨论 没有对应数据模型，切过去只显示一行「暂无内容」占位。
+     */
+    private fun setupPortraitTabs() {
+        val detailTab = portraitDetailView?.findViewById<LinearLayout>(R.id.tabRowDetail)
+        val erciTab = portraitDetailView?.findViewById<LinearLayout>(R.id.tabRowErci)
+        val discussTab = portraitDetailView?.findViewById<LinearLayout>(R.id.tabRowDiscuss)
+
+        if (detailTab == null || erciTab == null || discussTab == null) {
+            android.util.Log.w("VideoPlayer", "setupPortraitTabs: 找不到 Tab 视图")
+            return
+        }
+
+        // Tab 下标：0=详情，1=二创，2=讨论
+        val tabDetail = 0
+        val tabErci = 1
+        val tabDiscuss = 2
+
+        detailTab.setOnClickListener { selectPortraitTab(tabDetail) }
+        erciTab.setOnClickListener { selectPortraitTab(tabErci) }
+        discussTab.setOnClickListener { selectPortraitTab(tabDiscuss) }
+
+        // 默认选中「详情」
+        selectPortraitTab(tabDetail)
+    }
+
+    /**
+     * 切换竖屏详情 Tab
+     * @param tabIndex 0=详情，1=二创，2=讨论
+     */
+    private fun selectPortraitTab(tabIndex: Int) {
+        val view = portraitDetailView ?: return
+
+        val isDetail = tabIndex == 0
+        view.findViewById<View>(R.id.detailContentContainer)?.visibility =
+            if (isDetail) View.VISIBLE else View.GONE
+
+        val placeholder = view.findViewById<View>(R.id.tabPlaceholderContainer)
+        placeholder?.visibility = if (isDetail) View.GONE else View.VISIBLE
+        if (!isDetail) {
+            // 二创 / 讨论 没有数据来源，只给一行占位，不编造数据
+            view.findViewById<TextView>(R.id.tabPlaceholderText)?.text = "暂无内容"
+        }
+
+        updatePortraitTabStyle(tabIndex)
+    }
+
+    /**
+     * 刷新三个 Tab 的选中态：选中=深色加粗 + 2dp 主色下划线，未选中=detail_action_tint
+     * 颜色直接取自标题 / 视频信息当前颜色，这样电影、普通两种模式都能跟着走
+     */
+    private fun updatePortraitTabStyle(tabIndex: Int) {
+        val view = portraitDetailView ?: return
+
+        val selectedColor = view.findViewById<TextView>(R.id.videoTitleDetail)?.currentTextColor
+            ?: ContextCompat.getColor(this, R.color.theme_text_primary)
+        val unselectedColor = view.findViewById<TextView>(R.id.videoInfoText)?.currentTextColor
+            ?: ContextCompat.getColor(this, R.color.detail_action_tint)
+
+        applyPortraitTabState(
+            view.findViewById<TextView>(R.id.tabTextDetail),
+            view.findViewById<View>(R.id.tabUnderlineDetail),
+            tabIndex == 0,
+            selectedColor,
+            unselectedColor
+        )
+        applyPortraitTabState(
+            view.findViewById<TextView>(R.id.tabTextErci),
+            view.findViewById<View>(R.id.tabUnderlineErci),
+            tabIndex == 1,
+            selectedColor,
+            unselectedColor
+        )
+        applyPortraitTabState(
+            view.findViewById<TextView>(R.id.tabTextDiscuss),
+            view.findViewById<View>(R.id.tabUnderlineDiscuss),
+            tabIndex == 2,
+            selectedColor,
+            unselectedColor
+        )
+    }
+
+    private fun applyPortraitTabState(
+        textView: TextView?,
+        underline: View?,
+        selected: Boolean,
+        selectedColor: Int,
+        unselectedColor: Int
+    ) {
+        if (textView == null || underline == null) return
+
+        // 用 INVISIBLE 而不是 GONE，保证 Tab 行高度不跳动
+        underline.visibility = if (selected) View.VISIBLE else View.INVISIBLE
+        textView.setTextColor(if (selected) selectedColor else unselectedColor)
+        textView.typeface = if (selected) {
+            android.graphics.Typeface.DEFAULT_BOLD
+        } else {
+            android.graphics.Typeface.DEFAULT
+        }
+    }
+
+    /**
+     * 当前选中的 Tab（下划线可见即为选中），供配色刷新时复用
+     */
+    private fun currentPortraitTabIndex(): Int {
+        val view = portraitDetailView ?: return 0
+        return when {
+            view.findViewById<View>(R.id.tabUnderlineErci)?.visibility == View.VISIBLE -> 1
+            view.findViewById<View>(R.id.tabUnderlineDiscuss)?.visibility == View.VISIBLE -> 2
+            else -> 0
+        }
+    }
+
+    /**
+     * 「简介」入口：文案只用已有的标题 + 视频信息拼一句占位，点击展开/收起
+     */
+    private fun setupPortraitIntro() {
+        val view = portraitDetailView ?: return
+
+        val titleText = view.findViewById<TextView>(R.id.videoTitleDetail)?.text?.toString().orEmpty()
+        val infoText = view.findViewById<TextView>(R.id.videoInfoText)?.text?.toString().orEmpty()
+
+        val safeTitle = titleText.ifBlank { "该视频" }
+        val intro = if (infoText.isNotBlank()) "《$safeTitle》 $infoText" else "《$safeTitle》"
+        view.findViewById<TextView>(R.id.videoIntroText)?.text = intro
+
+        view.findViewById<LinearLayout>(R.id.introExpandLink)?.setOnClickListener {
+            val introText = view.findViewById<TextView>(R.id.videoIntroText) ?: return@setOnClickListener
+            val expanding = introText.visibility != View.VISIBLE
+            introText.visibility = if (expanding) View.VISIBLE else View.GONE
+            view.findViewById<TextView>(R.id.introLinkText)?.text = if (expanding) "收起" else "简介"
+            view.findViewById<android.widget.ImageView>(R.id.introExpandIcon)?.setImageResource(
+                if (expanding) R.drawable.ic_expand_less else R.drawable.ic_expand_more
+            )
+        }
+    }
+
+    /**
+     * 标签行：评分 / 播放量从 videoInfoText 里已有的那份数据解析，
+     * 解析不到就隐藏对应标签；高清、会员是固定静态标签。没有的数据不编。
+     */
+    private fun setupPortraitTagRow() {
+        val view = portraitDetailView ?: return
+        if (view.findViewById<View>(R.id.tagRow) == null) return
+
+        val infoText = view.findViewById<TextView>(R.id.videoInfoText)?.text?.toString().orEmpty()
+
+        // 评分，例如「8.5分」
+        val ratingTag = view.findViewById<TextView>(R.id.tagRating)
+        val ratingMatch = Regex("""(\d+(?:\.\d+)?)\s*分""").find(infoText)
+        if (ratingTag != null) {
+            if (ratingMatch != null) {
+                ratingTag.text = "${ratingMatch.groupValues[1]}分"
+                ratingTag.visibility = View.VISIBLE
+            } else {
+                ratingTag.visibility = View.GONE
+            }
+        }
+
+        // 播放量，例如「8118播放」「1.2万播放」
+        val playTag = view.findViewById<TextView>(R.id.tagPlayCount)
+        val playMatch = Regex("""([\d.]+\s*[万亿]?)\s*播放""").find(infoText)
+        if (playTag != null) {
+            if (playMatch != null) {
+                playTag.text = "${playMatch.groupValues[1]}播放"
+                playTag.visibility = View.VISIBLE
+            } else {
+                playTag.visibility = View.GONE
+            }
+        }
+    }
+
     private fun showDownloadDialog() {
         android.util.Log.d("VideoPlayer", "showDownloadDialog called")
         
@@ -4211,6 +4434,12 @@ class VideoPlayerActivity : AppCompatActivity() {
     }
     
     private fun hideControlsWithAnimation() {
+        // 「跳过片头」胶囊在顶部控制栏内，它可见时先不淡出，避免用户点不到
+        if (binding.skipIntroButton.visibility == View.VISIBLE) {
+            resetHideControlsTimer()
+            return
+        }
+
         isControlsVisible = false
         
         // 淡出动画
