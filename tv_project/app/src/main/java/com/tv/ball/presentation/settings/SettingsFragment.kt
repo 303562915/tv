@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.materialswitch.MaterialSwitch
@@ -16,6 +17,7 @@ import com.tv.ball.feature.f057.F057Engine
 import com.tv.ball.feature.f057.Preset
 import com.tv.ball.feature.f081.F081Engine
 import com.tv.ball.feature.f081.PlaybackDefaults
+import com.tv.ball.presentation.localvideo.LocalVideoMedia
 import com.tv.ball.presentation.player.AspectRatioManager
 import com.tv.ball.presentation.player.SkipIntroManager
 import com.tv.ball.util.CustomToast
@@ -167,6 +169,16 @@ class SettingsFragment : Fragment() {
             if (syncGuard()) return@setOnCheckedChangeListener
             prefs.setPlaybackAllowMobileData(checked)
             toastSwitch(R.string.ps_mobile_data, checked)
+        }
+
+        // 排除 .ts 分片文件 → local_video_exclude_ts（默认 true）
+        // 读取点：LocalVideoMedia.excludedExtensions()，本地视频列表 / 文件夹详情 / 下载目录扫描每次扫描前各读一次
+        binding.switchLocalVideoExcludeTs.setOnCheckedChangeListener { _, checked ->
+            if (syncGuard()) return@setOnCheckedChangeListener
+            prefs.setLocalVideoExcludeTs(checked)
+            // 关掉开关时「排除的后缀」整行要跟着置灰，所以刷一次本组显示值
+            refreshLocalVideoRow()
+            toastSwitch(R.string.lv_exclude_ts, checked)
         }
     }
 

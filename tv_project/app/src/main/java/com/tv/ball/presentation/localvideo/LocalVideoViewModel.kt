@@ -118,6 +118,8 @@ class LocalVideoViewModel : ViewModel() {
     
     private fun scanVideoFolders(): List<VideoFolder> {
         val folderMap = mutableMapOf<String, VideoFolder>()
+        // 每次扫描前读一次排除设置（内存读）：设置页改完、重新进入本地视频页就按新规则统计
+        val excluded = LocalVideoMedia.excludedExtensions(context)
 
         try {
             // 多查 BUCKET_ID / RELATIVE_PATH：详情页按它们查同一批视频，
@@ -147,6 +149,7 @@ class LocalVideoViewModel : ViewModel() {
                 val dataColumn = cursor.getColumnIndex(MediaStore.Video.Media.DATA)
                 val bucketIdColumn = cursor.getColumnIndex(MediaStore.Video.Media.BUCKET_ID)
                 val bucketColumn = cursor.getColumnIndex(MediaStore.Video.Media.BUCKET_DISPLAY_NAME)
+                val nameColumn = cursor.getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME)
                 val relativeColumn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     cursor.getColumnIndex(MediaStore.MediaColumns.RELATIVE_PATH)
                 } else {
@@ -156,6 +159,9 @@ class LocalVideoViewModel : ViewModel() {
                 while (cursor.moveToNext()) {
                     val id = if (idColumn >= 0) cursor.getLong(idColumn) else 0L
                     val path = if (dataColumn >= 0) cursor.getString(dataColumn) else null
+                    // 与详情页、下载目录扫描同一个排除判定：被排除的后缀（默认 .ts）不计入 videoCount
+                    val displayName = if (nameColumn >= 0) cursor.getString(nameColumn) else null
+                    if (LocalVideoMedia.isExcludedName(displayName, path, excluded)) continue
                     val bucketId = if (bucketIdColumn >= 0) {
                         cursor.getLong(bucketIdColumn)
                     } else {
@@ -196,7 +202,7 @@ class LocalVideoViewModel : ViewModel() {
         }
 
         // 额外扫描下载目录（即使MediaStore中没有）
-        scanDownloadDirectory(folderMap)
+        scanDownloadDirectory(folderMap, excluded)
 
         return folderMap.values.toList()
     }
@@ -212,7 +218,7 @@ class LocalVideoViewModel : ViewModel() {
     /**
      * 扫描下载目录，确保下载的视频能显示出来
      */
-    private fun scanDownloadDirectory(folderMap: MutableMap<String, VideoFolder>) {
+    private fun scanDownloadDirectory(folderMap: MutableMap<String, VideoFolder>, excluded: Set<String>) {
         try {
             val downloadDir = File(
                 android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS),
@@ -224,7 +230,7 @@ class LocalVideoViewModel : ViewModel() {
             }
             
             val videoFiles = downloadDir.listFiles()?.filter { file ->
-                file.isFile && LocalVideoMedia.hasVideoExtension(file.name)
+                file.isFile && LocalVideoMedia.hasVideoExtension(file.name, excluded)
             }?.sortedBy { it.name } ?: emptyList()
 
             if (videoFiles.isNotEmpty()) {

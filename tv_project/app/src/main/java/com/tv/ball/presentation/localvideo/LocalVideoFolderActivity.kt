@@ -263,8 +263,10 @@ class LocalVideoFolderActivity : AppCompatActivity() {
         // 兜底一：文件系统（仅当有文件访问权限时才可能列出内容）
         val listing = LocalVideoMedia.listDirectory(folderPath)
         if (listing != null) {
+            // 同一套排除判定：只剩 .ts 的目录在这里就变成空列表，走 Empty 态而不是假装没这回事
+            val excluded = LocalVideoMedia.excludedExtensions(this)
             val videos = listing
-                .filter { it.isFile && LocalVideoMedia.hasVideoExtension(it.name) }
+                .filter { it.isFile && LocalVideoMedia.hasVideoExtension(it.name, excluded) }
                 .map { toVideoFile(it) }
                 .sortedBy { it.name }
             return if (videos.isEmpty()) FolderLoadResult.Empty else FolderLoadResult.Ok(videos)
@@ -327,7 +329,7 @@ class LocalVideoFolderActivity : AppCompatActivity() {
             FolderLoadResult.Empty -> {
                 currentVideos = emptyList()
                 adapter.submitList(emptyList())
-                showEmpty("该文件夹没有视频", null, null)
+                showEmpty(emptyMessage(), null, null)
             }
             FolderLoadResult.Denied -> {
                 currentVideos = emptyList()
@@ -348,6 +350,16 @@ class LocalVideoFolderActivity : AppCompatActivity() {
                 showEmpty(result.reason, "重试") { loadVideos() }
             }
         }
+    }
+
+    /**
+     * 空态文案：排除规则生效时要说明「不是没有文件，是被排除挡掉了」，
+     * 否则只剩 .ts 分片的目录看起来像空白无提示。
+     */
+    private fun emptyMessage(): String {
+        val excluded = LocalVideoMedia.excludedExtensions(this)
+        if (excluded.isEmpty()) return "该文件夹没有视频"
+        return "该文件夹没有可播放的视频（已排除 ${excluded.joinToString(", ") { ".$it" }}）"
     }
 
     private fun showEmpty(message: String, actionText: String?, action: (() -> Unit)?) {

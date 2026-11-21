@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  「外观主题」页专用：夜间模式选择卡（选中态）。
+  与主题色板同一套视觉：surface_card 填充 + 2dp primary 描边，不铺 primaryContainer 底色；
+  圆角 8dp（radius_sm）；按下 / 聚焦换成 surface_block 填充，描边不变。
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/surface_block" />
+            <corners android:radius="@dimen/radius_sm" />
+            <stroke
+                android:width="2dp"
+                android:color="@color/theme_primary" />
+        </shape>
+    </item>
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/surface_block" />
+            <corners android:radius="@dimen/radius_sm" />
+            <stroke
+                android:width="2dp"
+                android:color="@color/theme_primary" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/surface_card" />
+            <corners android:radius="@dimen/radius_sm" />
+            <stroke
+                android:width="2dp"
+                android:color="@color/theme_primary" />
+        </shape>
+    </item>
+</selector>

@@ -272,7 +272,8 @@ class ThemeActivity : AppCompatActivity() {
     }
 
     private fun updateNightModeChecks() {
-        // 选中态：卡片 2dp primary 描边 + 右侧对勾（不铺 primaryContainer 底色）
+        // 选中态：选择卡 2dp primary 描边 + 右上角对勾（不铺 primaryContainer 底色），
+        // 与主题色板同一套交互；圆角 8dp（bg_theme_mode_card*），不再用 16dp 胶囊观感。
         applyModeState(binding.nightModeFollowSystem, binding.checkFollowSystem, selectedNightMode == 0)
         applyModeState(binding.nightModeOff, binding.checkLightMode, selectedNightMode == 1)
         applyModeState(binding.nightModeOn, binding.checkDarkMode, selectedNightMode == 2)
@@ -280,7 +281,7 @@ class ThemeActivity : AppCompatActivity() {
 
     private fun applyModeState(option: View, check: View, selected: Boolean) {
         option.setBackgroundResource(
-            if (selected) R.drawable.bg_mode_card_selected else R.drawable.bg_mode_card
+            if (selected) R.drawable.bg_theme_mode_card_selected else R.drawable.bg_theme_mode_card
         )
         option.isFocusable = true
         option.isClickable = true

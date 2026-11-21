@@ -57,161 +57,187 @@
                 android:orientation="vertical"
                 android:padding="@dimen/card_gap">
 
-                <!-- 跟随系统 -->
+                <!--
+                  三张等宽「选择卡」横向一排（layout_weight 3 等分），与下方主题色板同一套交互：
+                  选中 = 2dp primary 描边 + 右上角对勾；圆角 8dp（radius_sm），不用 16dp 胶囊圆角。
+                -->
                 <LinearLayout
-                    android:id="@+id/nightModeFollowSystem"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_mode_card_selected"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_vertical"
-                    android:minHeight="56dp"
-                    android:orientation="horizontal"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp">
+                    android:baselineAligned="false"
+                    android:orientation="horizontal">
 
-                    <TextView
+                    <!-- 跟随系统 -->
+                    <LinearLayout
+                        android:id="@+id/nightModeFollowSystem"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="跟随系统"
-                        android:textColor="@color/theme_text_primary"
-                        android:textSize="15sp" />
+                        android:background="@drawable/bg_theme_mode_card_selected"
+                        android:clickable="true"
+                        android:contentDescription="跟随系统：深浅色随系统设置自动切换"
+                        android:focusable="true"
+                        android:minHeight="96dp"
+                        android:orientation="vertical"
+                        android:padding="12dp">
 
-                    <FrameLayout
-                        android:layout_width="40dp"
-                        android:layout_height="20dp"
-                        android:background="@drawable/bg_dot_card">
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
 
-                        <View
-                            android:layout_width="12dp"
-                            android:layout_height="12dp"
-                            android:layout_gravity="start|center_vertical"
-                            android:layout_marginStart="4dp"
-                            android:background="@drawable/bg_dot_primary" />
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_gravity="start|top"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_phone"
+                                android:tint="@color/theme_text_primary" />
 
-                        <View
-                            android:layout_width="12dp"
-                            android:layout_height="12dp"
-                            android:layout_gravity="end|center_vertical"
-                            android:layout_marginEnd="4dp"
-                            android:background="@drawable/bg_dot_card" />
-                    </FrameLayout>
+                            <ImageView
+                                android:id="@+id/checkFollowSystem"
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:layout_gravity="top|end"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_check_primary" />
+                        </FrameLayout>
 
-                    <ImageView
-                        android:id="@+id/checkFollowSystem"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_marginStart="12dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_check_primary" />
-                </LinearLayout>
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="跟随系统"
+                            android:textColor="@color/theme_text_primary"
+                            android:textSize="15sp" />
 
-                <!-- 浅色模式 -->
-                <LinearLayout
-                    android:id="@+id/nightModeOff"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/card_gap"
-                    android:background="@drawable/bg_mode_card"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_vertical"
-                    android:minHeight="56dp"
-                    android:orientation="horizontal"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="随系统切换"
+                            android:textColor="@color/theme_text_secondary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
 
-                    <TextView
+                    <!-- 浅色模式 -->
+                    <LinearLayout
+                        android:id="@+id/nightModeOff"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/card_gap"
                         android:layout_weight="1"
-                        android:text="浅色模式"
-                        android:textColor="@color/theme_text_primary"
-                        android:textSize="15sp" />
+                        android:background="@drawable/bg_theme_mode_card"
+                        android:clickable="true"
+                        android:contentDescription="浅色模式：始终使用浅色外观"
+                        android:focusable="true"
+                        android:minHeight="96dp"
+                        android:orientation="vertical"
+                        android:padding="12dp">
 
-                    <FrameLayout
-                        android:layout_width="40dp"
-                        android:layout_height="20dp"
-                        android:background="@drawable/bg_dot_card">
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
 
-                        <View
-                            android:layout_width="12dp"
-                            android:layout_height="12dp"
-                            android:layout_gravity="start|center_vertical"
-                            android:layout_marginStart="4dp"
-                            android:background="@drawable/bg_dot_primary" />
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_gravity="start|top"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_brightness"
+                                android:tint="@color/theme_text_primary" />
 
-                        <View
-                            android:layout_width="12dp"
-                            android:layout_height="12dp"
-                            android:layout_gravity="end|center_vertical"
-                            android:layout_marginEnd="4dp"
-                            android:background="@drawable/bg_dot_card" />
-                    </FrameLayout>
+                            <ImageView
+                                android:id="@+id/checkLightMode"
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:layout_gravity="top|end"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_check_primary"
+                                android:visibility="invisible" />
+                        </FrameLayout>
 
-                    <ImageView
-                        android:id="@+id/checkLightMode"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_marginStart="12dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_check_primary"
-                        android:visibility="invisible" />
-                </LinearLayout>
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="浅色模式"
+                            android:textColor="@color/theme_text_primary"
+                            android:textSize="15sp" />
 
-                <!-- 深色模式 -->
-                <LinearLayout
-                    android:id="@+id/nightModeOn"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/card_gap"
-                    android:background="@drawable/bg_mode_card"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_vertical"
-                    android:minHeight="56dp"
-                    android:orientation="horizontal"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="始终浅色"
+                            android:textColor="@color/theme_text_secondary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
 
-                    <TextView
+                    <!-- 深色模式 -->
+                    <LinearLayout
+                        android:id="@+id/nightModeOn"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/card_gap"
                         android:layout_weight="1"
-                        android:text="深色模式"
-                        android:textColor="@color/theme_text_primary"
-                        android:textSize="15sp" />
+                        android:background="@drawable/bg_theme_mode_card"
+                        android:clickable="true"
+                        android:contentDescription="深色模式：始终使用深色外观"
+                        android:focusable="true"
+                        android:minHeight="96dp"
+                        android:orientation="vertical"
+                        android:padding="12dp">
 
-                    <FrameLayout
-                        android:layout_width="40dp"
-                        android:layout_height="20dp"
-                        android:background="@drawable/bg_dot_card">
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
 
-                        <View
-                            android:layout_width="12dp"
-                            android:layout_height="12dp"
-                            android:layout_gravity="start|center_vertical"
-                            android:layout_marginStart="4dp"
-                            android:background="@drawable/bg_dot_primary" />
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_gravity="start|top"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_moon"
+                                android:tint="@color/theme_text_primary" />
 
-                        <View
-                            android:layout_width="12dp"
-                            android:layout_height="12dp"
-                            android:layout_gravity="end|center_vertical"
-                            android:layout_marginEnd="4dp"
-                            android:background="@drawable/bg_dot_card" />
-                    </FrameLayout>
+                            <ImageView
+                                android:id="@+id/checkDarkMode"
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:layout_gravity="top|end"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_check_primary"
+                                android:visibility="invisible" />
+                        </FrameLayout>
 
-                    <ImageView
-                        android:id="@+id/checkDarkMode"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_marginStart="12dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_check_primary"
-                        android:visibility="invisible" />
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="深色模式"
+                            android:textColor="@color/theme_text_primary"
+                            android:textSize="15sp" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="始终深色"
+                            android:textColor="@color/theme_text_secondary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

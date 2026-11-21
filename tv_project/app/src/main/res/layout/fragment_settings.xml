@@ -1166,6 +1166,128 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- ========================= 本地视频 ========================= -->
+        <TextView
+            style="@style/TextAppearance.TVPlayer.SectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:text="@string/lv_section_local" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- 排除 .ts 分片文件（总开关） -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/list_row_min_height"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/card_padding"
+                    android:paddingTop="10dp"
+                    android:paddingEnd="@dimen/card_padding"
+                    android:paddingBottom="10dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:paddingEnd="12dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/lv_exclude_ts"
+                            android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="@string/lv_exclude_ts_hint"
+                            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+                    </LinearLayout>
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switchLocalVideoExcludeTs"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:contentDescription="@string/lv_exclude_ts"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:minHeight="48dp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/theme_divider" />
+
+                <!-- 排除的后缀（多选） -->
+                <LinearLayout
+                    android:id="@+id/rowLocalVideoExcludeExt"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/list_row_min_height"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/card_padding"
+                    android:paddingTop="10dp"
+                    android:paddingEnd="@dimen/card_padding"
+                    android:paddingBottom="10dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:paddingEnd="12dp">
+
+                        <TextView
+                            android:id="@+id/tvLocalVideoExcludeExtLabel"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/lv_exclude_ext"
+                            android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="@string/lv_exclude_ext_hint"
+                            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvLocalVideoExcludeExt"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_arrow_right"
+                        app:tint="@color/theme_text_secondary" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- ========================= 恢复默认 ========================= -->
         <TextView
             style="@style/TextAppearance.TVPlayer.SectionTitle"

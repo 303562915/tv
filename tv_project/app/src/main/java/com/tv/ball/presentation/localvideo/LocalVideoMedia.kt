@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import androidx.core.content.ContextCompat
+import com.tv.ball.data.local.UserPreferences
 import java.io.File
 
 /**
@@ -31,16 +32,67 @@ internal object LocalVideoMedia {
      */
     const val NO_BUCKET_ID: Long = Long.MIN_VALUE
 
-    /** 统一的视频扩展名集合（小写、带点）。两页共用，新增格式只改这里。 */
+    /** 内置支持的视频扩展名（小写、带点）。两页共用，新增格式只改这里。 */
     private val VIDEO_EXTENSIONS = setOf(
         ".mp4", ".mkv", ".avi", ".mov", ".rmvb", ".rm", ".flv", ".wmv",
         ".m3u8", ".ts", ".3gp", ".3g2", ".webm", ".m4v", ".mpg", ".mpeg",
         ".m2ts", ".mts", ".vob", ".f4v", ".asf", ".ogv"
     )
 
-    /** 文件名是否属于视频（只按扩展名判断，两页同一套规则）。 */
-    fun hasVideoExtension(name: String): Boolean {
+    /** 设置页「排除的后缀」多选候选（不带点，落库也是裸后缀）。 */
+    val EXTENSION_CANDIDATES: List<String> = listOf("ts", "tmp", "part", "m3u8", "html")
+
+    /** 默认排除的后缀：只排 .ts 分片（不臆造第二项）。 */
+    const val DEFAULT_EXCLUDED_EXTENSION = "ts"
+
+    /**
+     * 「内置支持集合 − 用户排除集合」。
+     *
+     * 用户排除集合来自设置页（[UserPreferences] 的 `local_video_exclude_ts` /
+     * `local_video_exclude_ext`）。这里是唯一读设置的地方，列表页的 videoCount、
+     * 文件夹详情、下载目录扫描全部经过下面的 [isExcludedName] / [hasVideoExtension]，
+     * 不允许有第二套白名单逻辑。
+     *
+     * 每次都新读一次（内存读，设置页写入用 apply() 已回写到内存）：
+     * 用户从设置页返回、重新进入本地视频页即生效，不需要广播或监听。
+     */
+    fun excludedExtensions(context: Context): Set<String> = try {
+        val prefs = UserPreferences(context)
+        if (prefs.isLocalVideoExcludeTs()) parseExcludedExtensions(prefs.getLocalVideoExcludeExt()) else emptySet()
+    } catch (e: Throwable) {
+        // 读设置失败不能让列表整页崩：退回出厂口径「只排 ts」
+        android.util.Log.e(TAG, "读取排除后缀失败: ${e.message}", e)
+        setOf(DEFAULT_EXCLUDED_EXTENSION)
+    }
+
+    /** 把逗号分隔的后缀串解析成集合：去空白、去前导点、转小写、丢空项。 */
+    fun parseExcludedExtensions(raw: String?): Set<String> =
+        raw.orEmpty()
+            .split(',')
+            .map { it.trim().trimStart('.').lowercase() }
+            .filter { it.isNotEmpty() }
+            .toSet()
+
+    /**
+     * 排除判定：文件名（拿不到就用路径的文件名部分）是否命中用户排除的后缀。
+     * 这是「排除」的唯一判据，三处扫描都调它。
+     */
+    fun isExcludedName(name: String?, path: String?, excluded: Set<String>): Boolean {
+        if (excluded.isEmpty()) return false
+        val subject = name?.takeIf { it.isNotBlank() }
+            ?: path?.substringAfterLast('/')?.takeIf { it.isNotBlank() }
+            ?: return false
+        val lower = subject.lowercase()
+        return excluded.any { lower.endsWith(".$it") }
+    }
+
+    /**
+     * 文件名是否属于「可播放的本地视频」：命中内置集合，且不在排除集合里。
+     * 扩展名集合新增格式只改上面的 [VIDEO_EXTENSIONS]。
+     */
+    fun hasVideoExtension(name: String, excluded: Set<String>): Boolean {
         if (name.isEmpty()) return false
+        if (isExcludedName(name, null, excluded)) return false
         val lower = name.lowercase()
         return VIDEO_EXTENSIONS.any { lower.endsWith(it) }
     }
@@ -204,6 +256,9 @@ internal object LocalVideoMedia {
     private fun runQuery(context: Context, selection: String, selectionArgs: Array<String>): List<MediaVideo> {
         val result = mutableListOf<MediaVideo>()
         val projection = buildProjection()
+        // 按 BUCKET_ID / 路径 / 相对路径的三种查询都走这里，排除规则必须在这里拦一次，
+        // 否则详情页会绕过列表页的过滤，把 .ts 分片又列出来。
+        val excluded = excludedExtensions(context)
         context.contentResolver.query(
             MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
             projection,
@@ -226,7 +281,10 @@ internal object LocalVideoMedia {
             while (cursor.moveToNext()) {
                 val id = if (idIndex >= 0) cursor.getLong(idIndex) else 0L
                 val path = if (dataIndex >= 0) cursor.getString(dataIndex) else null
-                val name = (if (nameIndex >= 0) cursor.getString(nameIndex) else null)
+                val rawName = if (nameIndex >= 0) cursor.getString(nameIndex) else null
+                // 被用户排除的后缀（默认 .ts）直接跳过，不进入结果
+                if (isExcludedName(rawName, path, excluded)) continue
+                val name = rawName
                     ?.takeIf { it.isNotBlank() }
                     ?: path?.substringAfterLast('/')
                     ?: "未知视频"

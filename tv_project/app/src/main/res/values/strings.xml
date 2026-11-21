@@ -136,4 +136,15 @@
     <string name="ps_unit_seconds">%1$d 秒</string>
     <string name="ps_retry_none">不重试</string>
     <string name="ps_retry_times">%1$d 次</string>
+
+    <!-- ============ 本地视频（播放设置页的分组） ============ -->
+    <string name="lv_section_local">本地视频</string>
+    <string name="lv_exclude_ts">排除 .ts 分片文件</string>
+    <string name="lv_exclude_ts_hint">分片目录里一个 .ts 就是一段，全列出来会一大片；关掉后照旧全部显示</string>
+    <string name="lv_exclude_ext">排除的后缀</string>
+    <string name="lv_exclude_ext_hint">点一下多选；命中的后缀不进本地视频列表</string>
+    <string name="lv_exclude_ext_none">无</string>
+    <string name="lv_exclude_hint">已关闭排除</string>
+    <string name="lv_exclude_dialog_title">排除的后缀（可多选）</string>
+    <string name="lv_saved">已保存</string>
 </resources>

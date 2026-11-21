@@ -66,6 +66,16 @@ class UserPreferences(context: Context) {
         /** 精确跳转：关掉后跳转只对齐关键帧，更快但落点粗。默认开。 */
         private const val KEY_PLAY_EXACT_SEEK = "playback_exact_seek"
 
+        // ===== 本地视频（设置页「本地视频」分组专用，扫描侧直接读这些键）=====
+        /** 排除 .ts 分片文件的总开关。默认开：分片目录里一个 .ts 就是一段，列表会被撑爆。 */
+        private const val KEY_LOCAL_VIDEO_EXCLUDE_TS = "local_video_exclude_ts"
+
+        /** 排除的后缀（逗号分隔、不带点、小写）。默认 "ts"。 */
+        private const val KEY_LOCAL_VIDEO_EXCLUDE_EXT = "local_video_exclude_ext"
+
+        /** 排除后缀的出厂值：只排 .ts。 */
+        const val DEFAULT_LOCAL_VIDEO_EXCLUDE_EXT = "ts"
+
         /** 播放结束行为取值：停止。 */
         const val ENDED_BEHAVIOR_STOP = 0
 
@@ -363,10 +373,37 @@ class UserPreferences(context: Context) {
         prefs.edit().putBoolean(KEY_PLAY_EXACT_SEEK, enabled).apply()
     }
 
+    // ============================================================
+    // 本地视频
+    //
+    // 只有两个键，读取点只有一处：LocalVideoMedia.excludedExtensions()。
+    // 列表页（LocalVideoViewModel）、文件夹详情（LocalVideoFolderActivity）、
+    // 下载目录扫描每次扫描前各读一次（内存读，apply() 已回写），扫完即生效；
+    // 用户从设置页返回本地视频页重新进入就刷新，不需要广播或监听。
+    // ============================================================
+
+    /** 是否排除 .ts 分片文件。默认开。 */
+    fun isLocalVideoExcludeTs(): Boolean = prefs.getBoolean(KEY_LOCAL_VIDEO_EXCLUDE_TS, true)
+
+    /** 设置是否排除 .ts 分片文件。 */
+    fun setLocalVideoExcludeTs(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_LOCAL_VIDEO_EXCLUDE_TS, enabled).apply()
+    }
+
+    /** 排除的后缀串：逗号分隔、不带点、小写。默认 [DEFAULT_LOCAL_VIDEO_EXCLUDE_EXT]。 */
+    fun getLocalVideoExcludeExt(): String =
+        prefs.getString(KEY_LOCAL_VIDEO_EXCLUDE_EXT, DEFAULT_LOCAL_VIDEO_EXCLUDE_EXT)
+            ?: DEFAULT_LOCAL_VIDEO_EXCLUDE_EXT
+
+    /** 设置排除的后缀串（调用方负责去重、去点、小写、逗号拼接）。 */
+    fun setLocalVideoExcludeExt(extensions: String) {
+        prefs.edit().putString(KEY_LOCAL_VIDEO_EXCLUDE_EXT, extensions).apply()
+    }
+
     /**
      * 把上面这些播放设置全部写回出厂值。
      *
-     * 只动播放设置这一段，不碰登录态、会员信息与验证码倒计时；
+     * 只动播放设置这一段（含「本地视频」两个键），不碰登录态、会员信息与验证码倒计时；
      * 设置页的「恢复默认播放设置」走这一个入口，避免二十几个键各写一份默认值。
      */
     fun resetPlaybackSettings() {
@@ -383,6 +420,8 @@ class UserPreferences(context: Context) {
             .putBoolean(KEY_PLAY_AUTO_ROUTE, true)
             .putBoolean(KEY_PLAY_MOBILE_DATA, true)
             .putBoolean(KEY_PLAY_EXACT_SEEK, true)
+            .putBoolean(KEY_LOCAL_VIDEO_EXCLUDE_TS, true)
+            .putString(KEY_LOCAL_VIDEO_EXCLUDE_EXT, DEFAULT_LOCAL_VIDEO_EXCLUDE_EXT)
             .apply()
     }
 }
