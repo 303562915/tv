@@ -16,6 +16,7 @@ import com.tv.ball.presentation.history.HistoryActivity
 import com.tv.ball.presentation.localvideo.LocalVideoActivity
 import com.tv.ball.presentation.settings.SettingsFragment
 import com.tv.ball.presentation.settings.ThemeActivity
+import com.tv.ball.update.UpdateManager
 import com.tv.ball.util.CustomToast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -83,71 +84,8 @@ class ProfileFragment : Fragment() {
     // ------------------------------------------------------------ 检查更新
 
     private fun checkUpdate() {
-        binding.updateProgress.visibility = View.VISIBLE
-        binding.tvVersion.text = getString(R.string.checking_update)
-
-        lifecycleScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                runCatching {
-                    val request = Request.Builder()
-                        .url("https://api.github.com/repos/303562915/tv/releases/latest")
-                        .header("Accept", "application/vnd.github+json")
-                        .build()
-                    http.newCall(request).execute().use { response ->
-                        if (!response.isSuccessful) return@runCatching null
-                        val body = response.body?.string() ?: return@runCatching null
-                        val json = JSONObject(body)
-                        val tag = json.optString("tag_name")
-                        val url = json.optString("html_url")
-                        val apk = json.optJSONArray("assets")?.let { assets ->
-                            (0 until assets.length())
-                                .map { assets.getJSONObject(it) }
-                                .firstOrNull { it.optString("name").endsWith(".apk") }
-                                ?.optString("browser_download_url")
-                        }
-                        Triple(tag, url, apk)
-                    }
-                }.getOrNull()
-            }
-
-            binding.updateProgress.visibility = View.GONE
-            binding.tvVersion.text = BuildConfig.VERSION_NAME
-
-            if (result == null) {
-                CustomToast.show(requireContext(), getString(R.string.update_failed))
-                return@launch
-            }
-
-            val (tag, pageUrl, apkUrl) = result
-            val latest = tag.removePrefix("v")
-            if (latest.isBlank() || !isNewer(latest, BuildConfig.VERSION_NAME)) {
-                CustomToast.show(requireContext(), getString(R.string.already_latest))
-                return@launch
-            }
-
-            android.app.AlertDialog.Builder(requireContext())
-                .setTitle(getString(R.string.update_found, latest))
-                .setPositiveButton(R.string.update_download) { _, _ ->
-                    val target = if (!apkUrl.isNullOrBlank()) apkUrl else pageUrl
-                    if (!target.isNullOrBlank()) {
-                        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(target)))
-                    }
-                }
-                .setNegativeButton(R.string.later, null)
-                .show()
-        }
-    }
-
-    /** 简单版本比较：按分段数字比大小，latest 里带后缀（-debug）也能处理。 */
-    private fun isNewer(latest: String, current: String): Boolean {
-        val a = latest.split(".", "-").mapNotNull { it.toIntOrNull() }
-        val b = current.split(".", "-").mapNotNull { it.toIntOrNull() }
-        for (i in 0 until maxOf(a.size, b.size)) {
-            val x = a.getOrElse(i) { 0 }
-            val y = b.getOrElse(i) { 0 }
-            if (x != y) return x > y
-        }
-        return false
+        val host = activity ?: return
+        UpdateManager.start(host)
     }
 
     // ------------------------------------------------------------ 缓存

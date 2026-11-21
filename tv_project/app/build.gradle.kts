@@ -41,8 +41,8 @@ android {
         applicationId = "com.tv.ball"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -168,6 +168,10 @@ dependencies {
 
     // SwipeRefreshLayout
     implementation(libs.androidx.swiperefreshlayout)
+
+    // 应用内更新：Shizuku（adb 级安装兜底）
+    implementation("dev.rikka.shizuku:api:13.1.5")
+    implementation("dev.rikka.shizuku:provider:13.1.5")
 
     // Testing
     testImplementation(libs.junit)
