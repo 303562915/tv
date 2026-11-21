@@ -161,10 +161,11 @@ class FloatingNavDock @JvmOverloads constructor(
             }
         }
         clipToOutline = false
-        // dockShadows：浅色 8%/4% 两层 → 6dp；深色强度 ×3 → 10dp。
-        elevation = dpf(if (isDark) 10f else 6f)
+        // dockShadows 在 Compose 里是两层很淡的投影；Android 的 elevation 阴影紧且重，
+        // 这里压到 2dp（深色 3dp）刚好托起来，不糊一圈灰。
+        elevation = dpf(if (isDark) 3f else 2f)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val alpha = if (isDark) 180 else 80
+            val alpha = if (isDark) 96 else 64
             val shadow = Color.argb(alpha, 0, 0, 0)
             outlineAmbientShadowColor = shadow
             outlineSpotShadowColor = shadow
@@ -234,7 +235,7 @@ class FloatingNavDock @JvmOverloads constructor(
     }
 
     /** 胶囊的 Z（阴影高度）：上层视图必须比它高，否则会被胶囊整片盖住。 */
-    private val shadowZ = dpf(if (isDark) 10f else 6f)
+    private val shadowZ = dpf(if (isDark) 3f else 2f)
 
     init {
         addView(capsuleView, LayoutParams(0, 0))
@@ -242,10 +243,13 @@ class FloatingNavDock @JvmOverloads constructor(
         addView(itemsContainer, LayoutParams(0, 0))
 
         // FrameLayout 里带 elevation 的兄弟按 Z 排序绘制，不按 addView 顺序：
-        // 胶囊有 6/10dp elevation（用来出阴影），不把透镜和图标行抬到它上面的话，
+        // 胶囊有 elevation（用来出阴影），不把透镜和图标行抬到它上面的话，
         // 整条底栏只剩一块纯色胶囊——图标、文字、选中透镜全被盖住。
         lens.translationZ = shadowZ + dpf(1f)
         itemsContainer.translationZ = shadowZ + dpf(2f)
+        // 透镜只是靠 translationZ 排到胶囊之上；保留 outline 会让它自己再投一圈
+        // 又大又重的阴影（Z 越大阴影越重），这正是「选中块阴影过重」的来源。
+        lens.outlineProvider = null
 
         clipChildren = false
         clipToPadding = false
