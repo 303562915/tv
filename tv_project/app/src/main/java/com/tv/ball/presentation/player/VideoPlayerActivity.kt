@@ -1380,14 +1380,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         // 底栏右侧只留一个「展开」图标：fullscreenButton
         // 竖屏点 = 转横屏全屏，横屏点 = 退出全屏；「画面比例」已收到「⋯ 更多」菜单里
         
-        // 收藏按钮（底部控制栏，横竖屏共用；长按可选分类）
-        binding.btnFavorite.setOnClickListener {
-            toggleFavorite()
-        }
-        binding.btnFavorite.setOnLongClickListener {
-            showFavoriteCategoryPicker()
-            true
-        }
+        // 收藏按钮（底部控制栏）已移除，收藏入口只保留竖屏详情区的「收藏」
 
         // 倍速按钮 - 打开倍速设置对话框
         binding.speedButton.setOnClickListener {
@@ -1793,11 +1786,12 @@ class VideoPlayerActivity : AppCompatActivity() {
             binding.speedButton.visibility = View.GONE
             binding.screenshotButton.visibility = View.GONE
 
-            // 竖屏底部控制条：播放/暂停、时间+进度条+总时长、收藏、全屏（「下一集」竖屏不给）
+            // 竖屏底部控制条：播放/暂停、当前时间+进度条+总时长、全屏（「下一集」「收藏」竖屏不给）
 
             // 竖屏顶部：返回 + TV 投屏 + 分享 + 更多，全是纯图标；不显示标题，也不显示任何文字标签
             binding.backButton.visibility = View.VISIBLE
-            binding.titleText.visibility = View.GONE
+            // 竖屏不显示标题：用 INVISIBLE 占住 layout_weight=1 的位置，避免右侧图标组被顶到左边
+            binding.titleText.visibility = View.INVISIBLE
             binding.castButton.visibility = View.VISIBLE
             binding.castLabel.visibility = View.GONE
             binding.shareButton.visibility = View.VISIBLE
@@ -1852,7 +1846,8 @@ class VideoPlayerActivity : AppCompatActivity() {
     private fun enforcePortraitTopBar() {
         if (!isPortraitNow()) return
         binding.backButton.visibility = View.VISIBLE
-        binding.titleText.visibility = View.GONE
+        // INVISIBLE 而非 GONE：留住 layout_weight=1 的占位，右侧图标组才不会被顶到返回键旁边
+        binding.titleText.visibility = View.INVISIBLE
         binding.castButton.visibility = View.VISIBLE
         binding.castLabel.visibility = View.GONE
         binding.shareButton.visibility = View.VISIBLE
@@ -2812,22 +2807,6 @@ class VideoPlayerActivity : AppCompatActivity() {
                     setImageResource(R.drawable.ic_favorite_border_black_24dp)
                     clearColorFilter()
                 }
-            }
-
-            // 底部控制栏的收藏按钮（横屏 / 竖屏都有），状态跟竖屏详情区保持一致
-            binding.btnFavorite.setImageResource(
-                if (isFavorite) android.R.drawable.btn_star_big_on else R.drawable.ic_favorite_border_black_24dp
-            )
-            binding.btnFavorite.setColorFilter(
-                ContextCompat.getColor(
-                    this@VideoPlayerActivity,
-                    if (isFavorite) R.color.primary else R.color.player_control_icon
-                )
-            )
-            binding.btnFavorite.contentDescription = if (isFavorite) {
-                getString(R.string.fav_player_unfavorite)
-            } else {
-                getString(R.string.fav_player_favorite)
             }
         }
     }

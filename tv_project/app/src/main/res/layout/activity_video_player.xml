@@ -627,15 +627,14 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginEnd="8dp">
 
-                <!-- 进度条：高度固定 12dp，轨道（maxHeight/minHeight）2dp 垂直居中；
-                     缓冲段走同一条 drawable 的 secondaryProgress 层，位于已播轨道下面，
-                     不新增视图、不改高度，拖动时底栏不发生任何 reflow -->
+                <!-- 进度条：总高固定 14dp（拖动时高度不变、不 reflow），轨道 4dp 在其中垂直居中，
+                     12dp 滑块不被裁；缓冲段仍走同一条 drawable 的 secondaryProgress 层，位于已播轨道下面 -->
                 <SeekBar
                     android:id="@+id/progressSeekBar"
                     android:layout_width="match_parent"
-                    android:layout_height="12dp"
-                    android:maxHeight="2dp"
-                    android:minHeight="2dp"
+                    android:layout_height="14dp"
+                    android:maxHeight="4dp"
+                    android:minHeight="4dp"
                     android:progressDrawable="@drawable/tencent_style_seekbar"
                     android:thumb="@drawable/tencent_style_thumb"
                     android:thumbOffset="0dp" />
@@ -653,18 +652,6 @@
                 android:text="00:00"
                 android:textColor="@color/player_control_text"
                 android:textSize="13sp" />
-
-            <ImageButton
-                android:id="@+id/btnFavorite"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/fav_player_favorite"
-                android:padding="8dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_favorite_border_black_24dp"
-                android:tint="@color/player_control_icon" />
 
             <!-- 画面比例入口已收到「⋯ 更多」菜单，底栏只保留一个展开图标（fullscreenButton） -->
             <ImageButton
