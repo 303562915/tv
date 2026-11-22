@@ -18,6 +18,9 @@ class EpisodeAdapter(
     // 下标高亮会在展开/切源后跳到别的集上。
     private var selectedEpisodeNum = -1
 
+    /** 「上次看到第几集」的角标：同样按集号记，展开/切源后不会指错格子 */
+    private var lastWatchedEpisodeNum = -1
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemEpisodeTencentBinding.inflate(
             LayoutInflater.from(parent.context),
@@ -29,7 +32,21 @@ class EpisodeAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = getItem(position)
-        holder.bind(item, item.episodeNum == selectedEpisodeNum)
+        holder.bind(
+            item,
+            item.episodeNum == selectedEpisodeNum,
+            item.episodeNum == lastWatchedEpisodeNum
+        )
+    }
+
+    /**
+     * 标记「上次看到第几集」：那一格加一圈主题色描边。传 0 或负数表示清掉。
+     */
+    fun setLastWatchedEpisodeNum(episodeNum: Int) {
+        if (lastWatchedEpisodeNum == episodeNum) return
+        lastWatchedEpisodeNum = episodeNum
+        // 和 setSelectedEpisodeNum 一样整段刷新，分批 + 切源后下标不一定对得上集号
+        if (itemCount > 0) notifyItemRangeChanged(0, itemCount)
     }
 
     /**
@@ -47,7 +64,10 @@ class EpisodeAdapter(
         private val onItemClick: (EpisodeItem) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: EpisodeItem, isSelected: Boolean) {
+        private fun dp(value: Int): Int =
+            (value * binding.root.resources.displayMetrics.density + 0.5f).toInt()
+
+        fun bind(item: EpisodeItem, isSelected: Boolean, isLastWatched: Boolean) {
             // 显示集数
             binding.episodeNumber.text = item.episodeNum.toString()
             binding.episodeNameText.text = "第${item.episodeNum}集"
@@ -82,6 +102,18 @@ class EpisodeAdapter(
                 binding.episodeNameText.setTextColor(
                     ContextCompat.getColor(binding.root.context, android.R.color.darker_gray)
                 )
+            }
+
+            // 「上次看到第几集」的角标：一圈 2dp 主题色描边。
+            // 未选中的格子是白底，描边一眼能看到；选中的格子本身是主色实心，描边叠上去也不碍事
+            if (isLastWatched) {
+                binding.episodeCard.strokeWidth = dp(2)
+                binding.episodeCard.setStrokeColor(
+                    ContextCompat.getColor(binding.root.context, R.color.theme_primary)
+                )
+            } else {
+                // 复用的 holder 必须显式收掉描边，否则角标会跟着格子乱跑
+                binding.episodeCard.strokeWidth = 0
             }
 
             // 添加点击动画效果

@@ -1496,24 +1496,88 @@ class VideoPlayerActivity : AppCompatActivity() {
                     binding.currentPositionText.text = formatTime(progress.toLong())
                     // 显示该时间点的预览图
                     showProgressPreview(progress.toLong())
+                    // 拇指上方时间气泡：文案 = 目标时间，水平跟随拇指
+                    updateSeekTimeBubble(progress)
                 }
             }
             
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
                 isSeeking = true
                 hideControlsHandler.removeCallbacks(hideControlsRunnable)
+                // 按下即显示气泡（先按当前位置定位，随后 onProgressChanged 持续跟随）
+                seekBar?.let { updateSeekTimeBubble(it.progress) }
             }
             
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
                 isSeeking = false
                 // 隐藏预览图
                 binding.progressPreviewImage.visibility = View.GONE
+                // 松手收起时间气泡；中央 progressSeekLayout 大浮层逻辑保持不变
+                hideSeekTimeBubble()
                 seekBar?.let {
                     exoPlayerManager.seekTo(it.progress.toLong())
                 }
                 resetHideControlsTimer()
             }
         })
+    }
+
+    /**
+     * 拖动进度条时的拇指时间气泡。
+     *
+     * 气泡是 rootView(FrameLayout) 里的绝对定位浮层（layout_gravity=bottom），只改 translationX/Y，
+     * 不参与底栏的测量/布局，所以底栏高度、进度条长度都不变。
+     * 水平：气泡中心对到拇指中心；垂直：气泡底边贴进度条顶边上方 8dp（即底栏上沿）。
+     */
+    private fun updateSeekTimeBubble(progress: Int) {
+        try {
+            val bubble = binding.seekTimeBubble
+            val seekBar = binding.progressSeekBar
+            val rootView = binding.root
+
+            bubble.text = formatTime(progress.toLong())
+            bubble.visibility = View.VISIBLE
+
+            val rootWidth = rootView.width
+            if (rootWidth <= 0 || seekBar.width <= 0) return
+
+            // 量一次气泡宽度，用于把气泡中心对准拇指中心
+            val widthSpec = View.MeasureSpec.makeMeasureSpec(rootWidth, View.MeasureSpec.AT_MOST)
+            val heightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+            bubble.measure(widthSpec, heightSpec)
+            val bubbleWidth = bubble.measuredWidth.coerceAtLeast(0)
+
+            // 进度条在 rootView 里的位置：竖屏 rootView 被压到播放器高度，必须换算，不能直接用窗口坐标
+            val seekBarLocation = IntArray(2)
+            seekBar.getLocationInWindow(seekBarLocation)
+            val rootLocation = IntArray(2)
+            rootView.getLocationInWindow(rootLocation)
+            val seekBarLeftInRoot = seekBarLocation[0] - rootLocation[0]
+            val seekBarTopInRoot = seekBarLocation[1] - rootLocation[1]
+
+            // 拇指中心 = 轨道左端 + 轨道长度 × 进度比例
+            val trackWidth = (seekBar.width - seekBar.paddingLeft - seekBar.paddingRight).coerceAtLeast(1)
+            val ratio = if (seekBar.max > 0) progress.toFloat() / seekBar.max else 0f
+            val thumbX = seekBarLeftInRoot + seekBar.paddingLeft + trackWidth * ratio
+
+            // 水平：气泡中心贴拇指，左右夹在 root 内不越界
+            val maxTranslationX = (rootWidth - bubbleWidth).coerceAtLeast(0).toFloat()
+            bubble.translationX = (thumbX - bubbleWidth / 2f).coerceIn(0f, maxTranslationX)
+
+            // 垂直：底边 = 进度条顶边 - 8dp（气泡贴在底栏上沿，远离中央的音量/亮度提示）
+            bubble.translationY = (seekBarTopInRoot - dpToPixel(8) - rootView.height).toFloat()
+        } catch (e: Exception) {
+            android.util.Log.w("VideoPlayer", "更新进度气泡失败: ${e.message}")
+        }
+    }
+
+    /** 收起进度气泡（松手、控制条收起时调用）。 */
+    private fun hideSeekTimeBubble() {
+        try {
+            binding.seekTimeBubble.visibility = View.GONE
+        } catch (e: Exception) {
+            android.util.Log.w("VideoPlayer", "隐藏进度气泡失败: ${e.message}")
+        }
     }
     
     private fun togglePlayPause() {
@@ -1832,9 +1896,10 @@ class VideoPlayerActivity : AppCompatActivity() {
             playerParams.height = playerHeight
             binding.root.layoutParams = playerParams
 
-            // 竖屏：隐藏高清、选集、下载、解析、倍速按钮
+            // 竖屏：清晰度入口放在底栏播放键右侧（40dp，和底栏其他图标同规格），可见；
+            // 选集/下载/解析/倍速/截屏仍然只从「⋯ 更多」菜单进，保持隐藏
             try {
-                binding.qualityButton?.visibility = View.GONE
+                binding.qualityButton?.visibility = View.VISIBLE
             } catch (e: Exception) {
                 // 忽略
             }
@@ -4652,7 +4717,8 @@ class VideoPlayerActivity : AppCompatActivity() {
             }
             
             try {
-                binding.qualityButton?.text = quality
+                // 清晰度按钮改成了 40dp 底栏图标：不再写文字，把当前画质写进无障碍描述
+                binding.qualityButton?.contentDescription = "清晰度，当前$quality"
             } catch (e: Exception) {
                 // 如果布局中没有qualityButton，忽略错误
             }
@@ -4973,6 +5039,8 @@ class VideoPlayerActivity : AppCompatActivity() {
     
     private fun hideControls() {
         isControlsVisible = false
+        // 控制条收起时顺手收掉进度气泡，避免残留在底栏上沿
+        hideSeekTimeBubble()
 
         // 竖屏：顶部标题常显，只收起底部控制条；锁定态仍按原逻辑全收
         if (isPortraitNow() && !isLocked) {
@@ -4999,6 +5067,8 @@ class VideoPlayerActivity : AppCompatActivity() {
         }
 
         isControlsVisible = false
+        // 淡出前收掉进度气泡
+        hideSeekTimeBubble()
 
         if (isPortrait && !isLocked) {
             // 竖屏：只淡出底部控制条，顶部标题保持可见

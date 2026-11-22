@@ -623,6 +623,22 @@
                 android:src="@drawable/dkplayer_ic_action_pause"
                 android:tint="@color/player_control_icon" />
 
+            <!-- 清晰度入口：竖屏显示在播放键右侧（40dp，与底栏其他图标同规格），横屏由代码置 GONE；
+                 点击仍走 showVideoInfo()（当前只有视频信息弹窗，无清晰度切换逻辑）。
+                 默认 GONE，由 updateOrientationUI() 的竖屏分支打开 -->
+            <ImageButton
+                android:id="@+id/qualityButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="清晰度"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_hd"
+                android:tint="@color/player_control_icon"
+                android:visibility="gone" />
+
             <ImageButton
                 android:id="@+id/nextButton"
                 android:layout_width="40dp"
@@ -751,15 +767,6 @@
                 android:visibility="gone" />
 
             <Button
-                android:id="@+id/qualityButton"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:text="清晰"
-                android:textColor="@color/player_control_icon_dim"
-                android:textSize="13sp" />
-
-            <Button
                 android:id="@+id/episodeButton"
                 android:layout_width="wrap_content"
                 android:layout_height="36dp"
@@ -796,6 +803,28 @@
                 android:textSize="13sp" />
         </LinearLayout>
     </LinearLayout>
+
+    <!-- 拖动进度条时的拇指时间气泡：绝对定位浮层（FrameLayout 子项），不参与底栏高度/布局。
+         visibility 由 onStartTrackingTouch/onStopTrackingTouch 控制，位置由 translationX/Y 跟随拇指；
+         贴底栏上沿，与 volumeBrightnessLayout / qualityHintText（都在顶部或屏幕中央）不重叠 -->
+    <TextView
+        android:id="@+id/seekTimeBubble"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@drawable/gesture_hint_background"
+        android:backgroundTint="#CC101010"
+        android:elevation="6dp"
+        android:fontFeatureSettings="tnum"
+        android:includeFontPadding="false"
+        android:maxLines="1"
+        android:paddingStart="10dp"
+        android:paddingTop="5dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="5dp"
+        android:textColor="@android:color/white"
+        android:textSize="12sp"
+        android:visibility="gone" />
 
     <!-- 播放结束卡片：播放器 STATE_ENDED 时显示「已播完」+ 重播 / 下一集（无下一集时隐藏） -->
     <LinearLayout

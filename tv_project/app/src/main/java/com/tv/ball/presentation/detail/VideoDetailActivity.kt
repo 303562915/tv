@@ -5,6 +5,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
@@ -105,6 +106,7 @@ class VideoDetailActivity : AppCompatActivity() {
             override fun onTabSelected(tab: com.google.android.material.tabs.TabLayout.Tab?) {
                 tab?.position?.let { position ->
                     currentGroupIndex = position
+                    updateSourceTabColors(position)
                     showEpisodesForCurrentGroup()
                 }
             }
@@ -113,6 +115,41 @@ class VideoDetailActivity : AppCompatActivity() {
             override fun onTabReselected(tab: com.google.android.material.tabs.TabLayout.Tab?) {}
         })
     }
+
+    /**
+     * 线路 Tab 的自定义视图：名字再长也只占一行、超过 160dp 打省略号，
+     * 否则一条「XX线路-高清m3u8专用」就能把整排 Tab 撑到屏外。
+     */
+    private fun createSourceTabView(sourceName: String): android.widget.TextView {
+        val padding = dp(8)
+        return android.widget.TextView(this).apply {
+            text = sourceName
+            maxLines = 1
+            ellipsize = android.text.TextUtils.TruncateAt.END
+            maxWidth = dp(160)
+            textSize = 14f
+            gravity = android.view.Gravity.CENTER
+            setPadding(padding, padding, padding, padding)
+        }
+    }
+
+    /**
+     * 自定义 Tab 视图不会自动跟着 TabLayout 的 tabSelectedTextColor 变色，这里手动同步。
+     */
+    private fun updateSourceTabColors(selectedPosition: Int) {
+        for (index in 0 until binding.tabLayout.tabCount) {
+            val textView = binding.tabLayout.getTabAt(index)?.customView as? android.widget.TextView
+                ?: continue
+            textView.setTextColor(
+                ContextCompat.getColor(
+                    this,
+                    if (index == selectedPosition) R.color.theme_primary else R.color.theme_text_secondary
+                )
+            )
+        }
+    }
+
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
     
     /**
      * 显示当前选中线路的剧集
@@ -223,6 +260,9 @@ class VideoDetailActivity : AppCompatActivity() {
                     }
                     
                     if (matchedEpisode != null) {
+                        // 「看到第几集」的角标：先记在 Adapter 上，切线路重新 submitList 也不会丢
+                        episodeAdapter.setLastWatchedEpisode(matchedEpisode)
+
                         // 找到匹配的集数，切换到对应的线路
                         episodeGroups.forEachIndexed { index, group ->
                             if (group.episodes.any { it.url == matchedEpisode.url }) {
@@ -390,9 +430,10 @@ class VideoDetailActivity : AppCompatActivity() {
                     binding.tabLayout.removeAllTabs()
                     grouped.forEach { group ->
                         binding.tabLayout.addTab(
-                            binding.tabLayout.newTab().setText(group.sourceName)
+                            binding.tabLayout.newTab().setCustomView(createSourceTabView(group.sourceName))
                         )
                     }
+                    updateSourceTabColors(currentGroupIndex)
                     
                     // 显示第一个线路的剧集
                     if (grouped.isNotEmpty()) {

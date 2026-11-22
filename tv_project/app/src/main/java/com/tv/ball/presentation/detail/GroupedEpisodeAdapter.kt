@@ -20,6 +20,9 @@ class GroupedEpisodeAdapter(
     
     private var groups: List<EpisodeGroup> = emptyList()
     private var selectedEpisode: Episode? = null
+
+    /** 上次看到的那一集（按 url 记） */
+    private var lastWatchedUrl: String? = null
     
     companion object {
         private const val VIEW_TYPE_HEADER = 0
@@ -60,6 +63,15 @@ class GroupedEpisodeAdapter(
         selectedEpisode = episode
         notifyDataSetChanged()
     }
+
+    /**
+     * 标记「上次看到这一集」：对应格子上加一个小圆点角标。
+     * 传 null 表示没有历史记录（或标题对不上），全部不标记。
+     */
+    fun setLastWatchedEpisode(episode: Episode?) {
+        lastWatchedUrl = episode?.url
+        notifyDataSetChanged()
+    }
     
     override fun getItemCount(): Int {
         // 每个分组包含2个item：标题 + 剧集网格
@@ -92,7 +104,7 @@ class GroupedEpisodeAdapter(
         
         when (holder) {
             is HeaderViewHolder -> holder.bind(group.sourceName)
-            is EpisodesViewHolder -> holder.bind(group.episodes, selectedEpisode)
+            is EpisodesViewHolder -> holder.bind(group.episodes, selectedEpisode, lastWatchedUrl)
         }
     }
     
@@ -122,8 +134,8 @@ class GroupedEpisodeAdapter(
             recyclerView.adapter = adapter
         }
         
-        fun bind(episodes: List<Episode>, selectedEpisode: Episode?) {
-            adapter.setEpisodes(episodes, selectedEpisode)
+        fun bind(episodes: List<Episode>, selectedEpisode: Episode?, lastWatchedUrl: String?) {
+            adapter.setEpisodes(episodes, selectedEpisode, lastWatchedUrl)
         }
     }
     
@@ -136,10 +148,12 @@ class GroupedEpisodeAdapter(
         
         private var episodes: List<Episode> = emptyList()
         private var selectedEpisode: Episode? = null
-        
-        fun setEpisodes(episodes: List<Episode>, selectedEpisode: Episode?) {
+        private var lastWatchedUrl: String? = null
+
+        fun setEpisodes(episodes: List<Episode>, selectedEpisode: Episode?, lastWatchedUrl: String?) {
             this.episodes = episodes
             this.selectedEpisode = selectedEpisode
+            this.lastWatchedUrl = lastWatchedUrl
             notifyDataSetChanged()
         }
         
@@ -154,7 +168,8 @@ class GroupedEpisodeAdapter(
         override fun onBindViewHolder(holder: EpisodeViewHolder, position: Int) {
             val episode = episodes[position]
             val isSelected = selectedEpisode?.url == episode.url
-            holder.bind(episode, isSelected)
+            val isLastWatched = !lastWatchedUrl.isNullOrEmpty() && episode.url == lastWatchedUrl
+            holder.bind(episode, isSelected, isLastWatched)
         }
         
         class EpisodeViewHolder(
@@ -162,9 +177,13 @@ class GroupedEpisodeAdapter(
             private val onEpisodeClick: (Episode) -> Unit
         ) : RecyclerView.ViewHolder(itemView) {
             private val tvEpisode: TextView = itemView.findViewById(R.id.tvEpisode)
-            
-            fun bind(episode: Episode, isSelected: Boolean) {
+            private val lastWatchedBadge: TextView = itemView.findViewById(R.id.lastWatchedBadge)
+
+            fun bind(episode: Episode, isSelected: Boolean, isLastWatched: Boolean) {
                 tvEpisode.text = episode.name
+
+                // 「上次看到这一集」的小圆点：换成别的格子时必须显式收掉，否则会跟着复用乱跑
+                lastWatchedBadge.visibility = if (isLastWatched) View.VISIBLE else View.GONE
                 
                 // 设置选中状态的样式
                 if (isSelected) {

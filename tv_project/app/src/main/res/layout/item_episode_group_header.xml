@@ -15,6 +15,9 @@
         android:text="线路1"
         android:textSize="14sp"
         android:textStyle="bold"
-        android:textColor="@color/theme_text_primary" />
+        android:textColor="@color/theme_text_primary"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:maxWidth="160dp" />
     
 </LinearLayout>

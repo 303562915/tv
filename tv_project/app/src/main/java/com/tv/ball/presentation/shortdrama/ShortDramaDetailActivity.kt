@@ -176,11 +176,45 @@ class ShortDramaDetailActivity : AppCompatActivity() {
     // ---------------- 详情信息 ----------------
 
     private fun bindDetail(detail: ShortDramaItem) {
-        binding.tvAuthor.text = "演员: ${detail.author}"
-        binding.tvType.text = detail.type
-        binding.tvPlayCount.text =
-            if (detail.playCnt == "0" || detail.playCnt.isEmpty()) "" else "${formatPlayCount(detail.playCnt)}播放"
-        binding.tvEpisodeCount.text = if (detail.episodeCnt.isNotEmpty()) "共${detail.episodeCnt}集" else ""
+        // 标签式信息（演员 / 类型 / 播放量 / 集数）没有数据就把对应的那块 GONE，
+        // 整行全空时连行一起收掉，别在标题下面留一片空白
+        val author = detail.author.trim()
+        if (author.isNotEmpty()) {
+            binding.tvAuthor.text = "演员: $author"
+            binding.tvAuthor.visibility = View.VISIBLE
+        } else {
+            binding.tvAuthor.visibility = View.GONE
+        }
+
+        val type = detail.type.trim()
+        if (type.isNotEmpty()) {
+            binding.tvType.text = type
+            binding.tvType.visibility = View.VISIBLE
+        } else {
+            binding.tvType.visibility = View.GONE
+        }
+        binding.rowAuthorType.visibility =
+            if (author.isEmpty() && type.isEmpty()) View.GONE else View.VISIBLE
+
+        val playCount = detail.playCnt.trim()
+        if (playCount.isEmpty() || playCount == "0") {
+            binding.tvPlayCount.visibility = View.GONE
+        } else {
+            binding.tvPlayCount.text = "${formatPlayCount(playCount)}播放"
+            binding.tvPlayCount.visibility = View.VISIBLE
+        }
+
+        if (detail.episodeCnt.isNotEmpty()) {
+            binding.tvEpisodeCount.text = "共${detail.episodeCnt}集"
+            binding.tvEpisodeCount.visibility = View.VISIBLE
+        } else {
+            binding.tvEpisodeCount.visibility = View.GONE
+        }
+        binding.rowPlayStat.visibility =
+            if (binding.tvPlayCount.visibility == View.GONE &&
+                binding.tvEpisodeCount.visibility == View.GONE
+            ) View.GONE else View.VISIBLE
+
         binding.tvIntro.text = detail.intro
         renderMetaInfo(detail)
         applyIntroState()
@@ -248,6 +282,10 @@ class ShortDramaDetailActivity : AppCompatActivity() {
                     text = source.name.ifBlank { "播放源${index + 1}" }
                     textSize = 13f
                     gravity = Gravity.CENTER
+                    // 线路名再长也只占一行、最宽 160dp，剩下的打省略号，否则一条长名字就撑爆这一排
+                    maxLines = 1
+                    ellipsize = TextUtils.TruncateAt.END
+                    maxWidth = dp(160)
                     setPadding(dp(14), dp(6), dp(14), dp(6))
                     setOnClickListener { viewModel.selectSource(index) }
                 }
@@ -319,6 +357,8 @@ class ShortDramaDetailActivity : AppCompatActivity() {
             binding.tvProgressHint.visibility = View.VISIBLE
             // 点角标 = 手动跳回去，比只提示更有用
             binding.tvProgressHint.setOnClickListener { focusEpisode(lastWatched) }
+            // 选集格子里也给那一格描个边，光有标题旁的角标还是得自己找格子
+            episodeAdapter.setLastWatchedEpisodeNum(lastWatched)
         } else {
             binding.tvProgressHint.visibility = View.GONE
         }

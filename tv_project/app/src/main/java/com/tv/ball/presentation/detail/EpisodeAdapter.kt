@@ -16,6 +16,19 @@ class EpisodeAdapter(
 
     private var selectedPosition = -1
 
+    /** 上次看到的那一集（按 url 记，切换线路/重新 submitList 后依然对得上） */
+    private var lastWatchedUrl: String? = null
+
+    /**
+     * 标记「上次看到这一集」：加一圈主题色描边，和「正在播」的实心底色不是一个东西。
+     * 传 null 表示没有历史记录，全部清掉。
+     */
+    fun setLastWatchedEpisode(episode: Episode?) {
+        lastWatchedUrl = episode?.url
+        // itemCount 不大（一屏几十个格子），整段刷新最省心，也不会漏掉复用出去的 holder
+        if (itemCount > 0) notifyItemRangeChanged(0, itemCount)
+    }
+
     /**
      * 设置选中的集数
      */
@@ -65,6 +78,9 @@ class EpisodeAdapter(
     inner class EpisodeViewHolder(
         private val binding: ItemEpisodeDetailBinding
     ) : RecyclerView.ViewHolder(binding.root) {
+
+        private fun dp(value: Int): Int =
+            (value * binding.root.resources.displayMetrics.density + 0.5f).toInt()
         
         fun bind(episode: Episode, position: Int, isSelected: Boolean) {
             android.util.Log.d("EpisodeAdapter", "bind: position=$position, name=${episode.name}, isSelected=$isSelected")
@@ -105,7 +121,19 @@ class EpisodeAdapter(
                     ContextCompat.getColor(binding.root.context, android.R.color.darker_gray)
                 )
             }
-            
+
+            // 「上次看到这一集」的角标：用 2dp 主题色描边。选中态是实心底色，描边叠在上面依旧看得出
+            val isLastWatched = !lastWatchedUrl.isNullOrEmpty() && episode.url == lastWatchedUrl
+            if (isLastWatched) {
+                binding.episodeCard.strokeWidth = dp(2)
+                binding.episodeCard.setStrokeColor(
+                    ContextCompat.getColor(binding.root.context, R.color.theme_primary)
+                )
+            } else {
+                // 复用的 holder 必须显式清掉描边，否则角标会跟着格子乱跑
+                binding.episodeCard.strokeWidth = 0
+            }
+
             binding.episodeCard.setOnClickListener {
                 val clickPosition = bindingAdapterPosition
                 if (clickPosition != RecyclerView.NO_POSITION) {
