@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.BaseAdapter
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -92,6 +93,7 @@ class F086Activity : AppCompatActivity() {
             openUrl(F086Engine.DOWNLOAD_PAGE_URL, R.string.f086_download_page)
         }
         binding.f086RepoButton.setOnClickListener { openRepo() }
+        binding.f086ChangelogRow.setOnClickListener { showChangelog() }
 
         renderHero()
         render(state)
@@ -273,6 +275,29 @@ class F086Activity : AppCompatActivity() {
             UpdateChecker.Failure.UNKNOWN -> R.string.f086_fail_unknown
         }
     )
+
+    // ===== 更新记录 =====
+
+    /**
+     * 更新记录：最近 5 个版本各一句话。
+     *
+     * 数据来自 [Changelog] 的本地常量数组，**不发任何网络请求**——断网、镜像挂掉时
+     * 用户仍然能看到手上这版改了什么。用系统 AlertDialog 承载，不新增界面。
+     */
+    private fun showChangelog() {
+        if (Changelog.entries.isEmpty()) {
+            CustomToast.show(this, getString(R.string.f086_changelog_empty))
+            return
+        }
+        val text = Changelog.dialogText { version, note ->
+            getString(R.string.f086_changelog_line, version, note)
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.f086_changelog_title)
+            .setMessage(text)
+            .setPositiveButton(R.string.f086_changelog_ok, null)
+            .show()
+    }
 
     // ===== 外链 =====
 

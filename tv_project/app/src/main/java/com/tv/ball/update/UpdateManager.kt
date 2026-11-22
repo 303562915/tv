@@ -398,7 +398,10 @@ object UpdateManager {
                     context = activity,
                     apk = apk,
                     onPending = {},
-                    onMessage = { }
+                    // 安装链路的话要真的落到屏幕上：这里在 IO 线程，回主线程再弹
+                    onMessage = { msg ->
+                        activity.runOnUiThread { if (activity.alive()) toast(activity, msg) }
+                    }
                 )
             }
             dismissProgress()
@@ -496,7 +499,15 @@ object UpdateManager {
             // 安装链路内部已经按 Shizuku → root → 系统安装器 降级；异常也只变成一句原因
             val outcome = runCatching {
                 withContext(Dispatchers.IO) {
-                    ApkInstaller.install(activity, apk, onPending = {}, onMessage = { })
+                    ApkInstaller.install(
+                        activity,
+                        apk,
+                        onPending = {},
+                        // 同上：Shizuku / root 的提示回到主线程弹，页面已销毁就丢掉
+                        onMessage = { msg ->
+                            activity.runOnUiThread { if (activity.alive()) toast(activity, msg) }
+                        }
+                    )
                 }
             }.getOrElse { e ->
                 ApkInstaller.Outcome.Failed(e.message ?: "安装失败")

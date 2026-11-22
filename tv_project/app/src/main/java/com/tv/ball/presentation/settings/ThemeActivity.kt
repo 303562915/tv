@@ -57,6 +57,7 @@ class ThemeActivity : AppCompatActivity() {
         setupNightModeOptions()
         updateColorSelection()
         updateCurrentColorPreview()
+        updatePreviewCard()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -198,6 +199,8 @@ class ThemeActivity : AppCompatActivity() {
 
         updateColorSelection()
         updateCurrentColorPreview()
+        // 预览卡用刚选中的颜色重画：不等重建、不等退出重进，点一下立刻变色
+        updatePreviewCard()
 
         // 状态栏 / 导航栏立刻换色
         ThemeUtils.applyThemeColor(this, selectedColor)
@@ -225,6 +228,31 @@ class ThemeActivity : AppCompatActivity() {
         }
         binding.currentColorName.text = currentTheme.colorName
     }
+
+    /**
+     * 预览卡：背景块 / 主色文字 / 主色按钮**直接用当前选中的颜色**上色。
+     *
+     * 不走 `@color/theme_primary`：那是编译期常量，换色不会跟着变，正是
+     * 「选完色板要退出重进才生效」的根因。这里每次选择后重画一遍，
+     * 页面上就有了一块随点随变的所见即所得区域。
+     */
+    private fun updatePreviewCard() {
+        val primary = selectedColor
+        binding.themePreviewBlock.background = roundedFill(primary, BLOCK_RADIUS_DP)
+        binding.themePreviewText.setTextColor(primary)
+        binding.themePreviewButton.background = roundedFill(primary, BUTTON_RADIUS_DP)
+        binding.themePreviewButton.setTextColor(
+            ContextCompat.getColor(this, R.color.theme_on_primary)
+        )
+    }
+
+    /** 实心圆角块：预览卡的背景块与「主色按钮」共用。 */
+    private fun roundedFill(colorInt: Int, radiusDp: Int): GradientDrawable =
+        GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            setColor(colorInt)
+            cornerRadius = dp(radiusDp).toFloat()
+        }
 
     // ---------------------------------------------------------------- 夜间模式
 
@@ -297,5 +325,7 @@ class ThemeActivity : AppCompatActivity() {
         private const val COLUMN_COUNT = 4
         private const val SWATCH_SIZE_DP = 44
         private const val CHECK_SIZE_DP = 18
+        private const val BLOCK_RADIUS_DP = 12
+        private const val BUTTON_RADIUS_DP = 16
     }
 }

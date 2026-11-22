@@ -309,5 +309,65 @@
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <!--
+          小节：效果预览
+          色板下方这块预览卡是「所见即所得」的判据：背景块 / 主色文字 / 主色按钮
+          都由 ThemeActivity 用**刚选中的颜色**直接在代码里上色（不读静态的
+          @color/theme_primary —— 那是编译期常量，换色不会跟着变），所以点一下
+          色板这里立刻变色，不用退出重进。
+        -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/card_padding"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:text="效果预览"
+            android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/card_padding">
+
+                <!-- 背景块：整块铺当前主色（圆角在代码里按选中色重画） -->
+                <View
+                    android:id="@+id/themePreviewBlock"
+                    android:layout_width="match_parent"
+                    android:layout_height="72dp"
+                    android:background="@drawable/bg_mode_row" />
+
+                <!-- 一行主色文字 -->
+                <TextView
+                    android:id="@+id/themePreviewText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/card_gap"
+                    android:text="主色文字示例 · 标题与链接都跟着变"
+                    android:textColor="@color/theme_primary"
+                    android:textSize="15sp" />
+
+                <!-- 主色按钮（纯展示，不接收点击） -->
+                <TextView
+                    android:id="@+id/themePreviewButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="@dimen/card_gap"
+                    android:background="@drawable/bg_button_primary"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:gravity="center"
+                    android:importantForAccessibility="no"
+                    android:text="主题色按钮"
+                    android:textColor="@color/theme_on_primary"
+                    android:textSize="15sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

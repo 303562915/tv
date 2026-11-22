@@ -16,7 +16,7 @@
   卡片本身是焦点目标时，行底靠 android:duplicateParentState 承接卡片焦点态。
 
   电视遥控器操作：焦点链  返回 → 检查更新 → 渠道下拉 → 自动安装 →
-  下载页 → 打开仓库（末位）。
+  下载页 → 打开仓库 → 更新记录（末位，不再向下延伸）。
 -->
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -403,7 +403,7 @@
                 android:focusableInTouchMode="true"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/row_min_height"
-                android:nextFocusDown="@null"
+                android:nextFocusDown="@id/f086ChangelogRow"
                 android:nextFocusUp="@id/f086DownloadCard"
                 android:orientation="horizontal"
                 android:paddingStart="@dimen/row_padding_h"
@@ -445,5 +445,34 @@
                     app:tint="@color/theme_text_secondary" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <!--
+          ===== 更新记录 =====
+          一行 12sp 次要色文字，点开弹最近 5 个版本的一句话说明（数据是本地常量
+          Changelog.entries，不发网络请求）。它是页面末位，遥控器再往下不延伸。
+        -->
+        <TextView
+            android:id="@+id/f086ChangelogRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/group_inset"
+            android:layout_marginTop="@dimen/group_gap"
+            android:layout_marginEnd="@dimen/group_inset"
+            android:background="@drawable/bg_profile_row"
+            android:clickable="true"
+            android:contentDescription="@string/f086_changelog_hint"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:gravity="center_vertical"
+            android:minHeight="48dp"
+            android:nextFocusDown="@null"
+            android:nextFocusUp="@id/f086RepoButton"
+            android:paddingStart="@dimen/row_padding_h"
+            android:paddingTop="12dp"
+            android:paddingEnd="@dimen/row_padding_h"
+            android:paddingBottom="12dp"
+            android:text="@string/f086_changelog"
+            android:textColor="@color/theme_text_secondary"
+            android:textSize="12sp" />
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

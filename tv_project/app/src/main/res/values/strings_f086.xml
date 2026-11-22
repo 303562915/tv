@@ -56,4 +56,12 @@
 
     <!-- 渠道切换后的提示行：告诉用户下一次检查读哪个渠道 -->
     <string name="f086_check_hint_channel">点卡片检查 %1$s 渠道的最新版本</string>
+
+    <!-- 更新记录：本地常量（Changelog.kt），最近 5 个版本各一句话，不发网络请求 -->
+    <string name="f086_changelog">更新记录</string>
+    <string name="f086_changelog_hint">查看最近 5 个版本的更新说明</string>
+    <string name="f086_changelog_title">更新记录</string>
+    <string name="f086_changelog_line">v%1$s  %2$s</string>
+    <string name="f086_changelog_ok">知道了</string>
+    <string name="f086_changelog_empty">还没有更新记录</string>
 </resources>

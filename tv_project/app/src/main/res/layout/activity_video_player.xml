@@ -647,6 +647,18 @@
                 android:src="@drawable/dkplayer_ic_action_pause"
                 android:tint="@color/player_control_icon" />
 
+            <!-- 睡眠定时器剩余时间小标识：默认 GONE，由代码在定时器生效时填「⏱ 28:15」 -->
+            <TextView
+                android:id="@+id/sleepTimerIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:textColor="@color/player_control_text"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
             <!-- 清晰度入口：竖屏显示在播放键右侧（40dp，与底栏其他图标同规格），横屏由代码置 GONE；
                  点击仍走 showVideoInfo()（当前只有视频信息弹窗，无清晰度切换逻辑）。
                  默认 GONE，由 updateOrientationUI() 的竖屏分支打开 -->

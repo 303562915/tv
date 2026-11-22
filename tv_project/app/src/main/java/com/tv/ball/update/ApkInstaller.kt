@@ -24,6 +24,13 @@ object ApkInstaller {
 
     const val REQUEST_SHIZUKU = 4211
 
+    /**
+     * Shizuku 不可用时必须说清是哪一种，「静默通道没走成」对用户没有信息量：
+     * 没装 → 告诉他能装，装了没授权 → 告诉他去哪儿点一下。
+     */
+    const val MSG_SHIZUKU_NOT_INSTALLED = "未检测到 Shizuku，安装后可免弹窗安装更新"
+    const val MSG_SHIZUKU_NOT_AUTHORIZED = "Shizuku 已安装但未授权，请在 Shizuku 里允许本应用"
+
     sealed class Outcome {
         object Pending : Outcome()
         object InstalledSilently : Outcome()
@@ -56,16 +63,19 @@ object ApkInstaller {
         onMessage: (String) -> Unit
     ): Outcome {
         // 1) Shizuku：默认优先，静默装
-        if (ShizukuBridge.isAvailable()) {
-            if (ShizukuBridge.hasPermission()) {
-                onMessage("正在用 Shizuku 安装…")
-                val failure = ShizukuInstaller.install(context, apk)
-                if (failure == null) return Outcome.InstalledSilently
-                onMessage("Shizuku 安装失败：${failure.take(120)}")
-            } else {
-                ShizukuBridge.requestPermission(REQUEST_SHIZUKU)
-                onMessage("请在 Shizuku 里允许本应用（已发起授权）")
-            }
+        if (ShizukuBridge.isAvailable() && ShizukuBridge.hasPermission()) {
+            onMessage("正在用 Shizuku 安装…")
+            val failure = ShizukuInstaller.install(context, apk)
+            if (failure == null) return Outcome.InstalledSilently
+            onMessage("Shizuku 安装失败：${failure.take(120)}")
+        } else if (ShizukuBridge.isInstalled(context)) {
+            // 装了但用不了（没授权 / 服务没起来）：发起授权，并带用户去 Shizuku 里点允许
+            ShizukuBridge.requestPermission(REQUEST_SHIZUKU)
+            ShizukuBridge.openShizukuApp(context)
+            onMessage(MSG_SHIZUKU_NOT_AUTHORIZED)
+        } else {
+            // 没装：提示一句就够了，继续往下走 root / 系统安装器，绝不卡在这一步
+            onMessage(MSG_SHIZUKU_NOT_INSTALLED)
         }
 
         // 2) root 兜底

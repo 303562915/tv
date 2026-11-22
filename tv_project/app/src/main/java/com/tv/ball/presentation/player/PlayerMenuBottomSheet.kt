@@ -26,6 +26,8 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
     private var onSkipIntroToggled: ((Boolean) -> Unit)? = null
     private var onSkipOutroToggled: ((Boolean) -> Unit)? = null
     private var onRepeatModeChanged: ((Int) -> Unit)? = null
+    private var onPipClicked: (() -> Unit)? = null
+    private var pipEnabled = false
     
     private var currentSpeed = 1.0f
     private var skipIntroEnabled = true
@@ -46,9 +48,11 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
     }
 
     /**
-     * 睡眠定时器的显示状态：[minutes] 给弹窗勾选用（关闭 = 0），[statusText] 直接贴到行尾。
+     * 睡眠定时器的显示状态：[optionIndex] 取 [SLEEP_TIMER_OPTIONS] 里的值给弹窗勾选用
+     * （关闭 = 0，正数 = 分钟，[SLEEP_TIMER_END_OF_EPISODE] = 播完当前集），
+     * [statusText] 直接贴到行尾。
      */
-    data class SleepTimerState(val minutes: Int, val statusText: String)
+    data class SleepTimerState(val optionIndex: Int, val statusText: String)
 
     // 字幕状态只由播放页给：字幕文件属于当前片源，菜单不缓存也不轮询，
     // 打开菜单时取一次就够了（字幕不会自己变）
@@ -164,11 +168,26 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
         sleepTimerRefreshHandler.removeCallbacks(sleepTimerRefreshRunnable)
         sleepTimerRefreshHandler.postDelayed(sleepTimerRefreshRunnable, SLEEP_TIMER_REFRESH_INTERVAL_MS)
 
+        // 画中画：设备不支持时整行置灰（由调用方按 FEATURE_PICTURE_IN_PICTURE 判）
+        binding.rowPip.setOnClickListener {
+            onPipClicked?.invoke()
+            dismiss()
+        }
+        refreshPipState()
+
         // 字幕：菜单打开时刷一次行尾文字；延迟改了由本页回调直接刷新，不轮询
         binding.rowSubtitle.setOnClickListener {
             showSubtitleDialog()
         }
         refreshSubtitleState()
+    }
+
+    private fun refreshPipState() {
+        val binding = _binding ?: return
+        binding.rowPip.isEnabled = pipEnabled
+        // 置灰靠透明度和文字一起表达，光靠 isEnabled 在深色底上看不出来
+        binding.rowPip.alpha = if (pipEnabled) 1f else 0.4f
+        binding.tvPipValue.text = if (pipEnabled) "进入" else "不支持"
     }
     
     private fun refreshSleepTimerState() {
@@ -179,12 +198,12 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
 
     private fun showSleepTimerDialog() {
         val ctx = context ?: return
-        val currentMinutes = sleepTimerStateProvider?.invoke()?.minutes ?: 0
+        val currentOption = sleepTimerStateProvider?.invoke()?.optionIndex ?: 0
         sleepTimerDialog?.dismiss()
         // 弹窗用 activity 的 context 建，才能盖在底部菜单的窗口之上，且菜单不跟着关
         val dialog = AlertDialog.Builder(ctx)
             .setTitle("睡眠定时器")
-            .setSingleChoiceItems(SLEEP_TIMER_LABELS, sleepTimerIndexOf(currentMinutes)) { dialog, which ->
+            .setSingleChoiceItems(SLEEP_TIMER_LABELS, sleepTimerIndexOf(currentOption)) { dialog, which ->
                 dialog.dismiss()
                 onSleepTimerSelected?.invoke(SLEEP_TIMER_OPTIONS[which])
                 refreshSleepTimerState()
@@ -195,8 +214,8 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
         dialog.show()
     }
 
-    private fun sleepTimerIndexOf(minutes: Int): Int {
-        val index = SLEEP_TIMER_OPTIONS.indexOf(minutes)
+    private fun sleepTimerIndexOf(option: Int): Int {
+        val index = SLEEP_TIMER_OPTIONS.indexOf(option)
         return if (index >= 0) index else 0
     }
 
@@ -318,6 +337,16 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
         this.onSleepTimerSelected = listener
     }
 
+    /** 设备不支持画中画时置灰整行；调用方用 FEATURE_PICTURE_IN_PICTURE 判完再调。 */
+    fun setPipEnabled(enabled: Boolean) {
+        this.pipEnabled = enabled
+        refreshPipState()
+    }
+
+    fun setOnPipClickedListener(listener: () -> Unit) {
+        this.onPipClicked = listener
+    }
+
     /** 字幕行的状态由播放页提供：字幕文件活在播放页，菜单只负责显示与回传动作。 */
     fun setSubtitleStateProvider(provider: () -> SubtitleUiState) {
         this.subtitleStateProvider = provider
@@ -349,9 +378,12 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
         const val ACTION_DELAY_PLUS_HALF_SECOND = 3
         const val ACTION_DELAY_RESET = 4
 
-        // 关闭 / 15 / 30 / 60 / 90 分钟；数组下标就是单选项和勾选状态的下标，两者必须同序
-        private val SLEEP_TIMER_OPTIONS = intArrayOf(0, 15, 30, 60, 90)
-        private val SLEEP_TIMER_LABELS = arrayOf<CharSequence>("关闭", "15 分钟", "30 分钟", "60 分钟", "90 分钟")
+        // 关闭 / 15 / 30 / 60 / 播完当前集；数组下标就是单选项和勾选状态的下标，两者必须同序。
+        // 「播完当前集」没有分钟数，用哨兵值 [SLEEP_TIMER_END_OF_EPISODE] 表示。
+        const val SLEEP_TIMER_END_OF_EPISODE = -1
+        private val SLEEP_TIMER_OPTIONS = intArrayOf(0, 15, 30, 60, SLEEP_TIMER_END_OF_EPISODE)
+        private val SLEEP_TIMER_LABELS =
+            arrayOf<CharSequence>("关闭", "15 分钟", "30 分钟", "60 分钟", "播完当前集")
         private const val SLEEP_TIMER_REFRESH_INTERVAL_MS = 30_000L
 
         // 下标与 [SUBTITLE_ACTIONS] 一一对应：单选项的 which 直接当下标用

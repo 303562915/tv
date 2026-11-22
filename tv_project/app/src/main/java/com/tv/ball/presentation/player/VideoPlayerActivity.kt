@@ -194,12 +194,19 @@ class VideoPlayerActivity : AppCompatActivity() {
     private val countdownHandler = Handler(Looper.getMainLooper())
     private var countdownRunnable: Runnable? = null
 
-    // 睡眠定时器：到点暂停并退出播放页。
-    // 只把「选了几分钟」落盘，剩余时间不存——否则隔天重进页面会出现幽灵倒计时。
+    // 睡眠定时器：到点暂停播放。
+    // 用 Activity 内的 Handler 计时，onDestroy 里清掉 —— 也就是说「离开页面即取消」，
+    // 不跨页面、不跨进程；只有「选了几分钟」落盘，剩余时间每次进页面重算，不留幽灵倒计时。
     private val sleepTimerHandler = Handler(Looper.getMainLooper())
     private var sleepTimerRunnable: Runnable? = null
     private var sleepTimerMinutes = 0
     private var sleepTimerEndAt = 0L  // SystemClock.elapsedRealtime() 口径，0 表示未启动
+    // 「播完当前集」档位：没有分钟数，靠 STATE_ENDED 触发；armed = 等着本集播完
+    private var sleepTimerEndOfEpisodeArmed = false
+    // 本集已经因为「播完当前集」停过一次：保证 onEnded 与 STATE_ENDED 两条通道只生效一次
+    private var sleepTimerEndOfEpisodeFired = false
+    // 底栏小标识上一次写进去的文本，200ms 的刷新循环里没变化就不重复 setText
+    private var lastSleepTimerIndicatorText = ""
     
     // 手势相关
     private var gestureDownX = 0f
@@ -245,6 +252,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         // 睡眠定时器只恢复上次选的档位，不恢复剩余时间：重进页面一律按「未启动」算
         sleepTimerMinutes = getSharedPreferences("player_settings", MODE_PRIVATE)
             .getInt("sleep_timer_minutes", 0)
+            .coerceAtLeast(0)  // 老数据里可能存着「播完当前集」的哨兵值 -1，恢复成关闭
 
         // 加载播放器布局
         binding = ActivityVideoPlayerBinding.inflate(layoutInflater)
@@ -1293,6 +1301,8 @@ class VideoPlayerActivity : AppCompatActivity() {
                 binding.loadingView.visibility = View.GONE
                 hideBufferingHint()
                 hidePlaybackEndedCard()
+                // 新一集起播：「播完当前集」的一次性抑制标记只对上一集有效，这里复位
+                sleepTimerEndOfEpisodeFired = false
                 viewModel.updateDuration(exoPlayerManager.getDuration())
                 updatePlayPauseButton()
                 
@@ -1357,6 +1367,10 @@ class VideoPlayerActivity : AppCompatActivity() {
                 plog("播放结束 onEnded 被调用")
                 viewModel.savePlaybackProgress()
 
+                // 「播完当前集」档位：先在这条通道上把暂停与提示做掉，
+                // 拿到 true 就表示这一轮不许自动连播（下面直接跳过下一集逻辑）
+                val sleepTimerStop = consumeSleepTimerEndOfEpisode()
+
                 // 结束卡片：「已播完」+ 重播 / 下一集（保留原有自动连播逻辑，卡片只是叠加层）
                 hideBufferingHint()
                 showPlaybackEndedCard()
@@ -1368,6 +1382,11 @@ class VideoPlayerActivity : AppCompatActivity() {
                 hasTriggeredPreload = false
                 preloadedNextEpisodeUrl = null
                 releaseBackgroundPlayer()  // 释放后台播放器
+
+                if (sleepTimerStop) {
+                    android.util.Log.d("VideoPlayer", "睡眠定时器=播完当前集：抑制自动连播，停在本集末尾")
+                    return
+                }
                 
                 // 短剧自动播放下一集
                 val isShortDrama = intent.getBooleanExtra("IS_SHORT_DRAMA", false)
@@ -4936,8 +4955,9 @@ class VideoPlayerActivity : AppCompatActivity() {
 
         // 检查片尾跳过
         if (skipIntroManager.shouldSkipOutro(currentPosition, duration)) {
-            // 自动播放下一集
-            if (playlistManager.hasNext()) {
+            // 自动播放下一集。「播完当前集」的睡眠定时器生效时不能提前跳：
+            // 片尾跳过会直接切下一集，定时器就永远等不到本集的 STATE_ENDED
+            if (!sleepTimerEndOfEpisodeArmed && playlistManager.hasNext()) {
                 playNextEpisode()
             }
         }
@@ -4994,10 +5014,21 @@ class VideoPlayerActivity : AppCompatActivity() {
 
         // 睡眠定时器：档位与剩余时间都在本页算，菜单只负责显示和选
         menuSheet.setSleepTimerStateProvider {
-            PlayerMenuBottomSheet.SleepTimerState(sleepTimerMinutes, sleepTimerStatusText())
+            PlayerMenuBottomSheet.SleepTimerState(sleepTimerOptionValue(), sleepTimerStatusText())
         }
-        menuSheet.setOnSleepTimerSelectedListener { minutes ->
-            setSleepTimer(minutes)
+        menuSheet.setOnSleepTimerSelectedListener { option ->
+            setSleepTimer(option)
+        }
+
+        // 画中画：不支持就整行置灰，点击回调里再做一次兜底提示
+        menuSheet.setPipEnabled(isPictureInPictureSupported())
+        menuSheet.setOnPipClickedListener {
+            if (!isPictureInPictureSupported()) {
+                Toast.makeText(this, "当前设备不支持画中画", Toast.LENGTH_SHORT).show()
+            } else {
+                // 菜单窗口会盖住画中画小窗，等它收完再切
+                binding.root.postDelayed({ tryEnterPictureInPictureMode() }, 200L)
+            }
         }
 
         // 字幕：状态与动作都在本页处理，菜单只显示与回传
@@ -5177,20 +5208,31 @@ class VideoPlayerActivity : AppCompatActivity() {
     // ==================== 睡眠定时器 ====================
 
     /**
-     * 设定睡眠定时器，[minutes] 传 0 表示关闭。
-     * 只有档位进 prefs，剩余时间靠 [sleepTimerEndAt] 现算，进程被杀也不会留下昨天的倒计时。
+     * 设定睡眠定时器。[option] 取菜单里那一行的值：
+     * 0 = 关闭，正数 = 分钟数，[PlayerMenuBottomSheet.SLEEP_TIMER_END_OF_EPISODE] = 播完当前集。
+     *
+     * 定时任务只活在当前播放页：Activity 内的 [sleepTimerHandler] 计时，onDestroy 里清掉，
+     * 也就是「离开页面即取消」；留在播放页（包括切到后台、进画中画）到点都会照常暂停。
      */
-    private fun setSleepTimer(minutes: Int) {
-        sleepTimerMinutes = minutes.coerceAtLeast(0)
-        getSharedPreferences("player_settings", MODE_PRIVATE)
-            .edit()
-            .putInt("sleep_timer_minutes", sleepTimerMinutes)
-            .apply()
-
+    private fun setSleepTimer(option: Int) {
         cancelSleepTimerPending()
+        sleepTimerEndOfEpisodeFired = false
+
+        if (option == PlayerMenuBottomSheet.SLEEP_TIMER_END_OF_EPISODE) {
+            sleepTimerMinutes = 0
+            sleepTimerEndOfEpisodeArmed = true
+            persistSleepTimerOption(option)
+            Toast.makeText(this, "播完当前集后暂停", Toast.LENGTH_SHORT).show()
+            updateSleepTimerIndicator()
+            return
+        }
+
+        sleepTimerMinutes = option.coerceAtLeast(0)
+        persistSleepTimerOption(sleepTimerMinutes)
 
         if (sleepTimerMinutes <= 0) {
             Toast.makeText(this, "已关闭睡眠定时器", Toast.LENGTH_SHORT).show()
+            updateSleepTimerIndicator()
             return
         }
 
@@ -5199,18 +5241,36 @@ class VideoPlayerActivity : AppCompatActivity() {
         sleepTimerRunnable = runnable
         sleepTimerEndAt = android.os.SystemClock.elapsedRealtime() + delayMs
         sleepTimerHandler.postDelayed(runnable, delayMs)
-        Toast.makeText(this, "${sleepTimerMinutes} 分钟后暂停并退出播放", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "${sleepTimerMinutes} 分钟后暂停播放", Toast.LENGTH_SHORT).show()
+        updateSleepTimerIndicator()
     }
 
-    /** 撤掉未到点的回调；档位本身保留在 prefs 里，下次开菜单还能看到上次选的。 */
+    /** 只落盘「上次选的档位」，剩余时间不存：重进播放页一律按未启动算。 */
+    private fun persistSleepTimerOption(option: Int) {
+        getSharedPreferences("player_settings", MODE_PRIVATE)
+            .edit()
+            .putInt("sleep_timer_minutes", option)
+            .apply()
+    }
+
+    /** 撤掉未到点的回调，并把「播完当前集」的待生效状态一起清掉。 */
     private fun cancelSleepTimerPending() {
         sleepTimerRunnable?.let { sleepTimerHandler.removeCallbacks(it) }
         sleepTimerRunnable = null
         sleepTimerEndAt = 0L
+        sleepTimerEndOfEpisodeArmed = false
+    }
+
+    /** 菜单单选项当前值：未启动一律回 0（关闭），免得行尾写「关闭」而弹窗还勾着上次的档位。 */
+    private fun sleepTimerOptionValue(): Int = when {
+        sleepTimerEndOfEpisodeArmed -> PlayerMenuBottomSheet.SLEEP_TIMER_END_OF_EPISODE
+        sleepTimerEndAt > 0L -> sleepTimerMinutes
+        else -> 0
     }
 
     /** 菜单行尾文字：整段时显示「N 分钟后」，走到中途显示「剩余 X 分」。 */
     private fun sleepTimerStatusText(): String {
+        if (sleepTimerEndOfEpisodeArmed) return "播完本集暂停"
         val remainMs = sleepTimerEndAt - android.os.SystemClock.elapsedRealtime()
         if (sleepTimerEndAt <= 0L || remainMs <= 0L) return "关闭"
         // 向上取整，最后一分钟仍显示「剩余 1 分」，不会提前跳到 0
@@ -5218,18 +5278,67 @@ class VideoPlayerActivity : AppCompatActivity() {
         return if (remainMinutes >= sleepTimerMinutes) "${sleepTimerMinutes} 分钟后" else "剩余 ${remainMinutes} 分"
     }
 
+    /**
+     * 底栏小标识文字：关掉返回空串（调用方置 GONE），
+     * 「播完当前集」没有剩余时间可算，只标一下这个模式还在等本集结束。
+     */
+    private fun sleepTimerIndicatorText(): String {
+        if (sleepTimerEndOfEpisodeArmed) return "⏱ 本集结束"
+        if (sleepTimerEndAt <= 0L) return ""
+        val remainMs = sleepTimerEndAt - android.os.SystemClock.elapsedRealtime()
+        if (remainMs <= 0L) return ""
+        val totalSeconds = (remainMs + 999L) / 1000L
+        val hours = totalSeconds / 3600
+        val minutes = (totalSeconds % 3600) / 60
+        val seconds = totalSeconds % 60
+        val time = if (hours > 0) {
+            String.format("%d:%02d:%02d", hours, minutes, seconds)
+        } else {
+            String.format("%02d:%02d", minutes, seconds)
+        }
+        return "⏱ $time"
+    }
+
+    /** 底栏小标识的同步：文本没变就不碰 View，200ms 一轮的刷新里省掉重排。 */
+    private fun updateSleepTimerIndicator() {
+        val text = sleepTimerIndicatorText()
+        if (text == lastSleepTimerIndicatorText) return
+        lastSleepTimerIndicatorText = text
+        try {
+            binding.sleepTimerIndicator.text = text
+            binding.sleepTimerIndicator.visibility = if (text.isEmpty()) View.GONE else View.VISIBLE
+        } catch (e: Exception) {
+            android.util.Log.w("VideoPlayer", "刷新睡眠定时器标识失败: ${e.message}")
+        }
+    }
+
     private fun onSleepTimerFired() {
         sleepTimerRunnable = null
         sleepTimerEndAt = 0L
+        sleepTimerMinutes = 0
+        // 到点只暂停，不退出播放页、也不掐掉画中画小窗
         exoPlayerManager.pause()
-        Toast.makeText(this, "已按睡眠定时器暂停", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "睡眠定时器已到，已暂停", Toast.LENGTH_SHORT).show()
+        updateSleepTimerIndicator()
+    }
 
-        // minSdk 24：isInPictureInPictureMode 是 API 24 才有的，判断前带版本守卫
-        val inPip = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode
-        // 画中画窗口是用户在别处看的播放器，finish 等于把窗口掐掉，这里只暂停
-        if (!inPip) {
-            finish()
-        }
+    /**
+     * 「播完当前集」到点：暂停 + 提示，并告诉调用方「这一轮别再自动连播」。
+     *
+     * 触发点有两处：ExoPlayerManager 交上来的 onEnded（自动连播开着时走这条），
+     * 以及本页自己盯的 STATE_ENDED（自动连播关掉时走这条）。
+     * 用 [sleepTimerEndOfEpisodeFired] 兜底，保证同一集的这两条通道只生效一次。
+     */
+    private fun consumeSleepTimerEndOfEpisode(): Boolean {
+        if (sleepTimerEndOfEpisodeFired) return true
+        if (!sleepTimerEndOfEpisodeArmed) return false
+        sleepTimerEndOfEpisodeArmed = false
+        sleepTimerEndOfEpisodeFired = true
+        sleepTimerMinutes = 0
+        exoPlayerManager.pause()
+        Toast.makeText(this, "睡眠定时器已到，已暂停", Toast.LENGTH_SHORT).show()
+        updateSleepTimerIndicator()
+        return true
     }
     
     private fun applyAspectRatio(mode: AspectRatioManager.AspectRatioMode) {
@@ -5278,6 +5387,9 @@ class VideoPlayerActivity : AppCompatActivity() {
 
         // 更新清晰度显示（只在视频尺寸改变时更新）
         updateVideoQuality()
+
+        // 睡眠定时器剩余时间小标识（文本没变时内部直接返回）
+        updateSleepTimerIndicator()
     }
     
     private fun updateVideoQuality() {
@@ -5399,6 +5511,9 @@ class VideoPlayerActivity : AppCompatActivity() {
             }
             Player.STATE_ENDED -> {
                 hideBufferingHint()
+                // 自动连播关掉时 ExoPlayerManager 不会把 onEnded 交上来，
+                // 「播完当前集」必须在这条无条件通道上也生效
+                consumeSleepTimerEndOfEpisode()
                 showPlaybackEndedCard()
             }
             Player.STATE_IDLE -> {
@@ -5762,10 +5877,9 @@ class VideoPlayerActivity : AppCompatActivity() {
             android.util.Log.d("VideoPlayer", "⏸️ [生命周期] onPause - 暂停播放")
         }
 
-        // 睡眠定时器：非画中画时本页已经不在播了，倒计时留着只会在后台把页面再 finish 一次
-        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.N || !isInPictureInPictureMode) {
-            cancelSleepTimerPending()
-        }
+        // 睡眠定时器：切后台 / 进画中画都不算「关掉」，倒计时继续走，到点照常暂停；
+        // 真正的收尾统一放在 onDestroy（离开播放页即取消）。
+        // 这里刻意不再 cancelSleepTimerPending()：到点只暂停、不 finish 页面，留着没有副作用。
         
         // 保存播放进度
         viewModel.updatePosition(exoPlayerManager.getCurrentPosition())
@@ -5964,7 +6078,10 @@ class VideoPlayerActivity : AppCompatActivity() {
         val isShortDrama = intent.getBooleanExtra("IS_SHORT_DRAMA", false)
         
         // 如果剩余时间小于等于5秒，显示倒计时提示
-        if (remainingSeconds <= 5 && remainingSeconds > 0 && !isShowingNextEpisodeHint) {
+        // 「播完当前集」的睡眠定时器生效时不提示：这一集播完是暂停，不会再自动进下一集
+        if (remainingSeconds <= 5 && remainingSeconds > 0 && !isShowingNextEpisodeHint &&
+            !sleepTimerEndOfEpisodeArmed
+        ) {
             if (isShortDrama && shortDramaManager.hasNextEpisode()) {
                 showNextEpisodeHint()
             }
@@ -6456,6 +6573,14 @@ class VideoPlayerActivity : AppCompatActivity() {
     }
 
     /**
+     * 设备是否支持画中画：7.0(N) 以上还要系统声明 FEATURE_PICTURE_IN_PICTURE，
+     * 菜单里「画中画」那一行靠它决定置不置灰。
+     */
+    private fun isPictureInPictureSupported(): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
+            packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
+
+    /**
      * 尝试进入画中画模式
      */
     private fun tryEnterPictureInPictureMode() {
@@ -6464,6 +6589,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                 // 检查是否支持画中画
                 if (!packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
                     android.util.Log.w("VideoPlayer", "设备不支持画中画功能")
+                    Toast.makeText(this, "当前设备不支持画中画", Toast.LENGTH_SHORT).show()
                     return
                 }
 
@@ -6475,6 +6601,11 @@ class VideoPlayerActivity : AppCompatActivity() {
             }
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             // Android 7.0-7.1 使用旧API（这两个版本没有远程按钮）
+            if (!packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+                android.util.Log.w("VideoPlayer", "设备不支持画中画功能")
+                Toast.makeText(this, "当前设备不支持画中画", Toast.LENGTH_SHORT).show()
+                return
+            }
             try {
                 @Suppress("DEPRECATION")
                 enterPictureInPictureMode()
@@ -6482,6 +6613,8 @@ class VideoPlayerActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 android.util.Log.e("VideoPlayer", "进入画中画模式失败: ${e.message}", e)
             }
+        } else {
+            Toast.makeText(this, "当前设备不支持画中画", Toast.LENGTH_SHORT).show()
         }
     }
     
