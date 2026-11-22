@@ -1,13 +1,19 @@
 package com.tv.ball.feature.f091
 
 import android.os.Bundle
+import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.tv.ball.R
 import com.tv.ball.databinding.ActivityF091Binding
 import com.tv.ball.util.CustomToast
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.random.Random
 
 /** 每段模拟延迟的下界（毫秒）。 */
@@ -15,6 +21,9 @@ private const val MIN_STAGE_DELAY_MS: Int = 20
 
 /** 在 [MIN_STAGE_DELAY_MS] 之上再加的随机量，于是每段落在 20~120 ms。 */
 private const val EXTRA_STAGE_DELAY_MS: Int = 100
+
+/** 日志标签：只用来在跑模拟时确认等待发生在哪个线程上。 */
+private const val TAG: String = "F091Activity"
 
 /**
  * 「启动耗时打点」页。
@@ -28,12 +37,16 @@ private const val EXTRA_STAGE_DELAY_MS: Int = 100
  * 跟真实接线完全一样，只是数值来自假延迟。这样这个功能不会跟任何一份 Application 代码绑死，
  * 不会出现"两个功能都想在 Application.onCreate 里插一行"的合并冲突。
  *
- * ## 演示里的 sleep 是有意的
+ * ## 演示里的 sleep 是有意的，但不在主线程上
  *
- * 「模拟一次启动」在主线程上连等三段 20~120 ms 的随机时间再打点，最多按住主线程 360 ms。
- * 要演的就是"冷启动被同步初始化占住"这件事，所以这 360 ms 不能扔到子线程去——
- * 那样量出来的只是子线程自己睡了多久，跟启动耗时没关系。
- * 副作用是这三段期间界面不会重绘（主线程被占住，刷了也画不出来），因此只在跑完后刷新一次。
+ * 「模拟一次启动」要连等三段 20~120 ms 的随机时间再打点，最多 360 ms。
+ * 这段等待**刻意阻塞后台线程**（以前是 `Thread.sleep` 直接按在主线程上，等于让遥控器点一下卡 360 ms，
+ * 页面也不重绘）。现在整段跑在 `Dispatchers.Default` 的后台协程里：等待仍用 `Thread.sleep`
+ * 表达「同步初始化把线程占住」的语义，但被占住的是后台线程，主线程只在最后切回来渲染一次。
+ *
+ * 探针本身（[StartupTrace]）的字段没有加锁，约定是"串行访问"：这里的 begin/mark/finish
+ * 全部在同一个后台协程里顺序执行，切回主线程之后才 [render] 读快照，读侧不会与写侧并发。
+ * 另外加了 [isSimulating] 门闩，连点两下也不会让两轮打点交错。
  *
  * ## 页面不缓存历史
  *
@@ -43,6 +56,9 @@ private const val EXTRA_STAGE_DELAY_MS: Int = 100
 class F091Activity : AppCompatActivity() {
 
     private lateinit var binding: ActivityF091Binding
+
+    /** 是否有一轮模拟正在后台跑：连点「模拟一次启动」不会让两轮打点交错。 */
+    private var isSimulating = false
 
     /**
      * 演示用的随机源。
@@ -80,34 +96,61 @@ class F091Activity : AppCompatActivity() {
      * 1. `begin(fromProcessStart = false)`：原点取"此刻"。默认原点（进程创建）在这里是错的——
      *    进程可能已经活了几小时，第一段会变成"进程活了多久"，看不出这是刚模拟的一次启动。
      * 2. 每段 `Thread.sleep` 之后 [StartupTrace.mark] 打一个点；打点是累计时间，段耗时由引擎事后相减。
-     * 3. [StartupTrace.finish] 封存这一轮并落盘，然后 [render] 把三块内容一起刷新。
+     * 3. [StartupTrace.finish] 封存这一轮并落盘，然后切回主线程 [render] 把三块内容一起刷新。
+     *
+     * 整段跑在后台线程（`Dispatchers.Default`）：等待是刻意阻塞后台线程，
+     * 不能让这 360 ms 落在主线程上把遥控器和重绘一起卡住。
      *
      * 中断（页面被系统回收、进程正在退）直接放弃这一轮：不 finish 就不会留下半截记录。
      */
     private fun simulateStartup() {
-        StartupTrace.begin(fromProcessStart = false)
-        for (stage in StartupTrace.STAGES) {
-            val delayMs = MIN_STAGE_DELAY_MS + random.nextInt(EXTRA_STAGE_DELAY_MS + 1)
-            try {
-                Thread.sleep(delayMs.toLong())
-            } catch (e: InterruptedException) {
-                Thread.currentThread().interrupt()
-                return
-            }
-            StartupTrace.mark(stage)
+        if (isSimulating) {
+            Log.d(TAG, "上一轮模拟还在跑，忽略这次点击")
+            return
         }
+        isSimulating = true
 
-        val run = StartupTrace.finish()
-        render()
+        lifecycleScope.launch(Dispatchers.Default) {
+            try {
+                StartupTrace.begin(fromProcessStart = false)
+                for (stage in StartupTrace.STAGES) {
+                    val delayMs = MIN_STAGE_DELAY_MS + random.nextInt(EXTRA_STAGE_DELAY_MS + 1)
+                    // 检查日志：确认等待发生在后台线程上，没有按住主线程
+                    Log.d(
+                        TAG,
+                        "模拟段 [$stage] 等待 ${delayMs}ms，线程=${Thread.currentThread().name}" +
+                            "，是否主线程=${Looper.myLooper() == Looper.getMainLooper()}"
+                    )
+                    try {
+                        // 刻意阻塞后台线程：要演的就是"冷启动被同步初始化占住"的那段耗时，
+                        // 主线程此刻能正常收按键、能重绘
+                        Thread.sleep(delayMs.toLong())
+                    } catch (e: InterruptedException) {
+                        Thread.currentThread().interrupt()
+                        return@launch
+                    }
+                    StartupTrace.mark(stage)
+                }
 
-        CustomToast.show(
-            this,
-            if (run == null) {
-                getString(R.string.f091_toast_nothing)
-            } else {
-                getString(R.string.f091_toast_simulated, run.totalMs, run.marks.size)
+                val run = StartupTrace.finish()
+
+                withContext(Dispatchers.Main) {
+                    render()
+
+                    CustomToast.show(
+                        this@F091Activity,
+                        if (run == null) {
+                            getString(R.string.f091_toast_nothing)
+                        } else {
+                            getString(R.string.f091_toast_simulated, run.totalMs, run.marks.size)
+                        }
+                    )
+                }
+            } finally {
+                // 门闩回到主线程再放开：下一次点击一定发生在这一次的 render 之后
+                withContext(Dispatchers.Main) { isSimulating = false }
             }
-        )
+        }
     }
 
     // ===== 渲染 =====

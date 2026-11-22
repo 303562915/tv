@@ -32,6 +32,14 @@ class DLNAManager(private val context: Context) {
         private const val SSDP_PORT = 1900
         private const val SEARCH_TARGET = "urn:schemas-upnp-org:device:MediaRenderer:1"
         private const val DISCOVERY_TIMEOUT = 5000L
+
+        /**
+         * SetAVTransportURI 与 Play 之间的等待窗口。
+         *
+         * 设备侧收到 CurrentURI 之后要一点时间才准备好接收 Play，这段等待是协议兼容上的需要；
+         * 但等待本身用 `delay` 实现（挂起，不占线程），不用 `Thread.sleep` 把调用线程按死。
+         */
+        private const val SETTLE_DELAY_MS = 500L
     }
 
     private val devices = mutableListOf<DLNADevice>()
@@ -203,30 +211,71 @@ class DLNAManager(private val context: Context) {
     }
 
     /**
-     * 投屏视频
+     * 投屏视频（阻塞版，留给既有调用方）。
+     *
+     * 原来这里是「`Thread.sleep(500)` 之后发 Play」。既有调用方
+     * （`VideoPlayerActivity` 在 `lifecycleScope.launch` 里同步取返回值）跑在主线程上，
+     * 所以那 500 ms 是把消息循环按住不放的；同一条链上的 SOAP 请求也是阻塞 IO，
+     * 在主线程上只会直接抛 `NetworkOnMainThreadException`。
+     *
+     * 现在等待换成挂起（[kotlinx.coroutines.delay] 而非 `Thread.sleep`），整段执行放到 IO 线程：
+     * 等待窗口里不占 CPU，SOAP 请求也不会落在主线程上。签名保持不变（调用方不在本次改动范围内）；
+     * 新代码要彻底不阻塞主线程，请用 [castVideoAsync]。
      */
-    fun castVideo(device: DLNADevice, videoUrl: String, videoTitle: String = ""): Boolean {
+    fun castVideo(device: DLNADevice, videoUrl: String, videoTitle: String = ""): Boolean =
+        runBlocking(Dispatchers.IO) { performCast(device, videoUrl, videoTitle) }
+
+    /**
+     * 投屏视频（非阻塞版）。
+     *
+     * SetAVTransportURI → 等 [SETTLE_DELAY_MS] → Play 整段跑在 IO 线程，结果回调回主线程。
+     * 主线程只负责发起这一次调用，不在等待窗口里被占住。
+     */
+    fun castVideoAsync(
+        device: DLNADevice,
+        videoUrl: String,
+        videoTitle: String = "",
+        onResult: (Boolean) -> Unit
+    ) {
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            val success = performCast(device, videoUrl, videoTitle)
+            withContext(Dispatchers.Main) { onResult(success) }
+        }
+    }
+
+    /**
+     * 一次投屏的完整时序：SetAVTransportURI → 等待 → Play。
+     *
+     * 两段 SOAP 都是阻塞 IO，所以这里是个 `suspend` 函数，由调用方保证跑在 IO 调度器上；
+     * 中间那段等待是设备侧的兼容需要，但用 `delay` 挂起，既不占线程也不把调用方主线程拖住。
+     */
+    private suspend fun performCast(
+        device: DLNADevice,
+        videoUrl: String,
+        videoTitle: String
+    ): Boolean {
         Log.d(TAG, "投屏到设备: ${device.name}, URL: $videoUrl")
 
         return try {
-            // 发送 SetAVTransportURI
             val setUriSuccess = setAVTransportURI(device, videoUrl, videoTitle)
             if (!setUriSuccess) {
                 Log.e(TAG, "设置播放 URI 失败")
-                return false
-            }
-
-            // 延迟后发送 Play 指令
-            Thread.sleep(500)
-            val playSuccess = play(device)
-            
-            if (playSuccess) {
-                Log.d(TAG, "投屏成功")
+                false
             } else {
-                Log.e(TAG, "播放失败")
+                // 非阻塞等待：让设备把 CurrentURI 落地之后再发 Play
+                delay(SETTLE_DELAY_MS)
+
+                val playSuccess = play(device)
+                if (playSuccess) {
+                    Log.d(TAG, "投屏成功")
+                } else {
+                    Log.e(TAG, "播放失败")
+                }
+                playSuccess
             }
-            
-            playSuccess
+        } catch (e: CancellationException) {
+            // 调用方取消（castVideoAsync 的 scope 被丢）不算投屏失败，按取消往上抛
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "投屏失败: ${e.message}", e)
             false

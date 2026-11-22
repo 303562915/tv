@@ -1,14 +1,21 @@
 package com.tv.ball.presentation.search
 
+import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.speech.RecognizerIntent
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.inputmethod.EditorInfo
 import android.view.View
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
@@ -46,6 +53,14 @@ class SearchActivity : AppCompatActivity() {
 
     /** 程序化改搜索框文本（点历史 chip / 榜单项）时置位，避免又触发一次防抖。 */
     private var programmaticTextChange = false
+
+    /**
+     * 上一次真正下发的关键词。
+     *
+     * 空态里「点击重试」要用它：那时输入框里的文本可能已经被用户改掉了，
+     * 重试的必须是"刚才失败的那次"而不是半截新输入。
+     */
+    private var lastSubmittedQuery: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -151,8 +166,7 @@ class SearchActivity : AppCompatActivity() {
         }
         
         binding.btnVoiceSearch.setOnClickListener {
-            // TODO: 实现语音搜索
-            android.widget.Toast.makeText(this, "语音搜索功能开发中", android.widget.Toast.LENGTH_SHORT).show()
+            startVoiceSearch()
         }
         
         binding.btnClearHistory.setOnClickListener {
@@ -272,6 +286,9 @@ class SearchActivity : AppCompatActivity() {
         val query = raw.trim()
         if (query.isEmpty()) {
             viewModel.cancelActiveSearch()
+            // 输入被清空：没有"上一次关键词"可重试，空态一起收起来，别留一个点了没反应的提示
+            lastSubmittedQuery = ""
+            hideNoResultsState()
             return
         }
         val task = Runnable {
@@ -305,6 +322,11 @@ class SearchActivity : AppCompatActivity() {
             switchToSearchMode()
         }
 
+        // 新的一次搜索：先收起上一轮的空态（可能是「搜索失败」，也可能只是「没找到」），
+        // 否则新结果回来之前屏上还挂着上一次的提示
+        lastSubmittedQuery = query
+        hideNoResultsState()
+
         // 切换高亮关键词要在 submitList 之前落好：结果回来时 onBind 读的就是当前这次的词
         videoAdapter.highlightQuery = query
 
@@ -325,7 +347,7 @@ class SearchActivity : AppCompatActivity() {
             viewModel.searchResults.collect { results ->
                 videoAdapter.submitList(results)
                 if (!isRankingMode) {
-                    binding.tvNoResults.visibility = if (results.isEmpty()) View.VISIBLE else View.GONE
+                    renderSearchResultState(results)
 
                     // 预加载搜索结果的图片
                     if (results.isNotEmpty()) {
@@ -343,7 +365,11 @@ class SearchActivity : AppCompatActivity() {
                 isLoadingMoreRanking = false
                 rankingAdapter.submitList(rankings.take(rankingShownCount))
                 if (isRankingMode) {
-                    binding.tvNoResults.visibility = if (rankings.isEmpty()) View.VISIBLE else View.GONE
+                    if (rankings.isEmpty()) {
+                        showNoResultsState("榜单暂时没有内容", retryable = false)
+                    } else {
+                        hideNoResultsState()
+                    }
                     // 首批不满一屏时不会触发滚动，补一次检查把后面的页续上
                     binding.rvSearchResults.post { appendNextRankingPageIfNeeded() }
                 }
@@ -355,6 +381,153 @@ class SearchActivity : AppCompatActivity() {
                 binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
             }
         }
+    }
+
+    // ===== 空态：分「没有找到」和「请求失败」两种 =====
+
+    /**
+     * 搜索结果为空时，决定屏上那句提示到底是哪一种。
+     *
+     * 之所以要分两种：以前两种情况共用「暂无搜索结果」，用户看到"什么都没搜到"会以为片名打错了，
+     * 实际可能是一次失败的请求，点一下重试就好了。
+     *
+     * 判断依据只能取**视图层能拿到的信号**：`SearchViewModel` 只对外暴露 `List<VideoItem>`
+     * 和 `isLoading`，而且 `VideoRepository.searchMultiSites` 在内部把每个源抛出的异常都吞成了
+     * 空列表（见它的 catch 分支），所以"全部源失败"和"全部源 0 命中"在这一层是同一种结果。
+     * 视图层能可靠判定的失败信号只有"网络不可用"——没网时请求一定没成，
+     * 这时候给可点击的重试才有意义；有网但空结果按"真的没搜到"展示。
+     */
+    private fun renderSearchResultState(results: List<com.tv.ball.presentation.home.VideoItem>) {
+        if (results.isNotEmpty()) {
+            hideNoResultsState()
+            return
+        }
+        // 还没搜过（首次进页面 StateFlow 的初始空值）：不留空态，交给榜单/正常流程
+        if (lastSubmittedQuery.isEmpty()) {
+            hideNoResultsState()
+            return
+        }
+
+        if (hasUsableNetwork()) {
+            showNoResultsState("没有找到相关内容", retryable = false)
+        } else {
+            showNoResultsState("搜索失败，点击重试", retryable = true)
+        }
+    }
+
+    /**
+     * 空态用的那个文本节点。
+     *
+     * 布局里 tvNoResults 是个「图标 + 一句说明」的 LinearLayout（TextView 没有自己的 id），
+     * 所以这里按类型取第一个 TextView，不去依赖 childAt(1) 这种位置约定。
+     */
+    private fun noResultsLabel(): TextView? {
+        val group = binding.tvNoResults
+        for (index in 0 until group.childCount) {
+            val child = group.getChildAt(index)
+            if (child is TextView) return child
+        }
+        return null
+    }
+
+    /**
+     * 显示空态。
+     *
+     * [retryable] = true 时整块可点、可聚焦（遥控器能走到），文字用主色以示"这里能操作"；
+     * false 时只做提示，不抢焦点。
+     */
+    private fun showNoResultsState(text: String, retryable: Boolean) {
+        noResultsLabel()?.let { label ->
+            label.text = text
+            label.setTextColor(
+                ContextCompat.getColor(
+                    this,
+                    if (retryable) com.tv.ball.R.color.theme_primary else com.tv.ball.R.color.theme_text_secondary
+                )
+            )
+        }
+
+        binding.tvNoResults.setOnClickListener(
+            if (retryable) View.OnClickListener { retryLastSearch() } else null
+        )
+        binding.tvNoResults.isClickable = retryable
+        binding.tvNoResults.isFocusable = retryable
+        binding.tvNoResults.visibility = View.VISIBLE
+
+        if (retryable) {
+            // 结果区已经空了，焦点直接落在"重试"上，遥控器按一下就能重搜
+            binding.tvNoResults.requestFocus()
+        }
+    }
+
+    private fun hideNoResultsState() {
+        binding.tvNoResults.visibility = View.GONE
+    }
+
+    /** 重试上一次真正下发的关键词（不是输入框里可能已被改动的半截文本）。 */
+    private fun retryLastSearch() {
+        val query = lastSubmittedQuery
+        if (query.isEmpty()) return
+        setSearchText(query)
+        performSearch()
+    }
+
+    /**
+     * 当前网络是否可用。
+     *
+     * 只用来区分「请求失败」和「确实没搜到」：拿不到 ConnectivityManager 时按"可用"处理，
+     * 宁可显示"没有找到相关内容"，也不要在能联网的机器上误报失败。
+     */
+    private fun hasUsableNetwork(): Boolean {
+        val manager = getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return true
+        val network = manager.activeNetwork ?: return false
+        val capabilities = manager.getNetworkCapabilities(network) ?: return false
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
+
+    // ===== 语音搜索 =====
+
+    /**
+     * 语音搜索：交给系统的语音识别界面（[RecognizerIntent.ACTION_RECOGNIZE_SPEECH]），
+     * 识别结果回到 [onActivityResult] 里当作关键词搜一次。
+     *
+     * 这样不需要本应用持有录音权限（录音发生在系统识别器里），也不用自己接麦克风。
+     * 电视盒子经常没有可用的识别器，那种情况只提示一句，不崩。
+     */
+    private fun startVoiceSearch() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "zh-CN")
+            putExtra(RecognizerIntent.EXTRA_PROMPT, "说出想搜的片名")
+        }
+        try {
+            @Suppress("DEPRECATION")
+            startActivityForResult(intent, REQUEST_VOICE_SEARCH)
+        } catch (e: ActivityNotFoundException) {
+            CustomToast.show(this, "本机没有语音识别服务")
+        }
+    }
+
+    /**
+     * 语音识别结果回来：取第一候选当作关键词，直接搜一次。
+     *
+     * 用 `startActivityForResult` 而不是 ActivityResultLauncher，是因为这个页面既有的
+     * 回调风格就是 requestCode 分支（见布局里其它入口），新增一个无需为一行结果引入契约类。
+     */
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != REQUEST_VOICE_SEARCH || resultCode != RESULT_OK) return
+
+        val spoken = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            ?.firstOrNull()
+            ?.trim()
+            .orEmpty()
+        if (spoken.isEmpty()) {
+            CustomToast.show(this, "没有听清，请再说一次")
+            return
+        }
+        setSearchText(spoken)
+        performSearch()
     }
 
     /**
@@ -391,5 +564,8 @@ class SearchActivity : AppCompatActivity() {
 
         /** 榜单本地分批的大小：一次展示 / 追加 30 条。 */
         const val RANKING_PAGE_SIZE = 30
+
+        /** 语音识别的请求码：结果在 onActivityResult 里取。 */
+        const val REQUEST_VOICE_SEARCH = 9001
     }
 }

@@ -117,8 +117,11 @@ class DownloadConfigDialog : DialogFragment() {
 
         // 选择保存路径
         binding.btnChangePath.setOnClickListener {
-            // TODO: 打开路径选择器
-            Toast.makeText(requireContext(), "路径选择功能开发中", Toast.LENGTH_SHORT).show()
+            // 未实现：下载器的落盘目录是写死的。
+            // VideoDownloader.getDownloadPath(fileName) 内部固定为 Downloads/TVBall，
+            // addDownloadTask 也没有接收自定义目录的参数，所以这里即使弹出 SAF 目录选择器（ACTION_OPEN_DOCUMENT_TREE）
+            // 选到的 Uri 也无处可传——只会让用户以为自己改过路径。要真正支持，得先让下载器接受目标目录。
+            Toast.makeText(requireContext(), "保存路径暂不支持修改", Toast.LENGTH_SHORT).show()
         }
         
         // 高级设置展开/收起

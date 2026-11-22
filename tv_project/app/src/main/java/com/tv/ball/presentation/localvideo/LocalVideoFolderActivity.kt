@@ -33,6 +33,9 @@ class LocalVideoFolderActivity : AppCompatActivity() {
     private var currentVideos: List<VideoFile> = emptyList()
     /** 从系统设置页返回后是否需要重新加载 */
     private var reloadOnResume = false
+    /** 最近一次从这里点开播放的视频：回到本页时用它把播放器刚写的进度镜像进历史。 */
+    private var lastPlayedPath: String? = null
+    private var lastPlayedName: String? = null
 
     /** 详情页自己的权限申请：列表页拿到权限不代表这里能读，必须二次校验。 */
     private val requestPermissionLauncher = registerForActivityResult(
@@ -73,6 +76,21 @@ class LocalVideoFolderActivity : AppCompatActivity() {
         if (reloadOnResume) {
             reloadOnResume = false
             loadVideos()
+        }
+        // 从播放器退回来：播放器把进度写进了本地视频进度管理器，
+        // 这里读同一份进度镜像进历史（历史页/首页继续播放才有这一条）
+        syncLastPlayedToHistory()
+    }
+
+    /** 把刚才播的那条视频的最新进度写进历史；没播过或进度为 0 时什么也不做。 */
+    private fun syncLastPlayedToHistory() {
+        val path = lastPlayedPath ?: return
+        val name = lastPlayedName ?: path.substringAfterLast('/')
+        val position = LocalVideoPlaybackHistory.lastPosition(path)
+        if (position <= 0L) return
+        val duration = LocalVideoPlaybackHistory.lastDuration(path)
+        lifecycleScope.launch {
+            LocalVideoPlaybackHistory.record(name, path, position, duration)
         }
     }
     
@@ -128,12 +146,26 @@ class LocalVideoFolderActivity : AppCompatActivity() {
             Toast.makeText(this, "读不到该视频的文件路径，无法播放", Toast.LENGTH_SHORT).show()
             return
         }
+
+        // 上次看到哪儿：播放器写的是本地视频进度管理器，这里读同一份
+        val resumePosition = LocalVideoPlaybackHistory.lastPosition(videoFile.path)
+        val resumeDuration = LocalVideoPlaybackHistory.lastDuration(videoFile.path)
+
         val intent = Intent(this, VideoPlayerActivity::class.java)
         intent.putExtra("VIDEO_ID", 0L)
         intent.putExtra("VIDEO_TITLE", videoFile.name)
         intent.putExtra("VIDEO_URL", videoFile.path)
         intent.putExtra("THUMBNAIL_URL", "")
+        // 与 HomeFragment 继续播放卡片同一个 extra 名
+        intent.putExtra("SEEK_POSITION", resumePosition)
         startActivity(intent)
+
+        // 记下这次播的是哪条，回来时（onResume）把新进度镜像进历史
+        lastPlayedPath = videoFile.path
+        lastPlayedName = videoFile.name
+        lifecycleScope.launch {
+            LocalVideoPlaybackHistory.record(videoFile.name, videoFile.path, resumePosition, resumeDuration)
+        }
     }
     
     private fun enterMultiSelectMode() {

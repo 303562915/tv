@@ -159,7 +159,9 @@ internal object LocalVideoMedia {
         val bucketId: Long,
         /** API 29+ 才有，形如 Movies/MyFolder/。 */
         val relativePath: String?,
-        val mimeType: String?
+        val mimeType: String?,
+        /** 时长（毫秒）：列表页按「时长」排序时累加用，个别 ROM 该列缺失则为 0。 */
+        val durationMs: Long = 0L
     )
 
     /**
@@ -295,6 +297,7 @@ internal object LocalVideoMedia {
             val sizeIndex = cursor.getColumnIndex(MediaStore.Video.Media.SIZE)
             val bucketIndex = cursor.getColumnIndex(MediaStore.Video.Media.BUCKET_ID)
             val mimeIndex = cursor.getColumnIndex(MediaStore.Video.Media.MIME_TYPE)
+            val durationIndex = cursor.getColumnIndex(MediaStore.Video.Media.DURATION)
             val relativeIndex = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 cursor.getColumnIndex(MediaStore.MediaColumns.RELATIVE_PATH)
             } else {
@@ -319,7 +322,8 @@ internal object LocalVideoMedia {
                         size = if (sizeIndex >= 0) cursor.getLong(sizeIndex) else 0L,
                         bucketId = if (bucketIndex >= 0) cursor.getLong(bucketIndex) else NO_BUCKET_ID,
                         relativePath = if (relativeIndex >= 0) cursor.getString(relativeIndex) else null,
-                        mimeType = if (mimeIndex >= 0) cursor.getString(mimeIndex) else null
+                        mimeType = if (mimeIndex >= 0) cursor.getString(mimeIndex) else null,
+                        durationMs = if (durationIndex >= 0) cursor.getLong(durationIndex) else 0L
                     )
                 )
             }
@@ -335,7 +339,8 @@ internal object LocalVideoMedia {
             "_data",
             MediaStore.Video.Media.SIZE,
             MediaStore.Video.Media.BUCKET_ID,
-            MediaStore.Video.Media.MIME_TYPE
+            MediaStore.Video.Media.MIME_TYPE,
+            MediaStore.Video.Media.DURATION
         )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             columns.add(MediaStore.MediaColumns.RELATIVE_PATH)

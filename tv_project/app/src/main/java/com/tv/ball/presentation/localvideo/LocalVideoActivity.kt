@@ -71,6 +71,7 @@ class LocalVideoActivity : AppCompatActivity() {
             com.tv.ball.utils.StatusBarUtils.setupTransparentStatusBar(this)
 
             setupRecyclerView()
+            setupSortAndFilterEntries()
             observeViewModel()
             checkPermissionAndLoad()
         } catch (e: Throwable) {
@@ -123,6 +124,67 @@ class LocalVideoActivity : AppCompatActivity() {
         setupScanningLabel()
     }
 
+    /**
+     * 顶部两个入口：排序 / 筛选。
+     * 两者都只是把选择交给 ViewModel，由它在内存里对原始列表重排重筛，不重新查 MediaStore。
+     */
+    private fun setupSortAndFilterEntries() {
+        binding.tvSortEntry.setOnClickListener { showSortDialog() }
+        binding.tvFilterEntry.setOnClickListener { showFilterDialog() }
+    }
+
+    /** 排序弹窗：单选，选中即生效。 */
+    private fun showSortDialog() {
+        val options = LocalVideoSortOption.values()
+        val labels = options.map { it.label }.toTypedArray()
+        val checked = options.indexOf(viewModel.sortOption.value).coerceAtLeast(0)
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("排序方式")
+            .setSingleChoiceItems(labels, checked) { dialog, which ->
+                viewModel.setSortOption(options[which])
+                dialog.dismiss()
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+
+    /**
+     * 筛选弹窗：单选。
+     * 前两项是固定项（全部 / 仅视频文件），后面把当前扫描到的目录逐个列出来，
+     * 选中某个目录即「只看这个文件夹」。
+     */
+    private fun showFilterDialog() {
+        val folders = viewModel.folderChoices()
+        val options = buildList {
+            add(LocalVideoFilterOption.All)
+            add(LocalVideoFilterOption.VideoOnly)
+            folders.forEach { folder ->
+                add(LocalVideoFilterOption.Folder(folder.folderPath, folder.folderName))
+            }
+        }
+        val labels = options.map { it.label }.toTypedArray()
+        val current = viewModel.filterOption.value
+        // 选中项可能已经被重新扫描淘汰（目录被删掉了），这时按「全部」高亮
+        val checked = options.indexOfFirst { sameFilter(it, current) }.coerceAtLeast(0)
+
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("筛选")
+            .setSingleChoiceItems(labels, checked) { dialog, which ->
+                viewModel.setFilterOption(options[which])
+                dialog.dismiss()
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+
+    /** 筛选项是否等价：object 比身份，Folder 比路径。 */
+    private fun sameFilter(a: LocalVideoFilterOption, b: LocalVideoFilterOption): Boolean =
+        when {
+            a is LocalVideoFilterOption.Folder && b is LocalVideoFilterOption.Folder ->
+                a.folderPath == b.folderPath
+            else -> a === b
+        }
+
     /** 在列表上方补一行「正在扫描…」，扫描结束（isLoading=false）时隐藏。 */
     private fun setupScanningLabel() {
         val root = binding.root as? ConstraintLayout ?: return
@@ -142,7 +204,8 @@ class LocalVideoActivity : AppCompatActivity() {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         ).apply {
-            topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+            // 挂在排序/筛选行下面，别把入口盖住
+            topToBottom = binding.sortBar.id
             startToStart = ConstraintLayout.LayoutParams.PARENT_ID
             endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
         }
@@ -167,6 +230,19 @@ class LocalVideoActivity : AppCompatActivity() {
                         if (!isLoading) {
                             binding.swipeRefreshLayout.isRefreshing = false
                         }
+                    }
+                }
+
+                // 入口文案跟着状态走：排序/筛选一改，标题上就能看见当前口径
+                launch {
+                    viewModel.sortOption.collect { option ->
+                        binding.tvSortEntry.text = "排序：${option.label}"
+                    }
+                }
+
+                launch {
+                    viewModel.filterOption.collect { option ->
+                        binding.tvFilterEntry.text = "筛选：${option.label}"
                     }
                 }
             }

@@ -59,9 +59,62 @@ class LocalVideoViewModel : ViewModel() {
     
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-    
+
+    /**
+     * 扫描出来的原始目录列表（未排序、未筛选）。
+     * 排序/筛选全在内存里对这份列表做，切换排序或筛选不重新查 MediaStore，也不重新读缩略图。
+     */
+    private var rawFolders: List<VideoFolder> = emptyList()
+
+    private val _sortOption = MutableStateFlow(LocalVideoSortOption.RECENT)
+    val sortOption: StateFlow<LocalVideoSortOption> = _sortOption.asStateFlow()
+
+    private val _filterOption = MutableStateFlow<LocalVideoFilterOption>(LocalVideoFilterOption.All)
+    val filterOption: StateFlow<LocalVideoFilterOption> = _filterOption.asStateFlow()
+
     private val handler = Handler(Looper.getMainLooper())
     private val loadQueue = mutableListOf<VideoFolder>()
+
+    /** 「指定文件夹」筛选项的来源：始终取原始列表，不受当前筛选结果影响。 */
+    fun folderChoices(): List<VideoFolder> = rawFolders
+
+    /** 切换排序：只重排内存里的原始列表，然后重新推给 UI（submitList）。 */
+    fun setSortOption(option: LocalVideoSortOption) {
+        if (_sortOption.value == option) return
+        _sortOption.value = option
+        publishFolders()
+    }
+
+    /** 切换筛选：只过滤内存里的原始列表，然后重新推给 UI（submitList）。 */
+    fun setFilterOption(option: LocalVideoFilterOption) {
+        if (_filterOption.value == option) return
+        _filterOption.value = option
+        publishFolders()
+    }
+
+    /** 筛一次 + 排一次，算完推给 UI；所有改动（扫描、缩略图回填、切排序、切筛选）都走这里。 */
+    private fun publishFolders() {
+        _videoFolders.value = filteredFolders(rawFolders).sortedWith(comparatorOf(_sortOption.value))
+    }
+
+    private fun filteredFolders(folders: List<VideoFolder>): List<VideoFolder> =
+        when (val option = _filterOption.value) {
+            is LocalVideoFilterOption.All -> folders
+            is LocalVideoFilterOption.VideoOnly -> folders.filter { it.isVideoOnly }
+            is LocalVideoFilterOption.Folder -> folders.filter { it.folderPath == option.folderPath }
+        }
+
+    private fun comparatorOf(option: LocalVideoSortOption): Comparator<VideoFolder> =
+        when (option) {
+            LocalVideoSortOption.RECENT ->
+                compareByDescending<VideoFolder> { it.dateAddedSeconds }.thenBy { it.folderName }
+            LocalVideoSortOption.NAME ->
+                compareBy<VideoFolder> { it.folderName.lowercase() }.thenBy { it.folderPath }
+            LocalVideoSortOption.DURATION ->
+                compareByDescending<VideoFolder> { it.durationMs }.thenBy { it.folderName }
+            LocalVideoSortOption.SIZE ->
+                compareByDescending<VideoFolder> { it.sizeBytes }.thenBy { it.folderName }
+        }
     
     fun loadLocalVideos() {
         if (_isLoading.value) return
@@ -80,7 +133,16 @@ class LocalVideoViewModel : ViewModel() {
 
             // 结果回主线程：先出列表（占位图），再异步补缩略图
             withContext(Dispatchers.Main) {
-                _videoFolders.value = folders
+                rawFolders = folders
+                // 重新扫描后原来选中的文件夹可能已经不在了：退回「全部」，
+                // 否则列表会一直空着，看起来像扫描失败
+                val currentFilter = _filterOption.value
+                if (currentFilter is LocalVideoFilterOption.Folder &&
+                    folders.none { it.folderPath == currentFilter.folderPath }
+                ) {
+                    _filterOption.value = LocalVideoFilterOption.All
+                }
+                publishFolders()
                 _isLoading.value = false
 
                 // 异步加载缩略图 - 完全照搬 Lua 逻辑
@@ -105,15 +167,17 @@ class LocalVideoViewModel : ViewModel() {
                 
                 // 更新列表
                 withContext(Dispatchers.Main) {
-                    val updatedList = _videoFolders.value.map {
+                    // 缩略图回填要先写回原始列表，再走 publishFolders：
+                    // 否则排序/筛选过的结果会被绕开，界面上的顺序会跳回去
+                    rawFolders = rawFolders.map {
                         if (it.folderPath == folder.folderPath) {
                             it.copy(thumbnail = thumbnail ?: LOADING_IMAGE)
                         } else {
                             it
                         }
                     }
-                    _videoFolders.value = updatedList
-                    
+                    publishFolders()
+
                     // 延迟 50ms 加载下一个
                     handler.postDelayed(loadRunnable, 50)
                 }
@@ -130,12 +194,16 @@ class LocalVideoViewModel : ViewModel() {
         try {
             // 多查 BUCKET_ID / RELATIVE_PATH：详情页按它们查同一批视频，
             // 不再依赖 File.listFiles()（作用域存储下它经常返回 null）。
+            // 再补 SIZE / DURATION / DATE_ADDED：这三列只给「排序」用，不额外查库。
             val columns = mutableListOf(
                 MediaStore.Video.Media._ID,
                 MediaStore.Video.Media.DATA,
                 MediaStore.Video.Media.BUCKET_ID,
                 MediaStore.Video.Media.BUCKET_DISPLAY_NAME,
-                MediaStore.Video.Media.DISPLAY_NAME
+                MediaStore.Video.Media.DISPLAY_NAME,
+                MediaStore.Video.Media.SIZE,
+                MediaStore.Video.Media.DURATION,
+                MediaStore.Video.Media.DATE_ADDED
             )
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 columns.add(MediaStore.MediaColumns.RELATIVE_PATH)
@@ -156,6 +224,9 @@ class LocalVideoViewModel : ViewModel() {
                 val bucketIdColumn = cursor.getColumnIndex(MediaStore.Video.Media.BUCKET_ID)
                 val bucketColumn = cursor.getColumnIndex(MediaStore.Video.Media.BUCKET_DISPLAY_NAME)
                 val nameColumn = cursor.getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME)
+                val sizeColumn = cursor.getColumnIndex(MediaStore.Video.Media.SIZE)
+                val durationColumn = cursor.getColumnIndex(MediaStore.Video.Media.DURATION)
+                val dateAddedColumn = cursor.getColumnIndex(MediaStore.Video.Media.DATE_ADDED)
                 val relativeColumn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     cursor.getColumnIndex(MediaStore.MediaColumns.RELATIVE_PATH)
                 } else {
@@ -178,6 +249,10 @@ class LocalVideoViewModel : ViewModel() {
                         ?.takeIf { it.isNotBlank() }
                         ?: folderNameOf(path, relativePath)
                     val parentDir = path?.let { File(it).parent }
+                    // 排序用的三列：拿不到就当 0，不影响列表本身
+                    val fileSize = if (sizeColumn >= 0) cursor.getLong(sizeColumn) else 0L
+                    val durationMs = if (durationColumn >= 0) cursor.getLong(durationColumn) else 0L
+                    val dateAddedSeconds = if (dateAddedColumn >= 0) cursor.getLong(dateAddedColumn) else 0L
                     // _data 拿不到时退回 BUCKET_ID 当 key，别把整条视频丢掉
                     val bucketKey = bucketId
                         .takeIf { it != LocalVideoMedia.NO_BUCKET_ID }
@@ -194,11 +269,19 @@ class LocalVideoViewModel : ViewModel() {
                             videoCount = 1,
                             videoId = id,  // 保存 ID 用于后续加载缩略图
                             bucketId = bucketId,
-                            relativePath = relativePath
+                            relativePath = relativePath,
+                            dateAddedSeconds = dateAddedSeconds,
+                            durationMs = durationMs,
+                            sizeBytes = fileSize
                         )
                     } else {
-                        folderMap[folderKey] = folderMap[folderKey]!!.copy(
-                            videoCount = folderMap[folderKey]!!.videoCount + 1
+                        val existing = folderMap[folderKey]!!
+                        folderMap[folderKey] = existing.copy(
+                            videoCount = existing.videoCount + 1,
+                            // 「最近添加」按目录里最新一条算
+                            dateAddedSeconds = maxOf(existing.dateAddedSeconds, dateAddedSeconds),
+                            durationMs = existing.durationMs + durationMs,
+                            sizeBytes = existing.sizeBytes + fileSize
                         )
                     }
                 }
@@ -241,6 +324,16 @@ class LocalVideoViewModel : ViewModel() {
 
             if (videoFiles.isNotEmpty()) {
                 val folderPath = downloadDir.absolutePath
+                // 排序用的口径：总大小、最新修改时间、MediaStore 里能查到的时长合计
+                val totalSize = videoFiles.sumOf { it.length() }
+                val latestModifiedSeconds = videoFiles.maxOf { it.lastModified() } / 1000
+                val totalDuration = runCatching {
+                    LocalVideoMedia.queryInDirectoryPath(context, folderPath).sumOf { it.durationMs }
+                }.getOrDefault(0L)
+                // 「仅视频文件」筛选靠它：目录里还混着 .tmp / .part / 其它非视频文件时不算「纯视频目录」
+                val nonVideoCount = downloadDir.listFiles()
+                    ?.count { it.isFile && !LocalVideoMedia.hasVideoExtension(it.name, excluded) }
+                    ?: 0
 
                 if (!folderMap.containsKey(folderPath)) {
                     // 使用第一个视频文件的ID（如果在MediaStore中）
@@ -253,13 +346,21 @@ class LocalVideoViewModel : ViewModel() {
                         videoCount = videoFiles.size,
                         videoId = firstVideoId,
                         bucketId = LocalVideoMedia.NO_BUCKET_ID,
-                        relativePath = "Download/TVBall/"
+                        relativePath = "Download/TVBall/",
+                        dateAddedSeconds = latestModifiedSeconds,
+                        durationMs = totalDuration,
+                        sizeBytes = totalSize,
+                        nonVideoCount = nonVideoCount
                     )
                 } else {
                     // 更新视频数量：只增不减，避免文件系统少看到几个时把 MediaStore 的统计改小
                     val existing = folderMap[folderPath]!!
                     folderMap[folderPath] = existing.copy(
-                        videoCount = maxOf(existing.videoCount, videoFiles.size)
+                        videoCount = maxOf(existing.videoCount, videoFiles.size),
+                        dateAddedSeconds = maxOf(existing.dateAddedSeconds, latestModifiedSeconds),
+                        durationMs = maxOf(existing.durationMs, totalDuration),
+                        sizeBytes = maxOf(existing.sizeBytes, totalSize),
+                        nonVideoCount = nonVideoCount
                     )
                 }
             }
@@ -292,6 +393,43 @@ data class VideoFolder(
      */
     val bucketId: Long = Long.MIN_VALUE,
     /** MediaStore 的 RELATIVE_PATH（API 29+），形如 Movies/MyFolder/。 */
-    val relativePath: String? = null
-)
+    val relativePath: String? = null,
+    /** 目录里最新一条视频的添加时间（秒）；文件系统扫描时退化成最后修改时间。排序「最近添加」用。 */
+    val dateAddedSeconds: Long = 0L,
+    /** 目录内视频总时长（毫秒），排序「时长」用；MediaStore 没给时长时为 0。 */
+    val durationMs: Long = 0L,
+    /** 目录内视频总大小（字节），排序「大小」用。 */
+    val sizeBytes: Long = 0L,
+    /**
+     * 目录里「不是可播放视频」的文件数量。
+     * 只有真正列过目录（下载目录扫描）才有分辨力；纯 MediaStore 聚合出来的目录恒为 0。
+     * 「仅视频文件」筛选的口径就是它。
+     */
+    val nonVideoCount: Int = 0
+) {
+    /** 纯视频目录：有视频，且没混着排不掉的杂项文件。 */
+    val isVideoOnly: Boolean
+        get() = videoCount > 0 && nonVideoCount == 0
+}
+
+/** 本地视频列表的排序方式：全部在内存里对 [VideoFolder] 排序，不重新查 MediaStore。 */
+enum class LocalVideoSortOption(val label: String) {
+    RECENT("最近添加"),
+    NAME("名称"),
+    DURATION("时长"),
+    SIZE("大小")
+}
+
+/** 本地视频列表的筛选方式：全部 / 仅视频文件 / 指定文件夹。 */
+sealed class LocalVideoFilterOption(val label: String) {
+    /** 不筛选。 */
+    object All : LocalVideoFilterOption("全部")
+
+    /** 只留「目录里全是可播放视频」的目录。 */
+    object VideoOnly : LocalVideoFilterOption("仅视频文件")
+
+    /** 只看某一个目录。 */
+    data class Folder(val folderPath: String, val folderName: String) :
+        LocalVideoFilterOption("文件夹：$folderName")
+}
 

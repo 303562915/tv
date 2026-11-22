@@ -43,6 +43,15 @@ class DownloadActivity : AppCompatActivity() {
 
         /** 进行中任务的进度刷新节流窗口：500ms 攒一批，只更新进度条 / 速度 / 剩余时间。 */
         private const val PROGRESS_REFRESH_INTERVAL_MS = 500L
+
+        /** 下载设置统一存在这份 prefs 里；DownloadConfigDialog 读的 thread_count 也是同一个文件。 */
+        private const val PREFS_DOWNLOAD_SETTINGS = VideoDownloader.DOWNLOAD_PREFS_NAME
+
+        /** 侧边栏「同时下载数」的持久化键：下载核心（VideoDownloader）读的就是这个键，两边不各写一份。 */
+        private const val KEY_CONCURRENT_DOWNLOADS = VideoDownloader.KEY_MAX_CONCURRENT_DOWNLOADS
+
+        /** 「同时下载数」默认值：与下载核心的默认并发上限同一个值（改造前写死的 16）。 */
+        private const val DEFAULT_CONCURRENT_DOWNLOADS = VideoDownloader.DEFAULT_MAX_CONCURRENT_DOWNLOADS
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -368,18 +377,33 @@ class DownloadActivity : AppCompatActivity() {
             checkAndMergeM3u8Tasks()
         }
         
+        // 下载设置统一读一份 prefs：同时下载数与多线程数都在这里
+        val prefs = getSharedPreferences(PREFS_DOWNLOAD_SETTINGS, MODE_PRIVATE)
+
         // 同时下载数滑动条
         val tvConcurrentDownloads = drawerView?.findViewById<android.widget.TextView>(com.tv.ball.R.id.tvConcurrentDownloads)
         val seekBarConcurrent = drawerView?.findViewById<android.widget.SeekBar>(com.tv.ball.R.id.seekBarConcurrentDownloads)
-        
+
+        // 恢复上次选择：滑块与标签一起对齐到存下来的值（没有记录就用布局默认值）
+        val savedConcurrentDownloads = prefs.getInt(KEY_CONCURRENT_DOWNLOADS, DEFAULT_CONCURRENT_DOWNLOADS)
+        seekBarConcurrent?.progress = savedConcurrentDownloads
+        tvConcurrentDownloads?.text = "同时下载：$savedConcurrentDownloads"
+
         seekBarConcurrent?.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
                 val count = if (progress < 1) 1 else progress
                 tvConcurrentDownloads?.text = "同时下载：$count"
-                // TODO: 保存设置
+                // 只在用户自己拖动时落盘：上面恢复上次值时程序化设置 progress，不该反过来写一遍盘
+                if (fromUser) {
+                    prefs.edit().putInt(KEY_CONCURRENT_DOWNLOADS, count).apply()
+                    android.util.Log.d(TAG, "保存同时下载数设置: $count")
+                }
             }
             override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) {
+                val count = seekBar?.progress ?: DEFAULT_CONCURRENT_DOWNLOADS
+                Toast.makeText(this@DownloadActivity, "同时下载数已设置为 $count", Toast.LENGTH_SHORT).show()
+            }
         })
         
         // 多线程数滑动条
@@ -387,7 +411,6 @@ class DownloadActivity : AppCompatActivity() {
         val seekBarThreadCount = drawerView?.findViewById<android.widget.SeekBar>(com.tv.ball.R.id.seekBarThreadCount)
         
         // 从 SharedPreferences 读取保存的线程数
-        val prefs = getSharedPreferences("download_settings", MODE_PRIVATE)
         val savedThreadCount = prefs.getInt("thread_count", 10)  // 默认10个线程
         seekBarThreadCount?.progress = savedThreadCount
         tvThreadCount?.text = "多线程数：$savedThreadCount"

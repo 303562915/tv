@@ -16,7 +16,21 @@ class VideoDownloader private constructor(private val context: Context) {
     companion object {
         private const val TAG = "VideoDownloader"
         private const val BUFFER_SIZE = 8192
-        private const val MAX_CONCURRENT_DOWNLOADS = 16  // 提升到16个并发（类似IDM）
+
+        /**
+         * 「同时下载数」的默认值。
+         * 改造前这里是写死的 16，改成可配置后拿不到偏好时仍然回这个值，行为与旧版一致。
+         */
+        const val DEFAULT_MAX_CONCURRENT_DOWNLOADS = 16
+
+        /** 下载设置的偏好文件名与键：侧边栏（DownloadActivity）写、下载核心（这里）读，只此一份。 */
+        const val DOWNLOAD_PREFS_NAME = "download_settings"
+        const val KEY_MAX_CONCURRENT_DOWNLOADS = "concurrent_downloads"
+
+        /** 并发上限的合法区间：侧边栏 SeekBar 的 max 是 32。 */
+        private const val MIN_MAX_CONCURRENT_DOWNLOADS = 1
+        private const val MAX_MAX_CONCURRENT_DOWNLOADS = 32
+
         private const val SEGMENTS_PER_THREAD = 10  // 每个线程分成10段
         private const val MIN_SIZE_FOR_MULTITHREAD = 10 * 1024 * 1024  // 10MB以上才使用多线程
         private const val SEGMENT_TIMEOUT_MS = 30000L  // 每个分段30秒超时
@@ -34,6 +48,50 @@ class VideoDownloader private constructor(private val context: Context) {
 
     private val downloadTasks = ConcurrentHashMap<Long, DownloadTask>()
     private val downloadJobs = ConcurrentHashMap<Long, Job>()
+
+    /**
+     * 「同时下载数」：每次用的时候现读偏好（内存读，无 IO），
+     * 侧边栏拖完立刻生效，不用重启应用，也不用重新创建下载器。
+     */
+    private val maxConcurrentDownloads: Int
+        get() = try {
+            context.getSharedPreferences(DOWNLOAD_PREFS_NAME, Context.MODE_PRIVATE)
+                .getInt(KEY_MAX_CONCURRENT_DOWNLOADS, DEFAULT_MAX_CONCURRENT_DOWNLOADS)
+                .coerceIn(MIN_MAX_CONCURRENT_DOWNLOADS, MAX_MAX_CONCURRENT_DOWNLOADS)
+        } catch (e: Exception) {
+            Log.e(TAG, "读取同时下载数失败，回退默认值 $DEFAULT_MAX_CONCURRENT_DOWNLOADS", e)
+            DEFAULT_MAX_CONCURRENT_DOWNLOADS
+        }
+
+    /** 任务级并发槽位的当前上限（-1 表示还没建过槽位）。 */
+    @Volatile
+    private var taskSlotsLimit: Int = -1
+
+    /** 任务级并发槽位：同时运行的任务数不超过「同时下载数」。 */
+    @Volatile
+    private var taskSlots: kotlinx.coroutines.sync.Semaphore? = null
+
+    /**
+     * 取当前生效的任务槽位；偏好里的上限变了就重建一个。
+     * 已经排队的任务不会被驱逐，只是新任务按新上限排队。
+     */
+    private fun taskSlots(): kotlinx.coroutines.sync.Semaphore {
+        val limit = maxConcurrentDownloads
+        val current = taskSlots
+        if (current != null && taskSlotsLimit == limit) return current
+        return synchronized(this) {
+            val again = taskSlots
+            if (again != null && taskSlotsLimit == limit) {
+                again
+            } else {
+                kotlinx.coroutines.sync.Semaphore(limit).also {
+                    taskSlots = it
+                    taskSlotsLimit = limit
+                    Log.d(TAG, "同时下载数调整为 $limit")
+                }
+            }
+        }
+    }
     
     // 临时存储当前任务的加密信息
     private val encryptionInfoMap = ConcurrentHashMap<Long, M3u8EncryptionInfo>()
@@ -261,6 +319,9 @@ class VideoDownloader private constructor(private val context: Context) {
         
         try {
             val job = downloadScope.launch(Dispatchers.IO) {
+                // 「同时下载数」：拿不到槽位就在这里排队（暂停会取消等待中的协程）
+                val slots = taskSlots()
+                slots.acquire()
                 try {
                     Log.d(TAG, "=== 协程开始执行 ===")
                     Log.d(TAG, "线程: ${Thread.currentThread().name}")
@@ -293,6 +354,9 @@ class VideoDownloader private constructor(private val context: Context) {
                     e.printStackTrace()
                     updateTaskStatus(taskId, DownloadStatus.FAILED, e.message)
                     checkAndStopService()
+                } finally {
+                    // 交还并发槽位：无论完成、失败还是被取消都要还，否则上限会被吃满
+                    slots.release()
                 }
             }
 
@@ -1139,8 +1203,10 @@ class VideoDownloader private constructor(private val context: Context) {
                 }
             }
             
-            // 使用信号量限制并发数（提升到16个，类似IDM的多线程技术）
-            val semaphore = kotlinx.coroutines.sync.Semaphore(MAX_CONCURRENT_DOWNLOADS)
+            // 并发上限来自「同时下载数」偏好（默认 16），本次下载只读一次，避免中途口径变化
+            val maxConcurrent = maxConcurrentDownloads
+            // 使用信号量限制并发数
+            val semaphore = kotlinx.coroutines.sync.Semaphore(maxConcurrent)
             
             // 使用原子计数器统一管理进度，避免跳跃
             val completedCount = java.util.concurrent.atomic.AtomicInteger(startIndex) // 从已下载的分片数开始
@@ -1150,14 +1216,14 @@ class VideoDownloader private constructor(private val context: Context) {
             var lastUpdateTime = System.currentTimeMillis()
             var lastCompletedCount = startIndex // 从已下载的分片数开始
             
-            // 初始化分段进度（16个线程）
-            val segmentProgresses = Array(MAX_CONCURRENT_DOWNLOADS) { java.util.concurrent.atomic.AtomicInteger(0) }
-            val segmentsPerThread = (segments.size + MAX_CONCURRENT_DOWNLOADS - 1) / MAX_CONCURRENT_DOWNLOADS
+            // 初始化分段进度（按并发上限分配线程位）
+            val segmentProgresses = Array(maxConcurrent) { java.util.concurrent.atomic.AtomicInteger(0) }
+            val segmentsPerThread = (segments.size + maxConcurrent - 1) / maxConcurrent
             
             // 计算已下载分片的线程进度
             for (i in 0 until startIndex) {
                 val threadIndex = i / segmentsPerThread
-                if (threadIndex < MAX_CONCURRENT_DOWNLOADS) {
+                if (threadIndex < maxConcurrent) {
                     val threadProgress = ((i % segmentsPerThread + 1) * 100) / segmentsPerThread
                     segmentProgresses[threadIndex].set(threadProgress.coerceAtMost(100))
                 }
@@ -1165,7 +1231,7 @@ class VideoDownloader private constructor(private val context: Context) {
             
             updateTask(taskId, { 
                 it.copy(
-                    threadCount = MAX_CONCURRENT_DOWNLOADS,
+                    threadCount = maxConcurrent,
                     partProgresses = segmentProgresses.map { it.get() },
                     downloadedSize = startIndex.toLong(),
                     progress = (startIndex * 100) / segments.size
@@ -1203,7 +1269,7 @@ class VideoDownloader private constructor(private val context: Context) {
                                     
                                     // 计算当前分片属于哪个线程组
                                     val threadIndex = index / segmentsPerThread
-                                    if (threadIndex < MAX_CONCURRENT_DOWNLOADS) {
+                                    if (threadIndex < maxConcurrent) {
                                         val threadProgress = ((index % segmentsPerThread + 1) * 100) / segmentsPerThread
                                         segmentProgresses[threadIndex].set(threadProgress.coerceAtMost(100))
                                     }

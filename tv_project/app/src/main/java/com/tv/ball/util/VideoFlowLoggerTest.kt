@@ -2,13 +2,31 @@ package com.tv.ball.util
 
 /**
  * 视频流程日志测试工具
- * 
- * 用于生成测试日志，验证日志系统是否正常工作
+ *
+ * 用于生成测试日志，验证日志系统是否正常工作。
+ *
+ * ## 这不是测试类
+ *
+ * 它在 `src/main` 里，没有任何 `@Test` 注解、没有 `main` 函数，也不会被任何测试任务扫到；
+ * 它只是给日志系统造样例数据的**手动演示工具**（被页面或调试入口调一下，生成一份看起来像
+ * 真实播放流程的日志）。
+ *
+ * ## 里面的 `Thread.sleep` 是刻意保留的
+ *
+ * 日志是按时间戳排列的，相邻两条必须拉开一点间隔才能看出"先初始化、再嗅探、再解析"的顺序，
+ * 所以这里按 100/200/300/500 ms 的节奏打点。作为演示工具，调用方自己选择在哪个线程跑它；
+ * 真要接到主线程入口，调用方应把它丢到后台线程。因此这里整块抑制
+ * `BlockingMethodInNonBlockingContext` —— 保留阻塞写法是需求本身，不是漏改的同步等待。
+ * （若要接进单元测试，请改成 `runTest` + `advanceTimeBy` 的虚拟时间，那时的 sleep 才该消失。）
  */
+@Suppress("BlockingMethodInNonBlockingContext")
 object VideoFlowLoggerTest {
     
     /**
      * 创建一个测试日志会话
+     *
+     * 每两条日志之间的 `Thread.sleep` 是刻意阻塞（拉开时间戳间隔），由上方的
+     * `@Suppress("BlockingMethodInNonBlockingContext")` 统一说明，不在每一处重复。
      */
     fun createTestSession() {
         VideoFlowLogger.startSession(
