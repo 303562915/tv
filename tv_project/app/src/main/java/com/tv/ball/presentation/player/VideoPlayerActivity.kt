@@ -4662,6 +4662,8 @@ class VideoPlayerActivity : AppCompatActivity() {
                     checkSkipIntro()
                 }
                 updateSystemInfo()
+                // 画中画窗口只留画面与字幕：上面的状态更新想让控件冒头，同一轮里就压回去
+                if (isInPictureInPictureMode) hidePictureOverlayViews()
             }
         }
     }
@@ -5603,6 +5605,11 @@ class VideoPlayerActivity : AppCompatActivity() {
     
     private fun resetHideControlsTimer() {
         hideControlsHandler.removeCallbacks(hideControlsRunnable)
+        // 画中画窗口不放顶部标题：竖屏「顶部常显」那套不能搬进小窗
+        if (isInPictureInPictureMode) {
+            hidePictureOverlayViews()
+            return
+        }
         if (isPortraitNow() && !isLocked) {
             // 竖屏：定时器只负责收底部控制条，顶部标题一直亮着
             binding.topToolbar.visibility = View.VISIBLE
@@ -6303,21 +6310,43 @@ class VideoPlayerActivity : AppCompatActivity() {
         runCatching { setPictureInPictureParams(params) }
     }
 
-    /** 画中画窗口只留画面：所有覆盖层收起，别让图标压在视频上 */
-    private fun hideOverlaysForPictureInPicture() {
-        isControlsVisible = false
+    /**
+     * 画中画窗口里唯一的界面元素是系统画的暂停/继续按钮，别的一个都不要。
+     *
+     * 白名单制：root 下只放开播放器与字幕（字幕属于画面内容），其余子控件全部收起。
+     * 以后新加按钮/浮层不用再逐个补 GONE，画中画里不会再冒出控制栏、加载圈、状态提示、
+     * 「下一集」胶囊、更快线路卡片、结束卡片之类的东西。
+     */
+    private fun hidePictureOverlayViews() {
         try {
-            binding.topToolbar.visibility = View.GONE
-            binding.bottomControlBar.visibility = View.GONE
-            binding.leftControlBar.visibility = View.GONE
-            binding.statusText?.visibility = View.GONE
-            binding.longPressSpeedLayout.visibility = View.GONE
-            binding.loadingView.visibility = View.GONE
-            hideSeekTimeBubble()
-            hideGestureHint()
+            val keepIds = intArrayOf(
+                binding.playerView.id,
+                binding.subtitleView.id,
+                binding.subtitleOverlay.id
+            )
+            for (index in 0 until binding.root.childCount) {
+                val child = binding.root.getChildAt(index) ?: continue
+                if (child.visibility != View.VISIBLE) continue
+                if (child.id != View.NO_ID && keepIds.contains(child.id)) continue
+                // 有的浮层还挂着淡入动画，先掐掉动画再 GONE，否则动画结束回调会把它重新露出来
+                child.animate().cancel()
+                child.visibility = View.GONE
+            }
+            // 竖屏详情区挂在 ScrollView 里、不在 root 下，单独收掉
+            if (portraitDetailView?.visibility == View.VISIBLE) {
+                portraitDetailView?.visibility = View.GONE
+            }
         } catch (e: Exception) {
             android.util.Log.w("VideoPlayer", "画中画收覆盖层失败: ${e.message}")
         }
+    }
+
+    /** 进画中画时调一次：把覆盖层、手势浮层、进度气泡一起清干净 */
+    private fun hideOverlaysForPictureInPicture() {
+        isControlsVisible = false
+        hidePictureOverlayViews()
+        hideSeekTimeBubble()
+        hideGestureHint()
     }
 
     /**
@@ -6372,8 +6401,14 @@ class VideoPlayerActivity : AppCompatActivity() {
         } else {
             // 退出画中画模式 - 恢复控制UI
             plog("📺 退出画中画模式")
+            // 画中画期间被统一收起的竖屏详情区还回来
+            portraitDetailView?.visibility = View.VISIBLE
             binding.lockButton.visibility = View.VISIBLE
             showControls()
+            // 画中画里播到结尾时结束卡片被压住了，回到大屏补一次
+            if (exoPlayerManager.getPlayer()?.playbackState == Player.STATE_ENDED) {
+                showPlaybackEndedCard()
+            }
         }
     }
     
