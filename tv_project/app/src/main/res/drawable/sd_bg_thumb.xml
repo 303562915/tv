@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  选集面板每行左侧的缩略图底：56dp 见方 + 小圆角。
+  两个用途：
+  1) 封面还没下来时当占位块（用既有 surface_block 灰，不会闪白）；
+  2) 给 ImageView 的 clipToOutline 提供 rounded outline —— 缩略图本身是 centerCrop 裁出来的矩形，
+     不靠这层 outline 裁一刀，圆角就白设了。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/surface_block" />
+    <corners android:radius="@dimen/radius_sm" />
+</shape>

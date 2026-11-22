@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  右侧栏「拍同款」：圆圈 + 加号。
+  为什么是空心圆加十字而不是相机机身：这里不是真的拍照，纯占位入口，
+  圆圈 + 加号在深色画面上辨识度最高，也不会让人误以为点了会开机拍照。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M3,12A9,9 0 1,1 21,12A9,9 0 1,1 3,12Z"
+        android:strokeColor="@android:color/white"
+        android:strokeWidth="1.6" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M11,8h2v3h3v2h-3v3h-2v-3H8v-2h3z" />
+</vector>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  右侧栏最上面的头像底：圆形描边 + 极淡白底。
+  头像是用剧封面裁圆填进去的，封面没下来 / 为空时这层底就是占位，
+  不会出现一块方形空白，也避免纯黑头像在深色画面上完全看不见。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="#33FFFFFF" />
+    <stroke
+        android:width="1dp"
+        android:color="@android:color/white" />
+</shape>

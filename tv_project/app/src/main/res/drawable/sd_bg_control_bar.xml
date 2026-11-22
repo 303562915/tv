@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  底部缩放控制条的底板。
+  #B3000000 而不是纯黑：控制条出现时画面已经缩到中间（有黑边），
+  这条压在半透明渐变上，纯黑会显得像第二块画面；稍透一点能看出它浮在视频上。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#B3000000" />
+    <corners android:radius="@dimen/radius_full" />
+</shape>
