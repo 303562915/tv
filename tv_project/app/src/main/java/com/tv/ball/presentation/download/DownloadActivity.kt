@@ -23,6 +23,7 @@ import com.tv.ball.domain.downloader.VideoDownloader
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.File
 
 class DownloadActivity : AppCompatActivity() {
 
@@ -38,6 +39,7 @@ class DownloadActivity : AppCompatActivity() {
         private const val REQUEST_MANAGE_STORAGE = 101
         private const val REQUEST_FILE_IMPORT = 102
         private const val REQUEST_FILE_PICKER = 103
+        private const val REQUEST_NOTIFICATION_PERMISSION = 104
 
         /** 进行中任务的进度刷新节流窗口：500ms 攒一批，只更新进度条 / 速度 / 剩余时间。 */
         private const val PROGRESS_REFRESH_INTERVAL_MS = 500L
@@ -65,11 +67,21 @@ class DownloadActivity : AppCompatActivity() {
         setupTabs()
         setupButtons()
         setupDrawerButtons()  // 设置侧边栏按钮
+        setupSaveDirInfo()
         observeDownloads()
         checkStoragePermission()
+        ensureNotificationPermission()
         
         // 启动时自动检查并合并 M3U8 任务
         autoCheckAndMergeM3u8()
+    }
+
+    /** 回到页面时刷新保存目录：外部存储挂载状态 / 任务落盘目录可能已经变了。 */
+    override fun onResume() {
+        super.onResume()
+        if (::videoDownloader.isInitialized) {
+            updateSaveDirInfo(videoDownloader.tasksFlow.value)
+        }
     }
 
     private val tabSelectedColor: Int by lazy {
@@ -91,6 +103,62 @@ class DownloadActivity : AppCompatActivity() {
     private val pushedProgress = HashMap<Long, DownloadTask>()
 
     private var progressFlushJob: Job? = null
+
+    /** 上一次显示的保存目录文案，避免每次进度回调都重设文本。 */
+    private var lastSaveDirText: String? = null
+
+    /**
+     * 保存目录行：文本「保存目录：<真实路径>」（界面上中间省略），
+     * 点一下把完整路径 Toast 出来。完整路径存在 tag 里，不靠解析被省略的文本。
+     */
+    private fun setupSaveDirInfo() {
+        binding.tvSaveDir.setOnClickListener {
+            val fullPath = binding.tvSaveDir.tag as? String
+            if (!fullPath.isNullOrBlank()) {
+                Toast.makeText(this, fullPath, Toast.LENGTH_LONG).show()
+            }
+        }
+        updateSaveDirInfo(videoDownloader.tasksFlow.value)
+    }
+
+    /**
+     * 下载器默认落盘目录：外部存储 Downloads/TVBall，
+     * 与 VideoDownloader.getDownloadPath 里的目录常量一致。
+     */
+    private fun defaultDownloadDir(): String = File(
+        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+        "TVBall"
+    ).absolutePath
+
+    /**
+     * 顶部「保存目录」行：优先取任一任务 savePath 的父目录（真实落盘位置），
+     * 没有任务时用下载器的默认目录；两者都拿不到就整行 GONE，绝不留占位文案。
+     */
+    private fun updateSaveDirInfo(tasks: List<DownloadTask>) {
+        val taskDir = tasks.asSequence()
+            .mapNotNull { task ->
+                task.savePath.takeIf { it.isNotBlank() }?.let { path -> File(path).parent }
+            }
+            .firstOrNull { it.isNotBlank() }
+
+        val dir = taskDir ?: runCatching { defaultDownloadDir() }.getOrNull()
+
+        if (dir.isNullOrBlank()) {
+            lastSaveDirText = null
+            binding.tvSaveDir.tag = null
+            binding.tvSaveDir.visibility = View.GONE
+            return
+        }
+
+        val text = "保存目录：$dir"
+        if (text != lastSaveDirText) {
+            lastSaveDirText = text
+            binding.tvSaveDir.text = text
+            binding.tvSaveDir.tag = dir
+            binding.tvSaveDir.contentDescription = "下载保存目录：$dir，点按查看完整路径"
+        }
+        binding.tvSaveDir.visibility = View.VISIBLE
+    }
 
     /** 按当前标签页过滤；筛选口径集中在这里，避免两处各写一份。 */
     private fun filteredTasks(allTasks: List<DownloadTask>): List<DownloadTask> {
@@ -115,6 +183,11 @@ class DownloadActivity : AppCompatActivity() {
      *   [DownloadAdapter.updateProgress]，只更新进度条与速度/剩余时间文本。
      */
     private fun applyTasks(allTasks: List<DownloadTask>, forceSubmit: Boolean = false) {
+        updateSaveDirInfo(allTasks)
+        // 页面在前台也要发完成通知：服务侧可能因为「无活跃任务」先被停掉，
+        // 与 DownloadCompletionNotifier 共享去重表，不会重复弹两条。
+        DownloadCompletionNotifier.onTasks(this, allTasks)
+
         val filtered = filteredTasks(allTasks)
 
         val structureChanged = forceSubmit ||
@@ -660,6 +733,25 @@ class DownloadActivity : AppCompatActivity() {
                 applyTasks(allTasks)
             }
         }
+    }
+
+    /**
+     * Android 13+ 的首发通知需要运行时权限；Manifest 已声明 POST_NOTIFICATIONS，
+     * 这里只做一次申请，用户拒了也不影响下载，只是完成通知不发。
+     */
+    private fun ensureNotificationPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        ) return
+
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+            REQUEST_NOTIFICATION_PERMISSION
+        )
     }
 
     private fun checkStoragePermission() {

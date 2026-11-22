@@ -75,11 +75,24 @@ object UpdateManager {
         /** 有更新的版本可用。 */
         data class Available(val info: UpdateInfo) : Status
 
-        /** 正在下载，[percent] 为 0..100，-1 表示服务器没给总大小。 */
-        data class Downloading(val info: UpdateInfo, val percent: Int) : Status
+        /**
+         * 正在下载，[percent] 为 0..100，-1 表示服务器没给总大小。
+         *
+         * [downloaded] / [total] 是字节数，供页面写「1.2 MB / 12.4 MB」；
+         * 老调用点只填 percent 也不会坏（两个字节数默认 0）。
+         */
+        data class Downloading(
+            val info: UpdateInfo,
+            val percent: Int,
+            val downloaded: Long = 0L,
+            val total: Long = 0L
+        ) : Status
 
         /** 已经交给安装链路（Shizuku → root → 系统安装器）。 */
         data class Installing(val info: UpdateInfo) : Status
+
+        /** 安装链路已经接手（系统安装器已拉起，或 Shizuku / root 静默装完）。 */
+        data object Installed : Status
 
         /** 检查或下载失败，[reason] 是人话。 */
         data class Failed(val reason: String) : Status
@@ -366,6 +379,8 @@ object UpdateManager {
                 context.getString(R.string.update_prompt_downloading, labelOf(status.info))
             }
         is Status.Installing -> context.getString(R.string.update_prompt_installing, labelOf(status.info))
+        // 安装器接手后这条状态不再刷新，给一句终态文案即可
+        Status.Installed -> "安装程序已接手，请按系统提示完成安装"
         is Status.Failed -> context.getString(R.string.update_prompt_failed, status.reason)
     }
 
@@ -437,6 +452,78 @@ object UpdateManager {
         }
     }
 
+    /**
+     * 页面自绘进度版：下载与安装的每一步都回一个 [Status]，不弹任何对话框。
+     *
+     * 关于页与设置页在用它 —— 它们要的是「已下载 / 总大小」和失败短原因，
+     * 而不是 UpdateManager 自己的 AlertDialog 进度框。
+     *
+     * 回调都在主线程（[scope] 是 Main）；页面销毁后调用方自己丢弃即可。
+     */
+    fun downloadAndInstallObserved(
+        activity: Activity,
+        info: UpdateInfo,
+        onStatus: (Status) -> Unit
+    ) {
+        if (!activity.alive()) return
+        scope.launch {
+            onStatus(Status.Downloading(info, -1))
+            val result = try {
+                ApkDownloader.downloadDetailed(activity, info) { progress ->
+                    onStatus(
+                        Status.Downloading(
+                            info = info,
+                            percent = progress.percent,
+                            downloaded = progress.downloaded,
+                            total = progress.total
+                        )
+                    )
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Result.failure<File>(e)
+            }
+
+            val apk = result.getOrNull()
+            if (apk == null) {
+                onStatus(Status.Failed(ApkDownloader.reasonOf(result.exceptionOrNull())))
+                return@launch
+            }
+            if (!activity.alive()) return@launch
+
+            onStatus(Status.Installing(info))
+            // 安装链路内部已经按 Shizuku → root → 系统安装器 降级；异常也只变成一句原因
+            val outcome = runCatching {
+                withContext(Dispatchers.IO) {
+                    ApkInstaller.install(activity, apk, onPending = {}, onMessage = { })
+                }
+            }.getOrElse { e ->
+                ApkInstaller.Outcome.Failed(e.message ?: "安装失败")
+            }
+            when (outcome) {
+                is ApkInstaller.Outcome.Pending,
+                is ApkInstaller.Outcome.InstalledSilently -> onStatus(Status.Installed)
+
+                is ApkInstaller.Outcome.Failed ->
+                    onStatus(Status.Failed(installReason(outcome.reason)))
+            }
+        }
+    }
+
+    /**
+     * 安装失败的一句话说清是哪一类：没安装权限 / 没有安装器 / 其它。
+     *
+     * 「安装未知应用」那条来自 [ApkInstaller] 的未授权分支，是普通设备最常见的结果，
+     * 单独说成「无安装权限」，别让用户读一长串「请在…里允许…」。
+     */
+    private fun installReason(reason: String): String = when {
+        reason.contains("安装未知应用") || reason.contains("安装权限") -> "无安装权限"
+        reason.contains("没有能接手") -> "没有可用的安装器"
+        reason.isBlank() -> "安装失败"
+        else -> reason.take(80)
+    }
+
     private fun askOpenPage(activity: Activity, onDone: () -> Unit) {
         AlertDialog.Builder(activity)
             .setTitle("需要手动安装")
@@ -496,6 +583,12 @@ object UpdateManager {
     }
 
     private fun updateProgress(percent: Int) {
+        // -1 = 服务器没给总大小：进度条退回不确定态，别在对话框里写「-1%」
+        if (percent < 0) {
+            progressBar?.isIndeterminate = true
+            dialog?.setMessage("正在下载…")
+            return
+        }
         progressBar?.isIndeterminate = false
         progressBar?.progress = percent
         dialog?.setMessage("$percent%")

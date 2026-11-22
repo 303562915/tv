@@ -1288,6 +1288,67 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- ========================= 存储 ========================= -->
+        <TextView
+            style="@style/TextAppearance.TVPlayer.SectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:text="存储" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- 清理缓存：标题由 SettingsFragment 写成「清理缓存（12.4 MB）」，点一次直接清 -->
+            <LinearLayout
+                android:id="@+id/rowClearCache"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/list_row_min_height"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/card_padding"
+                android:paddingTop="10dp"
+                android:paddingEnd="@dimen/card_padding"
+                android:paddingBottom="10dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:paddingEnd="12dp">
+
+                    <TextView
+                        android:id="@+id/tvClearCacheTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/clear_cache"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="只清缓存目录与播放器缓存，收藏、历史与已下载的文件都不动"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_arrow_right"
+                    app:tint="@color/theme_text_secondary" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- ========================= 恢复默认 ========================= -->
         <TextView
             style="@style/TextAppearance.TVPlayer.SectionTitle"

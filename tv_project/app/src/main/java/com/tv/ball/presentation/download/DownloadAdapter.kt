@@ -472,12 +472,33 @@ class DownloadAdapter(
             }
         }
 
+        /**
+         * 右侧暂停/继续按钮。
+         *
+         * - 下载中 / 合并中 → 暂停图标，点击暂停；
+         * - 已暂停 / 等待中 → 继续图标，点击继续（走 Range 断点续传）；
+         * - 已完成 / 失败 → 按钮禁用（置灰 + 撤掉点击），这两种状态没有可暂停/继续的动作。
+         *
+         * 图标、contentDescription、可用状态三者始终一起刷，避免复用行时残留上一行的状态。
+         */
         private fun bindActions(task: DownloadTask) {
-            // 右侧按钮图标 - 始终显示
+            // 先复位：列表行会被复用，不先复位就会带着上一行的禁用态/监听器
             binding.ivPlayPause.visibility = View.VISIBLE
+            binding.ivPlayPause.alpha = 1f
+            binding.ivPlayPause.isEnabled = true
+            binding.ivPlayPause.isClickable = true
+            binding.ivPlayPause.setOnClickListener(null)
+
             when (task.status) {
                 DownloadStatus.DOWNLOADING, DownloadStatus.MERGING -> {
                     binding.ivPlayPause.setImageResource(android.R.drawable.ic_media_pause)
+                    // 图标 + contentDescription 一起随状态切换，读屏用户也能分辨当前可执行的动作
+                    binding.ivPlayPause.contentDescription =
+                        if (task.status == DownloadStatus.MERGING) {
+                            "合并中：${task.fileName}"
+                        } else {
+                            "暂停下载：${task.fileName}"
+                        }
                     binding.ivPlayPause.setOnClickListener {
                         android.util.Log.d("DownloadAdapter", "暂停按钮点击: ${task.title}")
                         onPauseClick(task)
@@ -485,55 +506,43 @@ class DownloadAdapter(
                 }
                 DownloadStatus.PAUSED, DownloadStatus.PENDING -> {
                     binding.ivPlayPause.setImageResource(android.R.drawable.ic_media_play)
+                    binding.ivPlayPause.contentDescription = "继续下载：${task.fileName}"
                     binding.ivPlayPause.setOnClickListener {
-                        android.util.Log.d("DownloadAdapter", "=== 恢复按钮点击 ===")
-                        android.util.Log.d("DownloadAdapter", "任务: ${task.title}")
-                        android.util.Log.d("DownloadAdapter", "任务ID: ${task.id}")
-                        android.util.Log.d("DownloadAdapter", "状态: ${task.status}")
-
-                        android.widget.Toast.makeText(
-                            binding.root.context,
-                            "开始下载: ${task.title}",
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
-
+                        android.util.Log.d("DownloadAdapter", "恢复按钮点击: ${task.title}, 状态=${task.status}")
                         try {
                             onResumeClick(task)
-                            android.util.Log.d("DownloadAdapter", "onResumeClick 已调用")
                         } catch (e: Exception) {
                             android.util.Log.e("DownloadAdapter", "onResumeClick 失败", e)
                             android.widget.Toast.makeText(
                                 binding.root.context,
-                                "启动失败: ${e.message}",
+                                "继续下载失败: ${e.message}",
                                 android.widget.Toast.LENGTH_SHORT
                             ).show()
                         }
                     }
                 }
-                DownloadStatus.FAILED -> {
-                    binding.ivPlayPause.setImageResource(android.R.drawable.ic_menu_rotate)
-                    binding.ivPlayPause.setOnClickListener {
-                        android.util.Log.d("DownloadAdapter", "重试按钮点击: ${task.title}")
-                        onResumeClick(task) // 重试使用resume功能
-                    }
-                }
                 DownloadStatus.COMPLETED -> {
                     binding.ivPlayPause.setImageResource(android.R.drawable.ic_media_play)
-                    binding.ivPlayPause.setOnClickListener {
-                        android.util.Log.d("DownloadAdapter", "播放按钮点击: ${task.title}")
-                        onPlayClick(task)
-                    }
+                    binding.ivPlayPause.contentDescription = "已完成，不可暂停：${task.fileName}"
+                    disablePlayPause()
+                }
+                DownloadStatus.FAILED -> {
+                    binding.ivPlayPause.setImageResource(android.R.drawable.ic_menu_rotate)
+                    binding.ivPlayPause.contentDescription = "下载失败，不可暂停：${task.fileName}"
+                    disablePlayPause()
                 }
             }
 
-            // 整个项目点击
+            // 整个项目点击：已完成 → 播放；失败 → 重试（按钮禁用后保留这条重试入口）
             binding.root.setOnClickListener {
                 if (isSelectionMode) {
                     toggleSelection(task.id)
                 } else if (task.status == DownloadStatus.COMPLETED) {
-                    // 已完成的任务点击播放
                     android.util.Log.d("DownloadAdapter", "点击已完成任务播放: ${task.title}")
                     onPlayClick(task)
+                } else if (task.status == DownloadStatus.FAILED) {
+                    android.util.Log.d("DownloadAdapter", "点击失败任务重试: ${task.title}")
+                    onResumeClick(task)
                 }
             }
 
@@ -562,6 +571,14 @@ class DownloadAdapter(
                 }
                 true
             }
+        }
+
+        /** 已完成 / 失败：暂停-继续按钮置灰并撤掉点击，避免点了没有任何动作。 */
+        private fun disablePlayPause() {
+            binding.ivPlayPause.isEnabled = false
+            binding.ivPlayPause.isClickable = false
+            binding.ivPlayPause.alpha = 0.35f
+            binding.ivPlayPause.setOnClickListener(null)
         }
 
         private fun showContextMenu(task: DownloadTask) {

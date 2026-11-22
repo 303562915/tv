@@ -8,6 +8,7 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.tv.ball.R
+import com.tv.ball.presentation.download.DownloadCompletionNotifier
 import com.tv.ball.domain.downloader.VideoDownloader
 import com.tv.ball.domain.downloader.DownloadStatus
 import kotlinx.coroutines.*
@@ -24,7 +25,7 @@ class DownloadService : Service() {
         private const val NOTIFICATION_ID = 1001
         private const val CHANNEL_ID = "download_channel"
         private const val CHANNEL_NAME = "下载服务"
-        
+
         fun start(context: Context) {
             val intent = Intent(context, DownloadService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -138,6 +139,9 @@ class DownloadService : Service() {
     private fun observeDownloadTasks() {
         serviceScope.launch {
             videoDownloader.tasksFlow.collectLatest { tasks ->
+                // 先处理「刚完成」的任务（通知先发，再考虑停服务）
+                DownloadCompletionNotifier.onTasks(this@DownloadService, tasks)
+
                 // 统计下载中的任务
                 val downloadingTasks = tasks.filter { 
                     it.status == DownloadStatus.DOWNLOADING || 

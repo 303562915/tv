@@ -75,13 +75,17 @@ class SettingsFragment : Fragment() {
         setupSwitchRows()
         setupChoiceRows()
         setupResetRow()
+        setupCacheRow()
         refreshAll()
+        refreshCacheUsage()
     }
 
     override fun onResume() {
         super.onResume()
         // 播放页里改过片头/片尾开关、画面比例时，回到本页要显示最新值
         refreshAll()
+        // 播放页一边看一边写 ExoPlayer 缓存，回本页体积已经变了
+        refreshCacheUsage()
     }
 
     override fun onDestroyView() {
@@ -443,6 +447,57 @@ class SettingsFragment : Fragment() {
         } else {
             exts.sorted().joinToString("、") { ".$it" }
         }
+    }
+
+    // ============================================================
+    // 缓存
+    // ============================================================
+
+    /** 清理进行中的标记：连点时第二次不重复扫盘，也不重复弹 Toast。 */
+    private var cacheClearing = false
+
+    /**
+     * 「清理缓存」一行：标题里带上当前占用（`清理缓存（12.4 MB）`），点一次直接清。
+     *
+     * 统计与删除都在 [SettingsViewModel] 的 IO 线程上跑，本页只负责把结果写回 TextView
+     * ——大缓存不卡遥控器操作。
+     */
+    private fun setupCacheRow() {
+        binding.rowClearCache.setOnClickListener {
+            if (cacheClearing) return@setOnClickListener
+            cacheClearing = true
+            viewModel.clearCache { result ->
+                cacheClearing = false
+                if (_binding == null || !isAdded) return@clearCache
+                renderCacheLabel(result.afterBytes)
+                // 已经是 0 也要有反馈；一点没删掉说明失败，不能谎报「已释放 0 B」
+                when {
+                    result.beforeBytes <= 0L ->
+                        CustomToast.show(requireContext(), getString(R.string.cache_already_clean))
+                    result.freedBytes <= 0L ->
+                        CustomToast.show(requireContext(), getString(R.string.cache_clear_failed))
+                    else -> CustomToast.show(
+                        requireContext(),
+                        "已释放 ${SettingsViewModel.CacheUsage.formatBytes(result.freedBytes)}"
+                    )
+                }
+            }
+        }
+    }
+
+    /** 后台量一次缓存占用，回来把标题刷成「清理缓存（12.4 MB）」。 */
+    private fun refreshCacheUsage() {
+        if (_binding == null) return
+        viewModel.measureCache { usage ->
+            if (_binding == null || !isAdded) return@measureCache
+            renderCacheLabel(usage.totalBytes)
+        }
+    }
+
+    private fun renderCacheLabel(bytes: Long) {
+        val b = _binding ?: return
+        b.tvClearCacheTitle.text = getString(R.string.clear_cache) +
+            "（${SettingsViewModel.CacheUsage.formatBytes(bytes)}）"
     }
 
     // ============================================================

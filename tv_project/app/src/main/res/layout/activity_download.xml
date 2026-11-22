@@ -76,6 +76,26 @@
                 app:tint="@color/theme_text_secondary" />
         </LinearLayout>
 
+        <!-- 保存目录：真实路径由 DownloadActivity 在 onCreate/onResume 填，取不到就整行 GONE -->
+        <TextView
+            android:id="@+id/tvSaveDir"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="@dimen/page_margin"
+            android:paddingEnd="@dimen/page_margin"
+            android:paddingTop="2dp"
+            android:paddingBottom="6dp"
+            android:textSize="12sp"
+            android:textColor="@color/theme_text_secondary"
+            android:maxLines="1"
+            android:ellipsize="middle"
+            android:singleLine="true"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground"
+            android:contentDescription="下载保存目录"
+            android:visibility="gone" />
+
         <!-- 标签页：选中 = primary 文字，未选中 = 次要文字 -->
         <HorizontalScrollView
             android:layout_width="match_parent"
