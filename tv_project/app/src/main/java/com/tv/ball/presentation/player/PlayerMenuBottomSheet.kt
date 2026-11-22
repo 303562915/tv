@@ -36,6 +36,7 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
     private var sleepTimerStateProvider: (() -> SleepTimerState)? = null
     private var onSleepTimerSelected: ((Int) -> Unit)? = null
     private var sleepTimerDialog: AlertDialog? = null
+    private var subtitleDialog: AlertDialog? = null
     private val sleepTimerRefreshHandler = Handler(Looper.getMainLooper())
     private val sleepTimerRefreshRunnable = object : Runnable {
         override fun run() {
@@ -48,6 +49,17 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
      * 睡眠定时器的显示状态：[minutes] 给弹窗勾选用（关闭 = 0），[statusText] 直接贴到行尾。
      */
     data class SleepTimerState(val minutes: Int, val statusText: String)
+
+    // 字幕状态只由播放页给：字幕文件属于当前片源，菜单不缓存也不轮询，
+    // 打开菜单时取一次就够了（字幕不会自己变）
+    private var subtitleStateProvider: (() -> SubtitleUiState)? = null
+    private var onSubtitleAction: ((Int) -> Unit)? = null
+
+    /**
+     * 字幕行的显示状态：[statusText] 贴到行尾（未加载 / 文件名（cue 数）· 延迟），
+     * [loaded] 只用来决定弹窗标题要不要标「未加载」。
+     */
+    data class SubtitleUiState(val statusText: String, val loaded: Boolean)
     
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -151,6 +163,12 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
         // 30 秒刷一次：剩余时间只要分钟粒度，每秒刷纯属白烧电
         sleepTimerRefreshHandler.removeCallbacks(sleepTimerRefreshRunnable)
         sleepTimerRefreshHandler.postDelayed(sleepTimerRefreshRunnable, SLEEP_TIMER_REFRESH_INTERVAL_MS)
+
+        // 字幕：菜单打开时刷一次行尾文字；延迟改了由本页回调直接刷新，不轮询
+        binding.rowSubtitle.setOnClickListener {
+            showSubtitleDialog()
+        }
+        refreshSubtitleState()
     }
     
     private fun refreshSleepTimerState() {
@@ -180,6 +198,31 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
     private fun sleepTimerIndexOf(minutes: Int): Int {
         val index = SLEEP_TIMER_OPTIONS.indexOf(minutes)
         return if (index >= 0) index else 0
+    }
+
+    private fun refreshSubtitleState() {
+        val binding = _binding ?: return
+        val state = subtitleStateProvider?.invoke() ?: SubtitleUiState("未加载", false)
+        binding.tvSubtitleValue.text = state.statusText
+    }
+
+    private fun showSubtitleDialog() {
+        val ctx = context ?: return
+        val state = subtitleStateProvider?.invoke() ?: SubtitleUiState("未加载", false)
+        subtitleDialog?.dismiss()
+        // 弹窗用 activity 的 context 建，才能盖在底部菜单的窗口之上，且菜单不跟着关
+        val dialog = AlertDialog.Builder(ctx)
+            .setTitle(if (state.loaded) "字幕" else "字幕（未加载）")
+            // 不预选任何一项：这里的每一项都是动作，不是当前状态
+            .setSingleChoiceItems(SUBTITLE_ACTION_LABELS, -1) { dialog, which ->
+                dialog.dismiss()
+                onSubtitleAction?.invoke(SUBTITLE_ACTIONS[which])
+                refreshSubtitleState()
+            }
+            .setNegativeButton("取消", null)
+            .create()
+        subtitleDialog = dialog
+        dialog.show()
     }
 
     private fun setSpeed(speed: Float) {
@@ -275,21 +318,57 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
         this.onSleepTimerSelected = listener
     }
 
+    /** 字幕行的状态由播放页提供：字幕文件活在播放页，菜单只负责显示与回传动作。 */
+    fun setSubtitleStateProvider(provider: () -> SubtitleUiState) {
+        this.subtitleStateProvider = provider
+        refreshSubtitleState()
+    }
+
+    /** [action] 取 ACTION_* 常量：菜单只回传「用户点了哪一项」，具体怎么做由播放页决定。 */
+    fun setOnSubtitleActionListener(listener: (Int) -> Unit) {
+        this.onSubtitleAction = listener
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         sleepTimerRefreshHandler.removeCallbacks(sleepTimerRefreshRunnable)
         sleepTimerDialog?.dismiss()
         sleepTimerDialog = null
+        subtitleDialog?.dismiss()
+        subtitleDialog = null
         _binding = null
     }
 
     companion object {
         const val TAG = "PlayerMenuBottomSheet"
 
+        /** 字幕动作：选文件（要播放页去 launch SAF）/ 关闭 / 延迟三档。 */
+        const val ACTION_PICK_SUBTITLE_FILE = 0
+        const val ACTION_DISABLE_SUBTITLE = 1
+        const val ACTION_DELAY_MINUS_HALF_SECOND = 2
+        const val ACTION_DELAY_PLUS_HALF_SECOND = 3
+        const val ACTION_DELAY_RESET = 4
+
         // 关闭 / 15 / 30 / 60 / 90 分钟；数组下标就是单选项和勾选状态的下标，两者必须同序
         private val SLEEP_TIMER_OPTIONS = intArrayOf(0, 15, 30, 60, 90)
         private val SLEEP_TIMER_LABELS = arrayOf<CharSequence>("关闭", "15 分钟", "30 分钟", "60 分钟", "90 分钟")
         private const val SLEEP_TIMER_REFRESH_INTERVAL_MS = 30_000L
+
+        // 下标与 [SUBTITLE_ACTIONS] 一一对应：单选项的 which 直接当下标用
+        private val SUBTITLE_ACTIONS = intArrayOf(
+            ACTION_PICK_SUBTITLE_FILE,
+            ACTION_DISABLE_SUBTITLE,
+            ACTION_DELAY_MINUS_HALF_SECOND,
+            ACTION_DELAY_PLUS_HALF_SECOND,
+            ACTION_DELAY_RESET
+        )
+        private val SUBTITLE_ACTION_LABELS = arrayOf<CharSequence>(
+            "选择字幕文件…",
+            "关闭字幕",
+            "延迟 −0.5 秒",
+            "延迟 +0.5 秒",
+            "延迟归零"
+        )
 
         fun newInstance(): PlayerMenuBottomSheet {
             return PlayerMenuBottomSheet()

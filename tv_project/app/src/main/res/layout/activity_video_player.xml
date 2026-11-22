@@ -24,6 +24,30 @@
         android:layout_height="match_parent"
         android:layout_gravity="bottom" />
 
+    <!-- 外挂字幕浮层：压在 playerView 与内嵌字幕视图之上，文本由 SubtitleOverlayController 按播放位置写入。
+         字号/颜色/描边/底色全部由 f012 在代码里覆盖，这里的 textColor 只是占位（颜色一律走 @color 引用）。
+         marginBottom 112dp = 竖屏底栏高度（12 padding + 40 主行 + 8 间距 + 40 次行 + 12 padding），
+         横屏底栏更矮，多出的空隙只会让字幕升得更高，不会压住控制栏。
+         clickable/focusable 都关掉：绝不吃掉手势，也不进遥控器焦点链。 -->
+    <TextView
+        android:id="@+id/subtitleOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="112dp"
+        android:clickable="false"
+        android:focusable="false"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:maxLines="4"
+        android:paddingStart="16dp"
+        android:paddingTop="4dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="4dp"
+        android:textColor="@color/theme_text_primary"
+        android:textSize="18sp"
+        android:visibility="gone" />
+
     <!-- 加载提示 -->
     <LinearLayout
         android:id="@+id/loadingView"

@@ -10,6 +10,7 @@ import android.content.IntentFilter
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.graphics.drawable.Icon
@@ -28,6 +29,7 @@ import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -45,6 +47,7 @@ import com.tv.ball.databinding.ActivityVideoPlayerBinding
 import com.tv.ball.di.Dependencies
 import com.tv.ball.domain.model.Episode
 import com.tv.ball.data.model.FavoriteEntity
+import com.tv.ball.feature.f014.F014Engine
 import com.tv.ball.presentation.favorite.FavoriteViewModel
 import com.tv.ball.util.VideoFlowLogger
 import kotlinx.coroutines.Dispatchers
@@ -52,6 +55,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
@@ -209,6 +213,18 @@ class VideoPlayerActivity : AppCompatActivity() {
     
     // 播放进度恢复标志
     private var hasRestoredPlaybackPosition = false
+
+    // 外挂字幕：控制器活到 onDestroy，不跟菜单/弹窗的生命周期绑定，菜单关掉不影响字幕显示
+    private var subtitleController: SubtitleOverlayController? = null
+    // 上一次写进浮层的文本：200ms tick 里文本没变就不重复 setText，省掉每帧的重排
+    private var lastSubtitleText: String = ""
+    // 上一次处理过字幕的片源地址：同一个地址重复回调（例如重试）不能把已加载的字幕清掉
+    private var lastSubtitleSourceUrl: String = ""
+
+    /** SAF 选字幕：TV 上的文件管理器经常不认字幕 mime，调用侧会再补 */* 兜底。 */
+    private val subtitleFilePicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+        if (uri != null) onSubtitleFilePicked(uri)
+    }
     
     enum class GestureType {
         NONE, PROGRESS, BRIGHTNESS, VOLUME
@@ -280,6 +296,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         setupGestureDetector()
         setupPlayer()
         setupControls()
+        initSubtitleController()
         registerPipReceiver()
         observeViewModel()
         loadVideoFromIntent()
@@ -2821,6 +2838,7 @@ class VideoPlayerActivity : AppCompatActivity() {
      */
     private fun playUrl(url: String) {
         currentPlayingUrl = url
+        onPlaybackSourceChanged(url)
         
         // 更新当前链接索引
         val index = sniffedVideoLinks.indexOf(url)
@@ -3137,6 +3155,12 @@ class VideoPlayerActivity : AppCompatActivity() {
 
         /** 详情视图 tag：同一份视图只缩放一次，重复调用不会把倍数叠乘上去。 */
         private const val TAG_FONT_SCALE_APPLIED = "detail_font_scale_applied"
+
+        /** 字幕延迟单档步进：菜单上是 −0.5 秒 / +0.5 秒，f013 内部会按 100ms 对齐。 */
+        private const val SUBTITLE_DELAY_STEP_MS = 500
+
+        /** 字幕行尾最多显示多少个字符的文件名，超出留尾部（语言标记在尾部，最有用）。 */
+        private const val SUBTITLE_NAME_MAX_CHARS = 20
     }
 
     private fun toggleFavorite() {
@@ -4342,6 +4366,9 @@ class VideoPlayerActivity : AppCompatActivity() {
                             } catch (e: Exception) {
                                 viewModel.onPlaybackError(e.message ?: "播放器初始化失败")
                             }
+                            // 字幕与播放链路解耦：放在 try 外面，换片源时字幕那边出问题不能连带报播放失败
+                            // （本地视频会顺带尝试加载同名字幕）
+                            onPlaybackSourceChanged(it)
                         }
                     }
                 }
@@ -4867,8 +4894,179 @@ class VideoPlayerActivity : AppCompatActivity() {
             setSleepTimer(minutes)
         }
 
+        // 字幕：状态与动作都在本页处理，菜单只显示与回传
+        // 打开菜单时顺手套一次样式：用户可能刚在功能中心改过字号/颜色再回到这里
+        subtitleController?.applyStyle(binding.subtitleOverlay)
+        menuSheet.setSubtitleStateProvider { subtitleUiState() }
+        menuSheet.setOnSubtitleActionListener { action -> onSubtitleAction(action) }
+
         menuSheet.show(supportFragmentManager, PlayerMenuBottomSheet.TAG)
     }
+
+    // ==================== 外挂字幕 ====================
+
+    private fun initSubtitleController() {
+        val controller = SubtitleOverlayController(applicationContext)
+        subtitleController = controller
+        controller.applyStyle(binding.subtitleOverlay)
+    }
+
+    /** 菜单行尾文字：未加载 / 文件名（cue 数）· 延迟。 */
+    private fun subtitleUiState(): PlayerMenuBottomSheet.SubtitleUiState {
+        val state = subtitleController?.state
+        val cueCount = state?.cueCount ?: 0
+        val name = state?.fileName
+        if (state == null || name == null || cueCount <= 0) {
+            return PlayerMenuBottomSheet.SubtitleUiState("未加载", false)
+        }
+        // 菜单行尾放不下长文件名：留尾部（一般带语言标记，最有用），前面用省略号收掉
+        val shortName = if (name.length > SUBTITLE_NAME_MAX_CHARS) {
+            "…" + name.takeLast(SUBTITLE_NAME_MAX_CHARS - 1)
+        } else {
+            name
+        }
+        return PlayerMenuBottomSheet.SubtitleUiState(
+            "$shortName（$cueCount 条）· ${formatSubtitleDelay(state.delayMs)}",
+            true
+        )
+    }
+
+    private fun onSubtitleAction(action: Int) {
+        val controller = subtitleController ?: return
+        when (action) {
+            PlayerMenuBottomSheet.ACTION_PICK_SUBTITLE_FILE -> launchSubtitleFilePicker()
+            PlayerMenuBottomSheet.ACTION_DISABLE_SUBTITLE -> disableSubtitle(showToast = true)
+            PlayerMenuBottomSheet.ACTION_DELAY_MINUS_HALF_SECOND ->
+                showSubtitleDelayToast(controller.adjustDelay(-SUBTITLE_DELAY_STEP_MS))
+            PlayerMenuBottomSheet.ACTION_DELAY_PLUS_HALF_SECOND ->
+                showSubtitleDelayToast(controller.adjustDelay(SUBTITLE_DELAY_STEP_MS))
+            PlayerMenuBottomSheet.ACTION_DELAY_RESET ->
+                showSubtitleDelayToast(controller.resetDelay())
+            else -> android.util.Log.w("VideoPlayer", "未知字幕动作: $action")
+        }
+    }
+
+    private fun launchSubtitleFilePicker() {
+        // "*/*" 兜底：TV 上的文件管理器多数不认字幕 mime，只给具体类型会一个文件都选不了
+        val mimeTypes = arrayOf("application/x-subrip", "text/plain", "text/*", "*/*")
+        runCatching { subtitleFilePicker.launch(mimeTypes) }
+            .onFailure { Toast.makeText(this, "没有可用的文件选择器", Toast.LENGTH_SHORT).show() }
+    }
+
+    private fun onSubtitleFilePicked(uri: Uri) {
+        val controller = subtitleController ?: return
+        // 不是所有 provider 都支持持久权限：拿不到就只是下次进页面要重选，不影响本次播放
+        runCatching {
+            contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        Toast.makeText(this, "正在读取字幕…", Toast.LENGTH_SHORT).show()
+        controller.loadFromUri(uri) { result -> onSubtitleLoaded(result, auto = false) }
+    }
+
+    /**
+     * 加载结果的统一出口。
+     *
+     * [auto] 为 true 表示这是「同名字幕自动匹配」触发的：成功也要说一句是谁加载的，
+     * 失败则完全静默 —— 用户根本没主动选文件，弹错误只会莫名其妙。
+     */
+    private fun onSubtitleLoaded(result: SubtitleOverlayController.LoadResult, auto: Boolean) {
+        when (result) {
+            is SubtitleOverlayController.LoadResult.Success -> {
+                resetSubtitleOverlay()
+                val message = if (auto) {
+                    "已自动加载同名字幕：${result.fileName}"
+                } else {
+                    "已加载字幕：${result.fileName}（${result.cueCount} 条）"
+                }
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            }
+
+            is SubtitleOverlayController.LoadResult.Failure -> {
+                resetSubtitleOverlay()
+                if (!auto) {
+                    Toast.makeText(this, "字幕加载失败：${result.reason}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    /**
+     * 片源变了：先卸掉上一份字幕。
+     *
+     * 字幕文件跟具体视频绑定，留着只会串到别的片子上；同一个地址的重复回调直接跳过，
+     * 否则 retry / 重复 collect 会把用户刚加载的字幕清掉。
+     */
+    private fun onPlaybackSourceChanged(url: String) {
+        if (url == lastSubtitleSourceUrl) return
+        lastSubtitleSourceUrl = url
+        disableSubtitle(showToast = false)
+        autoMatchLocalSubtitle(url)
+    }
+
+    /**
+     * 本地视频的同名字幕自动匹配。
+     *
+     * 只处理以 `/` 或 `file://` 开头的地址（content:// 拿不到目录，无从匹配）；
+     * 匹配不到就静默返回，不弹任何东西。
+     */
+    private fun autoMatchLocalSubtitle(url: String) {
+        val path = localFilePathOf(url) ?: return
+        val controller = subtitleController ?: return
+        lifecycleScope.launch {
+            val match = withContext(Dispatchers.IO) {
+                val file = File(path)
+                // 兄弟文件给绝对路径：F014 的「同目录」判定比的是目录前缀，只传文件名会被判成不同目录
+                val siblings = file.parentFile?.listFiles()?.map { it.absolutePath }.orEmpty()
+                F014Engine().match(path, siblings)
+            } ?: return@launch
+            controller.loadFromPath(match.subtitlePath) { result ->
+                onSubtitleLoaded(result, auto = true)
+            }
+        }
+    }
+
+    /** 播放地址 → 本地绝对路径；在线地址返回 null。 */
+    private fun localFilePathOf(url: String): String? = when {
+        url.startsWith("file://") -> Uri.parse(url).path?.takeIf { it.isNotEmpty() }
+        url.startsWith("/") -> url
+        else -> null
+    }
+
+    private fun updateSubtitleOverlay(positionMs: Long) {
+        val controller = subtitleController ?: return
+        val overlay = binding.subtitleOverlay
+        val text = controller.textAt(positionMs)
+        if (text == lastSubtitleText) return
+        lastSubtitleText = text
+        if (text.isEmpty()) {
+            overlay.text = ""
+            overlay.visibility = View.GONE
+        } else {
+            overlay.text = text
+            overlay.visibility = View.VISIBLE
+        }
+    }
+
+    private fun resetSubtitleOverlay() {
+        lastSubtitleText = ""
+        binding.subtitleOverlay.text = ""
+        binding.subtitleOverlay.visibility = View.GONE
+    }
+
+    private fun disableSubtitle(showToast: Boolean) {
+        subtitleController?.clear()
+        resetSubtitleOverlay()
+        if (showToast) Toast.makeText(this, "已关闭字幕", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showSubtitleDelayToast(delayMs: Int) {
+        // 延迟变了当前这一帧该显示哪条字幕可能也变了，清掉去重缓存让下一次 tick 立刻重算
+        lastSubtitleText = ""
+        Toast.makeText(this, "字幕延迟 ${formatSubtitleDelay(delayMs)}", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun formatSubtitleDelay(delayMs: Int): String =
+        if (delayMs == 0) "0ms" else "${if (delayMs > 0) "+" else "-"}${abs(delayMs)}ms"
 
     // ==================== 睡眠定时器 ====================
 
@@ -4943,6 +5141,8 @@ class VideoPlayerActivity : AppCompatActivity() {
         // 只在有效时更新UI
         if (position >= 0) {
             binding.currentPositionText.text = formatTime(position)
+            // 字幕跟着播放位置走；暂停时文本不变，靠 updateSubtitleOverlay 里的去重跳过
+            updateSubtitleOverlay(position)
         }
 
         if (duration > 0) {
@@ -6217,6 +6417,13 @@ class VideoPlayerActivity : AppCompatActivity() {
         sleepTimerHandler.removeCallbacksAndMessages(null)
         networkStatusMonitor.stopMonitoring()
         releaseBackgroundPlayer()  // 释放后台播放器
+
+        // 字幕：先卸 cue 再停协程，保证 IO 回来后不会往已销毁的浮层上写
+        subtitleController?.clear()
+        subtitleController?.release()
+        subtitleController = null
+        lastSubtitleText = ""
+        lastSubtitleSourceUrl = ""
 
         // 清理预览缓存
         previewJob?.cancel()
