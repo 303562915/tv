@@ -13,8 +13,8 @@
 **绝对不做：**
 
 - 不跑 `gradlew` / `./gradlew.bat` / `gradle`，任何 task 都不跑（包括 `--version`、`tasks`、`help`、`test`、`assemble*`、`bundleRelease`）。
-- 不安装任何工具链：JDK、Android SDK / build-tools / NDK / platform-tools、Kotlin、Node.js、npm / pnpm / yarn、Docker、Gradle 发行版。
-- 不 `sdkmanager` / `apt install` / `brew install` / `choco install` / `pip install` 去补齐构建依赖。
+- 不安装任何工具链：JDK、Android SDK / build-tools / NDK / platform-tools、Kotlin、Node.js、npm / pnpm / yarn、Docker、Gradle 发行版、KVM 之类。
+- 不 `sdkmanager` / `apt install` / `brew install` / `choco install` / `pip install` / `mise` / `asdf` / `nix` 去补齐构建依赖。
 - 不改 `ANDROID_HOME` / `ANDROID_SDK_ROOT` / `JAVA_HOME`，不往 shell profile、`.env`、`local.properties` 里塞 SDK 路径来「让构建能跑」。
 - 不下载 Gradle wrapper 分发包、不预热 `~/.gradle` 缓存。
 - 不用「本地跑一下看看能不能编译」当作验证手段。验证手段只有一个：看云端 run 的结论。
@@ -28,6 +28,8 @@
 - 如果需要理解某个编译错误，读云端日志，而不是重建本地环境。
 
 > 本地能产出的东西只有源码改动和静态结论；**本地 APK 不是交付物**，也不要把它当作交付物。
+
+> 环境事实：本机没有 Android SDK（`ANDROID_HOME` 为空）、`gradlew` 也不是给本地跑构建用的。这是**设计状态**，不是待修的 bug；别去「修复」它，也别把它当成「顺手验证一下」的入口。
 
 ---
 
@@ -80,7 +82,7 @@ git push origin main               # 不要 --force，不要推空提交试探
 - 一次 push 只带一个有意义的改动，方便对照日志定位。
 - 提交信息写「修了什么 / 为什么」，不写「改了哪些文件」。
 - **不要**为了让 CI 变绿去删测试、跳过测试、加 `|| true`、加 `continue-on-error`、把 `needs` 去掉。要修的是代码。
-- **不要** `git push --force`，不要 rebase 掉已推送的历史。
+- **不要** `git push --force`，不要 rebase 掉已推送的历史，不要直接改 `main` 上别人刚推的提交。
 - 工作区里可能有**别人**留下的脏文件（未跟踪的临时目录、备份、别的改动）。`git add` 只加本次改的文件，**禁止** `git add -A` 一把梭把无关内容推上去。
 - 推送成功后直接汇报「提交了什么、推了什么、CI 结果尚未确认」即可，不要原地等构建。
 
@@ -117,6 +119,13 @@ gh run download <run-id> -n <artifact> -D <dir>
 3. **应用内更新链路改动必须守住顺序**（见第 7 节 A3 全表）：普通设备（无 Shizuku / 无 root / 无安装权限）不能崩，只能提示并降级。
 4. **改功能就升 `versionCode` + `versionName`**，否则应用内更新认不出新版本。只改文档/注释不需要升。
 5. **工作区可能有无关脏文件**（`_apk-artifacts/`、`.dsh-handoff*.md`、备份目录等），提交前必须挑文件。
+6. **action 版本已统一**：workflow 一律 `actions/checkout@v4` + `actions/setup-java@v4` + `distribution: temurin`；
+   `pages.yml` 另外用 `actions/configure-pages@v5` / `upload-pages-artifact@v4` / `deploy-pages@v4`。
+   改 workflow 时沿用同一套版本，别混进 `@v3` 或其它 JDK 发行版。
+7. **`::set-output` 已全部移除**：跨 step 传值走 `$GITHUB_ENV`（`build.yml` 里 `FALLBACK_DEBUG=1` 就是这么写的），别写回旧语法。
+8. **Gradle 缓存是开着的**：`tv_project/gradle.properties` 里 `org.gradle.caching=true`、`org.gradle.parallel=true`；
+   `org.gradle.configuration-cache` 目前只是注释预留。将来若真的打开配置缓存，新增的 Gradle 任务/插件凡是读环境变量，
+   都必须在任务上声明输入，否则云端会因缓存命中而行为异常。
 
 ---
 
@@ -183,5 +192,8 @@ gh run download <run-id> -n <artifact> -D <dir>
 | `ga` | GitHub Actions —— 工作流相关的所有事（改 `.github/workflows/*.yml`、查 run、看日志、下载 artifact、发版触发） | 2026-11-21 | 不是 Google Analytics，不是 general availability。见到 `ga` 先想到工作流 |
 | `action` / `actions` | 同上，GitHub Actions 工作流 | 2026-11-21 | 与 `ga` 同义 |
 | 推新版本 / 往上推 | 提交并 `git push origin main`，由 CI 构建开发版 | 2026-11-21 | 用户原话：「改完之后直接推新版本往上推，不需要我构建，直接走 GA 就行了」 |
+| `pet-theme` | 宠物人格主题对话：不进代码、不改 App，把随附图片当角色头像，写「宠物主题」人格设定与台词并按该人格对话 | 2026-11-21 | 首次见 `/pet-theme` + 一张自拍图；已确认选项「宠物人格主题对话」，非 App 主题皮肤、非图片改图 |
+| 抄 FlClash 的那个图标 | 抄 FlClash 里**对应功能**的 glyph，不是抄名字最像的那个：视频源页的「刷新」实际是重测延迟，对应 `AppGlyphs.bolt`（闪电），不是 `AppGlyphs.refresh`（环形箭头） | 2026-11-21 | 用户纠正原话：「他那个项目，他的是一个闪电的吧，测速的那个」。含义已更新：按功能语义选字形 |
+| 刷短视频 / 短视频 | 指 App 里「首页 → 免费短剧」这条链路（`tv_project/.../presentation/shortdrama`）：短剧列表、详情、竖屏连播 | 2026-11-21 | 我先把「刷短视频」认成 `G:\trae\R1\douyin-auto-fire`，用户纠正原话：「我知道你们短剧在哪，短剧它那个现在报网络错误」。以后听到「刷短视频/短视频」先想到本仓库的短剧模块 |
 
 > 说明：`ga` 默认指 GitHub Actions，但**不是绝对**——若上下文明显在谈别的东西（如统计分析、灰度发布），以当轮上下文为准；判断依据写进备注。默认顺序：先 Actions，再看上下文。
