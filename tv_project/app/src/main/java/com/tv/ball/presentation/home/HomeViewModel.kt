@@ -6,10 +6,39 @@ import androidx.lifecycle.viewModelScope
 import com.tv.ball.data.remote.NetworkDataSource
 import com.tv.ball.data.remote.NetworkResult
 import com.tv.ball.di.Dependencies
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+
+/**
+ * 一个分类页的分页状态。
+ *
+ * 首页每个分类各持一份，互不干扰：不再用一套全局 currentPage / hasMorePages
+ * 让「切 Tab」「下拉刷新」「翻页」互相踩。
+ */
+data class HomePageState(
+    val items: List<VideoItem> = emptyList(),
+    /** 下一次要请求的页码（从 1 开始） */
+    val nextPage: Int = 1,
+    /** 是否还可能翻到新内容；判据是「上一页有没有带来新条目」，不再靠页大小猜 */
+    val hasMore: Boolean = true,
+    val loading: Boolean = false,
+    /** 首屏 / 下拉刷新进行中；翻页不走这个，翻页用 footer 的进度条 */
+    val refreshing: Boolean = false,
+    /** 加载更多失败时的提示，footer 上给「点击重试」用 */
+    val error: String? = null
+)
+
+/** 每个分类各自记住筛选条件，切 Tab / 刷新时不会互相覆盖 */
+private data class PageFilters(
+    val type: String = "",
+    val area: String = "",
+    val year: String = "",
+    val lang: String = ""
+)
 
 class HomeViewModel(
     private val networkDataSource: NetworkDataSource = Dependencies.networkDataSource,
@@ -20,13 +49,13 @@ class HomeViewModel(
     companion object {
         private const val TAG = "HomeViewModel"
         private const val MAX_AUTO_SWITCH_ATTEMPTS = 3 // 最多自动切换3次
+        /** 保护性上限：源站若一直重复返回，hasMore=false 已经能停，这层再兜一次 */
+        private const val MAX_PAGE = 100
     }
 
-    private val _videos = MutableStateFlow<List<VideoItem>>(emptyList())
-    val videos: StateFlow<List<VideoItem>> = _videos.asStateFlow()
-
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    /** 分类 id -> 分页状态；首页所有分类页共用这一个 StateFlow */
+    private val _pages = MutableStateFlow<Map<Int, HomePageState>>(emptyMap())
+    val pages: StateFlow<Map<Int, HomePageState>> = _pages.asStateFlow()
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
@@ -34,26 +63,17 @@ class HomeViewModel(
     private val _continuePlayingVideo = MutableStateFlow<com.tv.ball.data.model.HistoryEntity?>(null)
     val continuePlayingVideo: StateFlow<com.tv.ball.data.model.HistoryEntity?> = _continuePlayingVideo.asStateFlow()
 
-    private var currentCategory = 6 // 默认国产剧
-    private var currentPage = 1
-    private var isLoadingMore = false
-    private var hasMorePages = true
-    private var isPreloading = false
+    private val pageFilters = mutableMapOf<Int, PageFilters>()
+    private val pageJobs = mutableMapOf<Int, Job>()
+    private val pageGeneration = mutableMapOf<Int, Int>()
     private var autoSwitchAttempts = 0 // 自动切换尝试次数
-    
-    // 可可影视筛选参数
-    private var currentType = ""
-    private var currentArea = ""
-    private var currentYear = ""
-    private var currentLang = ""
-    
-    // 预加载阈值：当剩余未显示的项少于此值时触发预加载
-    private val PRELOAD_THRESHOLD = 6
 
     init {
         Log.d(TAG, "HomeViewModel initialized")
         loadContinuePlayingVideo()
     }
+
+    fun pageState(category: Int): HomePageState = _pages.value[category] ?: HomePageState()
 
     private fun loadContinuePlayingVideo() {
         viewModelScope.launch {
@@ -68,62 +88,94 @@ class HomeViewModel(
         }
     }
     
-    fun loadVideos(
-        category: Int = 6, 
-        refresh: Boolean = false,
+    /** 首屏 / 下拉刷新 / 换筛选：重置分类页并从第 1 页重新拉 */
+    fun loadFirstPage(
+        category: Int = 6,
         type: String = "",
         area: String = "",
         year: String = "",
         lang: String = ""
     ) {
-        Log.d(TAG, "========== loadVideos 开始 ==========")
-        Log.d(TAG, "category=$category, refresh=$refresh")
-        Log.d(TAG, "筛选参数: type=$type, area=$area, year=$year, lang=$lang")
-        Log.d(TAG, "currentPage=$currentPage, hasMorePages=$hasMorePages, isLoadingMore=$isLoadingMore")
-        
-        if (refresh) {
-            currentPage = 1
-            _videos.value = emptyList()
-            hasMorePages = true
-            autoSwitchAttempts = 0 // 重置自动切换计数
-            currentType = type
-            currentArea = area
-            currentYear = year
-            currentLang = lang
-            Log.d(TAG, "刷新模式：重置页码和视频列表，更新筛选参数")
-        }
-        
-        if (isLoadingMore || !hasMorePages) {
-            Log.d(TAG, "跳过加载：isLoadingMore=$isLoadingMore, hasMorePages=$hasMorePages")
+        autoSwitchAttempts = 0
+        pageFilters[category] = PageFilters(type, area, year, lang)
+        requestPage(category, page = 1, reset = true)
+    }
+
+    /** 下拉刷新：沿用该分类自己记住的筛选条件 */
+    fun refreshPage(category: Int) {
+        val filters = pageFilters[category] ?: PageFilters()
+        loadFirstPage(category, filters.type, filters.area, filters.year, filters.lang)
+    }
+
+    /** 滑到接近底部：请求下一页。在途 / 到底 / 上次失败未重试时直接跳过，避免滚动一次发一串请求 */
+    fun loadNextPage(category: Int) {
+        val state = pageState(category)
+        if (state.loading || !state.hasMore || state.error != null) return
+        if (state.items.isEmpty()) return
+        if (state.nextPage > MAX_PAGE) {
+            updatePage(category) { it.copy(hasMore = false) }
             return
         }
-        
-        currentCategory = category
-        isLoadingMore = true
-        _isLoading.value = true
-        _error.value = null
-        
-        viewModelScope.launch {
+        requestPage(category, page = state.nextPage, reset = false)
+    }
+
+    /** footer 上的「点击重试」：上一次是首屏 / 刷新失败的，就重新拉第 1 页；否则续拉下一页 */
+    fun retryPage(category: Int) {
+        val state = pageState(category)
+        if (state.loading) return
+        // nextPage<=1 说明上次重置没走完（刷新失败），此时不能拿第 1 页当「下一页」追加，
+        // 否则去重后一条新增都没有，hasMore 会被永久判成 false
+        if (state.items.isEmpty() || state.nextPage <= 1) {
+            refreshPage(category)
+            return
+        }
+        if (state.hasMore) requestPage(category, page = state.nextPage, reset = false)
+    }
+
+    /**
+     * 请求某一页。
+     *
+     * 同一分类只保留一个在途请求：新请求会取消旧的，旧请求的迟到结果靠 generation 丢弃，
+     * 这样「刷新时正好有翻页在飞」不会再互相覆盖，也不会出现清空列表后被挡回去的白屏。
+     */
+    private fun requestPage(category: Int, page: Int, reset: Boolean) {
+        pageJobs[category]?.cancel()
+        val generation = (pageGeneration[category] ?: 0) + 1
+        pageGeneration[category] = generation
+
+        val filters = pageFilters[category] ?: PageFilters()
+        if (reset) _error.value = null
+
+        // reset 时保留旧列表，等新结果回来再整体替换，下拉刷新不闪白
+        updatePage(category) { prev ->
+            if (reset) prev.copy(nextPage = 1, hasMore = true, loading = true, refreshing = true, error = null)
+            else prev.copy(loading = true, error = null)
+        }
+
+        Log.d(TAG, "========== 请求分类 $category 第 $page 页 ==========")
+        Log.d(TAG, "reset=$reset, 筛选参数: type=${filters.type}, area=${filters.area}, year=${filters.year}, lang=${filters.lang}")
+
+        pageJobs[category] = viewModelScope.launch {
             try {
                 // 使用当前选择的视频源
                 val currentSource = com.tv.ball.data.VideoSourceManager.getCurrentSource()
                 val isApiSource = com.tv.ball.data.VideoSourceManager.isApiSource(currentSource)
                 val url = com.tv.ball.data.VideoSourceManager.getSourceApiUrl(
-                    currentSource, 
-                    currentCategory, 
-                    currentPage,
-                    currentType,
-                    currentArea,
-                    currentYear,
-                    currentLang
+                    currentSource,
+                    category,
+                    page,
+                    filters.type,
+                    filters.area,
+                    filters.year,
+                    filters.lang
                 )
                 
                 Log.d(TAG, "========== 请求信息 ==========")
                 Log.d(TAG, "视频源: $currentSource")
                 Log.d(TAG, "类型: ${if (isApiSource) "API" else "WEB"}")
                 Log.d(TAG, "URL: $url")
-                Log.d(TAG, "页码: $currentPage")
-                Log.d(TAG, "分类: $currentCategory")
+                Log.d(TAG, "页码: $page")
+                Log.d(TAG, "分类: $category")
                 Log.d(TAG, "================================")
                 
                 when (val result = networkDataSource.get(url, getHeaders())) {
@@ -131,18 +183,18 @@ class HomeViewModel(
                         Log.d(TAG, "✓ 网络请求成功")
                         Log.d(TAG, "响应长度: ${result.data.length} 字符")
                         Log.d(TAG, "响应前200字符: ${result.data.take(200)}")
-                        
+
                         val videoList = if (isApiSource) {
                             // 检查是否是XML格式
                             if (result.data.trim().startsWith("<?xml")) {
                                 parseApiXml(result.data, currentSource)
                             } else {
-                                parseApiJson(result.data)
+                                parseApiJson(result.data, category)
                             }
                         } else {
                             parseWebHtml(result.data, currentSource)
                         }
-                        
+
                         Log.d(TAG, "========== 解析结果 ==========")
                         Log.d(TAG, "解析到视频数: ${videoList.size}")
                         if (videoList.isNotEmpty()) {
@@ -150,133 +202,130 @@ class HomeViewModel(
                             Log.d(TAG, "详情链接: ${videoList.first().detailUrl}")
                         }
                         Log.d(TAG, "================================")
-                        
-                        if (videoList.isEmpty()) {
-                            hasMorePages = false
-                            if (refresh) {
-                                _error.value = "未找到视频内容"
-                            }
-                            Log.w(TAG, "⚠ 未解析到任何视频")
-                        } else {
-                            if (refresh) {
-                                _videos.value = videoList
-                            } else {
-                                _videos.value = _videos.value + videoList
-                            }
-                            currentPage++
-                            
-                            // 根据视频源类型判断是否还有更多页面
-                            // API源：如果返回少于20个视频，可能没有更多页面
-                            // WEB源：继续尝试加载，直到返回空列表
-                            if (isApiSource && videoList.size < 20) {
-                                hasMorePages = false
-                                Log.d(TAG, "API源视频数少于20，可能没有更多页面")
-                            } else if (!isApiSource && videoList.size < 5) {
-                                // WEB源如果返回少于5个，可能是最后一页
-                                hasMorePages = false
-                                Log.d(TAG, "WEB源视频数少于5，可能没有更多页面")
-                            } else {
-                                // 继续允许加载更多
-                                hasMorePages = true
-                                Log.d(TAG, "继续允许加载更多页面")
-                            }
-                            
-                            Log.d(TAG, "✓ 视频列表已更新，总数: ${_videos.value.size}")
-                        }
+
+                        applyPageResult(category, page, reset, videoList, generation, paginated = currentSource != "taopian")
                     }
                     is NetworkResult.Error -> {
                         Log.e(TAG, "========== 网络请求失败 ==========")
                         Log.e(TAG, "错误信息: ${result.message}")
                         Log.e(TAG, "异常: ${result.exception}")
                         Log.e(TAG, "================================")
-                        
-                        // 如果是刷新操作且未超过最大尝试次数，尝试自动切换视频源
-                        if (refresh && autoSwitchAttempts < MAX_AUTO_SWITCH_ATTEMPTS) {
-                            autoSwitchAttempts++
-                            Log.d(TAG, "尝试自动切换视频源 (第 $autoSwitchAttempts 次)")
-                            
-                            val newSource = videoSourceAutoSwitcher.switchToAvailableSource(
-                                currentSource,
-                                currentCategory
-                            )
-                            
-                            if (newSource != null) {
-                                val newSourceName = com.tv.ball.data.VideoSourceManager.getSourceName(newSource)
-                                _error.value = "当前源不可用，已自动切换到: $newSourceName"
-                                
-                                // 重置加载状态，允许重新加载
-                                _isLoading.value = false
-                                isLoadingMore = false
-                                
-                                // 延迟一下再重新加载，让用户看到提示
-                                kotlinx.coroutines.delay(500)
-                                
-                                // 重新加载数据
-                                loadVideos(category, refresh = true, type, area, year, lang)
-                                return@launch
-                            } else {
-                                _error.value = "网络错误: ${result.message}，所有视频源都不可用"
-                            }
-                        } else {
-                            if (autoSwitchAttempts >= MAX_AUTO_SWITCH_ATTEMPTS) {
-                                _error.value = "已尝试多个视频源，请检查网络连接"
-                            } else {
-                                _error.value = "网络错误: ${result.message}"
-                            }
-                        }
+                        handleFailure(category, reset, "网络错误: ${result.message}", generation)
                     }
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "========== loadVideos 异常 ==========")
+                // 取消不是失败：被新请求顶掉时安静退出，别在取消路径上再跑一轮换源/报错
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                Log.e(TAG, "========== 请求异常 ==========")
                 Log.e(TAG, "异常类型: ${e.javaClass.simpleName}")
                 Log.e(TAG, "异常信息: ${e.message}")
                 Log.e(TAG, "堆栈跟踪:", e)
                 Log.e(TAG, "================================")
-                
-                // 如果是刷新操作且未超过最大尝试次数，尝试自动切换视频源
-                if (refresh && autoSwitchAttempts < MAX_AUTO_SWITCH_ATTEMPTS) {
-                    autoSwitchAttempts++
-                    Log.d(TAG, "尝试自动切换视频源 (第 $autoSwitchAttempts 次)")
-                    
-                    val currentSource = com.tv.ball.data.VideoSourceManager.getCurrentSource()
-                    val newSource = videoSourceAutoSwitcher.switchToAvailableSource(
-                        currentSource,
-                        currentCategory
-                    )
-                    
-                    if (newSource != null) {
-                        val newSourceName = com.tv.ball.data.VideoSourceManager.getSourceName(newSource)
-                        _error.value = "当前源不可用，已自动切换到: $newSourceName"
-                        
-                        // 重置加载状态，允许重新加载
-                        _isLoading.value = false
-                        isLoadingMore = false
-                        
-                        // 延迟一下再重新加载，让用户看到提示
-                        kotlinx.coroutines.delay(500)
-                        
-                        // 重新加载数据
-                        loadVideos(category, refresh = true, type, area, year, lang)
-                        return@launch
-                    } else {
-                        _error.value = "加载失败: ${e.message}，所有视频源都不可用"
-                    }
-                } else {
-                    if (autoSwitchAttempts >= MAX_AUTO_SWITCH_ATTEMPTS) {
-                        _error.value = "已尝试多个视频源，请检查网络连接"
-                    } else {
-                        _error.value = "加载失败: ${e.message}"
-                    }
-                }
+                handleFailure(category, reset, "加载失败: ${e.message}", generation)
             } finally {
-                _isLoading.value = false
-                isLoadingMore = false
-                Log.d(TAG, "========== loadVideos 结束 ==========")
+                // 只有还是当前这次请求才允许收尾，否则会把新请求刚设上的 loading 抹掉
+                if (isCurrent(category, generation)) {
+                    updatePage(category) { it.copy(loading = false) }
+                }
+                Log.d(TAG, "========== 分类 $category 第 $page 页请求结束 ==========")
             }
         }
     }
+
+    /**
+     * 合并这一页结果并推算是否还有下一页。
+     *
+     * 到底的判据改成「这一页没有带来任何新条目」：源站每页条数各不相同，
+     * 原来按「少于 20 / 少于 5 条」判断会提前认定到底，用户滑到底就再也刷不出内容。
+     */
+    private fun applyPageResult(
+        category: Int,
+        page: Int,
+        reset: Boolean,
+        videoList: List<VideoItem>,
+        generation: Int,
+        paginated: Boolean
+    ) {
+        if (!isCurrent(category, generation)) return
+        val prevItems = pageState(category).items
+        val mergeKey: (VideoItem) -> String = { item -> item.detailUrl.ifBlank { item.title } }
+        val merged = if (reset) {
+            videoList.distinctBy(mergeKey)
+        } else {
+            (prevItems + videoList).distinctBy(mergeKey)
+        }
+        val newCount = merged.size - prevItems.size
+        // 淘片这类「一页就是全部」的源没有翻页概念，一次拿完直接收工，不用再白打一次重复请求
+        val reachedEnd = !paginated || (when {
+            videoList.isEmpty() -> true
+            page >= MAX_PAGE -> true
+            reset -> false
+            else -> newCount <= 0
+        })
+
+        _pages.update { map ->
+            map + (category to HomePageState(
+                items = merged,
+                nextPage = page + 1,
+                hasMore = !reachedEnd,
+                loading = false,
+                error = null
+            ))
+        }
+
+        if (videoList.isEmpty() && reset) {
+            _error.value = "未找到视频内容"
+        }
+        Log.d(TAG, "分类 $category 第 $page 页：解析 ${videoList.size} 条，新增 $newCount 条，共 ${merged.size} 条，hasMore=${!reachedEnd}")
+        if (videoList.isEmpty()) Log.w(TAG, "⚠ 未解析到任何视频")
+    }
+
+    /** 失败收尾：首屏失败先自动换源（最多 3 次），其它情况只记错误等用户点重试，避免滚动一次打一次 */
+    private suspend fun handleFailure(
+        category: Int,
+        reset: Boolean,
+        message: String,
+        generation: Int
+    ) {
+        if (!isCurrent(category, generation)) return
+
+        if (reset && autoSwitchAttempts < MAX_AUTO_SWITCH_ATTEMPTS) {
+            autoSwitchAttempts++
+            Log.d(TAG, "尝试自动切换视频源 (第 $autoSwitchAttempts 次)")
+            val currentSource = com.tv.ball.data.VideoSourceManager.getCurrentSource()
+            val newSource = videoSourceAutoSwitcher.switchToAvailableSource(currentSource, category)
+            if (newSource != null) {
+                val newSourceName = com.tv.ball.data.VideoSourceManager.getSourceName(newSource)
+                _error.value = "当前源不可用，已自动切换到: $newSourceName"
+                // 先摘掉自己的登记，换源后的新请求才登记得进去
+                pageJobs.remove(category)
+                // 这 500ms 里用户可能自己点了刷新 / 换了分类，那就别再插一脚把新请求顶掉
+                kotlinx.coroutines.delay(500)
+                if (pageGeneration[category] != generation) return
+                requestPage(category, page = 1, reset = true)
+                return
+            }
+        }
+
+        val finalMessage = if (autoSwitchAttempts >= MAX_AUTO_SWITCH_ATTEMPTS) {
+            "已尝试多个视频源，请检查网络连接"
+        } else {
+            message
+        }
+        _error.value = finalMessage
+        updatePage(category) { it.copy(loading = false, refreshing = false, error = finalMessage) }
+    }
+
+    private fun updatePage(category: Int, transform: (HomePageState) -> HomePageState) {
+        _pages.update { map ->
+            map + (category to transform(map[category] ?: HomePageState()))
+        }
+    }
+
+    private fun isCurrent(category: Int, generation: Int): Boolean =
+        pageGeneration[category] == generation
     
-    private fun parseApiJson(json: String): List<VideoItem> {
+    private fun parseApiJson(json: String, category: Int): List<VideoItem> {
         val videos = mutableListOf<VideoItem>()
         val currentSource = com.tv.ball.data.VideoSourceManager.getCurrentSource()
         try {
@@ -302,7 +351,7 @@ class HomeViewModel(
                         val typeName = """"type_name":\s*"([^"]+)"""".toRegex().find(itemJson)?.groupValues?.get(1) ?: ""
 
                         // 根据当前分类过滤
-                        val shouldInclude = when (currentCategory) {
+                        val shouldInclude = when (category) {
                             1 -> typeName.contains("电影")  // 电影
                             2 -> typeName.contains("电视剧") && !typeName.contains("国产") && !typeName.contains("韩国") && !typeName.contains("日本")  // 剧集
                             3 -> typeName.contains("综艺")  // 综艺
@@ -635,22 +684,23 @@ class HomeViewModel(
                     android.util.Log.d(TAG, "HTML长度: ${cleanHtml.length}")
                     android.util.Log.d(TAG, "基础URL: $baseUrl")
                     
-                    // 在线之家HTML结构：
-                    // <a href="/detail/4561.html">
-                    //   <img data-original="//img9.doubanio.com/view/photo/s_ratio_poster/public/p2885787484.jpg" ...>
-                    //   <h4>标题</h4>
+                    // 在线之家HTML结构（改版后的苹果CMS vii 模板）：
+                    // <a class="stui-vodlist__thumb lazyload" href="/voddetail/4601.html"
+                    //    title="标题" data-original="https://img1.doubanio.com/...">
+                    //   <span class="pic-text">已完结</span>
                     // </a>
+                    // <div class="stui-vodlist__detail"><h4 class="title"><a ...>标题</a></h4></div>
                     
-                    // 完整解析模式：包含图片和标题
-                    val fullPattern = """<a[^>]*href="(/detail/\d+\.html)"[^>]*>.*?<img[^>]*data-original="([^"]+)".*?<h4>([^<]+)</h4>""".toRegex(RegexOption.DOT_MATCHES_ALL)
+                    // 完整解析模式：包含图片和标题（标题取 a 标签的 title 属性，最稳）
+                    val fullPattern = """href="(/voddetail/\d+\.html)"[^>]*title="([^"]+)"[^>]*data-original="([^"]+)"""".toRegex()
                     
                     var matchCount = 0
                     
                     // 先尝试完整模式（包含图片）
                     for (match in fullPattern.findAll(cleanHtml)) {
                         val link = match.groupValues[1]
-                        var imageUrl = match.groupValues[2].trim()
-                        val title = match.groupValues[3].trim()
+                        val title = match.groupValues[2].trim()
+                        var imageUrl = match.groupValues[3].trim()
                         
                         if (title.isEmpty()) continue
                         
@@ -680,7 +730,7 @@ class HomeViewModel(
                     // 如果完整模式没匹配到，尝试只匹配标题（无图片）
                     if (videos.isEmpty()) {
                         android.util.Log.d(TAG, "完整模式未匹配，尝试仅标题模式")
-                        val titleOnlyPattern = """<a[^>]*href="(/detail/\d+\.html)"[^>]*>.*?<h4>([^<]+)</h4>""".toRegex(RegexOption.DOT_MATCHES_ALL)
+                        val titleOnlyPattern = """href="(/voddetail/\d+\.html)"[^>]*title="([^"]+)"""".toRegex()
                         
                         for (match in titleOnlyPattern.findAll(cleanHtml)) {
                             val link = match.groupValues[1]
@@ -714,8 +764,8 @@ class HomeViewModel(
                         val sample = cleanHtml.take(3000)
                         android.util.Log.e(TAG, "========== 解析失败！HTML示例 ==========")
                         android.util.Log.e(TAG, sample)
-                        android.util.Log.e(TAG, "包含 /detail/: ${cleanHtml.contains("/detail/")}")
-                        android.util.Log.e(TAG, "包含 <h4>: ${cleanHtml.contains("<h4>")}")
+                        android.util.Log.e(TAG, "包含 /voddetail/: ${cleanHtml.contains("/voddetail/")}")
+                        android.util.Log.e(TAG, "包含 stui-vodlist__thumb: ${cleanHtml.contains("stui-vodlist__thumb")}")
                         android.util.Log.e(TAG, "包含 data-original: ${cleanHtml.contains("data-original")}")
                         android.util.Log.e(TAG, "========================================")
                     }
@@ -929,30 +979,6 @@ class HomeViewModel(
             Log.e(TAG, "Failed to parse iqiyi JSON: ${e.message}")
         }
         return videos
-    }
-    
-    fun loadMore() {
-        if (!isLoadingMore && !_isLoading.value && hasMorePages) {
-            loadVideos(currentCategory, refresh = false)
-        }
-    }
-    
-    /**
-     * 智能预加载：当用户滚动到接近底部时自动加载下一页
-     * @param lastVisiblePosition 最后可见项的位置
-     * @param totalItemCount 总项数
-     */
-    fun checkAndPreload(lastVisiblePosition: Int, totalItemCount: Int) {
-        // 计算剩余未显示的项数
-        val remainingItems = totalItemCount - lastVisiblePosition - 1
-        
-        // 当剩余项少于阈值且未在加载时，触发预加载
-        if (remainingItems <= PRELOAD_THRESHOLD && !isLoadingMore && !isPreloading && hasMorePages) {
-            Log.d(TAG, "Preloading next page: remaining=$remainingItems, threshold=$PRELOAD_THRESHOLD")
-            isPreloading = true
-            loadVideos(currentCategory, refresh = false)
-            isPreloading = false
-        }
     }
     
     private fun parseVideoList(html: String): List<VideoItem> {

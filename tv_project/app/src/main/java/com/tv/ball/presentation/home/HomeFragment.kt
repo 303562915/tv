@@ -72,7 +72,12 @@ class HomeFragment : Fragment() {
         // 恢复上次停留的分类页与滚动位置（切 Tab 会重建整个 Fragment，位置得自己记）
         restoreScrollPositions(savedInstanceState)
 
-        viewModel.loadVideos(currentCategoryId(), refresh = true)
+        // 首屏：恢复完页签后只在当前分类确实没数据时才请求，避免和 onPageSelected 重复发
+        val firstCategoryId = currentCategoryId()
+        val firstState = viewModel.pageState(firstCategoryId)
+        if (firstState.items.isEmpty() && !firstState.loading) {
+            viewModel.loadFirstPage(firstCategoryId)
+        }
     }
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
@@ -333,9 +338,8 @@ class HomeFragment : Fragment() {
         filterSheet.setOnFilterAppliedListener { type, area, year, lang ->
             // 应用筛选条件，刷新视频列表
             val currentCategory = categories.getOrNull(binding.tabLayout.selectedTabPosition)?.id ?: 6
-            viewModel.loadVideos(
+            viewModel.loadFirstPage(
                 category = currentCategory,
-                refresh = true,
                 type = type,
                 area = area,
                 year = year,
@@ -350,19 +354,19 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupViewPager() {
-        // 创建 ViewPager 适配器
-        pagerAdapter = CategoryPagerAdapter(categories, viewModel) { recyclerView, dx, dy ->
-            // 处理滚动事件
-            val layoutManager = recyclerView.layoutManager as? GridLayoutManager
-            layoutManager?.let {
-//                // 向下滚动时自动收起轮播图，向上滚动时展开
-//                if (dy > 20 && !isBannerCollapsed) {
-//                    collapseBanner()
-//                } else if (dy < -20 && isBannerCollapsed && it.findFirstVisibleItemPosition() == 0) {
-//                    expandBanner()
-//                }
-            }
-        }
+        // 每页的数据、翻页、重试都由自己那页的适配器负责；Fragment 只做分发
+        pagerAdapter = CategoryPagerAdapter(
+            categories = categories,
+            onVideoClick = { video ->
+                val intent = Intent(requireContext(), VideoDetailActivity::class.java)
+                intent.putExtra("DETAIL_URL", video.detailUrl)
+                intent.putExtra("COVER_URL", video.coverUrl)
+                startActivity(intent)
+            },
+            onLoadMore = { categoryId -> viewModel.loadNextPage(categoryId) },
+            onRetry = { categoryId -> viewModel.retryPage(categoryId) },
+            onPageBound = { position -> renderPage(position) }
+        )
 
         binding.viewPager.adapter = pagerAdapter
 
@@ -383,11 +387,28 @@ class HomeFragment : Fragment() {
                     (tab?.customView as? TextView)?.let { styleTab(it, i == position) }
                 }
 
-                // 加载当前分类的数据
-                val category = categories[position]
-                viewModel.loadVideos(category.id, refresh = true)
+                // 切到该分类：已有缓存就先把数据推给它那页，只有完全没数据时才发请求
+                renderPage(position)
             }
         })
+    }
+
+    /** 把一个分类页的当前状态推进它自己的适配器；没有状态时顺手发首屏请求 */
+    private fun renderPage(position: Int) {
+        val category = categories.getOrNull(position) ?: return
+        val state = viewModel.pages.value[category.id]
+        // 只有「从没请求过」或「首屏还没成功且还有下一试」才发首屏请求；
+        // 源本来就返回 0 条（hasMore=false）时不再重复打
+        val needsFirstLoad = state == null ||
+            (state.items.isEmpty() && !state.loading && state.error == null && state.hasMore)
+        if (needsFirstLoad) {
+            viewModel.loadFirstPage(category.id)
+            return
+        }
+        pagerAdapter.submit(position, state.items, footerOf(state)) {
+            fillViewportIfNeeded(position)
+        }
+        if (position == binding.viewPager.currentItem) updateListState()
     }
 
     private fun buildTabView(name: String, selected: Boolean): TextView {
@@ -506,7 +527,7 @@ class HomeFragment : Fragment() {
                 ?.canScrollVertically(-1) ?: false
         }
         binding.swipeRefresh.setOnRefreshListener {
-            viewModel.loadVideos(currentCategoryId(), refresh = true)
+            viewModel.refreshPage(currentCategoryId())
         }
     }
 
@@ -519,7 +540,7 @@ class HomeFragment : Fragment() {
         binding.errorView.visibility = View.GONE
         binding.btnErrorRetry.setOnClickListener {
             binding.errorView.visibility = View.GONE
-            viewModel.loadVideos(currentCategoryId(), refresh = true)
+            viewModel.refreshPage(currentCategoryId())
         }
     }
 
@@ -569,47 +590,40 @@ class HomeFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    viewModel.videos.collect { videos ->
-                        // 只把结果交给「当前页」的适配器
-                        val currentPosition = binding.viewPager.currentItem
-                        pagerAdapter.getAdapter(currentPosition)?.submitList(videos) {
-                            // 数据到位后再恢复滚动位置，此时才有子项可定位
-                            applyPendingScroll()
-                        }
-                        binding.emptyView.visibility = if (
-                            videos.isEmpty() && binding.errorView.visibility != View.VISIBLE
-                        ) View.VISIBLE else View.GONE
+                    viewModel.pages.collect { pages ->
+                        var currentItems: List<VideoItem> = emptyList()
+                        pages.forEach { (categoryId, state) ->
+                            val position = categories.indexOfFirst { it.id == categoryId }
+                            if (position < 0) return@forEach
 
-                        // 预加载前30张图片
-                        if (videos.isNotEmpty()) {
-                            preloadImages(videos)
+                            val isCurrentPage = position == binding.viewPager.currentItem
+                            if (isCurrentPage) currentItems = state.items
+
+                            pagerAdapter.submit(position, state.items, footerOf(state)) {
+                                // 数据到位后再恢复滚动位置，此时才有子项可定位
+                                if (isCurrentPage) applyPendingScroll()
+                                fillViewportIfNeeded(position)
+                            }
                         }
+
+                        // 下拉刷新只在「首屏 / 刷新」时转圈，翻页交给 footer 的进度条
+                        val currentState = pages[currentCategoryId()]
+                        binding.swipeRefresh.isRefreshing = currentState?.refreshing == true
+
+                        updateListState()
+
+                        if (currentItems.isNotEmpty()) preloadImages(currentItems)
                     }
                 }
 
                 launch {
-                    viewModel.isLoading.collect { isLoading ->
-                        binding.swipeRefresh.isRefreshing = isLoading
-                    }
-                }
-
-                launch {
+                    // 只有一次性提示（换源、错误原因）走这里；整页错误态由分页状态决定
                     viewModel.error.collect { error ->
-                        if (error == null) {
-                            binding.errorView.visibility = View.GONE
+                        if (error == null) return@collect
+                        if (error.contains("已自动切换")) {
+                            com.tv.ball.util.CustomToast.showLong(requireContext(), error)
                         } else {
-                            // 列表为空时把整页切成「加载失败 + 重试」，否则只做轻提示
-                            if (binding.emptyView.visibility == View.VISIBLE || viewModel.videos.value.isEmpty()) {
-                                binding.tvErrorMessage.text = error
-                                binding.errorView.visibility = View.VISIBLE
-                                binding.emptyView.visibility = View.GONE
-                            }
-                            // 如果错误消息包含"已自动切换"，使用更长的显示时间
-                            if (error.contains("已自动切换")) {
-                                com.tv.ball.util.CustomToast.showLong(requireContext(), error)
-                            } else {
-                                com.tv.ball.util.CustomToast.show(requireContext(), error)
-                            }
+                            com.tv.ball.util.CustomToast.show(requireContext(), error)
                         }
                     }
                 }
@@ -619,6 +633,47 @@ class HomeFragment : Fragment() {
                         updateContinuePlayingCard(history)
                     }
                 }
+            }
+        }
+    }
+
+    private fun footerOf(state: HomePageState): PageFooterState = when {
+        state.error != null -> PageFooterState.ERROR
+        state.loading && !state.refreshing && state.items.isNotEmpty() -> PageFooterState.LOADING
+        else -> PageFooterState.HIDDEN
+    }
+
+    /**
+     * 空态 / 整页错误态只针对当前分类。
+     * 首屏加载中不算空，避免一进来闪一下「暂无内容」。
+     */
+    private fun updateListState() {
+        if (_binding == null || !this::pagerAdapter.isInitialized) return
+        val state = viewModel.pages.value[currentCategoryId()] ?: HomePageState()
+        val firstPageFailed = state.error != null && state.items.isEmpty()
+
+        binding.errorView.visibility = if (firstPageFailed) View.VISIBLE else View.GONE
+        if (firstPageFailed) binding.tvErrorMessage.text = state.error
+
+        binding.emptyView.visibility =
+            if (!firstPageFailed && state.items.isEmpty() && !state.loading) View.VISIBLE else View.GONE
+    }
+
+    /**
+     * 首屏不满一屏时 RecyclerView 不会回调 onScrolled，翻页就永远触发不了。
+     * 每次数据提交后补一次检查，没填满就接着要下一页（ViewModel 里有在途/到底的拦截，不会连发）。
+     */
+    private fun fillViewportIfNeeded(position: Int) {
+        val recyclerView = pagerAdapter.getRecyclerView(position) ?: return
+        val videoCount = pagerAdapter.getVideoItemCount(position)
+        if (videoCount == 0) return
+        recyclerView.post {
+            val layoutManager = recyclerView.layoutManager as? GridLayoutManager ?: return@post
+            val lastVisible = layoutManager.findLastVisibleItemPosition()
+            // NO_POSITION：刚绑定还没完成布局，位置未知，等真实滚动或下一次 commit 再判
+            if (lastVisible == RecyclerView.NO_POSITION) return@post
+            if (lastVisible >= videoCount - 1) {
+                categories.getOrNull(position)?.let { viewModel.loadNextPage(it.id) }
             }
         }
     }
