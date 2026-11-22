@@ -3,11 +3,10 @@
   「关于」页 · 结构对照 unicanta 的 AboutScreen（Compose）一比一翻译成 View 体系：
 
   1. AppHero：图标块 + 应用名 + 版本行（开发版带 dev 构建号）+ 安装时间 + 一句话定位；
-  2. UpdateCard：整行可点的「检查更新」——空闲提示 / 检查中 / 已是最新 / 发现新版本 /
-     失败原因（点名网络、配额、超时），失败再点一次就是重试；
-  3. UpdateChannelCard：稳定版 / 开发版 两个渠道芯片（遥控器确认切换），
-     提示行由 F086Activity 按当前渠道填 f086_check_hint_channel；
-  4. 自动下载安装开关；
+  2. UpdateCard：整张卡片就是点击区（右侧「立即检查」只是状态字样，不单独接收点击）——
+     空闲提示 / 检查中 / 已是最新 / 发现新版本 / 失败原因，失败再点一次就是重试；
+  3. UpdateChannelCard：一行「更新渠道 + 下拉选择稳定版 / 开发版」，遥控器确认展开；
+  4. 自动下载安装开关（SwitchCompat + switch_thumb_color / switch_track_color，与倍速面板同一套美化）；
   5. 下载页 / 源码仓库两个外链（源码仓库是最后一组）。
 
   行几何与「我的」页同一套 token（对照 unicanta SettingsItem.kt：
@@ -16,7 +15,7 @@
   group_title_gap；卡片自己圆角 group_corner，行底用 bg_profile_row 的焦点/按下色。
   卡片本身是焦点目标时，行底靠 android:duplicateParentState 承接卡片焦点态。
 
-  电视遥控器操作：焦点链  返回 → 检查更新 → 稳定版 → 开发版 → 自动安装 →
+  电视遥控器操作：焦点链  返回 → 检查更新 → 渠道下拉 → 自动安装 →
   下载页 → 打开仓库（末位）。
 -->
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
@@ -158,7 +157,7 @@
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:nextFocusUp="@id/btnBack"
-            android:nextFocusDown="@id/f086ChannelStable"
+            android:nextFocusDown="@id/f086ChannelSpinner"
             app:cardCornerRadius="@dimen/group_corner">
 
             <LinearLayout
@@ -221,13 +220,17 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:importantForAccessibility="no"
                     android:text="@string/f086_check_action"
                     android:textColor="@color/theme_primary"
                     android:textSize="13sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- ===== 更新渠道（对照 unicanta AboutScreen.UpdateChannelCard） ===== -->
+        <!-- ===== 更新渠道：一行「标题 + 下拉选择」（对照 unicanta AboutScreen.UpdateChannelCard） ===== -->
         <com.google.android.material.card.MaterialCardView
             style="@style/Widget.TVPlayer.Card"
             android:layout_width="match_parent"
@@ -240,75 +243,35 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/row_min_height"
+                android:orientation="horizontal"
                 android:paddingStart="@dimen/row_padding_h"
                 android:paddingTop="@dimen/row_padding_v"
                 android:paddingEnd="@dimen/row_padding_h"
                 android:paddingBottom="@dimen/row_padding_v">
 
                 <TextView
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:text="@string/f086_channel_label"
-                    android:textAppearance="@style/TextAppearance.TVPlayer.Body"
-                    android:textColor="@color/theme_text_primary" />
+                    android:textColor="@color/theme_text_primary"
+                    android:textSize="16sp" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="@string/f086_channel_hint"
-                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/group_gap"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/f086ChannelStable"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:background="@drawable/bg_channel_chip"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:focusableInTouchMode="true"
-                        android:gravity="center"
-                        android:minHeight="@dimen/row_min_height"
-                        android:nextFocusDown="@id/f086ChannelDev"
-                        android:nextFocusLeft="@id/f086ChannelDev"
-                        android:nextFocusRight="@id/f086ChannelDev"
-                        android:nextFocusUp="@id/f086UpdateCard"
-                        android:paddingStart="12dp"
-                        android:paddingEnd="12dp"
-                        android:text="@string/f086_channel_stable"
-                        android:textColor="@color/theme_text_primary"
-                        android:textSize="14sp" />
-
-                    <TextView
-                        android:id="@+id/f086ChannelDev"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/group_gap"
-                        android:layout_weight="1"
-                        android:background="@drawable/bg_channel_chip"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:focusableInTouchMode="true"
-                        android:gravity="center"
-                        android:minHeight="@dimen/row_min_height"
-                        android:nextFocusDown="@id/f086AutoInstall"
-                        android:nextFocusLeft="@id/f086ChannelStable"
-                        android:nextFocusRight="@id/f086ChannelStable"
-                        android:nextFocusUp="@id/f086ChannelStable"
-                        android:paddingStart="12dp"
-                        android:paddingEnd="12dp"
-                        android:text="@string/f086_channel_dev"
-                        android:textColor="@color/theme_text_primary"
-                        android:textSize="14sp" />
-                </LinearLayout>
+                <Spinner
+                    android:id="@+id/f086ChannelSpinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="@dimen/row_leading_gap"
+                    android:background="@drawable/bg_dialog_input"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:foreground="@drawable/bg_focus_ring"
+                    android:minWidth="128dp"
+                    android:nextFocusDown="@id/f086AutoInstall"
+                    android:nextFocusUp="@id/f086UpdateCard"
+                    android:popupBackground="@drawable/bg_dialog_input" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -333,36 +296,26 @@
                 android:paddingEnd="@dimen/row_padding_h"
                 android:paddingBottom="@dimen/row_padding_v">
 
-                <LinearLayout
+                <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:text="@string/f086_auto_install"
+                    android:textColor="@color/theme_text_primary"
+                    android:textSize="16sp" />
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/f086_auto_install"
-                        android:textColor="@color/theme_text_primary"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="@string/f086_auto_install_hint"
-                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
-                </LinearLayout>
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
+                <!-- 开关与倍速面板同一个美化样式：拇指/轨道按选中态取色 -->
+                <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/f086AutoInstall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/row_leading_gap"
                     android:focusable="true"
                     android:focusableInTouchMode="true"
-                    android:nextFocusUp="@id/f086ChannelDev"
-                    android:nextFocusDown="@id/f086DownloadCard" />
+                    android:nextFocusUp="@id/f086ChannelSpinner"
+                    android:nextFocusDown="@id/f086DownloadCard"
+                    app:thumbTint="@color/switch_thumb_color"
+                    app:trackTint="@color/switch_track_color" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

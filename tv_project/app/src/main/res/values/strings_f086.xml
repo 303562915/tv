@@ -8,7 +8,7 @@
 
     <!-- AppHero -->
     <string name="f086_app_name">TV Player</string>
-    <string name="f086_tagline">开源，在电视上放自己的片。Kotlin + ExoPlayer，本地文件与网络直链随点随播。</string>
+    <string name="f086_tagline">开源电视播放器 · Kotlin + ExoPlayer</string>
     <string name="f086_version_line">v%1$s (%2$d) · 安装于 %3$s</string>
     <string name="f086_version_line_dev">v%1$s (dev %2$d) · 安装于 %3$s</string>
     <string name="f086_installed_at">安装于 %1$s</string>
@@ -16,7 +16,7 @@
 
     <!-- 检查更新卡（UpdateCard） -->
     <string name="f086_check_update">检查更新</string>
-    <string name="f086_check_hint">点这里检查当前渠道的最新发布</string>
+    <string name="f086_check_hint">点卡片即可检查更新</string>
     <string name="f086_check_action">立即检查</string>
     <string name="f086_download_now">下载安装</string>
     <string name="f086_checking">正在检查…</string>
@@ -26,15 +26,13 @@
     <string name="f086_update_available">发现新版本 %1$s，再点一次开始下载</string>
     
 
-    <!-- 更新渠道卡（UpdateChannelCard） -->
+    <!-- 更新渠道卡（UpdateChannelCard，下拉选择） -->
     <string name="f086_channel_label">更新渠道</string>
-    <string name="f086_channel_hint">未选过渠道时默认开发版；稳定版跟 v* 标签发布，开发版每次提交代码都会出一个新构建（dev 编号递增），两者同一签名，可互相覆盖安装</string>
     <string name="f086_channel_stable">稳定版</string>
     <string name="f086_channel_dev">开发版</string>
 
     <!-- 自动安装 -->
     <string name="f086_auto_install">自动下载更新</string>
-    <string name="f086_auto_install_hint">检查到新版本时不询问，直接开始下载，下载完仍会先征求同意再安装</string>
 
     <!-- 外链（LinkCard） -->
     <string name="f086_download_page">下载页</string>
@@ -54,8 +52,8 @@
     <string name="f086_fail_server">GitHub 服务异常（5xx），稍后再试</string>
     <string name="f086_fail_no_release">该渠道还没有已发布的版本</string>
     <string name="f086_fail_malformed">返回数据异常：响应可能被劫持或不是版本信息</string>
-    <string name="f086_fail_unknown">检查更新失败，点这里重试</string>
+    <string name="f086_fail_unknown">检查更新失败，点卡片重试</string>
 
     <!-- 渠道切换后的提示行：告诉用户下一次检查读哪个渠道 -->
-    <string name="f086_check_hint_channel">点这里检查 %1$s 渠道的最新发布</string>
+    <string name="f086_check_hint_channel">点卡片检查 %1$s 渠道的最新版本</string>
 </resources>

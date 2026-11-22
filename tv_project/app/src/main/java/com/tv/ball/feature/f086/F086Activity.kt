@@ -3,10 +3,14 @@ package com.tv.ball.feature.f086
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Bundle
+import android.text.TextUtils
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.BaseAdapter
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -26,11 +30,11 @@ import kotlinx.coroutines.launch
  * 1. **AppHero**：图标块 + 应用名 + 版本行（开发版带 dev 构建号）+ 安装时间 + 一句话定位；
  * 2. **UpdateCard**：整行就是按钮——空闲提示 / 检查中 / 已是最新 / 发现新版本（再点下载）/
  *    正在下载 / 失败原因（点名被墙、配额、超时、上游故障），失败的再点一次就是重试；
- * 3. **UpdateChannelCard**：稳定版 / 开发版两块渠道芯片，确认键切换（默认开发版）；
- * 4. **自动下载安装开关**；
+ * 3. **UpdateChannelCard**：一行「更新渠道 + 下拉选择」，选定即存（默认开发版）；
+ * 4. **自动下载安装开关**（与倍速面板同一套开关美化）；
  * 5. **外链卡**：下载页 / 源码仓库，交给系统浏览器，没有浏览器时只提示、不崩（末位区块）。
  *
- * 电视遥控器：焦点链 返回 → 检查更新 → 稳定版 → 开发版 → 自动安装 → 下载页 →
+ * 电视遥控器：焦点链 返回 → 检查更新 → 渠道下拉 → 自动安装 → 下载页 →
  * 打开仓库（末位，不再向下延伸）。
  */
 class F086Activity : AppCompatActivity() {
@@ -66,8 +70,15 @@ class F086Activity : AppCompatActivity() {
 
         binding.btnBack.setOnClickListener { finish() }
         binding.f086UpdateCard.setOnClickListener { onUpdateCardTap() }
-        binding.f086ChannelStable.setOnClickListener { switchChannel(UpdateChannel.STABLE) }
-        binding.f086ChannelDev.setOnClickListener { switchChannel(UpdateChannel.DEV) }
+        binding.f086ChannelSpinner.adapter = ChannelAdapter()
+        binding.f086ChannelSpinner.setSelection(channelIndex(channel), false)
+        binding.f086ChannelSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                switchChannel(channelAt(position))
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+        }
         binding.f086AutoInstall.isChecked = prefs.getBoolean(KEY_AUTO_INSTALL, false)
         binding.f086AutoInstall.setOnCheckedChangeListener { _, checked ->
             prefs().edit().putBoolean(KEY_AUTO_INSTALL, checked).apply()
@@ -83,7 +94,6 @@ class F086Activity : AppCompatActivity() {
         binding.f086RepoButton.setOnClickListener { openRepo() }
 
         renderHero()
-        renderChannel()
         render(state)
     }
 
@@ -147,32 +157,55 @@ class F086Activity : AppCompatActivity() {
         }
     }
 
-    // ===== 渠道 =====
+    // ===== 渠道（下拉） =====
 
+    /** 下拉位置 → 渠道：0 = 稳定版，1 = 开发版（默认）。 */
+    private fun channelAt(position: Int): UpdateChannel =
+        if (position == CHANNEL_INDEX_DEV) UpdateChannel.DEV else UpdateChannel.STABLE
+
+    private fun channelIndex(target: UpdateChannel): Int =
+        if (target == UpdateChannel.DEV) CHANNEL_INDEX_DEV else CHANNEL_INDEX_STABLE
+
+    /** 选定即落盘，并把状态行刷成「点卡片检查 xx 渠道」。 */
     private fun switchChannel(target: UpdateChannel) {
         if (target == channel) return
         channel = target
         UpdateChannel.save(this, target)
-        renderChannel()
         renderIdle()
     }
 
-    /** 渠道芯片的选中态：选中 = 主题色实底 + on_primary 文字，未选 = 原始灰底。 */
-    private fun renderChannel() {
-        val primary = ContextCompat.getColor(this, R.color.theme_primary)
-        val onPrimary = ContextCompat.getColor(this, R.color.theme_on_primary)
-        val plainText = ContextCompat.getColor(this, R.color.theme_text_primary)
-        bindChip(binding.f086ChannelStable, channel == UpdateChannel.STABLE, primary, onPrimary, plainText)
-        bindChip(binding.f086ChannelDev, channel == UpdateChannel.DEV, primary, onPrimary, plainText)
-    }
+    /**
+     * 下拉项适配器：项视图用代码造 TextView。
+     *
+     * 不用 `android.R.layout.simple_spinner_item`——它的文字色取自系统主题 textColorPrimary，
+     * 深色 / 浅色切换后与本项目的 theme_text_primary 对不上；自己做反而能保证同色同字号。
+     * 折叠态和下拉列表共用同一个视图（`getDropDownView` 走默认实现）。
+     */
+    private inner class ChannelAdapter : BaseAdapter() {
 
-    private fun bindChip(chip: TextView, selected: Boolean, primary: Int, onPrimary: Int, plain: Int) {
-        if (selected) {
-            chip.backgroundTintList = ColorStateList.valueOf(primary)
-            chip.setTextColor(onPrimary)
-        } else {
-            chip.backgroundTintList = null
-            chip.setTextColor(plain)
+        private val labels = listOf(
+            getString(R.string.f086_channel_stable),
+            getString(R.string.f086_channel_dev)
+        )
+
+        override fun getCount(): Int = labels.size
+
+        override fun getItem(position: Int): Any = labels[position]
+
+        override fun getItemId(position: Int): Long = position.toLong()
+
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+            val view = convertView as? TextView ?: TextView(this@F086Activity).apply {
+                setTextColor(ContextCompat.getColor(context, R.color.theme_text_primary))
+                textSize = 15f
+                maxLines = 1
+                ellipsize = TextUtils.TruncateAt.END
+                gravity = Gravity.CENTER_VERTICAL
+                val side = resources.getDimensionPixelSize(R.dimen.tab_padding)
+                setPadding(side, 0, side, 0)
+            }
+            view.text = labels.getOrElse(position) { "" }
+            return view
         }
     }
 
@@ -272,5 +305,7 @@ class F086Activity : AppCompatActivity() {
     private companion object {
         const val PREFS = "f086_about"
         const val KEY_AUTO_INSTALL = "auto_install"
+        const val CHANNEL_INDEX_STABLE = 0
+        const val CHANNEL_INDEX_DEV = 1
     }
 }
