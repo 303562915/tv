@@ -30,7 +30,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="设置"
+                android:text="@string/settings"
                 android:textSize="16sp"
                 android:textColor="@color/theme_text_secondary"
                 android:layout_marginStart="12dp" />
@@ -56,7 +56,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="类型"
+                android:text="@string/drawer_filter_type"
                 android:textSize="14sp"
                 android:textColor="@color/theme_text_secondary" />
 
@@ -116,7 +116,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="种子"
+                    android:text="@string/drawer_category_torrent"
                     android:textSize="14sp"
                     android:textColor="@color/theme_text_primary"
                     android:layout_marginStart="12dp" />
@@ -164,7 +164,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="文档"
+                    android:text="@string/drawer_category_document"
                     android:textSize="14sp"
                     android:textColor="@color/theme_text_primary"
                     android:layout_marginStart="12dp" />
@@ -188,7 +188,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="音乐"
+                    android:text="@string/drawer_category_music"
                     android:textSize="14sp"
                     android:textColor="@color/theme_text_primary"
                     android:layout_marginStart="12dp" />
@@ -236,7 +236,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="字幕"
+                    android:text="@string/drawer_category_subtitle"
                     android:textSize="14sp"
                     android:textColor="@color/theme_text_primary"
                     android:layout_marginStart="12dp" />
@@ -260,7 +260,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="图片"
+                    android:text="@string/drawer_category_image"
                     android:textSize="14sp"
                     android:textColor="@color/theme_text_primary"
                     android:layout_marginStart="12dp" />
@@ -284,7 +284,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="程序"
+                    android:text="@string/drawer_category_program"
                     android:textSize="14sp"
                     android:textColor="@color/theme_text_primary"
                     android:layout_marginStart="12dp" />
@@ -308,7 +308,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="其它"
+                    android:text="@string/drawer_category_other"
                     android:textSize="14sp"
                     android:textColor="@color/theme_text_primary"
                     android:layout_marginStart="12dp" />
@@ -330,7 +330,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="下载"
+                android:text="@string/common_download"
                 android:textSize="14sp"
                 android:textColor="@color/theme_text_secondary" />
 
@@ -354,7 +354,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="下载位置"
+                android:text="@string/drawer_download_location"
                 android:textSize="12sp"
                 android:textColor="@color/theme_text_secondary"
                 android:layout_marginTop="8dp" />
@@ -413,7 +413,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="速度限制"
+                    android:text="@string/drawer_speed_limit"
                     android:textSize="12sp"
                     android:textColor="@color/theme_text_secondary" />
 
@@ -433,7 +433,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="全部限速"
+                    android:text="@string/drawer_speed_limit_all"
                     android:textSize="12sp"
                     android:textColor="@color/theme_text_secondary" />
 
@@ -445,7 +445,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="下载速度限制：最大"
+                android:text="@string/drawer_speed_limit_download"
                 android:textSize="11sp"
                 android:textColor="@color/theme_text_secondary"
                 android:layout_marginTop="8dp" />
@@ -453,7 +453,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="上传速度限制：最大"
+                android:text="@string/drawer_speed_limit_upload"
                 android:textSize="11sp"
                 android:textColor="@color/theme_text_secondary"
                 android:layout_marginTop="4dp" />
@@ -463,7 +463,7 @@
                 android:id="@+id/btnCheckAndMerge"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="检查并合并 M3U8"
+                android:text="@string/drawer_merge_m3u8"
                 android:textSize="14sp"
                 android:textColor="@color/surface_card"
                 android:background="@color/theme_primary"

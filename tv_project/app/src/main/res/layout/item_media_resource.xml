@@ -78,7 +78,7 @@
                 android:background="@drawable/bg_secondary_button"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
-                android:text="播放"
+                android:text="@string/common_play"
                 android:textColor="@color/theme_text_primary"
                 android:textSize="@dimen/text_body" />
 
@@ -90,7 +90,7 @@
                 android:background="@drawable/bg_primary_button"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
-                android:text="下载"
+                android:text="@string/common_download"
                 android:textColor="@color/theme_on_primary"
                 android:textSize="@dimen/text_body" />
 

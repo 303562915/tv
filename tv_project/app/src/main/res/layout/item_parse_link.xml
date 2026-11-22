@@ -66,7 +66,7 @@
             android:id="@+id/currentLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="播放中"
+            android:text="@string/parse_link_playing"
             android:textColor="@color/theme_success"
             android:textSize="10sp"
             android:paddingStart="8dp"

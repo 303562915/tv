@@ -169,6 +169,8 @@
     <string name="common_download">下载</string>
     <string name="common_share">分享</string>
     <string name="common_episodes">选集</string>
+    <string name="common_delete">删除</string>
+    <string name="common_continue_label">继续播放：</string>
 
     <!-- ============ 文件选择页（activity_file_picker） ============ -->
     <string name="file_picker_select_file">选择文件</string>
@@ -397,4 +399,91 @@
     <string name="speed_dialog_long_press_lock">长按上滑锁定倍速</string>
     <string name="speed_dialog_swipe_sensitivity">滑动快进/快退灵敏度</string>
     <string name="speed_dialog_swipe_sensitivity_hint">数值越大，滑动相同距离快进/快退的时间越多</string>
+
+    <!-- ============ 视频信息对话框（dialog_video_info） ============ -->
+    <string name="video_info_title">视频信息</string>
+    <string name="video_info_section_basic">基本信息</string>
+    <string name="video_info_label_title">标题：</string>
+    <string name="video_info_label_address">地址：</string>
+    <string name="video_info_label_resolution">分辨率：</string>
+    <string name="video_info_label_quality">清晰度：</string>
+    <string name="video_info_label_duration">时长：</string>
+    <string name="video_info_label_position">当前位置：</string>
+    <string name="video_info_label_progress">播放进度：</string>
+    <string name="video_info_label_video_codec">视频编码：</string>
+    <string name="video_info_label_bitrate">码率：</string>
+    <string name="video_info_label_frame_rate">帧率：</string>
+    <string name="video_info_section_audio">音频信息</string>
+    <string name="video_info_label_audio_codec">音频编码：</string>
+    <string name="video_info_label_channel">声道：</string>
+    <string name="video_info_label_sample_rate">采样率：</string>
+    <string name="video_info_section_file">文件信息</string>
+    <string name="video_info_label_file_size">文件大小：</string>
+
+    <!-- ============ 收藏页（fragment_favorite） ============ -->
+    <string name="favorite_empty_hint">在详情页点「收藏」，想看的片子就会留在这里</string>
+
+    <!-- ============ 首页（fragment_home） ============ -->
+    <string name="home_search_filter">搜索 | 筛选</string>
+    <string name="home_empty">暂无视频</string>
+    <string name="home_empty_hint">换个分类看看，或者下拉刷新重试</string>
+    <string name="home_load_failed">加载失败</string>
+    <string name="home_network_retry_hint">网络不太顺畅，点重试再试一次</string>
+
+    <!-- ============ 「我的」页功能入口（fragment_profile / fragment_settings_backup） ============ -->
+    <string name="profile_all_features">全部功能</string>
+    <string name="profile_advanced_summary">94 项进阶能力，字幕、投屏、媒体服务</string>
+    <string name="profile_change_theme">更换主题</string>
+    <string name="profile_parser_desc">支持各大平台视频图文无水印提取</string>
+    <string name="profile_download_manager">下载管理</string>
+    <string name="profile_download_manager_desc">管理离线视频下载</string>
+    <string name="profile_short_drama_desc">在做了 免费的短视频短剧</string>
+    <string name="profile_builtin_browser">内置浏览器</string>
+    <string name="profile_builtin_browser_desc">智能嗅探视频资源，一键下载播放</string>
+    <string name="profile_flow_log_desc">查看从嗅探到播放的完整日志，长按复制</string>
+    <string name="profile_social">扩列交友</string>
+    <string name="profile_social_desc">正在开发 有意见可以提提</string>
+    <string name="profile_official_site">官网</string>
+    <string name="profile_official_site_desc">官网反馈 越来越好用</string>
+    <string name="profile_share_app">软件分享</string>
+    <string name="profile_share_app_desc">分享给你好友 安利宝藏软件</string>
+
+    <!-- ============ 设置页（fragment_settings） ============ -->
+    <string name="settings_font_size">字体大小</string>
+    <string name="settings_font_size_hint">竖屏详情区的标题与信息文字，下次进入播放页生效</string>
+    <string name="settings_reset">恢复默认</string>
+    <string name="settings_reset_group_hint">恢复本组默认值</string>
+    <string name="settings_storage">存储</string>
+    <string name="settings_storage_hint">只清缓存目录与播放器缓存，收藏、历史与已下载的文件都不动</string>
+
+    <!-- ============ 视频源页（fragment_video_source） ============ -->
+    <string name="video_source_title">影视仓库</string>
+
+    <!-- ============ 解析链接列表项（item_parse_link） ============ -->
+    <string name="parse_link_playing">播放中</string>
+
+    <!-- ============ 短剧列表项（item_short_drama） ============ -->
+    <string name="short_drama_finished">完结</string>
+
+    <!-- ============ 短剧播放页操作区（item_short_drama_player_page） ============ -->
+    <string name="sdp_switch_source_hint">可点右侧「线路」换一条源</string>
+    <string name="sdp_comment">评论</string>
+    <string name="sdp_shoot_same">拍同款</string>
+    <string name="sdp_line">线路</string>
+
+    <!-- ============ 下载器侧边栏（nav_drawer_layout） ============ -->
+    <string name="drawer_filter_type">类型</string>
+    <string name="drawer_category_torrent">种子</string>
+    <string name="drawer_category_document">文档</string>
+    <string name="drawer_category_music">音乐</string>
+    <string name="drawer_category_subtitle">字幕</string>
+    <string name="drawer_category_image">图片</string>
+    <string name="drawer_category_program">程序</string>
+    <string name="drawer_category_other">其它</string>
+    <string name="drawer_download_location">下载位置</string>
+    <string name="drawer_speed_limit">速度限制</string>
+    <string name="drawer_speed_limit_all">全部限速</string>
+    <string name="drawer_speed_limit_download">下载速度限制：最大</string>
+    <string name="drawer_speed_limit_upload">上传速度限制：最大</string>
+    <string name="drawer_merge_m3u8">检查并合并 M3U8</string>
 </resources>

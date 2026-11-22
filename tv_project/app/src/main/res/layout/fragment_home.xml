@@ -58,7 +58,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/card_gap"
                     android:layout_weight="1"
-                    android:text="搜索 | 筛选"
+                    android:text="@string/home_search_filter"
                     android:textColor="@color/theme_text_secondary"
                     android:textSize="15sp" />
 
@@ -197,7 +197,7 @@
                 android:layout_weight="1"
                 android:ellipsize="marquee"
                 android:singleLine="true"
-                android:text="继续播放： "
+                android:text="@string/common_continue_label"
                 android:textColor="@color/theme_text_primary"
                 android:textSize="15sp"
                 android:textStyle="bold" />
@@ -307,7 +307,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="暂无视频"
+            android:text="@string/home_empty"
             android:textColor="@color/theme_text_primary"
             android:textSize="15sp"
             android:textStyle="bold" />
@@ -318,7 +318,7 @@
             android:layout_marginTop="6dp"
             android:gravity="center"
             android:lineSpacingExtra="2dp"
-            android:text="换个分类看看，或者下拉刷新重试"
+            android:text="@string/home_empty_hint"
             android:textColor="@color/theme_text_secondary"
             android:textSize="13sp" />
 
@@ -350,7 +350,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="加载失败"
+            android:text="@string/home_load_failed"
             android:textColor="@color/theme_text_primary"
             android:textSize="15sp"
             android:textStyle="bold" />
@@ -362,7 +362,7 @@
             android:layout_marginTop="6dp"
             android:gravity="center"
             android:lineSpacingExtra="2dp"
-            android:text="网络不太顺畅，点重试再试一次"
+            android:text="@string/home_network_retry_hint"
             android:textColor="@color/theme_text_secondary"
             android:textSize="13sp" />
 

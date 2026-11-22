@@ -1123,14 +1123,14 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="字体大小"
+                            android:text="@string/settings_font_size"
                             android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="竖屏详情区的标题与信息文字，下次进入播放页生效"
+                            android:text="@string/settings_font_size_hint"
                             android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
                     </LinearLayout>
 
@@ -1378,7 +1378,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="@dimen/card_gap"
-            android:text="恢复默认" />
+            android:text="@string/settings_reset" />
 
         <com.google.android.material.card.MaterialCardView
             style="@style/Widget.TVPlayer.Card"
@@ -1403,7 +1403,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="恢复本组默认值"
+                    android:text="@string/settings_reset_group_hint"
                     android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -1415,7 +1415,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="@dimen/card_gap"
-            android:text="存储" />
+            android:text="@string/settings_storage" />
 
         <com.google.android.material.card.MaterialCardView
             style="@style/Widget.TVPlayer.Card"
@@ -1456,7 +1456,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="只清缓存目录与播放器缓存，收藏、历史与已下载的文件都不动"
+                        android:text="@string/settings_storage_hint"
                         android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
                 </LinearLayout>
 

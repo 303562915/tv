@@ -23,7 +23,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="视频信息"
+                android:text="@string/video_info_title"
                 android:textColor="@color/theme_text_primary"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -56,7 +56,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="基本信息"
+                    android:text="@string/video_info_section_basic"
                     android:textColor="@color/theme_text_secondary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
@@ -78,7 +78,7 @@
                     <TextView
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
-                        android:text="标题："
+                        android:text="@string/video_info_label_title"
                         android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
@@ -102,7 +102,7 @@
                     <TextView
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
-                        android:text="地址："
+                        android:text="@string/video_info_label_address"
                         android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
@@ -138,7 +138,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="视频信息"
+                    android:text="@string/video_info_title"
                     android:textColor="@color/theme_text_secondary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
@@ -160,7 +160,7 @@
                     <TextView
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
-                        android:text="分辨率："
+                        android:text="@string/video_info_label_resolution"
                         android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
@@ -184,7 +184,7 @@
                     <TextView
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
-                        android:text="清晰度："
+                        android:text="@string/video_info_label_quality"
                         android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
@@ -208,7 +208,7 @@
                     <TextView
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
-                        android:text="时长："
+                        android:text="@string/video_info_label_duration"
                         android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
@@ -232,7 +232,7 @@
                     <TextView
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
-                        android:text="当前位置："
+                        android:text="@string/video_info_label_position"
                         android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
@@ -256,7 +256,7 @@
                     <TextView
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
-                        android:text="播放进度："
+                        android:text="@string/video_info_label_progress"
                         android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
@@ -280,7 +280,7 @@
                     <TextView
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
-                        android:text="视频编码："
+                        android:text="@string/video_info_label_video_codec"
                         android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
@@ -304,7 +304,7 @@
                     <TextView
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
-                        android:text="码率："
+                        android:text="@string/video_info_label_bitrate"
                         android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
@@ -328,7 +328,7 @@
                     <TextView
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
-                        android:text="帧率："
+                        android:text="@string/video_info_label_frame_rate"
                         android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
@@ -362,7 +362,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="音频信息"
+                    android:text="@string/video_info_section_audio"
                     android:textColor="@color/theme_text_secondary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
@@ -384,7 +384,7 @@
                     <TextView
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
-                        android:text="音频编码："
+                        android:text="@string/video_info_label_audio_codec"
                         android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
@@ -408,7 +408,7 @@
                     <TextView
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
-                        android:text="声道："
+                        android:text="@string/video_info_label_channel"
                         android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
@@ -432,7 +432,7 @@
                     <TextView
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
-                        android:text="采样率："
+                        android:text="@string/video_info_label_sample_rate"
                         android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
@@ -465,7 +465,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="文件信息"
+                    android:text="@string/video_info_section_file"
                     android:textColor="@color/theme_text_secondary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
@@ -487,7 +487,7 @@
                     <TextView
                         android:layout_width="80dp"
                         android:layout_height="wrap_content"
-                        android:text="文件大小："
+                        android:text="@string/video_info_label_file_size"
                         android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 

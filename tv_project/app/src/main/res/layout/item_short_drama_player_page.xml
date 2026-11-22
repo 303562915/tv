@@ -112,7 +112,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="可点右侧「线路」换一条源"
+            android:text="@string/sdp_switch_source_hint"
             android:textColor="@color/player_control_icon_dim"
             android:textSize="@dimen/text_caption"
             android:visibility="gone"
@@ -231,7 +231,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:importantForAccessibility="no"
-                android:text="评论"
+                android:text="@string/sdp_comment"
                 android:textColor="@android:color/white"
                 android:textSize="10sp" />
         </LinearLayout>
@@ -263,7 +263,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:importantForAccessibility="no"
-                android:text="收藏"
+                android:text="@string/favorite"
                 android:textColor="@android:color/white"
                 android:textSize="10sp" />
         </LinearLayout>
@@ -295,7 +295,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:importantForAccessibility="no"
-                android:text="分享"
+                android:text="@string/common_share"
                 android:textColor="@android:color/white"
                 android:textSize="10sp" />
         </LinearLayout>
@@ -327,7 +327,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:importantForAccessibility="no"
-                android:text="拍同款"
+                android:text="@string/sdp_shoot_same"
                 android:textColor="@android:color/white"
                 android:textSize="10sp" />
         </LinearLayout>
@@ -359,7 +359,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:importantForAccessibility="no"
-                android:text="选集"
+                android:text="@string/common_episodes"
                 android:textColor="@android:color/white"
                 android:textSize="10sp" />
         </LinearLayout>
@@ -402,7 +402,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:importantForAccessibility="no"
-                android:text="倍速"
+                android:text="@string/player_backup_speed"
                 android:textColor="@android:color/white"
                 android:textSize="10sp" />
         </LinearLayout>
@@ -436,7 +436,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:importantForAccessibility="no"
-                android:text="线路"
+                android:text="@string/sdp_line"
                 android:textColor="@android:color/white"
                 android:textSize="10sp" />
         </LinearLayout>

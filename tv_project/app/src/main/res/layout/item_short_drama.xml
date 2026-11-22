@@ -54,7 +54,7 @@
             android:paddingTop="1dp"
             android:paddingEnd="6dp"
             android:paddingBottom="1dp"
-            android:text="完结"
+            android:text="@string/short_drama_finished"
             android:textColor="@color/theme_warning"
             android:textSize="10sp"
             android:visibility="gone"

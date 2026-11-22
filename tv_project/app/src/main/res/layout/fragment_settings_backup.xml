@@ -41,7 +41,7 @@
                     android:layout_weight="1"
                     android:ellipsize="marquee"
                     android:singleLine="true"
-                    android:text="继续播放： "
+                    android:text="@string/common_continue_label"
                     android:textColor="@color/theme_text_primary"
                     android:textStyle="bold" />
 
@@ -100,7 +100,7 @@
                         android:ellipsize="marquee"
                         android:gravity="center"
                         android:singleLine="true"
-                        android:text="我的收藏"
+                        android:text="@string/my_favorite"
                         android:textColor="?android:attr/textColorPrimary"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -133,7 +133,7 @@
                         android:ellipsize="marquee"
                         android:gravity="center"
                         android:singleLine="true"
-                        android:text="本地视频"
+                        android:text="@string/local_video"
                         android:textColor="?android:attr/textColorPrimary"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -166,7 +166,7 @@
                         android:ellipsize="marquee"
                         android:gravity="center"
                         android:singleLine="true"
-                        android:text="更换主题"
+                        android:text="@string/profile_change_theme"
                         android:textColor="?android:attr/textColorPrimary"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -199,7 +199,7 @@
                         android:ellipsize="marquee"
                         android:gravity="center"
                         android:singleLine="true"
-                        android:text="清理缓存"
+                        android:text="@string/clear_cache"
                         android:textColor="?android:attr/textColorPrimary"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -246,7 +246,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="聚合解析"
+                            android:text="@string/parser_title"
                             android:textColor="?android:attr/textColorPrimary"
                             android:textSize="@dimen/text_title"
                             android:textStyle="bold" />
@@ -255,7 +255,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="支持各大平台视频图文无水印提取"
+                            android:text="@string/profile_parser_desc"
                             android:textColor="?android:attr/textColorSecondary"
                             android:textSize="@dimen/text_caption" />
                     </LinearLayout>
@@ -298,7 +298,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="下载管理"
+                            android:text="@string/profile_download_manager"
                             android:textColor="?android:attr/textColorPrimary"
                             android:textSize="@dimen/text_title"
                             android:textStyle="bold" />
@@ -307,7 +307,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="管理离线视频下载"
+                            android:text="@string/profile_download_manager_desc"
                             android:textColor="?android:attr/textColorSecondary"
                             android:textSize="@dimen/text_caption" />
                     </LinearLayout>
@@ -350,7 +350,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="免费短剧"
+                            android:text="@string/free_short_drama"
                             android:textColor="?android:attr/textColorPrimary"
                             android:textSize="@dimen/text_title"
                             android:textStyle="bold" />
@@ -359,7 +359,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="在做了 免费的短视频短剧"
+                            android:text="@string/profile_short_drama_desc"
                             android:textColor="?android:attr/textColorSecondary"
                             android:textSize="@dimen/text_caption" />
                     </LinearLayout>
@@ -403,7 +403,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="内置浏览器"
+                            android:text="@string/profile_builtin_browser"
                             android:textColor="?android:attr/textColorPrimary"
                             android:textSize="@dimen/text_title"
                             android:textStyle="bold" />
@@ -412,7 +412,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="智能嗅探视频资源，一键下载播放"
+                            android:text="@string/profile_builtin_browser_desc"
                             android:textColor="?android:attr/textColorSecondary"
                             android:textSize="@dimen/text_caption" />
                     </LinearLayout>
@@ -455,7 +455,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="视频流程日志"
+                            android:text="@string/simple_flow_log_title"
                             android:textColor="?android:attr/textColorPrimary"
                             android:textSize="@dimen/text_title"
                             android:textStyle="bold" />
@@ -464,7 +464,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="查看从嗅探到播放的完整日志，长按复制"
+                            android:text="@string/profile_flow_log_desc"
                             android:textColor="?android:attr/textColorSecondary"
                             android:textSize="@dimen/text_caption" />
                     </LinearLayout>
@@ -520,7 +520,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="扩列交友"
+                            android:text="@string/profile_social"
                             android:textColor="?android:attr/textColorPrimary"
                             android:textSize="@dimen/text_title"
                             android:textStyle="bold" />
@@ -529,7 +529,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="正在开发 有意见可以提提"
+                            android:text="@string/profile_social_desc"
                             android:textColor="?android:attr/textColorSecondary"
                             android:textSize="@dimen/text_caption" />
                     </LinearLayout>
@@ -573,7 +573,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="官网"
+                            android:text="@string/profile_official_site"
                             android:textColor="?android:attr/textColorPrimary"
                             android:textSize="@dimen/text_title"
                             android:textStyle="bold" />
@@ -582,7 +582,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="官网反馈 越来越好用"
+                            android:text="@string/profile_official_site_desc"
                             android:textColor="?android:attr/textColorSecondary"
                             android:textSize="@dimen/text_caption" />
                     </LinearLayout>
@@ -625,7 +625,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="软件分享"
+                            android:text="@string/profile_share_app"
                             android:textColor="?android:attr/textColorPrimary"
                             android:textSize="@dimen/text_title"
                             android:textStyle="bold" />
@@ -634,7 +634,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="分享给你好友 安利宝藏软件"
+                            android:text="@string/profile_share_app_desc"
                             android:textColor="?android:attr/textColorSecondary"
                             android:textSize="@dimen/text_caption" />
                     </LinearLayout>
