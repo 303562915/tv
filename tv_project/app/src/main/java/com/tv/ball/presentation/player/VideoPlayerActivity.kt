@@ -86,6 +86,12 @@ class VideoPlayerActivity : AppCompatActivity() {
     private val skipIntroManager by lazy { SkipIntroManager(this) }
     private val aspectRatioManager by lazy { AspectRatioManager(this) }
     private val shortDramaManager by lazy { ShortDramaManager(this) }
+
+    /**
+     * 竖屏详情区文本缩放：设置页「字体大小」写入 `user_prefs / font_scale`（1.0 标准 / 1.15 大 / 1.3 特大）。
+     * 只作用于 [portraitDetailView] 里的 videoTitleDetail / videoInfoText 两个文本，控制栏不受影响。
+     */
+    private var detailFontScale = 1.0f
     
     // 嗅探到的视频链接
     private val sniffedVideoLinks = mutableListOf<String>()
@@ -203,6 +209,12 @@ class VideoPlayerActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         plog("=== onCreate 开始 ===")
+
+        // 字体大小：设置页写入 user_prefs / font_scale，这里读一次（1.0 标准 / 1.15 大 / 1.3 特大）。
+        // 只给竖屏详情区的标题与信息文本用，见 applyDetailFontScale()。
+        detailFontScale = getSharedPreferences(FONT_PREFS_NAME, Context.MODE_PRIVATE)
+            .getFloat(KEY_FONT_SCALE, 1.0f)
+            .takeIf { it in 1.0f..1.3f } ?: 1.0f
 
         // 加载播放器布局
         binding = ActivityVideoPlayerBinding.inflate(layoutInflater)
@@ -1991,6 +2003,28 @@ class VideoPlayerActivity : AppCompatActivity() {
         binding.nextButton.visibility = View.GONE
     }
 
+    /**
+     * 竖屏详情区字号缩放（设置页「字体大小」）。
+     *
+     * 只改 videoTitleDetail / videoInfoText 两个 TextView：取当前 sp 乘 [detailFontScale] 再写回；
+     * 同一份详情视图只应用一次（视图每次重建都是重新 inflate 的，不会累积放大）。
+     */
+    private fun applyDetailFontScale(view: View) {
+        if (detailFontScale == 1.0f) return
+        if (view.tag == TAG_FONT_SCALE_APPLIED) return
+        view.tag = TAG_FONT_SCALE_APPLIED
+        scaleDetailText(view, R.id.videoTitleDetail)
+        scaleDetailText(view, R.id.videoInfoText)
+    }
+
+    private fun scaleDetailText(root: View, id: Int) {
+        val textView = root.findViewById<TextView>(id) ?: return
+        val scaledDensity = resources.displayMetrics.scaledDensity
+        if (scaledDensity <= 0f) return
+        val baseSp = textView.textSize / scaledDensity
+        textView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, baseSp * detailFontScale)
+    }
+
     private fun addPortraitDetailView() {
         if (portraitDetailView != null) return
 
@@ -2013,6 +2047,9 @@ class VideoPlayerActivity : AppCompatActivity() {
 
         // 设置视频标题
         portraitDetailView?.findViewById<TextView>(R.id.videoTitleDetail)?.text = videoTitle
+
+        // 字体大小：竖屏详情区只缩放标题与信息文本这两处，控制栏不动
+        portraitDetailView?.let { applyDetailFontScale(it) }
 
         // 顶部 详情 / 二创 / 讨论 Tab（默认详情）
         setupPortraitTabs()
@@ -2962,6 +2999,13 @@ class VideoPlayerActivity : AppCompatActivity() {
     
     companion object {
         private const val REQUEST_STORAGE_PERMISSION = 1001
+
+        /** 设置页「字体大小」写入的位置（与 SettingsFragment 的 PREFS_NAME / KEY_FONT_SCALE 对齐）。 */
+        private const val FONT_PREFS_NAME = "user_prefs"
+        private const val KEY_FONT_SCALE = "font_scale"
+
+        /** 详情视图 tag：同一份视图只缩放一次，重复调用不会把倍数叠乘上去。 */
+        private const val TAG_FONT_SCALE_APPLIED = "detail_font_scale_applied"
     }
 
     private fun toggleFavorite() {

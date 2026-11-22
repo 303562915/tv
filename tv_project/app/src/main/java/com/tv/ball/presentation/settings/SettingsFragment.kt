@@ -2,13 +2,20 @@ package com.tv.ball.presentation.settings
 
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.tv.ball.R
 import com.tv.ball.data.local.UserPreferences
@@ -76,6 +83,8 @@ class SettingsFragment : Fragment() {
         setupChoiceRows()
         setupResetRow()
         setupCacheRow()
+        // 搜索先收集行标题，再刷显示值：顺序反了会把「清理缓存（12.4 MB）」当成 tag
+        setupSearch()
         refreshAll()
         refreshCacheUsage()
     }
@@ -90,6 +99,9 @@ class SettingsFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        // 页面已经销毁就别再把延迟的「已保存」弹出来
+        savedHandler.removeCallbacks(savedHintRunnable)
+        searchSections.clear()
         _binding = null
     }
 
@@ -103,7 +115,7 @@ class SettingsFragment : Fragment() {
         binding.switchPlaybackAutoNext.setOnCheckedChangeListener { _, checked ->
             if (syncGuard()) return@setOnCheckedChangeListener
             prefs.setPlaybackAutoNext(checked)
-            toastSwitch(R.string.ps_auto_next, checked)
+            notifySaved()
         }
 
         // 记忆播放进度 → playback_remember_progress（默认 true）
@@ -112,7 +124,7 @@ class SettingsFragment : Fragment() {
         binding.switchPlaybackRememberProgress.setOnCheckedChangeListener { _, checked ->
             if (syncGuard()) return@setOnCheckedChangeListener
             prefs.setPlaybackRememberProgress(checked)
-            toastSwitch(R.string.ps_remember_progress, checked)
+            notifySaved()
         }
 
         // 长按锁定倍速 → player_settings / long_press_lock_enabled（默认 true）
@@ -120,7 +132,7 @@ class SettingsFragment : Fragment() {
         binding.switchPlaybackLongPressLock.setOnCheckedChangeListener { _, checked ->
             if (syncGuard()) return@setOnCheckedChangeListener
             playerPrefs().edit().putBoolean(KEY_LONG_PRESS_LOCK, checked).apply()
-            toastSwitch(R.string.ps_long_press_lock, checked)
+            notifySaved()
         }
 
         // 片头跳过按钮 → skip_intro / skip_intro_enabled（默认 true）
@@ -128,7 +140,7 @@ class SettingsFragment : Fragment() {
         binding.switchSkipIntro.setOnCheckedChangeListener { _, checked ->
             if (syncGuard()) return@setOnCheckedChangeListener
             skipIntroManager.setSkipIntroEnabled(checked)
-            toastSwitch(R.string.ps_skip_intro, checked)
+            notifySaved()
         }
 
         // 自动跳过片尾 → skip_intro / skip_outro_enabled（默认 false）
@@ -137,7 +149,7 @@ class SettingsFragment : Fragment() {
         binding.switchSkipOutro.setOnCheckedChangeListener { _, checked ->
             if (syncGuard()) return@setOnCheckedChangeListener
             skipIntroManager.setSkipOutroEnabled(checked)
-            toastSwitch(R.string.ps_skip_outro, checked)
+            notifySaved()
         }
 
         // 跳过片头广告 → playback_ad_skip_enabled（默认 false）
@@ -145,7 +157,7 @@ class SettingsFragment : Fragment() {
         binding.switchAdSkip.setOnCheckedChangeListener { _, checked ->
             if (syncGuard()) return@setOnCheckedChangeListener
             prefs.setPlaybackAdSkipEnabled(checked)
-            toastSwitch(R.string.ps_ad_skip, checked)
+            notifySaved()
         }
 
         // 预加载下一集 → playback_preload_next（默认 true）
@@ -153,7 +165,7 @@ class SettingsFragment : Fragment() {
         binding.switchPreloadNext.setOnCheckedChangeListener { _, checked ->
             if (syncGuard()) return@setOnCheckedChangeListener
             prefs.setPlaybackPreloadNext(checked)
-            toastSwitch(R.string.ps_preload_next, checked)
+            notifySaved()
         }
 
         // 失败自动切换线路 → playback_auto_switch_route（默认 true）
@@ -161,7 +173,7 @@ class SettingsFragment : Fragment() {
         binding.switchAutoRoute.setOnCheckedChangeListener { _, checked ->
             if (syncGuard()) return@setOnCheckedChangeListener
             prefs.setPlaybackAutoSwitchRoute(checked)
-            toastSwitch(R.string.ps_auto_route, checked)
+            notifySaved()
         }
 
         // 精确跳转 → playback_exact_seek（默认 true）
@@ -169,7 +181,7 @@ class SettingsFragment : Fragment() {
         binding.switchExactSeek.setOnCheckedChangeListener { _, checked ->
             if (syncGuard()) return@setOnCheckedChangeListener
             prefs.setPlaybackExactSeek(checked)
-            toastSwitch(R.string.ps_exact_seek, checked)
+            notifySaved()
         }
 
         // 允许移动网络播放 → playback_allow_mobile_data（默认 true）
@@ -177,7 +189,7 @@ class SettingsFragment : Fragment() {
         binding.switchMobileData.setOnCheckedChangeListener { _, checked ->
             if (syncGuard()) return@setOnCheckedChangeListener
             prefs.setPlaybackAllowMobileData(checked)
-            toastSwitch(R.string.ps_mobile_data, checked)
+            notifySaved()
         }
 
         // 排除 .ts 分片文件 → local_video_exclude_ts（默认 true）
@@ -187,7 +199,7 @@ class SettingsFragment : Fragment() {
             prefs.setLocalVideoExcludeTs(checked)
             // 关掉开关时「排除的后缀」整行要跟着置灰，所以刷一次本组显示值
             refreshLocalVideoRow()
-            toastSwitch(R.string.lv_exclude_ts, checked)
+            notifySaved()
         }
     }
 
@@ -211,7 +223,7 @@ class SettingsFragment : Fragment() {
             ) { index ->
                 prefs.setPlaybackEndedBehavior(index)
                 refreshAll()
-                CustomToast.show(requireContext(), getString(R.string.ps_saved))
+                notifySaved()
             }
         }
 
@@ -228,7 +240,7 @@ class SettingsFragment : Fragment() {
             ) { index ->
                 savePlaybackDefaults { it.copy(speed = speeds[index]) }
                 refreshAll()
-                CustomToast.show(requireContext(), getString(R.string.ps_saved))
+                notifySaved()
             }
         }
 
@@ -245,7 +257,7 @@ class SettingsFragment : Fragment() {
             ) { index ->
                 prefs.setPlaybackSeekStepSec(steps[index])
                 refreshAll()
-                CustomToast.show(requireContext(), getString(R.string.ps_saved))
+                notifySaved()
             }
         }
 
@@ -261,7 +273,7 @@ class SettingsFragment : Fragment() {
             ) { index ->
                 skipIntroManager.setIntroDuration(seconds[index] * 1000L)
                 refreshAll()
-                CustomToast.show(requireContext(), getString(R.string.ps_saved))
+                notifySaved()
             }
         }
 
@@ -277,7 +289,7 @@ class SettingsFragment : Fragment() {
             ) { index ->
                 skipIntroManager.setOutroDuration(seconds[index] * 1000L)
                 refreshAll()
-                CustomToast.show(requireContext(), getString(R.string.ps_saved))
+                notifySaved()
             }
         }
 
@@ -293,7 +305,7 @@ class SettingsFragment : Fragment() {
             ) { index ->
                 prefs.setPlaybackAdSkipSeconds(seconds[index])
                 refreshAll()
-                CustomToast.show(requireContext(), getString(R.string.ps_saved))
+                notifySaved()
             }
         }
 
@@ -309,7 +321,7 @@ class SettingsFragment : Fragment() {
             ) { index ->
                 prefs.setPlaybackPreloadLeadSeconds(seconds[index])
                 refreshAll()
-                CustomToast.show(requireContext(), getString(R.string.ps_saved))
+                notifySaved()
             }
         }
 
@@ -325,7 +337,7 @@ class SettingsFragment : Fragment() {
             ) { index ->
                 F057Engine.save(requireContext(), F057Engine.of(presets[index]))
                 refreshAll()
-                CustomToast.show(requireContext(), getString(R.string.ps_saved))
+                notifySaved()
             }
         }
 
@@ -341,7 +353,7 @@ class SettingsFragment : Fragment() {
             ) { index ->
                 prefs.setPlaybackRetryCount(counts[index])
                 refreshAll()
-                CustomToast.show(requireContext(), getString(R.string.ps_saved))
+                notifySaved()
             }
         }
 
@@ -357,7 +369,25 @@ class SettingsFragment : Fragment() {
             ) { index ->
                 aspectRatioManager.setMode(modes[index])
                 refreshAll()
-                CustomToast.show(requireContext(), getString(R.string.ps_saved))
+                notifySaved()
+            }
+        }
+
+        // 字体大小 → user_prefs / font_scale（1.0 标准 / 1.15 大 / 1.3 特大）
+        // 读取点只有一处：VideoPlayerActivity.onCreate 读一次，缩放竖屏详情区的
+        // videoTitleDetail / videoInfoText；控制栏不受影响，所以这里只做提示、不重建 Activity。
+        binding.rowFontScale.setOnClickListener {
+            val scales = FONT_SCALE_OPTIONS
+            val current = getFontScale()
+            val checked = scales.indexOfFirst { it == current }
+            showSingleChoice(
+                FONT_SCALE_TITLE,
+                FONT_SCALE_LABELS,
+                if (checked >= 0) checked else 0
+            ) { index ->
+                setFontScale(scales[index])
+                refreshAll()
+                CustomToast.show(requireContext(), "已保存，下次进入播放页生效")
             }
         }
     }
@@ -426,6 +456,7 @@ class SettingsFragment : Fragment() {
         }.getOrDefault(Preset.BALANCED.label)
         b.tvRetryCount.text = retryLabel(prefs.getPlaybackRetryCount())
         b.tvAspectRatio.text = aspectRatioManager.getCurrentMode().displayName
+        b.tvFontScale.text = fontScaleLabel(getFontScale())
 
         // 本地视频组：开关状态与「排除的后缀」整行的显示值一起回填
         syncSwitch(b.switchLocalVideoExcludeTs, prefs.isLocalVideoExcludeTs())
@@ -539,13 +570,135 @@ class SettingsFragment : Fragment() {
         }
     }
 
-    private fun toastSwitch(titleRes: Int, checked: Boolean) {
-        val title = getString(titleRes)
-        CustomToast.show(
-            requireContext(),
-            if (checked) getString(R.string.ps_switched_on, title)
-            else getString(R.string.ps_switched_off, title)
-        )
+    // ============================================================
+    // 保存反馈（节流）
+    // ============================================================
+
+    private val savedHandler = Handler(Looper.getMainLooper())
+
+    /**
+     * 连续拨动开关 / 连着改选项时，只在最后一次写入后 [SAVED_HINT_DELAY_MS] 毫秒提示一次，
+     * 避免弹出一串「已保存」。执行类操作（清理缓存、恢复默认）不走这里，各有自己的结果文案。
+     */
+    private val savedHintRunnable = Runnable {
+        if (_binding == null || !isAdded) return@Runnable
+        CustomToast.show(requireContext(), "已保存 ✓")
+    }
+
+    private fun notifySaved() {
+        savedHandler.removeCallbacks(savedHintRunnable)
+        savedHandler.postDelayed(savedHintRunnable, SAVED_HINT_DELAY_MS)
+    }
+
+    // ============================================================
+    // 字体大小
+    // ============================================================
+
+    /** 与 [UserPreferences] 同一个文件（`user_prefs`）：`font_scale` 只有设置页与播放页在用。 */
+    private fun fontPrefs() =
+        requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    /** 当前字号档位，坏值退回 1.0（标准）。 */
+    private fun getFontScale(): Float {
+        val stored = fontPrefs().getFloat(KEY_FONT_SCALE, FONT_SCALE_OPTIONS[0])
+        return if (stored in FONT_SCALE_OPTIONS) stored else FONT_SCALE_OPTIONS[0]
+    }
+
+    private fun setFontScale(scale: Float) {
+        fontPrefs().edit().putFloat(KEY_FONT_SCALE, scale).apply()
+    }
+
+    private fun fontScaleLabel(scale: Float): String = when (scale) {
+        FONT_SCALE_OPTIONS[1] -> FONT_SCALE_LABELS[1]
+        FONT_SCALE_OPTIONS[2] -> FONT_SCALE_LABELS[2]
+        else -> FONT_SCALE_LABELS[0]
+    }
+
+    // ============================================================
+    // 搜索
+    // ============================================================
+
+    /** 一个小节：标题 + 小节内每一行（行 + 紧跟其后的 1dp 分隔线）。 */
+    private class SearchSection(val titleView: View, val rows: List<Pair<View, View?>>)
+
+    private val searchSections = mutableListOf<SearchSection>()
+
+    /**
+     * 顶部搜索框：按行标题过滤下方设置行。
+     *
+     * 行标题就是行内左侧竖排容器的第一个 TextView 文案，一次性写进行的 `tag`；
+     * 输入时用 `contains(keyword, ignoreCase = true)` 匹配：不匹配的行 `GONE`、匹配的保留，
+     * 小节标题只要本小节还有命中行就保持可见，整节没命中才隐藏。清空关键字全部恢复。
+     * 这里只动 visibility，不碰任何点击监听。
+     */
+    private fun setupSearch() {
+        val b = _binding ?: return
+        searchSections.clear()
+        var pendingTitle: View? = null
+        for (i in 0 until b.settingsContainer.childCount) {
+            val child = b.settingsContainer.getChildAt(i)
+            // 搜索框本身也是 TextView，别把它当成小节标题收进来
+            if (child === b.etSettingsSearch) continue
+            when (child) {
+                is MaterialCardView -> {
+                    // 每张小节卡片归到它上面最近的一个小节标题
+                    pendingTitle?.let { searchSections.add(SearchSection(it, collectRows(child))) }
+                    pendingTitle = null
+                }
+                is TextView -> pendingTitle = child
+            }
+        }
+        b.etSettingsSearch.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+            override fun afterTextChanged(s: Editable?) = applySearchFilter(s?.toString().orEmpty())
+        })
+    }
+
+    /** 卡片里的每一行都打上「标题文案」tag，并把紧随其后的分隔线一起带出来。 */
+    private fun collectRows(card: MaterialCardView): List<Pair<View, View?>> {
+        val column = card.getChildAt(0) as? LinearLayout ?: return emptyList()
+        val rowViews = mutableListOf<LinearLayout>()
+        val dividerOfRow = mutableMapOf<Int, View>()
+        for (i in 0 until column.childCount) {
+            val item = column.getChildAt(i)
+            if (item is LinearLayout) {
+                rowViews.add(item)
+            } else if (rowViews.isNotEmpty()) {
+                // 分隔线归到它上面那一行：那一行被过滤掉时线也跟着收起来
+                dividerOfRow[rowViews.size - 1] = item
+            }
+        }
+        return rowViews.mapIndexed { index, row ->
+            row.tag = rowTitle(row)
+            row to dividerOfRow[index]
+        }
+    }
+
+    /** 行标题：行内左侧竖排容器的第一个 TextView 文案。 */
+    private fun rowTitle(row: LinearLayout): String {
+        val content = row.getChildAt(0) as? ViewGroup ?: return ""
+        for (i in 0 until content.childCount) {
+            val item = content.getChildAt(i)
+            if (item is TextView) return item.text?.toString().orEmpty()
+        }
+        return ""
+    }
+
+    /** 输入即过滤；关键字为空时全部恢复可见。 */
+    private fun applySearchFilter(rawKeyword: String) {
+        val keyword = rawKeyword.trim()
+        for (section in searchSections) {
+            var anyMatched = false
+            for ((row, divider) in section.rows) {
+                val title = row.tag as? String ?: ""
+                val matched = keyword.isEmpty() || title.contains(keyword, ignoreCase = true)
+                row.visibility = if (matched) View.VISIBLE else View.GONE
+                divider?.visibility = if (matched) View.VISIBLE else View.GONE
+                if (matched) anyMatched = true
+            }
+            section.titleView.visibility = if (anyMatched) View.VISIBLE else View.GONE
+        }
     }
 
     private fun secondsLabel(seconds: Int): String =
@@ -560,5 +713,18 @@ class SettingsFragment : Fragment() {
 
     private companion object {
         const val KEY_LONG_PRESS_LOCK = "long_press_lock_enabled"
+
+        /** 与 [UserPreferences] 共用的 SharedPreferences 文件名。 */
+        const val PREFS_NAME = "user_prefs"
+
+        /** 字体大小档位：1.0 标准 / 1.15 大 / 1.3 特大。播放页只读这一个键。 */
+        const val KEY_FONT_SCALE = "font_scale"
+
+        val FONT_SCALE_OPTIONS = floatArrayOf(1.0f, 1.15f, 1.3f)
+        val FONT_SCALE_LABELS = arrayOf("标准", "大", "特大")
+        const val FONT_SCALE_TITLE = "字体大小"
+
+        /** 连续改设置时的提示节流窗口：只在最后一次写入后提示一次。 */
+        const val SAVED_HINT_DELAY_MS = 800L
     }
 }

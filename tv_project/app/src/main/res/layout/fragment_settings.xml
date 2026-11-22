@@ -17,6 +17,7 @@
     android:overScrollMode="never">
 
     <LinearLayout
+        android:id="@+id/settingsContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:clipToPadding="false"
@@ -51,6 +52,27 @@
                 android:text="@string/playback_setting"
                 android:textAppearance="@style/TextAppearance.TVPlayer.PageTitle" />
         </LinearLayout>
+
+        <!-- ===== 设置项搜索：输入关键字按行标题过滤下面所有设置行 ===== -->
+        <EditText
+            android:id="@+id/etSettingsSearch"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/search_input_bg"
+            android:contentDescription="搜索设置"
+            android:hint="搜索设置"
+            android:importantForAutofill="no"
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:maxLines="1"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:singleLine="true"
+            android:textColor="@color/theme_text_primary"
+            android:textColorHint="@color/theme_text_secondary"
+            android:textSize="14sp" />
 
         <!-- ========================= 播放行为 ========================= -->
         <TextView
@@ -1055,6 +1077,63 @@
 
                     <TextView
                         android:id="@+id/tvAspectRatio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_arrow_right"
+                        app:tint="@color/theme_text_secondary" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/theme_divider" />
+
+                <!-- 字体大小：只缩放竖屏详情区的标题与信息文本（键 user_prefs / font_scale） -->
+                <LinearLayout
+                    android:id="@+id/rowFontScale"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/list_row_min_height"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/card_padding"
+                    android:paddingTop="10dp"
+                    android:paddingEnd="@dimen/card_padding"
+                    android:paddingBottom="10dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:paddingEnd="12dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="字体大小"
+                            android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="竖屏详情区的标题与信息文字，下次进入播放页生效"
+                            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvFontScale"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
