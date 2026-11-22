@@ -61,6 +61,9 @@ class ShortDramaActivity : AppCompatActivity() {
         private const val UI_PREFS = "short_drama_ui"
         private const val KEY_LAST_TAB = "last_tab"
 
+        /** 重建时还原网格滚动位置（配合 pendingScrollPosition） */
+        private const val KEY_SCROLL_POSITION = "scroll_position"
+
         /**
          * 翻页请求的兜底检查延迟：ViewModel 在「已有请求在途 / 已到底」时会直接跳过 loadMore()
          * 而不产生任何状态变化，此时没人会把 footer 的「加载中…」收掉，所以延迟一拍自己核对。
@@ -113,6 +116,19 @@ class ShortDramaActivity : AppCompatActivity() {
      */
     private var pullRefreshing = false
 
+    /**
+     * 网格的 LayoutManager。存成字段是因为「进程被杀后重建」要把滚动位置还原回同一套网格，
+     * 而 setupRecyclerView 里原来是个局部变量，外面拿不到。
+     */
+    private lateinit var gridLayoutManager: GridLayoutManager
+
+    /**
+     * 待恢复的滚动位置（-1 表示没有）。
+     * 为什么不在 onCreate 里直接 scrollToPosition：那时列表还是空的，
+     * 必须等第一次数据到、RecyclerView 真的有了 item 才能定位，所以先记着，提交列表后再用。
+     */
+    private var pendingScrollPosition = RecyclerView.NO_POSITION
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // 夜间模式与其它页一致：必须在 super.onCreate 之前应用
         val nightMode = com.tv.ball.di.Dependencies.configRepository.getNightMode()
@@ -125,6 +141,10 @@ class ShortDramaActivity : AppCompatActivity() {
         binding.btnBack.setOnClickListener { finish() }
         binding.tvFooter.setOnClickListener { retryFromFooter() }
 
+        // 重建（进程被杀 / 屏幕旋转）时把滚动位置捡回来，Tab 记忆由 setupTabs 自己负责
+        pendingScrollPosition = savedInstanceState?.getInt(KEY_SCROLL_POSITION, RecyclerView.NO_POSITION)
+            ?: RecyclerView.NO_POSITION
+
         setupTabs()
         buildHotWordChips()
         setupSearch()
@@ -134,6 +154,30 @@ class ShortDramaActivity : AppCompatActivity() {
 
         // 进页面就按上次选中的分类拉第一页（tab 恢复已经在 setupTabs 里做完，避免重复请求）
         viewModel.loadDramas(categories[currentTabIndex], page = 1, refresh = true)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        // 只有网格有内容时才有位置可存；解析不出来就存 NO_POSITION，恢复端会当成「不需要还原」
+        val first = if (::gridLayoutManager.isInitialized) {
+            gridLayoutManager.findFirstVisibleItemPosition()
+        } else {
+            RecyclerView.NO_POSITION
+        }
+        outState.putInt(KEY_SCROLL_POSITION, first)
+    }
+
+    /**
+     * 数据到位后再还原滚动位置。
+     * 为什么每次提交列表都调：pendingScrollPosition 一旦用掉就会清空，后续翻页/刷新不受影响；
+     * 写成「有值才滚」比在 onCreate 里赌一个延迟更稳。
+     */
+    private fun restoreScrollIfNeeded() {
+        val target = pendingScrollPosition
+        if (target == RecyclerView.NO_POSITION) return
+        if (adapter.itemCount <= target) return
+        pendingScrollPosition = RecyclerView.NO_POSITION
+        binding.recyclerView.scrollToPosition(target)
     }
 
     // ---------------- 列数自适应 ----------------
@@ -372,7 +416,8 @@ class ShortDramaActivity : AppCompatActivity() {
         val columns = resolveGridColumns()
 
         adapter = ShortDramaAdapter { drama -> openDetail(drama) }
-        binding.recyclerView.layoutManager = GridLayoutManager(this, columns)
+        gridLayoutManager = GridLayoutManager(this, columns)
+        binding.recyclerView.layoutManager = gridLayoutManager
         binding.recyclerView.adapter = adapter
         binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -552,7 +597,9 @@ class ShortDramaActivity : AppCompatActivity() {
     private fun observeViewModel() {
         lifecycleScope.launch {
             viewModel.dramas.collect { dramas ->
-                adapter.submitList(dramas)
+                // 用 submitList 的回调（diff 在主线程/后台算完、item 真的进 Adapter 之后才触发），
+                // 否则刚提交时 itemCount 还是 0，scrollToPosition 会被丢掉
+                adapter.submitList(dramas) { restoreScrollIfNeeded() }
                 renderState()
             }
         }
