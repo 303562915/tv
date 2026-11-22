@@ -7,11 +7,13 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.SystemClock
 import android.provider.Settings
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ScrollView
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -38,9 +40,15 @@ class MainActivity : AppCompatActivity() {
 
     private var currentTab: Tab = Tab.HOME
 
+    /** 上一次在首页按返回键的时刻（elapsedRealtime），用于「再按一次退出」的两秒窗口。 */
+    private var lastHomeBackAt = 0L
+
     companion object {
         private const val REQUEST_STORAGE_PERMISSION = 100
         private const val REQUEST_MANAGE_STORAGE = 101
+
+        /** 「再按一次退出」的确认窗口：2 秒。 */
+        private const val EXIT_CONFIRM_WINDOW_MS = 2000L
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,6 +69,7 @@ class MainActivity : AppCompatActivity() {
         loadCloudVideoSources()
 
         setupBottomNav(savedInstanceState == null)
+        setupBackPressHandler()
 
         // 前台自动检查更新：进前台立刻查一次，之后每 30 秒查一次，切后台就停。
         // 查到新版本才挂一条主题化轻提示，同一个版本只提示一次；
@@ -149,6 +158,35 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, fragment)
             .commit()
+    }
+
+    /**
+     * 返回键：非首页 Tab 先回首页；已经在首页时「再按一次退出」，2 秒内连按两次才真的退出。
+     *
+     * 走 [OnBackPressedDispatcher]（`onBackPressed()` 已废弃，别重写它）：
+     * 回调挂在 Activity 的生命周期上，销毁时自动移除，不会重复注册。
+     */
+    private fun setupBackPressHandler() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (currentTab != Tab.HOME) {
+                    // 非首页：先回到首页 Tab，这一次不退出
+                    selectTab(Tab.HOME, fromDock = false)
+                    lastHomeBackAt = 0L
+                    return
+                }
+
+                val now = SystemClock.elapsedRealtime()
+                if (lastHomeBackAt != 0L && now - lastHomeBackAt <= EXIT_CONFIRM_WINDOW_MS) {
+                    // 2 秒内第二次按：退出。先关掉自己，避免退出过程中又被这个回调拦一次
+                    isEnabled = false
+                    finish()
+                } else {
+                    lastHomeBackAt = now
+                    com.tv.ball.util.CustomToast.show(this@MainActivity, "再按一次退出")
+                }
+            }
+        })
     }
 
     /** 供首页「历史」图标调用：打开独立的观看历史页面。 */

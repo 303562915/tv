@@ -20,6 +20,7 @@ import com.tv.ball.presentation.detail.VideoDetailActivity
 import com.tv.ball.presentation.home.VideoListAdapter
 import com.tv.ball.presentation.ranking.RankingAdapter
 import com.tv.ball.data.local.SearchHistoryManager
+import com.tv.ball.util.CustomToast
 import kotlinx.coroutines.launch
 
 class SearchActivity : AppCompatActivity() {
@@ -155,8 +156,7 @@ class SearchActivity : AppCompatActivity() {
         }
         
         binding.btnClearHistory.setOnClickListener {
-            SearchHistoryManager.clearSearchHistory()
-            updateSearchHistory()
+            clearAllHistory()
         }
     }
 
@@ -190,10 +190,38 @@ class SearchActivity : AppCompatActivity() {
                         setSearchText(query)
                         performSearch()
                     }
+                    // 长按删这一条：历史里点一下就搜、长按就删，比给每个 chip 加关闭按钮干净
+                    setOnLongClickListener {
+                        removeHistoryEntry(query)
+                        true
+                    }
                 }
                 binding.chipGroupHistory.addView(chip)
             }
         }
+    }
+
+    /**
+     * 删一条搜索历史。
+     *
+     * SearchHistoryManager 对外只有「整段读 / 整段清 / 单条加到最前」三个口子，
+     * 这次不改它（不在本次可改的文件范围内），所以用现成 API 重建列表：
+     * 倒序回填后顺序与删除前一致，也不去碰 SharedPreferences 的内部格式。
+     * 历史最多 10 条，重建的开销可以忽略。
+     */
+    private fun removeHistoryEntry(keyword: String) {
+        val remaining = SearchHistoryManager.getSearchHistory().filter { it != keyword }
+        SearchHistoryManager.clearSearchHistory()
+        remaining.asReversed().forEach { SearchHistoryManager.addSearchHistory(it) }
+        updateSearchHistory()
+        CustomToast.show(this, "已删除「$keyword」")
+    }
+
+    /** 清空全部搜索历史：整段清 + 收起历史区 + 提示。 */
+    private fun clearAllHistory() {
+        SearchHistoryManager.clearSearchHistory()
+        updateSearchHistory()
+        CustomToast.show(this, "已清空搜索历史")
     }
     
     private fun setupTabs() {
