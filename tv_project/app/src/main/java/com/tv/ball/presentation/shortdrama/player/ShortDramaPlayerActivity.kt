@@ -45,6 +45,9 @@ class ShortDramaPlayerActivity : AppCompatActivity(), ShortDramaPlayerHost {
         /** 点击循环的倍速档位。0.75x 放最后：慢放是少数需求，别挡住常用的加速 */
         private val SPEEDS = floatArrayOf(1.0f, 1.25f, 1.5f, 2.0f, 0.75f)
         private val SPEED_LABELS = arrayOf("1.0x", "1.25x", "1.5x", "2.0x", "0.75x")
+
+        /** 下滑锁定用的倍速：抖音那套快捷手势固定就是 2 倍速，不跟着档位循环走 */
+        private const val LOCKED_SPEED = 2.0f
     }
 
     private lateinit var binding: ActivityShortDramaPlayerBinding
@@ -61,6 +64,14 @@ class ShortDramaPlayerActivity : AppCompatActivity(), ShortDramaPlayerHost {
     private var providerKey = ""
 
     private var speedIndex = 0
+
+    /**
+     * 「下滑松手锁定 2 倍速」是否开启。
+     *
+     * 为什么放在 Activity 而不是 holder：这个状态是跨集的（锁定后滑到下一集仍然是 2 倍速），
+     * 而 holder 会随页面回收销毁；放在 holder 里一滑就丢。
+     */
+    private var speedLocked = false
 
     /** 点赞只做本地交互占位（不落库、不上报），跨页共享，滑走再滑回来数字不归零 */
     private var likes = 0
@@ -265,10 +276,24 @@ class ShortDramaPlayerActivity : AppCompatActivity(), ShortDramaPlayerHost {
     // 倍速 / 换线路 / 选集
     // -----------------------------------------------------------------
 
-    /** 循环切换：1.0x -> 1.25x -> 1.5x -> 2.0x -> 0.75x -> 1.0x */
+    /**
+     * 循环切换：1.0x -> 1.25x -> 1.5x -> 2.0x -> 0.75x -> 1.0x
+     *
+     * 锁定状态下点倍速按钮先解锁再切档：用户主动改倍速，意思就是不要那个强制的 2 倍速了。
+     * 不解锁的话会出现「按了 1.25x 却还是 2 倍速跑」，比不改更让人困惑。
+     */
     private fun cycleSpeed() {
+        if (speedLocked) speedLocked = false
         speedIndex = (speedIndex + 1) % SPEEDS.size
-        val speed = SPEEDS[speedIndex]
+        applySpeedToAll()
+    }
+
+    /** 当前真正生效的倍速：锁定优先于用户选的档位 */
+    private fun effectiveSpeed(): Float = if (speedLocked) LOCKED_SPEED else SPEEDS[speedIndex]
+
+    /** 把生效倍速下发给所有已存在的页面并刷新文案 */
+    private fun applySpeedToAll() {
+        val speed = effectiveSpeed()
         adapter?.forEachHolder { holder ->
             holder.setSpeed(speed)
             holder.refreshLabels()
@@ -287,7 +312,7 @@ class ShortDramaPlayerActivity : AppCompatActivity(), ShortDramaPlayerHost {
         }
 
         // 换线等于整条分集列表都换了。ViewPager2 对「item 数变化」很敏感，
-        // 直接换一个 adapter 比 notifyDataSetChanged 更不容易把旧页面的实例留在播放状态。
+        // 直接换一个 adapter 比整表刷新更不容易把旧页面的实例留在播放状态。
         val newAdapter = ShortDramaPlayerAdapter(this, engine, queue.items)
         adapter?.releaseAll()
         adapter = newAdapter
@@ -330,7 +355,12 @@ class ShortDramaPlayerActivity : AppCompatActivity(), ShortDramaPlayerHost {
         val sheet = ShortDramaEpisodeSheet.newInstance(
             lineName = queue.lineName,
             episodeNums = nums,
-            currentIndex = position
+            currentIndex = position,
+            // 封面 / 剧名 / 总集数一路传进面板：竖列表每行都要用它们拼文案和缩略图，
+            // 面板不持有 Activity 的引用，只能靠参数带过去
+            cover = cover,
+            title = title,
+            totalEpisodes = queue.size
         )
         sheet.onEpisodeClick = { index ->
             binding.viewPager.setCurrentItem(index, true)
@@ -346,6 +376,8 @@ class ShortDramaPlayerActivity : AppCompatActivity(), ShortDramaPlayerHost {
 
     override fun dramaTitle(): String = title
 
+    override fun episodeCover(): String = cover
+
     // 「共 M 集」按全剧集数（各线路里最多的那条）算，不用当前线路的集数：
     // 换到集数更少的线路时这个词不该跟着变小，否则跟详情页、进度记录的口径就打架了
     override fun totalEpisodes(): Int =
@@ -355,9 +387,17 @@ class ShortDramaPlayerActivity : AppCompatActivity(), ShortDramaPlayerHost {
 
     override fun hasOtherLines(): Boolean = ::queue.isInitialized && queue.lines.size > 1
 
-    override fun playbackSpeed(): Float = SPEEDS[speedIndex]
+    override fun playbackSpeed(): Float = effectiveSpeed()
 
     override fun speedLabel(): String = SPEED_LABELS[speedIndex]
+
+    override fun isSpeedLocked(): Boolean = speedLocked
+
+    override fun onToggleSpeedLock(): Boolean {
+        speedLocked = !speedLocked
+        applySpeedToAll()
+        return speedLocked
+    }
 
     override fun likeCount(): Int = likes
 
