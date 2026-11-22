@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  细进度条。为什么手写而不是直接吃 SeekBar 默认样式：
+  默认进度条有 thumb、有 8dp 以上厚度，盖在竖屏画面上太抢眼；这里关掉 thumb（布局里 thumb=@null）、
+  把高度压到 3dp，只留 played / buffered / unplayed 三段，红果那种细线就是这个观感。
+  颜色复用 colors.xml 的 player_progress_* 三色，和横屏播放器保持一致。
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@android:id/background">
+        <shape android:shape="rectangle">
+            <corners android:radius="2dp" />
+            <solid android:color="@color/player_progress_unplayed" />
+        </shape>
+    </item>
+
+    <item android:id="@android:id/secondaryProgress">
+        <clip>
+            <shape android:shape="rectangle">
+                <corners android:radius="2dp" />
+                <solid android:color="@color/player_progress_buffered" />
+            </shape>
+        </clip>
+    </item>
+
+    <item android:id="@android:id/progress">
+        <clip>
+            <shape android:shape="rectangle">
+                <corners android:radius="2dp" />
+                <solid android:color="@color/player_progress_played" />
+            </shape>
+        </clip>
+    </item>
+
+</layer-list>

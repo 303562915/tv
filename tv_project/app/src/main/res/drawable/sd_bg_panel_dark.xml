@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  深色圆角面板：错误提示、线路名小标签、「已看完全集」浮层共用。
+  #CC000000 而不是纯黑：留一点画面透出来，用户能确认自己还在播放页而不是跳到了别的界面。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#CC000000" />
+    <corners android:radius="16dp" />
+</shape>

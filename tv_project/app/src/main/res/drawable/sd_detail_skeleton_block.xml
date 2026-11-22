@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  短剧详情页首屏骨架的占位块。
+  为什么不复用 bg_skeleton_block：那个用的是 radius_xs（4dp），详情页骨架块尺寸大一圈，
+  4dp 圆角看着像直角；这里按需求用 surface_block 底色 + radius_sm（8dp）。
+  颜色/圆角都取既有资源，不动 colors.xml / dimens.xml。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/surface_block" />
+    <corners android:radius="@dimen/radius_sm" />
+</shape>

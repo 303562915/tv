@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  详情页封面底：形状照抄 bg_cover_xl（radius_xl 圆角），只是把 solid 从 transparent 换成
+  surface_block —— bg_cover_xl 是透明底，图片没下来 / 加载失败时整块就是纯白，
+  和下面那块骨架接不上。圆角同时给 clipToOutline 提供 outline。
+  颜色/圆角都取既有资源，不动 colors.xml / dimens.xml。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/surface_block" />
+    <corners android:radius="@dimen/radius_xl" />
+</shape>

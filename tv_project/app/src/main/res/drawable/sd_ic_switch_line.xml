@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  换线路图标：一上一下两个反向箭头，表示「原地换一条源」。
+  不画放大镜/链条之类容易误读的图形，箭头方向本身就是「来回切」的语义。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M3,9H15V6L21,10L15,14V11H3Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M21,15H9V18L3,14L9,10V13H21Z" />
+</vector>

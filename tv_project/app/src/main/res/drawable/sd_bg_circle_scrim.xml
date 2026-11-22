@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  右侧竖排按钮的圆形底。
+  为什么用半透明黑而不是纯色：视频画面亮度不可控，半透明底既能压住图标又不会把画面切出一块死黑。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="#4D000000" />
+</shape>
