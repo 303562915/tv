@@ -45,6 +45,13 @@ class VideoDetailActivity : AppCompatActivity() {
     /** 100+ 集的展开状态；切线路会重置回收起 */
     private var episodesExpanded = false
 
+    /**
+     * 当前已经铺开的集数上限。
+     * 收起时固定 [COLLAPSED_EPISODE_COUNT]；展开后按 [EPISODE_PAGE_SIZE] 一批往上加，
+     * 不再「一点展开就把 100+ 个格子全 inflate 出来」。
+     */
+    private var episodeVisibleLimit = COLLAPSED_EPISODE_COUNT
+
     /** 收藏 / 分享用的稳定 id：detailUrl 的 hash，不再用时间戳（时间戳每次进页面都变，收藏键对不上） */
     private var videoId: Long = 0L
     private var isFavorite = false
@@ -90,7 +97,6 @@ class VideoDetailActivity : AppCompatActivity() {
         setupRecyclerView()
         setupActions()
         observeViewModel()
-        syncFavoriteState()
 
         // Load cover image
         ImageLoader.load(
@@ -109,6 +115,17 @@ class VideoDetailActivity : AppCompatActivity() {
         }
 
         viewModel.loadVideoDetail(detailUrl)
+    }
+
+    /**
+     * 收藏状态的唯一刷新时机：进页面、从播放器返回都会走到 onResume。
+     *
+     * 详情页与播放器各自持有 isFavorite（不做跨 Activity 的实时广播），
+     * 但两边都以 FavoriteDao.isFavorite(videoId) 为唯一真源，返回时重读一次库就不会对不上。
+     */
+    override fun onResume() {
+        super.onResume()
+        syncFavoriteState()
     }
 
     /**
@@ -158,12 +175,23 @@ class VideoDetailActivity : AppCompatActivity() {
         // 分批显示：默认前 60 集，超出时才出现「展开全部」
         binding.tvEpisodeExpand.setOnClickListener {
             episodesExpanded = !episodesExpanded
+            // 展开先给一整批（200 条），之后滚到网格底部附近再继续追加；收起回到 60 条
+            episodeVisibleLimit =
+                if (episodesExpanded) EPISODE_PAGE_SIZE else COLLAPSED_EPISODE_COUNT
             showEpisodesForCurrentGroup()
             if (!episodesExpanded) {
                 // 收起后内容变短，把视图拉回选集卡片顶部，别停在空白上
                 scrollToView(binding.cardEpisodes, smooth = true)
             }
         }
+
+        // 展开后按批追加：RecyclerView 是 wrap_content 铺在 NestedScrollView 里的，它自己不滚，
+        // 所以只能监听外层 ScrollView —— 滚到网格底部附近再追加下一批。
+        // 显式写成 View.OnScrollChangeListener：NestedScrollView 自己也有一个同名同参的重载，
+        // 光用 lambda 会有重载歧义
+        binding.scrollView.setOnScrollChangeListener(
+            View.OnScrollChangeListener { _, _, _, _, _ -> maybeAppendMoreEpisodes() }
+        )
 
         // 设置Tab切换监听
         binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
@@ -172,6 +200,7 @@ class VideoDetailActivity : AppCompatActivity() {
                     currentGroupIndex = position
                     // 切线路回到收起态：换条线路集数完全不同，沿用上一条线路的展开状态没有意义
                     episodesExpanded = false
+                    episodeVisibleLimit = COLLAPSED_EPISODE_COUNT
                     updateSourceTabColors(position)
                     showEpisodesForCurrentGroup()
                 }
@@ -230,7 +259,11 @@ class VideoDetailActivity : AppCompatActivity() {
         }
         lifecycleScope.launch {
             try {
-                if (isFavorite) {
+                // 切换前现查一次库：内存里的 isFavorite 可能已经是旧的（播放器那边刚改过收藏）
+                val favoriteNow = runCatching { favoriteDao.isFavorite(videoId) }
+                    .getOrDefault(isFavorite)
+                isFavorite = favoriteNow
+                if (favoriteNow) {
                     favoriteDao.deleteFavoriteByVideoId(videoId)
                     isFavorite = false
                     android.widget.Toast.makeText(this@VideoDetailActivity, "已取消收藏", android.widget.Toast.LENGTH_SHORT).show()
@@ -411,20 +444,26 @@ class VideoDetailActivity : AppCompatActivity() {
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
     /**
+     * 把 [target] 在滚动内容里的绝对 top 累加出来：卡片套卡片时直接读 `getTop()` 会差一大截。
+     */
+    private fun contentTopOf(target: View): Int {
+        var offset = 0
+        var current: View? = target
+        while (current != null && current !== binding.scrollView) {
+            offset += current.top
+            current = current.parent as? View
+        }
+        return offset
+    }
+
+    /**
      * 让 NestedScrollView 滚到某个 View。
      *
-     * [View.getTop] 只是相对父布局的偏移，卡片套卡片时直接用它算位置会差一大截，
-     * 所以一路上溯到滚动容器把各层 top 累加起来；[extraOffset] 用于「滚到第 N 行」这种行内定位。
+     * [extraOffset] 用于「滚到第 N 行」这种行内定位（见 [contentTopOf]）。
      */
     private fun scrollToView(target: View, smooth: Boolean, extraOffset: Int = 0) {
         binding.scrollView.post {
-            var offset = 0
-            var current: View? = target
-            while (current != null && current !== binding.scrollView) {
-                offset += current.top
-                current = current.parent as? View
-            }
-            val y = (offset + extraOffset).coerceAtLeast(0)
+            val y = (contentTopOf(target) + extraOffset).coerceAtLeast(0)
             if (smooth) {
                 binding.scrollView.smoothScrollTo(0, y)
             } else {
@@ -439,7 +478,8 @@ class VideoDetailActivity : AppCompatActivity() {
      * 显示当前选中线路的剧集。
      *
      * 100+ 集的片源一次全铺，RecyclerView 在 NestedScrollView 里要量到很高，首屏明显卡，
-     * 所以默认只铺前 60 集，多出来的走「展开全部（共 N 集）」。
+     * 所以默认只铺前 60 集；点「展开全部」也不是一次给全部，而是按 [EPISODE_PAGE_SIZE] 一批，
+     * 滚到网格底部附近再追加（见 [maybeAppendMoreEpisodes]）。
      */
     private fun showEpisodesForCurrentGroup() {
         val group = episodeGroups.getOrNull(currentGroupIndex)
@@ -452,16 +492,40 @@ class VideoDetailActivity : AppCompatActivity() {
         }
 
         val needExpand = group.episodes.size > COLLAPSED_EPISODE_COUNT
-        val visible = if (episodesExpanded || !needExpand) {
-            group.episodes
-        } else {
-            group.episodes.take(COLLAPSED_EPISODE_COUNT)
-        }
+        val limit = if (episodesExpanded) episodeVisibleLimit else COLLAPSED_EPISODE_COUNT
+        val visible = if (!needExpand) group.episodes else group.episodes.take(limit)
         episodeAdapter.submitList(visible)
 
         binding.tvEpisodeExpand.visibility = if (needExpand) View.VISIBLE else View.GONE
-        binding.tvEpisodeExpand.text =
-            if (episodesExpanded) "收起" else "展开全部（共${group.episodes.size}集）"
+        binding.tvEpisodeExpand.text = when {
+            !episodesExpanded -> "展开全部（共${group.episodes.size}集）"
+            visible.size < group.episodes.size -> "收起（已显示${visible.size}/${group.episodes.size}集）"
+            else -> "收起"
+        }
+    }
+
+    /**
+     * 展开状态下滚到网格底部附近就追加下一批。
+     *
+     * rvEpisodes 是 wrap_content 铺在 NestedScrollView 里的，RecyclerView 自身不滚动，
+     * 所以「滚到底」只能按网格在滚动内容里的绝对位置判断，不能依赖 RecyclerView 的 onScrolled。
+     * 距底部不足 [EPISODE_LOAD_MORE_THRESHOLD_DP] 时才追加，一次只追加一批。
+     */
+    private fun maybeAppendMoreEpisodes() {
+        if (!episodesExpanded) return
+        val group = episodeGroups.getOrNull(currentGroupIndex) ?: return
+        if (episodeVisibleLimit >= group.episodes.size) return
+        // 网格还没量过高度（0）时直接跳过，等下一次滚动
+        val gridHeight = binding.rvEpisodes.height
+        if (gridHeight <= 0) return
+
+        val gridBottom = contentTopOf(binding.rvEpisodes) + gridHeight
+        val viewportBottom = binding.scrollView.scrollY + binding.scrollView.height
+        if (viewportBottom < gridBottom - dp(EPISODE_LOAD_MORE_THRESHOLD_DP)) return
+
+        episodeVisibleLimit = (episodeVisibleLimit + EPISODE_PAGE_SIZE)
+            .coerceAtMost(group.episodes.size)
+        showEpisodesForCurrentGroup()
     }
 
     /**
@@ -585,9 +649,14 @@ class VideoDetailActivity : AppCompatActivity() {
                 binding.tvLastWatched.text = "上次看到第${position + 1}集"
                 binding.tvLastWatched.visibility = View.VISIBLE
 
-                // 目标集被 60 集上限挡住时先自动展开，否则用户看不到高亮
-                if (!episodesExpanded && position >= COLLAPSED_EPISODE_COUNT) {
+                // 目标集不在已铺开的范围里（60 集以内以外 / 批次还没顶到）就先自动展开，
+                // 否则高亮会落在根本没渲染的位置上。展开后按批追加，这里把批次直接顶到能覆盖目标集
+                if (position >= COLLAPSED_EPISODE_COUNT && position >= episodeVisibleLimit) {
                     episodesExpanded = true
+                    episodeVisibleLimit = maxOf(
+                        EPISODE_PAGE_SIZE,
+                        ((position / EPISODE_PAGE_SIZE) + 1) * EPISODE_PAGE_SIZE
+                    )
                     showEpisodesForCurrentGroup()
                 }
 
@@ -714,6 +783,7 @@ class VideoDetailActivity : AppCompatActivity() {
         }
         currentGroupIndex = 0
         episodesExpanded = false
+        episodeVisibleLimit = COLLAPSED_EPISODE_COUNT
         updateSourceTabColors(currentGroupIndex)
 
         // 显示第一个线路的剧集
@@ -775,6 +845,12 @@ class VideoDetailActivity : AppCompatActivity() {
 
         /** 默认铺多少集，超出走「展开全部」 */
         private const val COLLAPSED_EPISODE_COUNT = 60
+
+        /** 展开后每批追加多少集（与播放器选集弹窗的分批口径一致） */
+        private const val EPISODE_PAGE_SIZE = 200
+
+        /** 距网格底部还剩多少 dp 就追加下一批 */
+        private const val EPISODE_LOAD_MORE_THRESHOLD_DP = 200
 
         /** 采集源没给线路名时的兜底组名 */
         private const val DEFAULT_LINE_NAME = "默认线路"

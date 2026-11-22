@@ -54,9 +54,9 @@
                 android:textAppearance="@style/TextAppearance.TVPlayer.PageTitle" />
         </LinearLayout>
 
-        <!-- ===== 设置项搜索：输入关键字按行标题过滤下面所有设置行 ===== -->
+        <!-- ===== 设置项搜索：输入关键字，按行关键词过滤下面所有设置行（标题栏下方，默认可见） ===== -->
         <EditText
-            android:id="@+id/etSettingsSearch"
+            android:id="@+id/settingsSearchInput"
             android:layout_width="match_parent"
             android:layout_height="44dp"
             android:layout_marginTop="4dp"
@@ -73,7 +73,8 @@
             android:singleLine="true"
             android:textColor="@color/theme_text_primary"
             android:textColorHint="@color/theme_text_secondary"
-            android:textSize="@dimen/text_body" />
+            android:textSize="@dimen/text_caption"
+            android:visibility="visible" />
 
         <!-- ========================= 播放行为 ========================= -->
         <TextView

@@ -3162,16 +3162,45 @@ class VideoPlayerActivity : AppCompatActivity() {
 
         /** 字幕行尾最多显示多少个字符的文件名，超出留尾部（语言标记在尾部，最有用）。 */
         private const val SUBTITLE_NAME_MAX_CHARS = 20
+
+        /** 底部弹窗（bottom_sheet_all_episodes）选集网格列数 */
+        private const val EPISODE_SHEET_COLUMNS = 6
+
+        /** 全屏 / 带 Tab 选集对话框的网格列数 */
+        private const val EPISODE_DIALOG_COLUMNS = 5
+
+        /** 底部弹窗选集网格的封顶高度占屏幕高度的比例（超过才钉死高度，让网格能滚、能触发懒加载） */
+        private const val EPISODE_GRID_MAX_SCREEN_RATIO = 0.6f
+    }
+
+    /**
+     * 收藏键：与详情页 [com.tv.ball.presentation.detail.VideoDetailActivity] 完全同一个口径
+     * —— 详情地址（DETAIL_URL）的 hashCode。
+     *
+     * 详情页传过来的 VIDEO_ID 就是这个值；从历史 / 收藏页等入口进来时可能没有 VIDEO_ID，
+     * 这里用 DETAIL_URL 再算一遍兜底，保证两侧查到、写到的是同一条收藏记录。
+     */
+    private fun favoriteKey(): Long {
+        if (videoId != 0L) return videoId
+        val url = detailUrl?.takeIf { it.isNotBlank() }
+            ?: intent.getStringExtra("DETAIL_URL")?.takeIf { it.isNotBlank() }
+        return url?.hashCode()?.toLong() ?: 0L
     }
 
     private fun toggleFavorite() {
         lifecycleScope.launch {
             val favoriteDao = (application as VideoPlayerApplication).database.favoriteDao()
-            val isFavorite = favoriteDao.isFavorite(videoId)
+            val key = favoriteKey()
+            if (key == 0L) {
+                Toast.makeText(this@VideoPlayerActivity, "数据还没加载完，稍后再试", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            // 每次切换都现查一次库，不用内存里的旧状态：详情页那边可能刚改过
+            val isFavorite = favoriteDao.isFavorite(key)
 
             if (isFavorite) {
                 // 取消收藏
-                favoriteDao.deleteFavoriteByVideoId(videoId)
+                favoriteDao.deleteFavoriteByVideoId(key)
                 Toast.makeText(this@VideoPlayerActivity, "已取消收藏", Toast.LENGTH_SHORT).show()
             } else {
                 // 添加收藏（未分类；要指定分类请长按收藏按钮），字段口径与长按路径共用
@@ -3184,10 +3213,15 @@ class VideoPlayerActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 按库里的真实状态刷收藏图标（唯一真源：FavoriteDao.isFavorite，键为 [favoriteKey]）。
+     * 进播放器、从别的页面返回、切换收藏后都走这里，不做跨 Activity 的实时广播。
+     */
     private fun updateFavoriteIcon() {
         lifecycleScope.launch {
             val favoriteDao = (application as VideoPlayerApplication).database.favoriteDao()
-            val isFavorite = favoriteDao.isFavorite(videoId)
+            val key = favoriteKey()
+            val isFavorite = key != 0L && favoriteDao.isFavorite(key)
 
             // 竖屏详情区的收藏图标
             portraitDetailView?.findViewById<android.widget.ImageView>(R.id.favoriteIcon)?.apply {
@@ -3204,14 +3238,16 @@ class VideoPlayerActivity : AppCompatActivity() {
 
     /**
      * 与 [toggleFavorite] 同口径构造收藏实体，避免两条写入路径字段不一致。
+     * 字段口径与详情页 [com.tv.ball.presentation.detail.VideoDetailActivity] 对齐：
+     * 同一个 [favoriteKey]、空封面存 null（不是空串）。
      * [category] 为分类名，null 表示未分类（沿用 FavoriteEntity 的约定）。
      */
     private fun buildFavoriteEntity(category: String? = null): FavoriteEntity {
         return FavoriteEntity(
-            videoId = videoId,
+            videoId = favoriteKey(),
             title = videoTitle,
-            thumbnailUrl = intent.getStringExtra("THUMBNAIL_URL"),
-            detailUrl = intent.getStringExtra("DETAIL_URL"),
+            thumbnailUrl = intent.getStringExtra("THUMBNAIL_URL")?.takeIf { it.isNotBlank() },
+            detailUrl = detailUrl ?: intent.getStringExtra("DETAIL_URL"),
             episodesJson = intent.getStringExtra("EPISODES_JSON"),
             parsedVideoUrl = currentPlayingUrl.takeIf { it.isNotEmpty() },
             videoHeaders = viewModel.getVideoHeaders()?.let { headers ->
@@ -3236,6 +3272,12 @@ class VideoPlayerActivity : AppCompatActivity() {
     private fun showFavoriteCategoryPicker() {
         lifecycleScope.launch {
             val favoriteDao = (application as VideoPlayerApplication).database.favoriteDao()
+            // 收藏键与详情页同一个口径：键拿不到就别往库里写一条对不上的记录
+            val key = favoriteKey()
+            if (key == 0L) {
+                Toast.makeText(this@VideoPlayerActivity, "数据还没加载完，稍后再试", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
             // Room 的 Flow 取一次快照；查询在 IO 线程，这里不会阻塞主线程
             val categories = try {
                 favoriteDao.getCategories().first()
@@ -3244,9 +3286,9 @@ class VideoPlayerActivity : AppCompatActivity() {
             }
             if (isFinishing || isDestroyed) return@launch
 
-            val isFavorite = favoriteDao.isFavorite(videoId)
+            val isFavorite = favoriteDao.isFavorite(key)
             val currentCategory = if (isFavorite) {
-                favoriteDao.getFavoriteByVideoId(videoId)?.category?.takeIf { it.isNotBlank() }
+                favoriteDao.getFavoriteByVideoId(key)?.category?.takeIf { it.isNotBlank() }
             } else {
                 null
             }
@@ -3283,8 +3325,10 @@ class VideoPlayerActivity : AppCompatActivity() {
     private fun applyFavoriteCategory(category: String?, alreadyFavorite: Boolean) {
         lifecycleScope.launch {
             val favoriteDao = (application as VideoPlayerApplication).database.favoriteDao()
+            val key = favoriteKey()
+            if (key == 0L) return@launch
             if (alreadyFavorite) {
-                favoriteDao.updateCategory(videoId, category)
+                favoriteDao.updateCategory(key, category)
             } else {
                 favoriteDao.insertFavorite(buildFavoriteEntity(category))
             }
@@ -3554,6 +3598,52 @@ class VideoPlayerActivity : AppCompatActivity() {
         }
     }
     
+    /**
+     * 选集网格的懒加载接线：footer 独占一整行（SpanSizeLookup 只认 footer 那一格），
+     * 滚到尾部附近就把「再追加一批」交给适配器（它内部按 200 条一批）。
+     */
+    private fun bindEpisodeLazyLoad(
+        recyclerView: RecyclerView,
+        spanCount: Int,
+        adapter: EpisodeSelectorAdapter
+    ) {
+        (recyclerView.layoutManager as? androidx.recyclerview.widget.GridLayoutManager)
+            ?.spanSizeLookup = adapter.createSpanSizeLookup(spanCount)
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(rv, dx, dy)
+                val layoutManager =
+                    rv.layoutManager as? androidx.recyclerview.widget.GridLayoutManager ?: return
+                adapter.loadMoreIfNeeded(layoutManager.findLastVisibleItemPosition())
+            }
+        })
+    }
+
+    /**
+     * 底部弹窗选集网格高度封顶。
+     *
+     * 布局里是 wrap_content（集数少时贴合内容），但 100+ 集会把 RecyclerView 撑到整屏之外：
+     * 它自己不滚、onScrolled 不回调，懒加载就永远触发不了。首次布局超过屏幕 60% 才钉死高度，
+     * 少集数时外观与原来一致。
+     */
+    private fun capEpisodeGridHeight(recyclerView: RecyclerView) {
+        val maxHeight = (resources.displayMetrics.heightPixels * EPISODE_GRID_MAX_SCREEN_RATIO).toInt()
+        recyclerView.addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
+            override fun onLayoutChange(
+                v: View,
+                left: Int, top: Int, right: Int, bottom: Int,
+                oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int
+            ) {
+                val contentHeight = bottom - top
+                val params = v.layoutParams
+                if (contentHeight > maxHeight && params.height != maxHeight) {
+                    params.height = maxHeight
+                    v.layoutParams = params
+                }
+            }
+        })
+    }
+
     private fun showAllEpisodesBottomSheet() {
         val episodes = playlistManager.getPlaylist()
         if (episodes.isEmpty()) {
@@ -3642,9 +3732,16 @@ class VideoPlayerActivity : AppCompatActivity() {
             }
         }
 
-        // 使用网格布局
-        recyclerView.layoutManager = androidx.recyclerview.widget.GridLayoutManager(this, 6)
+        // 使用网格布局（列数不变，只是数据改成按批提交）
+        recyclerView.layoutManager = androidx.recyclerview.widget.GridLayoutManager(this, EPISODE_SHEET_COLUMNS)
         recyclerView.adapter = bottomSheetAdapter
+
+        // 100+ 集不再一次全铺开：适配器先铺前 200 条，滚到底部附近由 onScrolled 追加下一批，
+        // 尾部「加载中…」footer 独占一行。高度封顶保证网格真的能滚（wrap_content 撑高就滚不动了）
+        bottomSheetAdapter?.let { adapter ->
+            bindEpisodeLazyLoad(recyclerView, EPISODE_SHEET_COLUMNS, adapter)
+            capEpisodeGridHeight(recyclerView)
+        }
 
         // 显示选中的线路的剧集
         if (grouped.isNotEmpty()) {
@@ -3814,8 +3911,8 @@ class VideoPlayerActivity : AppCompatActivity() {
             .setView(dialogView)
             .create()
 
-        // 使用网格布局，5列，间距更紧凑
-        val gridLayoutManager = androidx.recyclerview.widget.GridLayoutManager(this, 5)
+        // 使用网格布局，5列，间距更紧凑（数据按 200 条一批提交，滚动追加）
+        val gridLayoutManager = androidx.recyclerview.widget.GridLayoutManager(this, EPISODE_DIALOG_COLUMNS)
         recyclerView.layoutManager = gridLayoutManager
         
         // 添加ItemDecoration来控制间距
@@ -3847,6 +3944,9 @@ class VideoPlayerActivity : AppCompatActivity() {
 
         dialogEpisodeAdapter?.submitList(displayEpisodes)
         recyclerView.adapter = dialogEpisodeAdapter
+
+        // 方案与底部弹窗一致：适配器内部按 200 条分批，滚到底部附近追加下一批
+        dialogEpisodeAdapter?.let { bindEpisodeLazyLoad(recyclerView, EPISODE_DIALOG_COLUMNS, it) }
         
         // 添加关闭按钮监听
         val closeButton = dialogView.findViewById<android.widget.ImageButton>(com.tv.ball.R.id.closeButton)
@@ -3882,8 +3982,8 @@ class VideoPlayerActivity : AppCompatActivity() {
             .setView(dialogView)
             .create()
 
-        // 使用网格布局，5列，间距更紧凑
-        val gridLayoutManager = androidx.recyclerview.widget.GridLayoutManager(this, 5)
+        // 使用网格布局，5列，间距更紧凑（数据按 200 条一批提交，滚动追加）
+        val gridLayoutManager = androidx.recyclerview.widget.GridLayoutManager(this, EPISODE_DIALOG_COLUMNS)
         recyclerView.layoutManager = gridLayoutManager
         
         // 添加ItemDecoration来控制间距
@@ -3938,6 +4038,9 @@ class VideoPlayerActivity : AppCompatActivity() {
         showEpisodesForGroup(currentGroupIndex)
         tabLayout.selectTab(tabLayout.getTabAt(currentGroupIndex))
         recyclerView.adapter = dialogEpisodeAdapter
+
+        // 切线路会重新 submitList（自动回到第一批），滚到底部附近再追加下一批
+        dialogEpisodeAdapter?.let { bindEpisodeLazyLoad(recyclerView, EPISODE_DIALOG_COLUMNS, it) }
 
         // Tab切换监听
         tabLayout.addOnTabSelectedListener(object : com.google.android.material.tabs.TabLayout.OnTabSelectedListener {
@@ -5706,6 +5809,9 @@ class VideoPlayerActivity : AppCompatActivity() {
             val bufferedSeconds = it.bufferedPosition / 1000
             plog("📊 [后台播放器] 已缓冲: ${bufferedSeconds}秒")
         }
+
+        // 收藏状态以库为准：从详情页 / 收藏页返回时重新读一次，和详情页口径保持一致（不做实时广播）
+        updateFavoriteIcon()
     }
     
     override fun onStop() {

@@ -83,7 +83,8 @@ class SettingsFragment : Fragment() {
         setupChoiceRows()
         setupResetRow()
         setupCacheRow()
-        // 搜索先收集行标题，再刷显示值：顺序反了会把「清理缓存（12.4 MB）」当成 tag
+        // 搜索索引要在刷显示值之前建：关键字取的是布局里的文案，
+        // 先建再刷，避免把「清理缓存（12.4 MB）」这种随体积变的数字写进关键字
         setupSearch()
         refreshAll()
         refreshCacheUsage()
@@ -101,7 +102,11 @@ class SettingsFragment : Fragment() {
         super.onDestroyView()
         // 页面已经销毁就别再把延迟的「已保存」弹出来
         savedHandler.removeCallbacks(savedHintRunnable)
-        searchSections.clear()
+        // 视图已经没了，索引里存的都是这一份布局的 View，一起丢掉
+        searchIndex.clear()
+        searchDividers.clear()
+        searchCards.clear()
+        searchSectionTitles.clear()
         _binding = null
     }
 
@@ -619,86 +624,182 @@ class SettingsFragment : Fragment() {
     // 搜索
     // ============================================================
 
-    /** 一个小节：标题 + 小节内每一行（行 + 紧跟其后的 1dp 分隔线）。 */
-    private class SearchSection(val titleView: View, val rows: List<Pair<View, View?>>)
+    /**
+     * 设置项索引：一行一条 [Triple]，进页面时建一次，之后每次输入只查这张表，不再遍历布局。
+     *
+     * - `first`  = 行容器（卡片里那一行 LinearLayout；整张卡就是一行时取卡里那一行）
+     * - `second` = 该行的关键字（行 `tag` + 行内所有 TextView 文案拼起来，索引时一次算好）
+     * - `third`  = 这一行所属的小节标题 View
+     */
+    private val searchIndex = mutableListOf<Triple<View, String, View>>()
 
-    private val searchSections = mutableListOf<SearchSection>()
+    /** 行 → 紧跟其后的 1dp 分隔线：行被过滤掉时线也收起来，免得留下孤零零一条横线。 */
+    private val searchDividers = HashMap<View, View>()
+
+    /** 卡片 → 卡片内的行：一行都没命中时整张卡收起，不留空白卡片。 */
+    private val searchCards = LinkedHashMap<View, MutableList<View>>()
+
+    /** 页面上所有小节标题，过滤时按「本小节有没有命中行」统一刷。 */
+    private val searchSectionTitles = mutableListOf<View>()
 
     /**
-     * 顶部搜索框：按行标题过滤下方设置行。
+     * 顶部搜索框：按行关键字过滤下方设置行。
      *
-     * 行标题就是行内左侧竖排容器的第一个 TextView 文案，一次性写进行的 `tag`；
-     * 输入时用 `contains(keyword, ignoreCase = true)` 匹配：不匹配的行 `GONE`、匹配的保留，
-     * 小节标题只要本小节还有命中行就保持可见，整节没命中才隐藏。清空关键字全部恢复。
-     * 这里只动 visibility，不碰任何点击监听。
+     * 索引在进页面时建一次（[buildSearchIndex]）；输入时用
+     * `keywords.contains(query, ignoreCase = true)` 逐行决定 VISIBLE / GONE：
+     * 关键字为空 → 全部恢复（含小节标题、卡片、分隔线）；
+     * 非空 → 小节标题只在本小节至少一行命中时才显示。
+     * 这里只动 visibility，不碰任何点击监听：「清理缓存」「字体大小」两行的点击与显示值逻辑原样保留。
      */
     private fun setupSearch() {
         val b = _binding ?: return
-        searchSections.clear()
-        var pendingTitle: View? = null
-        for (i in 0 until b.settingsContainer.childCount) {
-            val child = b.settingsContainer.getChildAt(i)
-            // 搜索框本身也是 TextView，别把它当成小节标题收进来
-            if (child === b.etSettingsSearch) continue
-            when (child) {
-                is MaterialCardView -> {
-                    // 每张小节卡片归到它上面最近的一个小节标题
-                    pendingTitle?.let { searchSections.add(SearchSection(it, collectRows(child))) }
-                    pendingTitle = null
-                }
-                is TextView -> pendingTitle = child
-            }
-        }
-        b.etSettingsSearch.addTextChangedListener(object : TextWatcher {
+        buildSearchIndex()
+        b.settingsSearchInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
             override fun afterTextChanged(s: Editable?) = applySearchFilter(s?.toString().orEmpty())
         })
+        // 视图重建时 EditText 会自己恢复上次的输入：这时不会再触发 TextWatcher，
+        // 所以按当前文案先过滤一次，避免「框里有字、列表却是全量」的错位
+        applySearchFilter(b.settingsSearchInput.text?.toString().orEmpty())
     }
 
-    /** 卡片里的每一行都打上「标题文案」tag，并把紧随其后的分隔线一起带出来。 */
-    private fun collectRows(card: MaterialCardView): List<Pair<View, View?>> {
-        val column = card.getChildAt(0) as? LinearLayout ?: return emptyList()
-        val rowViews = mutableListOf<LinearLayout>()
-        val dividerOfRow = mutableMapOf<Int, View>()
+    /**
+     * 建索引：沿 `settingsContainer` 的直接子节点顺序走一遍（卡片内部再往里一层）。
+     *
+     * 布局是固定两段式：小节标题 TextView 紧跟一张 MaterialCardView。
+     * 卡片内部有两种形状，都要收：
+     * 1. 竖排容器里一串「行 LinearLayout + 1dp 分隔线」（播放行为 / 跳过 / 缓冲 / 画面 / 本地视频）；
+     * 2. 整张卡就是一行（存储 / 恢复默认）。
+     */
+    private fun buildSearchIndex() {
+        val b = _binding ?: return
+        searchIndex.clear()
+        searchDividers.clear()
+        searchCards.clear()
+        searchSectionTitles.clear()
+
+        val container = b.settingsContainer
+        var sectionTitle: View? = null
+        for (i in 0 until container.childCount) {
+            val child = container.getChildAt(i)
+            // 搜索框自己也是 TextView 子类，别把它当成小节标题收进来
+            if (child === b.settingsSearchInput) continue
+            when (child) {
+                is MaterialCardView -> {
+                    // 每张卡片归到它上面最近那个小节标题
+                    val title = sectionTitle
+                    if (title != null) collectCardRows(child, title)
+                }
+                is TextView -> {
+                    sectionTitle = child
+                    searchSectionTitles.add(child)
+                }
+            }
+        }
+    }
+
+    /** 一张卡片的行全部进索引；分隔线挂到它上面那一行，卡片本身记进 [searchCards]。 */
+    private fun collectCardRows(card: MaterialCardView, sectionTitle: View) {
+        val rows = cardRows(card)
+        if (rows.isEmpty()) return
+        searchCards[card] = rows
+        for (row in rows) {
+            searchIndex.add(Triple(row, rowKeywords(row), sectionTitle))
+        }
+    }
+
+    /** 卡片里的行：竖排容器拆开逐行取；整张卡就是一行时直接取卡里那一行。 */
+    private fun cardRows(card: MaterialCardView): MutableList<View> {
+        val rows = mutableListOf<View>()
+        if (card.childCount == 0) return rows
+        val top = card.getChildAt(0)
+        if (top is LinearLayout && top.orientation == LinearLayout.VERTICAL && hasRowChildren(top)) {
+            var lastRow: View? = null
+            for (i in 0 until top.childCount) {
+                val item = top.getChildAt(i)
+                if (item is LinearLayout) {
+                    rows.add(item)
+                    lastRow = item
+                } else {
+                    // 分隔线归到它上面那一行：那一行被过滤掉时线也跟着收起来
+                    val owner = lastRow
+                    if (owner != null) searchDividers[owner] = item
+                }
+            }
+            return rows
+        }
+        // 整张卡就是一行（存储 / 恢复默认）
+        rows.add(top)
+        return rows
+    }
+
+    /** 竖排容器里是否真的装着行（行本身也是 LinearLayout）。 */
+    private fun hasRowChildren(column: LinearLayout): Boolean {
         for (i in 0 until column.childCount) {
-            val item = column.getChildAt(i)
-            if (item is LinearLayout) {
-                rowViews.add(item)
-            } else if (rowViews.isNotEmpty()) {
-                // 分隔线归到它上面那一行：那一行被过滤掉时线也跟着收起来
-                dividerOfRow[rowViews.size - 1] = item
-            }
+            if (column.getChildAt(i) is LinearLayout) return true
         }
-        return rowViews.mapIndexed { index, row ->
-            row.tag = rowTitle(row)
-            row to dividerOfRow[index]
+        return false
+    }
+
+    /**
+     * 一行的关键字：先取布局给行写的 `tag`（没有就只用文案），
+     * 再把行内**所有** TextView 的文案按出现顺序拼进来 —— 第一个是标题，
+     * 说明文字、右侧当前值（倍速「1.0x」、缓存「12.4 MB」）都算，输入任一关键词都搜得到。
+     */
+    private fun rowKeywords(row: View): String {
+        val builder = StringBuilder()
+        val tag = row.tag as? String
+        if (!tag.isNullOrBlank()) builder.append(tag).append(' ')
+        appendRowTexts(row, builder)
+        return builder.toString()
+    }
+
+    /** 递归收 [view] 之下所有 TextView 的文案（行、竖排容器、开关都按这个走）。 */
+    private fun appendRowTexts(view: View, builder: StringBuilder) {
+        if (view is TextView) {
+            val text = view.text?.toString()
+            if (!text.isNullOrBlank()) builder.append(text).append(' ')
+            return
+        }
+        if (view !is ViewGroup) return
+        for (i in 0 until view.childCount) {
+            appendRowTexts(view.getChildAt(i), builder)
         }
     }
 
-    /** 行标题：行内左侧竖排容器的第一个 TextView 文案。 */
-    private fun rowTitle(row: LinearLayout): String {
-        val content = row.getChildAt(0) as? ViewGroup ?: return ""
-        for (i in 0 until content.childCount) {
-            val item = content.getChildAt(i)
-            if (item is TextView) return item.text?.toString().orEmpty()
-        }
-        return ""
-    }
-
-    /** 输入即过滤；关键字为空时全部恢复可见。 */
+    /**
+     * 输入即过滤：关键字为空全部恢复（含小节标题、卡片、分隔线）；
+     * 否则每行按 `keywords.contains(query, ignoreCase = true)` 决定 VISIBLE / GONE。
+     *
+     * 只改 visibility：清理缓存行的点击、字体大小行的点击、本地视频「排除的后缀」行的
+     * alpha / isEnabled 都不受影响。
+     */
     private fun applySearchFilter(rawKeyword: String) {
-        val keyword = rawKeyword.trim()
-        for (section in searchSections) {
-            var anyMatched = false
-            for ((row, divider) in section.rows) {
-                val title = row.tag as? String ?: ""
-                val matched = keyword.isEmpty() || title.contains(keyword, ignoreCase = true)
-                row.visibility = if (matched) View.VISIBLE else View.GONE
-                divider?.visibility = if (matched) View.VISIBLE else View.GONE
-                if (matched) anyMatched = true
+        val query = rawKeyword.trim()
+        val visibleRows = HashSet<View>()
+        val visibleSections = HashSet<View>()
+
+        for ((row, keywords, sectionTitle) in searchIndex) {
+            val matched = query.isEmpty() || keywords.contains(query, ignoreCase = true)
+            row.visibility = if (matched) View.VISIBLE else View.GONE
+            if (matched) {
+                visibleRows.add(row)
+                visibleSections.add(sectionTitle)
             }
-            section.titleView.visibility = if (anyMatched) View.VISIBLE else View.GONE
+        }
+        // 分隔线跟着上面那一行走
+        for ((row, divider) in searchDividers) {
+            divider.visibility = if (visibleRows.contains(row)) View.VISIBLE else View.GONE
+        }
+        // 卡片里一行都没命中就收起整张卡
+        for ((card, rows) in searchCards) {
+            val anyVisible = rows.any { visibleRows.contains(it) }
+            card.visibility = if (anyVisible) View.VISIBLE else View.GONE
+        }
+        // 小节标题：本小节至少一行可见时才显示
+        for (title in searchSectionTitles) {
+            title.visibility = if (visibleSections.contains(title)) View.VISIBLE else View.GONE
         }
     }
 

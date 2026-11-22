@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/episodeCard"
     style="@style/Widget.TVPlayer.Card"
     android:layout_width="match_parent"
@@ -22,7 +23,11 @@
         android:gravity="center"
         android:padding="2dp">
 
-        <!-- VIP 标签 -->
+        <!--
+            VIP 角标：**永不显示**（本仓库选集格子没有任何 VIP 判定逻辑）。
+            视图保留只为不让 ViewBinding 缺字段（EpisodeSelectorAdapter 仍会引用 vipBadge 并强制 GONE），
+            真机上一律 gone；tools:visibility 只是让 IDE 预览也按 gone 画，避免误以为它还会出现。
+        -->
         <TextView
             android:id="@+id/vipBadge"
             android:layout_width="wrap_content"
@@ -37,7 +42,8 @@
             android:paddingTop="1dp"
             android:paddingBottom="1dp"
             android:layout_marginTop="1dp"
-            android:visibility="gone" />
+            android:visibility="gone"
+            tools:visibility="gone" />
 
         <!-- 集数 -->
         <TextView
