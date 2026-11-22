@@ -197,6 +197,10 @@ class VideoPlayerActivity : AppCompatActivity() {
         // 加载播放器布局
         binding = ActivityVideoPlayerBinding.inflate(layoutInflater)
 
+        // 根容器底色跟随主题（深色模式下不再写死白色，避免进页面闪白）
+        // theme_background 已分日夜（values / values-night），取不到主题色时也安全
+        val playerBackgroundColor = ContextCompat.getColor(this, R.color.theme_background)
+
         // 创建 ScrollView 作为根容器
         scrollView = androidx.core.widget.NestedScrollView(this).apply {
             layoutParams = ViewGroup.LayoutParams(
@@ -205,7 +209,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             )
             isFillViewport = true
             id = View.generateViewId()
-            setBackgroundColor(android.graphics.Color.WHITE) // 设置白色背景（默认普通模式）
+            setBackgroundColor(playerBackgroundColor) // 跟随主题（深色模式下是暗色，不再写死白色）
         }
 
         // 创建垂直 LinearLayout
@@ -319,13 +323,23 @@ class VideoPlayerActivity : AppCompatActivity() {
             }
 
             override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-                // 隐藏手势提示
+                // 单击：只切控制栏可见性。
+                // 标准写法要求单击走 onSingleTapConfirmed（GestureDetector 会等双击超时 300ms 后才回调），
+                // 而不是 onSingleTapUp —— 用 onSingleTapUp 会让双击的第一下立刻触发控制栏切换。
+                // 这里再叠一层时间戳兜底：双击刚发生过的 300ms 窗口内一律不执行单击逻辑。
+                if (android.os.SystemClock.elapsedRealtime() < doubleTapGuardUntilMs) {
+                    return true
+                }
+                android.util.Log.d("VideoPlayer", "手势 onSingleTapConfirmed: 切换控制栏")
                 hideGestureHint()
                 toggleControlsVisibility()
                 return true
             }
 
             override fun onDoubleTap(e: MotionEvent): Boolean {
+                // 双击：只切播放/暂停，并封锁 300ms 内的单击逻辑
+                doubleTapGuardUntilMs = android.os.SystemClock.elapsedRealtime() + doubleTapWindowMs
+                android.util.Log.d("VideoPlayer", "手势 onDoubleTap: isLocked=$isLocked")
                 if (!isLocked) {
                     togglePlayPause()
                 }
@@ -581,6 +595,21 @@ class VideoPlayerActivity : AppCompatActivity() {
     private var thumbnailHeight = 0
     private var isThumbnailGenerating = false  // 是否正在生成缩略图
     private val fineAdjustDelayMs = 1000L // 1秒后切换到细调模式
+
+    // ===== 单击 / 双击互斥：双击后 300ms 内不再执行单击逻辑 =====
+    private val doubleTapWindowMs = 300L
+    private var doubleTapGuardUntilMs = 0L
+
+    // ===== 播放状态叠加层（结束卡片 / 缓冲小字）=====
+    private var playerStateWatcherAttached = false
+    private var endedCardToken = 0
+    private var endedCardActionsBound = false
+
+    // ===== 音量/亮度到边反馈 =====
+    private val boundaryHintHandler = Handler(Looper.getMainLooper())
+    private var boundaryHintRestoreRunnable: Runnable? = null
+    private var boundaryHintOriginalText = ""
+    private val boundaryHintRestoreDelayMs = 600L
     
     private fun handleProgressGesture(deltaX: Float) {
         val duration = exoPlayerManager.getDuration()
@@ -607,7 +636,8 @@ class VideoPlayerActivity : AppCompatActivity() {
         // 显示亮度进度条（使用亮度图标）
         showVolumeOrBrightnessProgress(
             iconRes = R.drawable.ic_brightness,
-            percent = (newBrightness * 100).toInt()
+            percent = (newBrightness * 100).toInt(),
+            label = "亮度"
         )
     }
 
@@ -630,13 +660,13 @@ class VideoPlayerActivity : AppCompatActivity() {
         } else {
             R.drawable.dkplayer_ic_action_volume_up
         }
-        showVolumeOrBrightnessProgress(iconRes, (newVolume * 100).toInt())
+        showVolumeOrBrightnessProgress(iconRes, (newVolume * 100).toInt(), "音量")
     }
     
     /**
      * 显示音量/亮度进度条（顶部，图标+进度条）
      */
-    private fun showVolumeOrBrightnessProgress(iconRes: Int, percent: Int) {
+    private fun showVolumeOrBrightnessProgress(iconRes: Int, percent: Int, label: String = "") {
         // 设置图标
         binding.volumeBrightnessIcon.setImageResource(iconRes)
         
@@ -715,6 +745,9 @@ class VideoPlayerActivity : AppCompatActivity() {
         // 设置进度
         binding.volumeBrightnessProgressBar.progress = percent
         binding.volumeBrightnessLayout.visibility = View.VISIBLE
+
+        // 边界反馈：0% / 100% 时在提示末尾追加「（已到最小）/（已到最大）」，600ms 后恢复
+        showVolumeBrightnessBoundaryHint(label, percent)
     }
     
     /**
@@ -1031,6 +1064,9 @@ class VideoPlayerActivity : AppCompatActivity() {
         // 隐藏音量/亮度提示
         binding.gestureHintLayout.visibility = View.GONE
         binding.volumeBrightnessLayout.visibility = View.GONE
+
+        // 顺带收起到边反馈文字（0% / 100% 的「已到最大 / 已到最小」）
+        hideVolumeBrightnessBoundaryHint()
         
         // 隐藏长按加速提示
         hideLongPressSpeedHint()
@@ -1186,9 +1222,15 @@ class VideoPlayerActivity : AppCompatActivity() {
         val player = exoPlayerManager.initializePlayer()
         binding.playerView.player = player
 
+        // 直接盯播放器状态机：ExoPlayerManager 只在「自动连播 + 结束行为=自动下一集」时才把
+        // STATE_ENDED 转成 onEnded()，所以结束卡片/缓冲小字必须自己再挂一条无条件通道。
+        attachPlaybackStateWatcher(player)
+
         exoPlayerManager.setPlayerListener(object : ExoPlayerManager.PlayerListener {
             override fun onReady() {
                 binding.loadingView.visibility = View.GONE
+                hideBufferingHint()
+                hidePlaybackEndedCard()
                 viewModel.updateDuration(exoPlayerManager.getDuration())
                 updatePlayPauseButton()
                 
@@ -1243,7 +1285,8 @@ class VideoPlayerActivity : AppCompatActivity() {
             override fun onBuffering() {
                 // 显示缓冲提示（无论是否正在播放）
                 runOnUiThread {
-                    binding.loadingView.visibility = View.VISIBLE
+                    // 复用已有 loadingView，只在其下方补一行「缓冲中…」，不新增全屏遮罩
+                    showBufferingHint()
                     updateStatusText("缓冲中")
                 }
             }
@@ -1251,7 +1294,11 @@ class VideoPlayerActivity : AppCompatActivity() {
             override fun onEnded() {
                 android.util.Log.d("VideoPlayer", "播放结束 onEnded 被调用")
                 viewModel.savePlaybackProgress()
-                
+
+                // 结束卡片：「已播完」+ 重播 / 下一集（保留原有自动连播逻辑，卡片只是叠加层）
+                hideBufferingHint()
+                showPlaybackEndedCard()
+
                 // 隐藏下一集提示
                 hideNextEpisodeHint()
                 
@@ -1286,6 +1333,9 @@ class VideoPlayerActivity : AppCompatActivity() {
             }
             
             override fun onError(message: String) {
+                // 出错时不该继续挂缓冲小字与结束卡片
+                hideBufferingHint()
+                hidePlaybackEndedCard()
                 viewModel.onPlaybackError(message)
                 
                 // 如果有多个解析链接，自动尝试下一个
@@ -1339,6 +1389,9 @@ class VideoPlayerActivity : AppCompatActivity() {
                 // 只更新 UI
                 if (isPlaying) {
                     binding.loadingView.visibility = View.GONE
+                    hideBufferingHint()
+                    // 重新起播（含结束卡片里的「重播」）时收掉结束卡片
+                    hidePlaybackEndedCard()
                     
                     // 播放开始后，延迟3秒启动线路测试（避免影响初始播放）
                     if (!hasStartedRouteTest) {
@@ -4663,6 +4716,207 @@ class VideoPlayerActivity : AppCompatActivity() {
         }
     }
     
+    // ===================== 播放状态叠加层（结束卡片 / 缓冲小字） =====================
+
+    /**
+     * 直接把监听挂到当前 ExoPlayer 的状态机上。
+     * 之所以不能只依赖 onEnded()：ExoPlayerManager 只在「自动连播 + 结束行为=自动下一集」时
+     * 才把 STATE_ENDED 转发给界面，关掉自动连播的场景必须靠这条通道拿到 STATE_ENDED。
+     */
+    private fun attachPlaybackStateWatcher(player: com.google.android.exoplayer2.Player?) {
+        if (player == null || playerStateWatcherAttached) return
+        playerStateWatcherAttached = true
+        player.addListener(object : com.google.android.exoplayer2.Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                if (isFinishing || isDestroyed) return
+                runOnUiThread { handlePlayerStateOverlays(playbackState) }
+            }
+        })
+    }
+
+    /** STATE_BUFFERING / READY / ENDED / IDLE 时统一收放缓冲小字与结束卡片 */
+    private fun handlePlayerStateOverlays(playbackState: Int) {
+        when (playbackState) {
+            Player.STATE_BUFFERING -> {
+                showBufferingHint()
+                hidePlaybackEndedCard()
+            }
+            Player.STATE_READY -> {
+                hideBufferingHint()
+                hidePlaybackEndedCard()
+            }
+            Player.STATE_ENDED -> {
+                hideBufferingHint()
+                showPlaybackEndedCard()
+            }
+            Player.STATE_IDLE -> {
+                hideBufferingHint()
+                hidePlaybackEndedCard()
+            }
+        }
+    }
+
+    /** 缓冲小字：复用已有 loadingView，只在其下方显示「缓冲中…」 */
+    private fun showBufferingHint() {
+        try {
+            binding.loadingView.visibility = View.VISIBLE
+            binding.bufferingHintText.visibility = View.VISIBLE
+        } catch (e: Exception) {
+            android.util.Log.w("VideoPlayer", "显示缓冲小字失败: ${e.message}")
+        }
+    }
+
+    private fun hideBufferingHint() {
+        try {
+            binding.bufferingHintText.visibility = View.GONE
+        } catch (e: Exception) {
+            android.util.Log.w("VideoPlayer", "隐藏缓冲小字失败: ${e.message}")
+        }
+    }
+
+    /**
+     * 播放结束卡片：400ms 后再显示。
+     * 延迟的作用是避免「自动连播下一集」已经起播时卡片闪一下；期间只要离开 ENDED 就会被取消。
+     */
+    private fun showPlaybackEndedCard() {
+        val token = ++endedCardToken
+        try {
+            binding.playbackEndedCard.postDelayed({
+                val currentPlayer = exoPlayerManager.getPlayer()
+                val stillEnded = currentPlayer != null &&
+                    currentPlayer.playbackState == Player.STATE_ENDED
+                if (token == endedCardToken && stillEnded) {
+                    bindEndedCardActions()
+                    binding.endedNextEpisodeButton.visibility =
+                        if (hasNextEpisodeForEndCard()) View.VISIBLE else View.GONE
+                    binding.playbackEndedCard.apply {
+                        visibility = View.VISIBLE
+                        alpha = 0f
+                        animate().alpha(1f).setDuration(180).start()
+                    }
+                }
+            }, 400L)
+        } catch (e: Exception) {
+            android.util.Log.w("VideoPlayer", "显示播放结束卡片失败: ${e.message}")
+        }
+    }
+
+    /** 离开 ENDED（READY / BUFFERING / IDLE / 出错 / 重播）时卡片置 GONE */
+    private fun hidePlaybackEndedCard() {
+        endedCardToken++
+        try {
+            binding.playbackEndedCard.animate().cancel()
+            binding.playbackEndedCard.visibility = View.GONE
+        } catch (e: Exception) {
+            android.util.Log.w("VideoPlayer", "隐藏播放结束卡片失败: ${e.message}")
+        }
+    }
+
+    /** 卡片上的两个按钮只绑一次点击 */
+    private fun bindEndedCardActions() {
+        if (endedCardActionsBound) return
+        endedCardActionsBound = true
+        binding.endedReplayButton.setOnClickListener { replayCurrentVideo() }
+        binding.endedNextEpisodeButton.setOnClickListener { playNextFromEndedCard() }
+    }
+
+    private fun replayCurrentVideo() {
+        android.util.Log.d("VideoPlayer", "结束卡片：重播")
+        hidePlaybackEndedCard()
+        try {
+            exoPlayerManager.seekTo(0)
+            exoPlayerManager.play()
+            updatePlayPauseButton()
+        } catch (e: Exception) {
+            android.util.Log.e("VideoPlayer", "重播失败: ${e.message}")
+        }
+    }
+
+    private fun playNextFromEndedCard() {
+        android.util.Log.d("VideoPlayer", "结束卡片：播放下一集")
+        hidePlaybackEndedCard()
+        if (!hasNextEpisodeForEndCard()) return
+        if (intent.getBooleanExtra("IS_SHORT_DRAMA", false)) {
+            playNextEpisodeImmediately()
+        } else {
+            playNextEpisode()
+        }
+    }
+
+    /** 结束卡片里「下一集」是否可用（短剧看短剧队列，普通视频看播放列表） */
+    private fun hasNextEpisodeForEndCard(): Boolean {
+        return try {
+            if (intent.getBooleanExtra("IS_SHORT_DRAMA", false)) {
+                shortDramaManager.hasNextEpisode() || playlistManager.hasNext()
+            } else {
+                playlistManager.hasNext()
+            }
+        } catch (e: Exception) {
+            android.util.Log.w("VideoPlayer", "判断是否有下一集失败: ${e.message}")
+            false
+        }
+    }
+
+    // ===================== 音量/亮度手势到边界反馈 =====================
+
+    /**
+     * 音量/亮度拉到 0% 或 100% 时，在提示文字末尾追加「（已到最小）/（已到最大）」，
+     * 600ms 后恢复原提示文本并收起。
+     */
+    private fun showVolumeBrightnessBoundaryHint(label: String, percent: Int) {
+        try {
+            val percentClamped = percent.coerceIn(0, 100)
+            val atMax = percentClamped >= 100
+            val atMin = percentClamped <= 0
+            if (!atMax && !atMin) {
+                hideVolumeBrightnessBoundaryHint()
+                return
+            }
+            val borderView = binding.volumeBrightnessBoundaryText
+            if (borderView.visibility != View.VISIBLE) {
+                boundaryHintOriginalText = borderView.text?.toString() ?: ""
+            }
+            borderView.text = "$label $percentClamped%" +
+                if (atMax) "（已到最大）" else "（已到最小）"
+            if (borderView.visibility != View.VISIBLE) {
+                borderView.alpha = 0f
+                borderView.visibility = View.VISIBLE
+                borderView.animate().alpha(1f).setDuration(120).start()
+            }
+
+            boundaryHintRestoreRunnable?.let { boundaryHintHandler.removeCallbacks(it) }
+            val restoreRunnable = Runnable {
+                try {
+                    borderView.animate().cancel()
+                    // 恢复原提示文本
+                    borderView.text = boundaryHintOriginalText
+                    borderView.visibility = View.GONE
+                } catch (e: Exception) {
+                    android.util.Log.w("VideoPlayer", "恢复边界提示失败: ${e.message}")
+                }
+            }
+            boundaryHintRestoreRunnable = restoreRunnable
+            boundaryHintHandler.postDelayed(restoreRunnable, boundaryHintRestoreDelayMs)
+        } catch (e: Exception) {
+            android.util.Log.w("VideoPlayer", "显示音量/亮度边界提示失败: ${e.message}")
+        }
+    }
+
+    private fun hideVolumeBrightnessBoundaryHint() {
+        try {
+            boundaryHintRestoreRunnable?.let { boundaryHintHandler.removeCallbacks(it) }
+            boundaryHintRestoreRunnable = null
+            val borderView = binding.volumeBrightnessBoundaryText
+            if (borderView.visibility == View.VISIBLE) {
+                borderView.animate().cancel()
+                borderView.text = boundaryHintOriginalText
+                borderView.visibility = View.GONE
+            }
+        } catch (e: Exception) {
+            android.util.Log.w("VideoPlayer", "隐藏音量/亮度边界提示失败: ${e.message}")
+        }
+    }
+
     private fun toggleControlsVisibility() {
         if (isControlsVisible) {
             hideControlsWithAnimation()

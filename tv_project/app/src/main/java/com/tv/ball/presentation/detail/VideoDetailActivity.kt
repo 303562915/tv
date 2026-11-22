@@ -36,8 +36,11 @@ class VideoDetailActivity : AppCompatActivity() {
         binding = ActivityVideoDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
         
-        // 设置透明沉浸式状态栏
-        com.tv.ball.utils.StatusBarUtils.setupTransparentStatusBar(this)
+        // 设置透明沉浸式状态栏：深色模式下改用浅色图标，避免深底配深色图标看不见
+        val isNightMode = (resources.configuration.uiMode and
+            android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+        com.tv.ball.utils.StatusBarUtils.setupTransparentStatusBar(this, lightStatusBar = !isNightMode)
         
         val videoIdOrUrl = intent.getStringExtra("DETAIL_URL") 
             ?: intent.getStringExtra("videoUrl") ?: ""
