@@ -600,8 +600,9 @@ class SettingsFragment : Fragment() {
 
     /** 当前字号档位，坏值退回 1.0（标准）。 */
     private fun getFontScale(): Float {
-        val stored = fontPrefs().getFloat(KEY_FONT_SCALE, FONT_SCALE_OPTIONS[0])
-        return if (stored in FONT_SCALE_OPTIONS) stored else FONT_SCALE_OPTIONS[0]
+        val stored = fontPrefs().getFloat(KEY_FONT_SCALE, FONT_SCALE_OPTIONS.first())
+        // FloatArray 没有 contains 扩展，逐项比一次更直观
+        return if (FONT_SCALE_OPTIONS.any { it == stored }) stored else FONT_SCALE_OPTIONS.first()
     }
 
     private fun setFontScale(scale: Float) {
