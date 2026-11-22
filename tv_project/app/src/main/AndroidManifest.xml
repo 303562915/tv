@@ -144,6 +144,13 @@
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
+        <!-- 功能中心外壳：94 个 feature 页面的唯一入口，缺这条注册它们就全部不可达 -->
+        <activity
+            android:name=".presentation.feature.FeatureRegistryActivity"
+            android:label="全部功能"
+            android:exported="false"
+            android:theme="@style/Theme.影视星球" />
+
         <activity
             android:name=".feature.f001.F001Activity"
             android:label="@string/f001_title"

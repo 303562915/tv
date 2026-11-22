@@ -20,6 +20,7 @@ import com.tv.ball.R
 import com.tv.ball.databinding.FragmentProfileBinding
 import com.tv.ball.feature.f086.F086Activity
 import com.tv.ball.presentation.favorite.FavoriteActivity
+import com.tv.ball.presentation.feature.FeatureRegistryActivity
 import com.tv.ball.presentation.history.HistoryActivity
 import com.tv.ball.presentation.localvideo.LocalVideoActivity
 import com.tv.ball.presentation.settings.SettingsFragment
@@ -111,7 +112,11 @@ class ProfileFragment : Fragment() {
                 .addToBackStack(null)
                 .commit()
         }
-        binding.rowClearCache.setOnClickListener { clearCache() }
+        binding.rowClearCache.setOnClickListener { confirmClearCache() }
+        // 94 个功能模块的唯一入口：外壳里自己处理主题/状态栏，这里只负责把 start() 接出来。
+        binding.rowAllFeatures.setOnClickListener {
+            FeatureRegistryActivity.start(requireContext())
+        }
         binding.rowAbout.setOnClickListener {
             startActivity(Intent(requireContext(), F086Activity::class.java))
         }
@@ -189,8 +194,26 @@ class ProfileFragment : Fragment() {
     private var cacheClearing = false
 
     /**
-     * 点「清理缓存」直接清，不弹确认框。
+     * 点「清理缓存」先弹确认框，确认后才真清。
      *
+     * 文案里的体积复用行内右侧那串数字的同一套统计口径（[cacheSize] + [formatSize]），
+     * 两个地方永远一致，用户不会看到「行上写 12 MB、框里写 0 B」。
+     */
+    private fun confirmClearCache() {
+        if (cacheClearing) return
+        if (_binding == null || !isAdded) return
+        val context = requireContext()
+        AlertDialog.Builder(context)
+            .setTitle(R.string.clear_cache)
+            .setMessage(
+                "当前缓存 ${formatSize(cacheSize(context))}，清理后不影响本地视频、收藏与历史。"
+            )
+            .setPositiveButton("清理") { _, _ -> clearCache() }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+
+    /**
      * 只清 cache 目录（cacheDir + externalCacheDir）的**内容**——系统级临时目录，丢了会被重建成空目录；
      * 不碰 files / databases / 下载目录，避免误删用户数据。
      * 统计和删除都在 [Dispatchers.IO] 上跑，大缓存不卡 UI；清完回主线程刷新体积再提示。

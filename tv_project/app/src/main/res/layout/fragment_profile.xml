@@ -3,7 +3,7 @@
   「我的」页 · 对照 unicanta SettingsScreen（Compose）一比一翻译成 View 体系。
 
   结构：SettingsGroup（无标题 · UserCard）→ 分组标题「内容」+ 卡片（3 行 + 2 条 hairline）
-        → 分组标题「设置」+ 卡片（3 行 + 2 条 hairline）→ 无标题卡片（关于本应用单行）。
+        → 分组标题「设置」+ 卡片（4 行 + 3 条 hairline）→ 无标题卡片（关于本应用单行）。
   几何逐条取 unicanta SettingsItem.kt 的常量（GroupInset 13 / GroupCorner 12 /
   RowPaddingH 14 / RowPaddingV 9 / RowMinHeight 44 / LeadingIcon 19 / LeadingGap 11 /
   TrailingIcon 18），组与组之间统一用 group_gap 的 View 占位，不再用 marginTop 混写。
@@ -13,7 +13,7 @@
   2) 每行统一 background=@drawable/bg_profile_row，焦点/按下由该 selector 给底色，
      禁止再叠 ?attr/selectableItemBackground；
   3) 遥控器焦点链 profileUserCard → rowLocalVideo → rowFavorite → rowHistory →
-     rowTheme → rowSettings → rowClearCache → rowAbout，首行 nextFocusUp=@null、
+     rowTheme → rowSettings → rowClearCache → rowAllFeatures → rowAbout，首行 nextFocusUp=@null、
      末行 nextFocusDown=@null；非交互 TextView / hairline / 间隔一律不聚焦；
   4) 关于/更新/渠道全部已搬到 F086 关于页，本页只留一个「关于本应用」入口，
      旧版的「检查更新」行与 about_desc 说明文字不再出现。
@@ -23,22 +23,35 @@
   两份 inset 都不会有人替本页扣。
 
   但本页**不要** XML 的窗口 inset 自适应属性：它会把导航栏底部 inset
-  一起塞进 paddingBottom，而本页是全项目唯一不可滚动的固定高度页，
+  一起塞进 paddingBottom，而本页曾经是全项目唯一不可滚动的固定高度页，
   矮屏 + 三键导航时最后一张卡会被裁掉 30~43dp。
+  现在「设置」卡多了一行「全部功能」，再固定高度就一定会裁，所以整页改成 NestedScrollView
+  （遥控器焦点落到下方行时会自动把它滚进可视区），inset 仍然只作用在外层可视区上。
   所以 inset 改成代码级精确处理（ProfileFragment.applyWindowInsets）：
   只把 top 加到 paddingTop（= 状态栏 inset + 8dp），bottom 固定 12dp，left/right 取 inset 原值。
   这里的 paddingTop=8dp 只是视觉间距基准值，运行时代码会覆盖成 状态栏 inset + 8dp。
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/theme_background"
-    android:orientation="vertical"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:focusable="false"
     android:paddingStart="0dp"
     android:paddingTop="8dp"
     android:paddingEnd="0dp"
     android:paddingBottom="12dp">
+
+    <!--
+      内容根：整页可滚动后，高度交给内容自己撑开（wrap_content），不再 match_parent。
+      padding 全部留在外层 NestedScrollView 上，这样代码设的 insets 作用在可视区而不是内容区。
+    -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
     <!-- 页面标题（SettingsScreen 的 ScreenTopBar 标题位置） -->
     <TextView
@@ -492,7 +505,7 @@
                 android:focusable="true"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/row_min_height"
-                android:nextFocusDown="@id/rowAbout"
+                android:nextFocusDown="@id/rowAllFeatures"
                 android:nextFocusUp="@id/rowSettings"
                 android:orientation="horizontal"
                 android:paddingStart="@dimen/row_padding_h"
@@ -527,6 +540,80 @@
                     android:textColor="@color/theme_text_secondary"
                     android:textSize="13sp" />
             </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/hairline"
+                android:layout_marginStart="@dimen/row_padding_h"
+                android:layout_marginEnd="@dimen/row_padding_h"
+                android:background="@color/theme_divider" />
+
+            <!--
+              全部功能：94 个功能模块（feature/f001..f096）的唯一入口，
+              落地页是外壳 FeatureRegistryActivity，本行只负责把 start() 接出来。
+              没图标可用时不新造 drawable，沿用已有的 ic_video_library（功能库语义）。
+            -->
+            <LinearLayout
+                android:id="@+id/rowAllFeatures"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_profile_row"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/row_min_height"
+                android:nextFocusDown="@id/rowAbout"
+                android:nextFocusUp="@id/rowClearCache"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/row_padding_h"
+                android:paddingTop="@dimen/row_padding_v"
+                android:paddingEnd="@dimen/row_padding_h"
+                android:paddingBottom="@dimen/row_padding_v">
+
+                <ImageView
+                    android:layout_width="@dimen/row_leading_icon"
+                    android:layout_height="@dimen/row_leading_icon"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_video_library"
+                    app:tint="@color/theme_primary" />
+
+                <!-- 标题 + 副标题两行，沿用关于行的纵向容器写法 -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/row_leading_gap"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="全部功能"
+                        android:textColor="@color/theme_text_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="1dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="94 项进阶能力，字幕、投屏、媒体服务"
+                        android:textColor="@color/theme_text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="@dimen/row_trailing_icon"
+                    android:layout_height="@dimen/row_trailing_icon"
+                    android:layout_marginStart="8dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_arrow_right"
+                    app:tint="@color/theme_text_secondary" />
+            </LinearLayout>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
@@ -555,7 +642,7 @@
             android:gravity="center_vertical"
             android:minHeight="@dimen/row_min_height"
             android:nextFocusDown="@null"
-            android:nextFocusUp="@id/rowClearCache"
+            android:nextFocusUp="@id/rowAllFeatures"
             android:orientation="horizontal"
             android:paddingStart="@dimen/row_padding_h"
             android:paddingTop="@dimen/row_padding_v"
@@ -608,3 +695,4 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 </LinearLayout>
+</androidx.core.widget.NestedScrollView>

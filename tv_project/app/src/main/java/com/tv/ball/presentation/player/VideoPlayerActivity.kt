@@ -17,6 +17,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Rational
 import android.view.GestureDetector
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -116,6 +117,7 @@ class VideoPlayerActivity : AppCompatActivity() {
     private var isLocked = false
     private var isSeeking = false
     private var hasSkippedIntro = false
+    private var hasAutoHiddenSkipIntro = false  // 「跳过片头」是否已自动收起过，防止轮询每 200ms 把按钮重新弹出来
     private var hasSkippedAd = false  // 片头广告是否已跳过（每个视频只跳一次）
     
     // 长按倍速相关
@@ -360,11 +362,19 @@ class VideoPlayerActivity : AppCompatActivity() {
             }
 
             override fun onDoubleTap(e: MotionEvent): Boolean {
-                // 双击：只切播放/暂停，并封锁 300ms 内的单击逻辑
+                // 双击：左右两段改成快退/快进，只剩中间 20% 是播放/暂停，并封锁 300ms 内的单击逻辑
                 doubleTapGuardUntilMs = android.os.SystemClock.elapsedRealtime() + doubleTapWindowMs
-                plog("手势 onDoubleTap: isLocked=$isLocked")
+                plog("手势 onDoubleTap: isLocked=$isLocked, x=${e.x}, screenWidth=$screenWidth")
                 if (!isLocked) {
-                    togglePlayPause()
+                    val stepMs = seekStepSec * 1000L
+                    when {
+                        // 左侧 40%：快退
+                        e.x < screenWidth * 0.4f -> seekByRemoteStep(-stepMs)
+                        // 右侧 40%：快进
+                        e.x > screenWidth * 0.6f -> seekByRemoteStep(stepMs)
+                        // 中间 20%：维持双击切播放/暂停的老手感
+                        else -> togglePlayPause()
+                    }
                 }
                 return true
             }
@@ -1543,6 +1553,116 @@ class VideoPlayerActivity : AppCompatActivity() {
                 resetHideControlsTimer()
             }
         })
+
+        // 「跳过片头」按钮：只在这里绑一次。
+        // 原来写在 checkSkipIntro() 里，而那条链路 200ms 跑一次，等于每隔一帧就换一个新 listener；
+        // 绑一次后点击时再读当前状态，避免每次换 listener 带来的无谓对象创建。
+        binding.skipIntroButton.setOnClickListener {
+            exoPlayerManager.seekTo(skipIntroManager.getSkipIntroPosition())
+            hasSkippedIntro = true
+            binding.skipIntroButton.visibility = View.GONE
+            skipIntroHandler.removeCallbacksAndMessages(null)
+        }
+    }
+
+    // ===== 遥控器 / 实体按键 =====
+
+    /**
+     * 遥控器快进快退步长（秒）：跟播放设置里的「快进快退步长」保持一致，读不到就按 10 秒算。
+     */
+    private val seekStepSec: Int
+        get() = runCatching {
+            com.tv.ball.di.Dependencies.userPreferences.getPlaybackSeekStepSec()
+        }.getOrDefault(10).coerceIn(1, 600)
+
+    /**
+     * 弹层打开时把按键还给系统：画中画只有一个暂停/继续按钮，底部弹窗与选集对话框自己管焦点，
+     * 这里拦住方向键会把弹层里的导航吃掉。本页唯一会挂的 fragment 就是各类弹窗，直接按有无 fragment 判断。
+     */
+    private fun shouldPassKeyToOverlay(): Boolean {
+        if (isInPictureInPictureMode) return true
+        return supportFragmentManager.fragments.any { it.isAdded }
+    }
+
+    /**
+     * 遥控器快进 / 快退，每次按固定步长走一格。
+     *
+     * @return true 表示按键已消费；false 表示播放器没就绪、这一步没做，交给系统继续处理。
+     */
+    private fun seekByRemoteStep(deltaMs: Long): Boolean {
+        // 与手势 seek 同一套前置判断：没准备好的时候 seek 出去也不会有画面反馈
+        if (!exoPlayerManager.isPlayerReady()) return false
+        val duration = exoPlayerManager.getDuration()
+        if (duration <= 0) return false
+
+        val target = (exoPlayerManager.getCurrentPosition() + deltaMs).coerceIn(0L, duration)
+        // 起点/终点没变（已在片头或片尾）就不做无意义的 seek
+        if (target == exoPlayerManager.getCurrentPosition()) return false
+
+        exoPlayerManager.seekTo(target)
+
+        // 复用已有的浮层做反馈：中央时间浮层 + 手势文字提示，跟手势拖动是同一套视觉；在线视频不会触发缩略图预览
+        showProgressSeekHint(target, duration)
+        val seconds = (abs(deltaMs) / 1000).coerceAtLeast(1)
+        showGestureHint(if (deltaMs > 0) "快进 $seconds 秒" else "快退 $seconds 秒")
+        hideGestureHintHandler.removeCallbacks(hideGestureHintRunnable)
+        hideGestureHintHandler.postDelayed(hideGestureHintRunnable, 800)
+        // 刚拖完进度别立刻把控制栏收掉
+        resetHideControlsTimer()
+        return true
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        plog("onKeyDown: keyCode=$keyCode, isLocked=$isLocked")
+
+        // 锁屏态只放行返回键：遥控器很容易误触，其它键一并吞掉
+        if (isLocked && keyCode != KeyEvent.KEYCODE_BACK) {
+            return true
+        }
+
+        // 控制栏可见且焦点在进度条上：左右键要让 SeekBar 自己走，否则遥控器拖不了进度
+        if (isControlsVisible && binding.progressSeekBar.hasFocus() &&
+            (keyCode == KeyEvent.KEYCODE_DPAD_LEFT || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT)
+        ) {
+            return super.onKeyDown(keyCode, event)
+        }
+
+        // 弹层 / 画中画期间不拦按键
+        if (shouldPassKeyToOverlay()) {
+            return super.onKeyDown(keyCode, event)
+        }
+
+        val stepMs = seekStepSec * 1000L
+        return when (keyCode) {
+            KeyEvent.KEYCODE_DPAD_LEFT -> seekByRemoteStep(-stepMs)
+            KeyEvent.KEYCODE_DPAD_RIGHT -> seekByRemoteStep(stepMs)
+            // 没有单独的上/下一集反向方法，退而用媒体快退/快进键当快退/快进用
+            KeyEvent.KEYCODE_MEDIA_REWIND -> seekByRemoteStep(-stepMs)
+            KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> seekByRemoteStep(stepMs)
+            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
+                toggleControlsVisibility()
+                true
+            }
+            KeyEvent.KEYCODE_DPAD_UP -> {
+                showPlayerMenu()
+                true
+            }
+            KeyEvent.KEYCODE_DPAD_DOWN -> {
+                showEpisodeDialog()
+                true
+            }
+            KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
+            KeyEvent.KEYCODE_MEDIA_PLAY,
+            KeyEvent.KEYCODE_MEDIA_PAUSE -> {
+                togglePlayPause()
+                true
+            }
+            KeyEvent.KEYCODE_MEDIA_NEXT -> {
+                playNextEpisode()
+                true
+            }
+            else -> super.onKeyDown(keyCode, event)
+        }
     }
 
     /**
@@ -3831,6 +3951,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             
             binding.titleText.text = "$videoTitle - ${episode.name}"
             hasSkippedIntro = false
+            hasAutoHiddenSkipIntro = false  // 新的一集：跳过片头按钮重新允许自动弹出
             hasSkippedAd = false  // 新的一集：片头广告重新可跳
             hasStartedRouteTest = false  // 重置线路测试标志
             
@@ -4649,26 +4770,19 @@ class VideoPlayerActivity : AppCompatActivity() {
         val duration = exoPlayerManager.getDuration()
 
         if (!hasSkippedIntro && skipIntroManager.shouldSkipIntro(currentPosition, false)) {
+            // hasWatched 固定传 false 是有意的：老用户重看同一集时不该被自动跳过片头，避免把正片开头也跳掉
             // 显示跳过片头按钮，5秒后自动消失
-            if (binding.skipIntroButton.visibility != View.VISIBLE) {
+            if (!hasAutoHiddenSkipIntro && binding.skipIntroButton.visibility != View.VISIBLE) {
                 binding.skipIntroButton.visibility = View.VISIBLE
                 binding.skipIntroButton.text = "跳过片头"
-                
-                // 5秒后自动隐藏按钮
+
+                // 5秒后只收起按钮：用户没点过就不算已跳过，否则这里一置 true 就再也不会提示了
                 skipIntroHandler.postDelayed({
-                    if (!hasSkippedIntro) {
-                        binding.skipIntroButton.visibility = View.GONE
-                        hasSkippedIntro = true
-                    }
+                    binding.skipIntroButton.visibility = View.GONE
+                    hasAutoHiddenSkipIntro = true
                 }, 5000)
             }
-
-            binding.skipIntroButton.setOnClickListener {
-                exoPlayerManager.seekTo(skipIntroManager.getSkipIntroPosition())
-                hasSkippedIntro = true
-                binding.skipIntroButton.visibility = View.GONE
-                skipIntroHandler.removeCallbacksAndMessages(null)
-            }
+            // listener 在 setupControls() 里只绑一次，这里不再重复注册（本方法 200ms 跑一次）
         } else if (currentPosition > skipIntroManager.getIntroDuration()) {
             // 已经过了片头时间，自动隐藏按钮
             binding.skipIntroButton.visibility = View.GONE
@@ -5343,6 +5457,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         
         binding.titleText.text = "$videoTitle - ${episode.name}"
         hasSkippedIntro = false
+        hasAutoHiddenSkipIntro = false  // 新的一集：跳过片头按钮重新允许自动弹出
         hasSkippedAd = false  // 新的一集：片头广告重新可跳
         
         // 检查是否有预加载的URL（先取局部快照，避免字段状态被并发改写导致非空断言失效）
