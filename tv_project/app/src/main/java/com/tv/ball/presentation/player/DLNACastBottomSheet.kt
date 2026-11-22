@@ -20,11 +20,8 @@ import com.tv.ball.databinding.ItemDlnaDeviceBinding
 import com.tv.ball.domain.dlna.DLNADevice
 import com.tv.ball.domain.dlna.DLNAManager
 import com.tv.ball.domain.webserver.LocalWebServer
-import com.tv.ball.domain.lan.LanDeviceScanner
 import com.tv.ball.domain.lan.LanNetworkGate
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -38,9 +35,6 @@ class DLNACastBottomSheet : BottomSheetDialogFragment() {
 
     private lateinit var dlnaManager: DLNAManager
     private lateinit var deviceAdapter: DLNADeviceAdapter
-    private lateinit var lanScanner: LanDeviceScanner
-    private lateinit var lanDeviceAdapter: LanDeviceAdapter
-    private var lanScanJob: Job? = null
     private var webServer: LocalWebServer? = null
 
     private var videoUrl: String = ""
@@ -64,10 +58,8 @@ class DLNACastBottomSheet : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         dlnaManager = DLNAManager(requireContext())
-        lanScanner = LanDeviceScanner(requireContext())
         setupViews()
         startDiscovery()
-        startLanScan()
     }
 
     private fun setupViews() {
@@ -81,19 +73,9 @@ class DLNACastBottomSheet : BottomSheetDialogFragment() {
             adapter = deviceAdapter
         }
 
-        // 设置局域网电脑设备列表
-        lanDeviceAdapter = LanDeviceAdapter { device ->
-            openVideoOnComputer(device)
-        }
-        binding.lanDeviceRecyclerView.apply {
-            layoutManager = LinearLayoutManager(requireContext())
-            adapter = lanDeviceAdapter
-        }
-
         // 刷新按钮
         binding.refreshButton.setOnClickListener {
             startDiscovery()
-            startLanScan()
         }
 
         // 复制视频地址
@@ -148,172 +130,6 @@ class DLNACastBottomSheet : BottomSheetDialogFragment() {
                 deviceAdapter.submitList(devices)
             }
         }
-    }
-
-    /**
-     * 扫描局域网内的电脑设备
-     * 刷新时会先取消上一轮扫描，避免旧回调把已经清空的列表又填回去
-     */
-    private fun startLanScan() {
-        val current = _binding ?: return
-        lanScanJob?.cancel()
-        lanDeviceAdapter.submitList(emptyList())
-
-        // 没连 WiFi / 以太网就一台都不扫：移动数据下拿到的 10.x 地址属于运营商网络，
-        // 扫出去只会把别人的设备列成"局域网电脑"
-        if (LanNetworkGate.findLanAddress(requireContext()) == null) {
-            current.lanSubtitleText.text = "未连接 WiFi"
-            current.lanEmptyText.text = "当前未连接 WiFi / 以太网，局域网内没有可访问的电脑"
-            current.lanEmptyStateLayout.visibility = View.VISIBLE
-            current.lanDeviceRecyclerView.visibility = View.GONE
-            return
-        }
-
-        current.lanSubtitleText.text = "正在扫描局域网电脑..."
-        current.lanEmptyStateLayout.visibility = View.GONE
-        current.lanDeviceRecyclerView.visibility = View.VISIBLE
-
-        val foundDevices = mutableListOf<LanDeviceScanner.LanDevice>()
-
-        lanScanJob = viewLifecycleOwner.lifecycleScope.launch {
-            val state = try {
-                lanScanner.scanDevices { device ->
-                    val view = _binding ?: return@scanDevices
-                    if (foundDevices.any { it.ipAddress == device.ipAddress }) return@scanDevices
-                    foundDevices.add(device)
-                    lanDeviceAdapter.submitList(foundDevices.toList())
-                    view.lanSubtitleText.text = "发现 ${foundDevices.size} 台电脑"
-                }
-            } catch (e: CancellationException) {
-                throw e
-            }
-
-            val view = _binding ?: return@launch
-            when {
-                state == LanDeviceScanner.LanScanState.NOT_ON_LAN -> {
-                    view.lanSubtitleText.text = "未连接 WiFi"
-                    view.lanEmptyText.text = "当前未连接 WiFi / 以太网，局域网内没有可访问的电脑"
-                    view.lanEmptyStateLayout.visibility = View.VISIBLE
-                    view.lanDeviceRecyclerView.visibility = View.GONE
-                }
-                foundDevices.isEmpty() -> {
-                    view.lanSubtitleText.text = "未发现电脑设备"
-                    view.lanEmptyText.text = "未发现电脑设备，确认电脑与手机在同一个 WiFi 下"
-                    view.lanEmptyStateLayout.visibility = View.VISIBLE
-                    view.lanDeviceRecyclerView.visibility = View.GONE
-                }
-                else -> {
-                    view.lanSubtitleText.text = "发现 ${foundDevices.size} 台电脑"
-                    view.lanEmptyStateLayout.visibility = View.GONE
-                    view.lanDeviceRecyclerView.visibility = View.VISIBLE
-                }
-            }
-        }
-    }
-
-    /**
-     * 在电脑上打开视频
-     */
-    private fun openVideoOnComputer(device: LanDeviceScanner.LanDevice) {
-        if (videoUrl.isEmpty()) {
-            Toast.makeText(requireContext(), "视频地址为空", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        lifecycleScope.launch {
-            try {
-                // 设置远程代理地址
-                LocalWebServer.REMOTE_PROXY_URL = "https://2trip.xyz/spsp/video-proxy.php"
-
-                // 启动本地服务器
-                val success = withContext(Dispatchers.IO) {
-                    webServer = LocalWebServer.getInstance(requireContext())
-
-                    // 先尝试停止旧服务器
-                    try {
-                        webServer?.stopServer()
-                    } catch (e: Exception) {
-                        // 忽略停止失败的错误
-                    }
-
-                    // 如果有剧集列表，使用带剧集的方法
-                    if (episodes.isNotEmpty()) {
-                        webServer?.setVideoInfoWithEpisodes(
-                            videoUrl, videoTitle, episodes, currentEpisodeIndex, videoReferer, videoUserAgent
-                        )
-                    } else {
-                        webServer?.setVideoInfo(videoUrl, videoTitle, videoReferer, videoUserAgent)
-                    }
-                    webServer?.startServer() ?: false
-                }
-
-                if (success) {
-                    val playUrl = webServer?.getAccessUrl() ?: ""
-
-                    // 显示提示对话框
-                    showComputerPlayDialog(device, playUrl)
-                } else {
-                    Toast.makeText(requireContext(), "启动服务器失败", Toast.LENGTH_SHORT).show()
-                }
-            } catch (e: Exception) {
-                Toast.makeText(requireContext(), "操作失败: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    /**
-     * 显示电脑播放对话框
-     */
-    private fun showComputerPlayDialog(device: LanDeviceScanner.LanDevice, playUrl: String) {
-        val isM3u8 = videoUrl.contains(".m3u8", ignoreCase = true)
-        val videoType = if (isM3u8) "M3U8" else "MP4"
-        val proxyMode = if (LocalWebServer.REMOTE_PROXY_URL.isNotEmpty()) "远程代理（可关闭手机）" else "本地代理（需保持运行）"
-
-        val message = """
-            ✅ 服务器已启动成功！
-
-            📱 设备: ${device.name}
-            🌐 IP: ${device.ipAddress}
-            🎬 视频类型: $videoType
-            🔧 代理模式: $proxyMode
-
-            🌐 请在该电脑的浏览器中打开：
-            $playUrl
-
-            ⏱️ 立即可访问，无需等待
-
-            💡 功能：
-            ✅ 自动添加请求头
-            ✅ 支持选集和自动下一集
-            ✅ 流量走电脑网络
-            ${if (LocalWebServer.REMOTE_PROXY_URL.isNotEmpty()) "✅ 手机可以关闭" else "⚠️ 手机需保持运行"}
-
-            🔍 调试：访问 $playUrl/debug 查看状态
-        """.trimIndent()
-
-        Toast.makeText(requireContext(), "✅ 服务器已就绪，可以访问了！", Toast.LENGTH_SHORT).show()
-
-        val dialog = android.app.AlertDialog.Builder(requireContext())
-            .setTitle("✅ 服务器已就绪")
-            .setMessage(message)
-            .setPositiveButton("复制地址") { _, _ ->
-                val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                val clip = ClipData.newPlainText("播放地址", playUrl)
-                clipboard.setPrimaryClip(clip)
-                Toast.makeText(requireContext(), "✅ 地址已复制，可以粘贴到浏览器了", Toast.LENGTH_LONG).show()
-            }
-            .setNegativeButton("关闭", null)
-            .setNeutralButton("远程链接") { _, _ ->
-                // 生成远程播放链接
-                val remoteUrl = generateRemotePlayUrl()
-                val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                val clip = ClipData.newPlainText("远程播放地址", remoteUrl)
-                clipboard.setPrimaryClip(clip)
-                Toast.makeText(requireContext(), "✅ 远程链接已复制（无需手机）", Toast.LENGTH_LONG).show()
-            }
-            .create()
-
-        dialog.show()
     }
 
     /**
@@ -474,8 +290,6 @@ class DLNACastBottomSheet : BottomSheetDialogFragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        lanScanJob?.cancel()
-        lanScanJob = null
         dlnaManager.stopDiscovery()
         // 注意：不在这里停止服务器，因为用户可能还在使用
         _binding = null
@@ -558,48 +372,3 @@ class DLNADeviceAdapter(
     }
 }
 
-/**
- * 局域网电脑设备列表适配器
- */
-class LanDeviceAdapter(
-    private val onDeviceClick: (LanDeviceScanner.LanDevice) -> Unit
-) : RecyclerView.Adapter<LanDeviceAdapter.DeviceViewHolder>() {
-
-    private val devices = mutableListOf<LanDeviceScanner.LanDevice>()
-
-    fun submitList(newDevices: List<LanDeviceScanner.LanDevice>) {
-        devices.clear()
-        devices.addAll(newDevices)
-        notifyDataSetChanged()
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DeviceViewHolder {
-        val binding = ItemDlnaDeviceBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
-        )
-        return DeviceViewHolder(binding)
-    }
-
-    override fun onBindViewHolder(holder: DeviceViewHolder, position: Int) {
-        holder.bind(devices[position])
-    }
-
-    override fun getItemCount(): Int = devices.size
-
-    inner class DeviceViewHolder(
-        private val binding: ItemDlnaDeviceBinding
-    ) : RecyclerView.ViewHolder(binding.root) {
-
-        fun bind(device: LanDeviceScanner.LanDevice) {
-            binding.deviceName.text = device.name
-            binding.deviceIp.text = device.ipAddress
-            binding.deviceIcon.setImageResource(R.drawable.ic_computer)
-
-            binding.root.setOnClickListener {
-                onDeviceClick(device)
-            }
-        }
-    }
-}
