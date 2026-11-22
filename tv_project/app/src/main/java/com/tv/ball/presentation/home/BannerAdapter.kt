@@ -17,7 +17,9 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 
 class BannerAdapter(
-    private var items: List<BannerItem> = emptyList()
+    private var items: List<BannerItem> = emptyList(),
+    /** 点击回调：由宿主决定跳哪（首页走详情页，和列表项同一条路径）；不传则保持原来的外链行为 */
+    private val onItemClick: ((BannerItem) -> Unit)? = null
 ) : RecyclerView.Adapter<BannerAdapter.BannerViewHolder>() {
 
     init {
@@ -84,6 +86,13 @@ class BannerAdapter(
                 // 统计点击次数
                 if (item.id > 0) {
                     recordBannerClick(item.id)
+                }
+
+                // 宿主给了回调就交给宿主（首页 → 详情页）；没有 detailUrl 时宿主侧自己会忽略
+                val clickHandler = onItemClick
+                if (clickHandler != null) {
+                    clickHandler(item)
+                    return@setOnClickListener
                 }
 
                 if (item.linkUrl.startsWith("http://") || item.linkUrl.startsWith("https://")) {

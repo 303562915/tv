@@ -189,6 +189,13 @@ class VideoPlayerActivity : AppCompatActivity() {
     private var isShowingNextEpisodeHint = false  // 是否正在显示提示
     private val countdownHandler = Handler(Looper.getMainLooper())
     private var countdownRunnable: Runnable? = null
+
+    // 睡眠定时器：到点暂停并退出播放页。
+    // 只把「选了几分钟」落盘，剩余时间不存——否则隔天重进页面会出现幽灵倒计时。
+    private val sleepTimerHandler = Handler(Looper.getMainLooper())
+    private var sleepTimerRunnable: Runnable? = null
+    private var sleepTimerMinutes = 0
+    private var sleepTimerEndAt = 0L  // SystemClock.elapsedRealtime() 口径，0 表示未启动
     
     // 手势相关
     private var gestureDownX = 0f
@@ -217,6 +224,10 @@ class VideoPlayerActivity : AppCompatActivity() {
         detailFontScale = getSharedPreferences(FONT_PREFS_NAME, Context.MODE_PRIVATE)
             .getFloat(KEY_FONT_SCALE, 1.0f)
             .takeIf { it in 1.0f..1.3f } ?: 1.0f
+
+        // 睡眠定时器只恢复上次选的档位，不恢复剩余时间：重进页面一律按「未启动」算
+        sleepTimerMinutes = getSharedPreferences("player_settings", MODE_PRIVATE)
+            .getInt("sleep_timer_minutes", 0)
 
         // 加载播放器布局
         binding = ActivityVideoPlayerBinding.inflate(layoutInflater)
@@ -4847,8 +4858,74 @@ class VideoPlayerActivity : AppCompatActivity() {
             }
             Toast.makeText(this, "重复播放: $modeText", Toast.LENGTH_SHORT).show()
         }
-        
+
+        // 睡眠定时器：档位与剩余时间都在本页算，菜单只负责显示和选
+        menuSheet.setSleepTimerStateProvider {
+            PlayerMenuBottomSheet.SleepTimerState(sleepTimerMinutes, sleepTimerStatusText())
+        }
+        menuSheet.setOnSleepTimerSelectedListener { minutes ->
+            setSleepTimer(minutes)
+        }
+
         menuSheet.show(supportFragmentManager, PlayerMenuBottomSheet.TAG)
+    }
+
+    // ==================== 睡眠定时器 ====================
+
+    /**
+     * 设定睡眠定时器，[minutes] 传 0 表示关闭。
+     * 只有档位进 prefs，剩余时间靠 [sleepTimerEndAt] 现算，进程被杀也不会留下昨天的倒计时。
+     */
+    private fun setSleepTimer(minutes: Int) {
+        sleepTimerMinutes = minutes.coerceAtLeast(0)
+        getSharedPreferences("player_settings", MODE_PRIVATE)
+            .edit()
+            .putInt("sleep_timer_minutes", sleepTimerMinutes)
+            .apply()
+
+        cancelSleepTimerPending()
+
+        if (sleepTimerMinutes <= 0) {
+            Toast.makeText(this, "已关闭睡眠定时器", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val delayMs = sleepTimerMinutes * 60_000L
+        val runnable = Runnable { onSleepTimerFired() }
+        sleepTimerRunnable = runnable
+        sleepTimerEndAt = android.os.SystemClock.elapsedRealtime() + delayMs
+        sleepTimerHandler.postDelayed(runnable, delayMs)
+        Toast.makeText(this, "${sleepTimerMinutes} 分钟后暂停并退出播放", Toast.LENGTH_SHORT).show()
+    }
+
+    /** 撤掉未到点的回调；档位本身保留在 prefs 里，下次开菜单还能看到上次选的。 */
+    private fun cancelSleepTimerPending() {
+        sleepTimerRunnable?.let { sleepTimerHandler.removeCallbacks(it) }
+        sleepTimerRunnable = null
+        sleepTimerEndAt = 0L
+    }
+
+    /** 菜单行尾文字：整段时显示「N 分钟后」，走到中途显示「剩余 X 分」。 */
+    private fun sleepTimerStatusText(): String {
+        val remainMs = sleepTimerEndAt - android.os.SystemClock.elapsedRealtime()
+        if (sleepTimerEndAt <= 0L || remainMs <= 0L) return "关闭"
+        // 向上取整，最后一分钟仍显示「剩余 1 分」，不会提前跳到 0
+        val remainMinutes = ((remainMs + 59_999L) / 60_000L).toInt()
+        return if (remainMinutes >= sleepTimerMinutes) "${sleepTimerMinutes} 分钟后" else "剩余 ${remainMinutes} 分"
+    }
+
+    private fun onSleepTimerFired() {
+        sleepTimerRunnable = null
+        sleepTimerEndAt = 0L
+        exoPlayerManager.pause()
+        Toast.makeText(this, "已按睡眠定时器暂停", Toast.LENGTH_SHORT).show()
+
+        // minSdk 24：isInPictureInPictureMode 是 API 24 才有的，判断前带版本守卫
+        val inPip = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode
+        // 画中画窗口是用户在别处看的播放器，finish 等于把窗口掐掉，这里只暂停
+        if (!inPip) {
+            finish()
+        }
     }
     
     private fun applyAspectRatio(mode: AspectRatioManager.AspectRatioMode) {
@@ -5372,6 +5449,11 @@ class VideoPlayerActivity : AppCompatActivity() {
             // 非画中画模式，暂停播放
             exoPlayerManager.pause()
             android.util.Log.d("VideoPlayer", "⏸️ [生命周期] onPause - 暂停播放")
+        }
+
+        // 睡眠定时器：非画中画时本页已经不在播了，倒计时留着只会在后台把页面再 finish 一次
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.N || !isInPictureInPictureMode) {
+            cancelSleepTimerPending()
         }
         
         // 保存播放进度
@@ -6131,6 +6213,8 @@ class VideoPlayerActivity : AppCompatActivity() {
         hideGestureHintHandler.removeCallbacks(hideGestureHintRunnable)
         cancelNextEpisodeCountdown()  // 清理倒计时
         cancelFasterRouteCountdown()  // 清理更快路线倒计时
+        cancelSleepTimerPending()  // 清理睡眠定时器回调，避免页面销毁后还持有 Activity
+        sleepTimerHandler.removeCallbacksAndMessages(null)
         networkStatusMonitor.stopMonitoring()
         releaseBackgroundPlayer()  // 释放后台播放器
 

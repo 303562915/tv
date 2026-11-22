@@ -103,7 +103,10 @@
 
     </LinearLayout>
 
-    <!-- 首页轮播已停用（需要时取消下面整段注释即可恢复）
+    <!--
+        首页轮播：数据由 HomeFragment 从当前分类首屏里有封面的前几条派生，没数据时整块 GONE，
+        不留「占着 180dp 却一片空白」的坑（GONE 时 ConstraintLayout 会把这块折成 0 高）。
+    -->
     <FrameLayout
         android:id="@+id/bannerContainer"
         android:layout_width="0dp"
@@ -111,17 +114,23 @@
         android:layout_marginStart="12dp"
         android:layout_marginEnd="12dp"
         android:layout_marginTop="0dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:foreground="?attr/selectableItemBackground"
+        android:clickable="false"
+        android:focusable="false"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/topBar">
 
+        <!--
+            自动轮播不依赖焦点：pager 自己不聚焦，页内的卡片也不许抢焦点，
+            这样遥控器上下换页时不会卡在轮播里。
+        -->
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/bannerViewPager"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:descendantFocusability="blocksDescendants"
+            android:focusable="false" />
 
         <LinearLayout
             android:id="@+id/indicatorContainer"
@@ -133,19 +142,25 @@
             android:orientation="horizontal"
             android:padding="4dp" />
 
+        <!--
+            折叠开关是全屏唯一需要遥控器操作的轮播控件，所以只有它保留可聚焦：
+            从列表往上按能停在这里，按一下收起 / 展开；pager 本身仍然不抢焦点。
+        -->
         <ImageView
             android:id="@+id/bannerToggleIcon"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_gravity="bottom|center_horizontal"
             android:layout_marginBottom="8dp"
-            android:src="@drawable/ic_expand_more"
             android:alpha="0.6"
             android:background="@drawable/circle_background"
-            android:padding="4dp" />
+            android:clickable="true"
+            android:contentDescription="收起或展开轮播图"
+            android:focusable="true"
+            android:padding="4dp"
+            android:src="@drawable/ic_expand_more" />
 
     </FrameLayout>
-    -->
 
     <!-- 继续播放卡片：卡上一行，填充表达结构 -->
     <com.google.android.material.card.MaterialCardView
@@ -161,7 +176,7 @@
         app:cardElevation="0dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/topBar"
+        app:layout_constraintTop_toBottomOf="@id/bannerContainer"
         app:strokeWidth="0dp">
 
         <LinearLayout
@@ -234,6 +249,33 @@
             android:layout_height="match_parent" />
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <!--
+        骨架屏：SwipeRefreshLayout 只允许一个直接子 View，所以用一块同位置的覆盖层当骨架，
+        首屏加载时露出来、数据到达即隐藏（与空态 / 错误态由 HomeFragment 互斥控制）。
+        灰块不进 XML：行数列数按真实网格在代码里生成，避免和 SPAN_COUNT 对不上。
+    -->
+    <FrameLayout
+        android:id="@+id/skeletonContainer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/surface_page"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tabLayout">
+
+        <LinearLayout
+            android:id="@+id/skeletonGrid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/page_margin"
+            android:paddingTop="@dimen/card_gap"
+            android:paddingEnd="@dimen/page_margin" />
+
+    </FrameLayout>
 
     <!-- 空态：与历史、收藏同一套结构（图标 56dp + 标题 15sp 粗 + 说明 13sp + 可选按钮） -->
     <LinearLayout

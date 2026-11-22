@@ -1,10 +1,13 @@
 package com.tv.ball.presentation.player
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
+import androidx.appcompat.app.AlertDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.tv.ball.databinding.BottomSheetPlayerMenuBinding
 
@@ -28,6 +31,23 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
     private var skipIntroEnabled = true
     private var skipOutroEnabled = false
     private var currentRepeatMode = com.google.android.exoplayer2.Player.REPEAT_MODE_OFF
+
+    // 睡眠定时器的倒计时活在播放页里，菜单只拿状态、回传档位，避免菜单一关计时就断
+    private var sleepTimerStateProvider: (() -> SleepTimerState)? = null
+    private var onSleepTimerSelected: ((Int) -> Unit)? = null
+    private var sleepTimerDialog: AlertDialog? = null
+    private val sleepTimerRefreshHandler = Handler(Looper.getMainLooper())
+    private val sleepTimerRefreshRunnable = object : Runnable {
+        override fun run() {
+            refreshSleepTimerState()
+            sleepTimerRefreshHandler.postDelayed(this, SLEEP_TIMER_REFRESH_INTERVAL_MS)
+        }
+    }
+
+    /**
+     * 睡眠定时器的显示状态：[minutes] 给弹窗勾选用（关闭 = 0），[statusText] 直接贴到行尾。
+     */
+    data class SleepTimerState(val minutes: Int, val statusText: String)
     
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -122,8 +142,46 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
             }
             onRepeatModeChanged?.invoke(mode)
         }
+
+        // 睡眠定时器
+        binding.rowSleepTimer.setOnClickListener {
+            showSleepTimerDialog()
+        }
+        refreshSleepTimerState()
+        // 30 秒刷一次：剩余时间只要分钟粒度，每秒刷纯属白烧电
+        sleepTimerRefreshHandler.removeCallbacks(sleepTimerRefreshRunnable)
+        sleepTimerRefreshHandler.postDelayed(sleepTimerRefreshRunnable, SLEEP_TIMER_REFRESH_INTERVAL_MS)
     }
     
+    private fun refreshSleepTimerState() {
+        val binding = _binding ?: return
+        val state = sleepTimerStateProvider?.invoke() ?: SleepTimerState(0, "关闭")
+        binding.tvSleepTimerValue.text = state.statusText
+    }
+
+    private fun showSleepTimerDialog() {
+        val ctx = context ?: return
+        val currentMinutes = sleepTimerStateProvider?.invoke()?.minutes ?: 0
+        sleepTimerDialog?.dismiss()
+        // 弹窗用 activity 的 context 建，才能盖在底部菜单的窗口之上，且菜单不跟着关
+        val dialog = AlertDialog.Builder(ctx)
+            .setTitle("睡眠定时器")
+            .setSingleChoiceItems(SLEEP_TIMER_LABELS, sleepTimerIndexOf(currentMinutes)) { dialog, which ->
+                dialog.dismiss()
+                onSleepTimerSelected?.invoke(SLEEP_TIMER_OPTIONS[which])
+                refreshSleepTimerState()
+            }
+            .setNegativeButton("取消", null)
+            .create()
+        sleepTimerDialog = dialog
+        dialog.show()
+    }
+
+    private fun sleepTimerIndexOf(minutes: Int): Int {
+        val index = SLEEP_TIMER_OPTIONS.indexOf(minutes)
+        return if (index >= 0) index else 0
+    }
+
     private fun setSpeed(speed: Float) {
         currentSpeed = speed
         binding.speedSeekBar.progress = ((speed - 0.5f) / 0.05f).toInt()
@@ -206,15 +264,33 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
     fun setOnRepeatModeChangedListener(listener: (Int) -> Unit) {
         this.onRepeatModeChanged = listener
     }
-    
+
+    /** 睡眠定时器的状态由播放页提供：菜单不自己算剩余时间，否则菜单一关就断了。 */
+    fun setSleepTimerStateProvider(provider: () -> SleepTimerState) {
+        this.sleepTimerStateProvider = provider
+        refreshSleepTimerState()
+    }
+
+    fun setOnSleepTimerSelectedListener(listener: (Int) -> Unit) {
+        this.onSleepTimerSelected = listener
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
+        sleepTimerRefreshHandler.removeCallbacks(sleepTimerRefreshRunnable)
+        sleepTimerDialog?.dismiss()
+        sleepTimerDialog = null
         _binding = null
     }
-    
+
     companion object {
         const val TAG = "PlayerMenuBottomSheet"
-        
+
+        // 关闭 / 15 / 30 / 60 / 90 分钟；数组下标就是单选项和勾选状态的下标，两者必须同序
+        private val SLEEP_TIMER_OPTIONS = intArrayOf(0, 15, 30, 60, 90)
+        private val SLEEP_TIMER_LABELS = arrayOf<CharSequence>("关闭", "15 分钟", "30 分钟", "60 分钟", "90 分钟")
+        private const val SLEEP_TIMER_REFRESH_INTERVAL_MS = 30_000L
+
         fun newInstance(): PlayerMenuBottomSheet {
             return PlayerMenuBottomSheet()
         }
