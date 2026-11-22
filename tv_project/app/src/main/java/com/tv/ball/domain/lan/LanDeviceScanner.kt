@@ -1,7 +1,6 @@
 package com.tv.ball.domain.lan
 
 import android.content.Context
-import android.net.wifi.WifiManager
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -16,10 +15,8 @@ import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import java.net.HttpURLConnection
-import java.net.Inet4Address
 import java.net.InetAddress
 import java.net.InetSocketAddress
-import java.net.NetworkInterface
 import java.net.Socket
 import java.net.URL
 import java.util.concurrent.atomic.AtomicInteger
@@ -28,13 +25,13 @@ import java.util.concurrent.atomic.AtomicInteger
  * 局域网设备扫描器
  * 用于发现局域网内可以播放视频的电脑设备
  *
- * 判定原则（关键）：
- * 1. 存活判定不再用 [InetAddress.isReachable]——Android 上它依赖 ICMP，没有权限时行为不确定，
- *    某些机型 / 某些路由器会让它把整个网段的 IP 全判成"在线"，于是列表里冒出 200 多台"电脑"。
- * 2. 用 TCP 端口探测做存活判定。只有命中「主机专属端口」(445/139/3389/5900/22) 才算电脑；
- *    只命中 80/8080 这类泛 HTTP 端口时，必须再有真实的反向 DNS 主机名才认——
- *    路由器、摄像头、电视、以及运营商/公寓网的透明 HTTP 劫持都会在全部 IP 上开着 80 端口。
- * 3. 跳过本机与网关（.1），结果按 IP 去重并有上限，扫描有总时长窗口。
+ * 三道闸（缺一个就会把陌生网络里的设备全列成"电脑"）：
+ * 1. 网络门禁：[LanNetworkGate] 只认 wlan* / eth* 接口上的私网 IPv4。没连 WiFi 时直接返回
+ *    [LanScanState.NOT_ON_LAN]，一个 IP 都不碰——移动数据的 10.x 地址扫出去是运营商的网段。
+ * 2. 存活判定：用 TCP 端口探测，不用 [InetAddress.isReachable]（Android 上依赖 ICMP，
+ *    行为不确定，某些路由器会让整段地址都"在线"）。
+ * 3. 身份判定：命中 445/139/3389/5900/22 才算电脑；只命中 80/8080 这类泛 HTTP 端口时，
+ *    必须再反解出真实主机名才认——路由器、摄像头、电视、透明劫持网关都在全段开 80。
  */
 class LanDeviceScanner(private val context: Context) {
 
@@ -54,7 +51,7 @@ class LanDeviceScanner(private val context: Context) {
         private const val SCAN_WINDOW_MS = 15_000L
 
         /** 反向 DNS 查询次数上限（透明劫持网络下 254 台都会"开着 80"，不能无限查 DNS） */
-        private const val MAX_DNS_LOOKUPS = 48
+        private const val MAX_DNS_LOOKUPS = 24
 
         /** 只有真正的电脑 / 主机才会常开的端口：命中即判为电脑 */
         private val PC_ONLY_PORTS = intArrayOf(445, 139, 3389, 5900, 22)
@@ -76,79 +73,27 @@ class LanDeviceScanner(private val context: Context) {
         UNKNOWN    // 未知设备
     }
 
-    /**
-     * 获取本机在局域网里的 IPv4 地址（优先 Wi-Fi，其次有线，兼容热点 / 多网卡）
-     */
-    private fun getLocalIpAddress(): String {
-        val fromInterface = runCatching {
-            val candidates = mutableListOf<Pair<String, String>>()
-            val interfaces = NetworkInterface.getNetworkInterfaces()?.toList().orEmpty()
-            for (nif in interfaces) {
-                if (!nif.isUp || nif.isLoopback) continue
-                for (address in nif.inetAddresses) {
-                    val ip = address.hostAddress ?: continue
-                    if (address is Inet4Address && !address.isLoopbackAddress && isPrivateIpv4(ip)) {
-                        candidates.add(nif.name to ip)
-                    }
-                }
-            }
-            (candidates.firstOrNull { it.first.startsWith("wlan") }
-                ?: candidates.firstOrNull { it.first.startsWith("eth") }
-                ?: candidates.firstOrNull())?.second ?: ""
-        }.getOrDefault("")
-
-        return fromInterface.ifEmpty { wifiIpv4() }
-    }
-
-    /**
-     * 网卡枚举拿不到时的兜底：直接问 Wi-Fi 的 IPv4（热点 / 虚拟网卡场景）
-     */
-    @Suppress("DEPRECATION")
-    private fun wifiIpv4(): String {
-        return runCatching {
-            val wifiManager = context.applicationContext
-                .getSystemService(Context.WIFI_SERVICE) as? WifiManager
-            val ipInt = wifiManager?.connectionInfo?.ipAddress ?: 0
-            if (ipInt == 0) {
-                ""
-            } else {
-                String.format(
-                    "%d.%d.%d.%d",
-                    ipInt and 0xff,
-                    ipInt shr 8 and 0xff,
-                    ipInt shr 16 and 0xff,
-                    ipInt shr 24 and 0xff
-                )
-            }
-        }.getOrDefault("")
-    }
-
-    private fun isPrivateIpv4(ip: String): Boolean {
-        if (!IPV4_LITERAL.matches(ip)) return false
-        val parts = ip.split(".").mapNotNull { it.toIntOrNull() }
-        if (parts.size != 4) return false
-        return when {
-            parts[0] == 10 -> true
-            parts[0] == 172 -> parts[1] in 16..31
-            parts[0] == 192 && parts[1] == 168 -> true
-            else -> false
-        }
+    /** 扫描结论：用来区分「没连 WiFi」和「连了但确实没有电脑」 */
+    enum class LanScanState {
+        NOT_ON_LAN,  // 不在 WiFi / 以太网上，没有扫
+        SCANNED      // 已完成一轮扫描
     }
 
     /**
      * 扫描局域网内的设备。
      * 只在确认是电脑时回调，且每个 IP 只回调一次、总数不超过 [MAX_RESULTS]。
      */
-    suspend fun scanDevices(onDeviceFound: (LanDevice) -> Unit) = withContext(Dispatchers.IO) {
-        val localIp = getLocalIpAddress()
-        if (localIp.isEmpty()) {
-            Log.e(TAG, "无法获取本机局域网 IP，跳过扫描")
-            return@withContext
+    suspend fun scanDevices(onDeviceFound: (LanDevice) -> Unit): LanScanState = withContext(Dispatchers.IO) {
+        val lan = LanNetworkGate.findLanAddress(context)
+        if (lan == null) {
+            Log.w(TAG, "当前不在 WiFi / 以太网上，跳过扫描")
+            return@withContext LanScanState.NOT_ON_LAN
         }
 
+        val localIp = lan.ip
         val ipPrefix = localIp.substringBeforeLast(".")
         val localLastSegment = localIp.substringAfterLast(".").toIntOrNull() ?: 0
-        Log.d(TAG, "开始扫描 $ipPrefix.0/24，本机 IP: $localIp")
+        Log.d(TAG, "开始扫描 $ipPrefix.0/24（本机 $localIp/${lan.prefixLength}）")
 
         val semaphore = Semaphore(MAX_CONCURRENT)
         val mutex = Mutex()
@@ -180,6 +125,7 @@ class LanDeviceScanner(private val context: Context) {
         }
 
         Log.d(TAG, "扫描完成，共确认 ${results.size} 台电脑")
+        LanScanState.SCANNED
     }
 
     /**
@@ -201,7 +147,7 @@ class LanDeviceScanner(private val context: Context) {
     }
 
     /**
-     * TCP 端口连通性探测（本地存活判定的唯一依据）
+     * TCP 端口连通性探测（存活判定的唯一依据）
      */
     private fun isPortOpen(ip: String, port: Int): Boolean {
         return try {

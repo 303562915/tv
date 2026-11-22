@@ -21,6 +21,7 @@ import com.tv.ball.domain.dlna.DLNADevice
 import com.tv.ball.domain.dlna.DLNAManager
 import com.tv.ball.domain.webserver.LocalWebServer
 import com.tv.ball.domain.lan.LanDeviceScanner
+import com.tv.ball.domain.lan.LanNetworkGate
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -117,17 +118,33 @@ class DLNACastBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun startDiscovery() {
-        binding.subtitleText.text = "正在搜索设备..."
-        binding.emptyStateLayout.visibility = View.GONE
-        binding.deviceRecyclerView.visibility = View.VISIBLE
+        val current = _binding ?: return
+        deviceAdapter.submitList(emptyList())
+
+        // 不在 WiFi / 以太网上时，SSDP 组播只会发到移动数据接口，永远收不到设备
+        if (LanNetworkGate.findLanAddress(requireContext()) == null) {
+            current.subtitleText.text = "未连接 WiFi"
+            current.emptyStateTitle.text = "当前未连接 WiFi"
+            current.emptyStateHint.text = "DLNA 投屏要求手机与电视 / 盒子处在同一个局域网，请先连上 WiFi"
+            current.emptyStateLayout.visibility = View.VISIBLE
+            current.deviceRecyclerView.visibility = View.GONE
+            return
+        }
+
+        current.subtitleText.text = "正在搜索设备..."
+        current.emptyStateTitle.text = "未发现 DLNA 设备"
+        current.emptyStateHint.text = "请确保设备与手机在同一WiFi网络"
+        current.emptyStateLayout.visibility = View.GONE
+        current.deviceRecyclerView.visibility = View.VISIBLE
 
         dlnaManager.startDiscovery { devices ->
+            val view = _binding ?: return@startDiscovery
             if (devices.isEmpty()) {
-                binding.subtitleText.text = "未发现 DLNA 设备"
-                binding.emptyStateLayout.visibility = View.VISIBLE
-                binding.deviceRecyclerView.visibility = View.GONE
+                view.subtitleText.text = "未发现 DLNA 设备"
+                view.emptyStateLayout.visibility = View.VISIBLE
+                view.deviceRecyclerView.visibility = View.GONE
             } else {
-                binding.subtitleText.text = "发现 ${devices.size} 个 DLNA 设备"
+                view.subtitleText.text = "发现 ${devices.size} 个 DLNA 设备"
                 deviceAdapter.submitList(devices)
             }
         }
@@ -140,15 +157,26 @@ class DLNACastBottomSheet : BottomSheetDialogFragment() {
     private fun startLanScan() {
         val current = _binding ?: return
         lanScanJob?.cancel()
+        lanDeviceAdapter.submitList(emptyList())
+
+        // 没连 WiFi / 以太网就一台都不扫：移动数据下拿到的 10.x 地址属于运营商网络，
+        // 扫出去只会把别人的设备列成"局域网电脑"
+        if (LanNetworkGate.findLanAddress(requireContext()) == null) {
+            current.lanSubtitleText.text = "未连接 WiFi"
+            current.lanEmptyText.text = "当前未连接 WiFi / 以太网，局域网内没有可访问的电脑"
+            current.lanEmptyStateLayout.visibility = View.VISIBLE
+            current.lanDeviceRecyclerView.visibility = View.GONE
+            return
+        }
+
         current.lanSubtitleText.text = "正在扫描局域网电脑..."
         current.lanEmptyStateLayout.visibility = View.GONE
         current.lanDeviceRecyclerView.visibility = View.VISIBLE
-        lanDeviceAdapter.submitList(emptyList())
 
         val foundDevices = mutableListOf<LanDeviceScanner.LanDevice>()
 
         lanScanJob = viewLifecycleOwner.lifecycleScope.launch {
-            try {
+            val state = try {
                 lanScanner.scanDevices { device ->
                     val view = _binding ?: return@scanDevices
                     if (foundDevices.any { it.ipAddress == device.ipAddress }) return@scanDevices
@@ -161,12 +189,24 @@ class DLNACastBottomSheet : BottomSheetDialogFragment() {
             }
 
             val view = _binding ?: return@launch
-            if (foundDevices.isEmpty()) {
-                view.lanSubtitleText.text = "未发现电脑设备"
-                view.lanEmptyStateLayout.visibility = View.VISIBLE
-                view.lanDeviceRecyclerView.visibility = View.GONE
-            } else {
-                view.lanSubtitleText.text = "发现 ${foundDevices.size} 台电脑"
+            when {
+                state == LanDeviceScanner.LanScanState.NOT_ON_LAN -> {
+                    view.lanSubtitleText.text = "未连接 WiFi"
+                    view.lanEmptyText.text = "当前未连接 WiFi / 以太网，局域网内没有可访问的电脑"
+                    view.lanEmptyStateLayout.visibility = View.VISIBLE
+                    view.lanDeviceRecyclerView.visibility = View.GONE
+                }
+                foundDevices.isEmpty() -> {
+                    view.lanSubtitleText.text = "未发现电脑设备"
+                    view.lanEmptyText.text = "未发现电脑设备，确认电脑与手机在同一个 WiFi 下"
+                    view.lanEmptyStateLayout.visibility = View.VISIBLE
+                    view.lanDeviceRecyclerView.visibility = View.GONE
+                }
+                else -> {
+                    view.lanSubtitleText.text = "发现 ${foundDevices.size} 台电脑"
+                    view.lanEmptyStateLayout.visibility = View.GONE
+                    view.lanDeviceRecyclerView.visibility = View.VISIBLE
+                }
             }
         }
     }

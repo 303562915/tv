@@ -95,6 +95,7 @@
             android:tint="@color/theme_text_secondary" />
 
         <TextView
+            android:id="@+id/emptyStateTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="未发现 DLNA 设备"
@@ -103,6 +104,7 @@
             android:layout_marginTop="16dp" />
 
         <TextView
+            android:id="@+id/emptyStateHint"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="请确保设备与手机在同一WiFi网络"
@@ -179,12 +181,14 @@
             android:tint="@color/theme_text_secondary" />
 
         <TextView
+            android:id="@+id/lanEmptyText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="未发现电脑设备"
             android:textSize="14sp"
             android:textColor="@color/theme_text_secondary"
-            android:layout_marginTop="8dp" />
+            android:layout_marginTop="8dp"
+            android:gravity="center" />
     </LinearLayout>
 
     <!-- 分隔线 -->
