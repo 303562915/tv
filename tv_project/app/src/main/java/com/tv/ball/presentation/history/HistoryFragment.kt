@@ -17,6 +17,7 @@ import com.tv.ball.R
 import com.tv.ball.databinding.FragmentHistoryBinding
 import com.tv.ball.di.Dependencies
 import com.tv.ball.widget.SwipeRevealLayout
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 /**
@@ -44,6 +45,9 @@ class HistoryFragment : Fragment() {
     /** 当前挂着的滑删 helper；切换删除方式时要先摘掉，再决定挂不挂 */
     private var swipeHelper: ItemTouchHelper? = null
 
+    /** 上一次渲染出来的多选开关状态：只在真正切换时搬焦点，选中数变化不抢焦点 */
+    private var selectionModeShown = false
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -58,6 +62,7 @@ class HistoryFragment : Fragment() {
         setupRecyclerView()
         setupSwipeToDelete()
         setupDeleteModeEntry()
+        setupSelectionBar()
         setupEmptyState()
         bindHostToolbar()
         observeViewModel()
@@ -67,7 +72,12 @@ class HistoryFragment : Fragment() {
         adapter = HistoryAdapter(
             onItemClick = { historyItem -> openItem(historyItem) },
             onItemLongClick = { historyItem -> showItemMenu(historyItem) },
-            onItemDelete = { historyItem -> deleteItem(historyItem) }
+            onItemDelete = { historyItem -> deleteItem(historyItem) },
+            onItemToggleSelection = { historyItem ->
+                viewModel.toggleItemSelection(historyDeleteKey(historyItem))
+            },
+            // 选中集与批量删除共用 ViewModel 的删除键口径，适配器里不再推一套 key
+            selectionKeyOf = { historyItem -> historyDeleteKey(historyItem) }
         )
         binding.rvHistory.apply {
             layoutManager = LinearLayoutManager(requireContext())
@@ -94,6 +104,8 @@ class HistoryFragment : Fragment() {
      * - 露出按钮（默认）：不挂 ItemTouchHelper，横向手势交给 SwipeRevealLayout；
      * - 滑动即删除：挂上 ItemTouchHelper，左右滑走直接删。
      * 切换时原地重挂，不用退出页面。
+     * 多选期间一律不挂：同一段横向手势会和「点条目切换选中」抢触摸，摘掉最干净，
+     * 退出多选后这个方法会被再调一次，按当前删除方式原样挂回去。
      */
     private fun applySwipeMode() {
         val direct = Dependencies.configRepository.isSwipeDeleteDirect()
@@ -108,13 +120,20 @@ class HistoryFragment : Fragment() {
         swipeHelper = null
         closeRevealedRows(binding.rvHistory)
 
-        if (direct) {
+        if (direct && !viewModel.isSelectionMode.value) {
             attachSwipeToDeleteHelper()
         }
     }
 
     private fun setupDeleteModeEntry() {
         binding.btnDeleteMode.setOnClickListener { showDeleteModeDialog() }
+    }
+
+    /** 多选操作条：全选 / 删除 / 取消。按钮本身的可聚焦和高度写在布局里，这里只接动作。 */
+    private fun setupSelectionBar() {
+        binding.btnSelectAll.setOnClickListener { viewModel.selectAll() }
+        binding.btnDeleteSelected.setOnClickListener { confirmDeleteSelected() }
+        binding.btnCancelSelection.setOnClickListener { exitSelectionMode() }
     }
 
     private fun showDeleteModeDialog() {
@@ -148,11 +167,15 @@ class HistoryFragment : Fragment() {
             /**
              * 分组标题不参与滑删：不给任何方向，连「滑出去再弹回来」的抖动都不会发生。
              * 条目仍然左右都可滑，滑走时按 bindingAdapterPosition 取到的是条目本身。
+             * 多选期间统一返回 0：helper 虽然已被摘掉，这里再守一道，
+             * 防止切换模式那一刻还在飞行中的滑动把条目滑走删掉。
              */
             override fun getMovementFlags(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder
-            ): Int = if (adapter.isSwipeableHolder(viewHolder)) {
+            ): Int = if (viewModel.isSelectionMode.value) {
+                makeMovementFlags(0, 0)
+            } else if (adapter.isSwipeableHolder(viewHolder)) {
                 makeMovementFlags(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT)
             } else {
                 makeMovementFlags(0, 0)
@@ -195,12 +218,29 @@ class HistoryFragment : Fragment() {
 
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.groupedHistory.collect { groups ->
+            // 三个 Flow 一起收集：rows 与选中集必须来自同一帧，
+            // 否则会出现「列表已经删了、操作条还显示旧选中数」这种错位
+            combine(
+                viewModel.groupedHistory,
+                viewModel.isSelectionMode,
+                viewModel.selectedItems
+            ) { groups, inSelection, selected ->
+                Triple(groups, inSelection, selected)
+            }.collect { (groups, inSelection, selected) ->
                 val rows = mutableListOf<HistoryRow>()
                 groups.forEach { group ->
                     rows.add(HistoryRow.Header(group.title))
                     group.items.forEach { rows.add(HistoryRow.Entry(it)) }
                 }
+
+                // 多选里被「清空全部」掏空时一并退出：这时没有可选条目，
+                // 操作条停在「已选 N 项」却没有一行可点。这一帧先按普通态渲染，下一帧 ViewModel 也跟上来
+                val selectionActive = inSelection && rows.isNotEmpty()
+                if (inSelection && !selectionActive) exitSelectionMode()
+
+                // 多选状态要先落到适配器再提交列表：rows 不含选中态，
+                // 光提交同样的列表 DiffUtil 不会重绑，勾选标记会停在旧值上
+                adapter.applySelectionState(selectionActive, selected)
                 adapter.submitList(rows)
 
                 hasHistory = rows.isNotEmpty()
@@ -208,8 +248,93 @@ class HistoryFragment : Fragment() {
                 binding.tvHint.visibility = if (hasHistory) View.VISIBLE else View.GONE
                 binding.rvHistory.visibility = if (hasHistory) View.VISIBLE else View.GONE
                 (activity as? HistoryActivity)?.setClearAllEnabled(hasHistory)
+
+                renderSelectionBar(selectionActive, selected.size)
             }
         }
+    }
+
+    /**
+     * 操作条的显示与焦点：
+     * - 未进入多选整条 gone，且 GONE 不占位，列表位置和原来一致；
+     * - 进入多选把焦点送到第一个按钮，退出时还给列表，遥控器不用先按一圈方向键。
+     * 选中数为 0 时删除按钮仍然可聚焦，点了给一句提示：TV 上禁用态会被焦点导航跳过，反而更难解释。
+     */
+    private fun renderSelectionBar(inSelection: Boolean, selectedCount: Int) {
+        val modeChanged = selectionModeShown != inSelection
+        selectionModeShown = inSelection
+
+        binding.selectionBar.visibility = if (inSelection) View.VISIBLE else View.GONE
+        // 文案就地拼中文字面量，不新增 string 资源，和本页 UNDO_LABEL 的处理保持一致
+        binding.tvSelectedCount.text = "已选 $selectedCount 项"
+        binding.btnDeleteSelected.alpha = if (selectedCount > 0) 1f else 0.45f
+
+        if (!modeChanged) return
+
+        // 模式切换要重挂滑删手势：多选期间不挂，退出后按当前删除方式恢复
+        applySwipeMode()
+
+        if (inSelection) {
+            // 焦点交给操作条第一个按钮
+            val target = binding.btnSelectAll
+            target.post {
+                if (target.isAttachedToWindow) target.requestFocus()
+            }
+        } else {
+            focusFirstHistoryRow()
+        }
+    }
+
+    /**
+     * 退出多选把焦点还给列表。
+     *
+     * 不直接 requestFocus 到 RecyclerView 本身：容器一旦可聚焦，
+     * 遥控器要先「进容器」再「进条目」，等于无端多按一次方向键。
+     * 这里直接点第一行卡片，拿不到（列表空了）就交给系统自己安置焦点。
+     */
+    private fun focusFirstHistoryRow() {
+        val recyclerView = binding.rvHistory
+        recyclerView.post {
+            if (!recyclerView.isAttachedToWindow) return@post
+            for (i in 0 until recyclerView.childCount) {
+                val content = (recyclerView.getChildAt(i) as? SwipeRevealLayout)?.contentView
+                if (content != null && content.requestFocus()) return@post
+            }
+        }
+    }
+
+    /**
+     * 从长按菜单进多选。顺手把长按的那条勾上，免得进模式后还要再点一次；
+     * 已经在多选里就别把模式又切回去。
+     */
+    private fun enterSelectionMode(historyItem: HistoryItem) {
+        if (!viewModel.isSelectionMode.value) viewModel.toggleSelectionMode()
+
+        val key = historyDeleteKey(historyItem)
+        if (key !in viewModel.selectedItems.value) viewModel.toggleItemSelection(key)
+    }
+
+    /** 退出多选：统一走 ViewModel，选中集一起清空，界面由 isSelectionMode 的收集回落到普通态 */
+    private fun exitSelectionMode() {
+        if (viewModel.isSelectionMode.value) viewModel.toggleSelectionMode()
+    }
+
+    private fun confirmDeleteSelected() {
+        val count = viewModel.selectedItems.value.size
+        if (count == 0) {
+            com.tv.ball.util.CustomToast.show(requireContext(), HINT_SELECT_FIRST)
+            return
+        }
+
+        AlertDialog.Builder(requireContext())
+            .setTitle(TITLE_DELETE_SELECTED)
+            .setMessage("删除 $count 条观看历史，不可恢复")
+            .setPositiveButton(LABEL_DELETE) { _, _ ->
+                // deleteSelected 删完会把选中集清空并退出多选，操作条跟着 isSelectionMode 收起
+                viewModel.deleteSelected()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     private fun openItem(historyItem: HistoryItem) {
@@ -255,9 +380,11 @@ class HistoryFragment : Fragment() {
     }
 
     private fun showItemMenu(historyItem: HistoryItem) {
+        // 前两项保持原顺序不变，多选作为第三项追加，老习惯不用重新学
         val options = arrayOf(
             getString(R.string.history_continue),
-            getString(R.string.history_delete_one)
+            getString(R.string.history_delete_one),
+            LABEL_SELECT_MODE
         )
         AlertDialog.Builder(requireContext())
             .setTitle(historyItem.videoItem.title)
@@ -265,6 +392,7 @@ class HistoryFragment : Fragment() {
                 when (which) {
                     0 -> openItem(historyItem)
                     1 -> deleteItem(historyItem)
+                    2 -> enterSelectionMode(historyItem)
                 }
             }
             .show()
@@ -338,5 +466,15 @@ class HistoryFragment : Fragment() {
     private companion object {
         /** 撤销按钮文案：不新增 string 资源，跟本页其它就地文案保持一致。 */
         const val UNDO_LABEL = "撤销"
+
+        /** 长按菜单第三项：进多选 */
+        const val LABEL_SELECT_MODE = "多选"
+
+        /** 批量删除的二次确认文案 */
+        const val TITLE_DELETE_SELECTED = "删除选中项"
+        const val LABEL_DELETE = "删除"
+
+        /** 一条都没选就点删除时的提示 */
+        const val HINT_SELECT_FIRST = "先选几条"
     }
 }

@@ -7,6 +7,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.card.MaterialCardView
 import com.tv.ball.R
 import com.tv.ball.databinding.ItemHistoryBinding
 import com.tv.ball.databinding.ItemHistoryHeaderBinding
@@ -30,7 +31,10 @@ sealed class HistoryRow {
 class HistoryAdapter(
     private val onItemClick: (HistoryItem) -> Unit,
     private val onItemLongClick: (HistoryItem) -> Unit,
-    private val onItemDelete: (HistoryItem) -> Unit
+    private val onItemDelete: (HistoryItem) -> Unit,
+    private val onItemToggleSelection: (HistoryItem) -> Unit,
+    /** 选中键的计算口径由 Fragment 传进来（HistoryViewModel 的删除键），适配器不另写一套推导 */
+    private val selectionKeyOf: (HistoryItem) -> String
 ) : ListAdapter<HistoryRow, RecyclerView.ViewHolder>(DiffCallback()) {
 
     /**
@@ -39,6 +43,32 @@ class HistoryAdapter(
      * bind 时会把这个值同步给每一行的 SwipeRevealLayout，所以滚入屏幕的新行也是对的。
      */
     var swipeEnabled: Boolean = true
+
+    /** 多选模式：点条目 / 长按条目都变成切换选中，横向滑动让位给点选 */
+    private var selectionMode: Boolean = false
+
+    /** 当前选中集，键与 ViewModel 的删除键同口径 */
+    private var selectedKeys: Set<String> = emptySet()
+
+    /**
+     * 下发多选状态。
+     *
+     * rows 本身不包含选中态，只提交同样的 rows 时 DiffUtil 认为内容没变、不会重绑，
+     * 勾选标记就会停在旧值上；所以选中集变化走 payload 单独刷，
+     * 只有模式切换（点击语义 + 滑动手势都变）才额外刷一次滑动状态。
+     */
+    fun applySelectionState(inSelectionMode: Boolean, keys: Set<String>) {
+        val modeChanged = selectionMode != inSelectionMode
+        selectionMode = inSelectionMode
+        selectedKeys = keys
+
+        if (itemCount <= 0) return
+        notifyItemRangeChanged(0, itemCount, PAYLOAD_SELECTION)
+        if (modeChanged) notifyItemRangeChanged(0, itemCount, PAYLOAD_SWIPE)
+    }
+
+    private fun isSelected(item: HistoryItem): Boolean =
+        selectionMode && selectedKeys.contains(selectionKeyOf(item))
 
     override fun getItemViewType(position: Int): Int =
         if (getItem(position) is HistoryRow.Header) TYPE_HEADER else TYPE_ENTRY
@@ -60,7 +90,9 @@ class HistoryAdapter(
                 onItemClick,
                 onItemLongClick,
                 onItemDelete,
-                { swipeEnabled }
+                onItemToggleSelection,
+                { swipeEnabled && !selectionMode },
+                { selectionMode }
             )
         }
     }
@@ -68,24 +100,28 @@ class HistoryAdapter(
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (val row = getItem(position)) {
             is HistoryRow.Header -> (holder as HeaderViewHolder).bind(row.title)
-            is HistoryRow.Entry -> (holder as EntryViewHolder).bind(row.item)
+            is HistoryRow.Entry -> (holder as EntryViewHolder).bind(row.item, isSelected(row.item))
         }
     }
 
     /**
-     * 带 payload 的绑定：切「露出按钮 / 滑动即删除」时只刷滑动状态，
-     * 不重跑封面加载和进度计算（Fragment 用 notifyItemRangeChanged(…, PAYLOAD_SWIPE) 触发）。
+     * 带 payload 的绑定：切删除方式只刷滑动状态，切多选只刷勾选状态，
+     * 都不重跑封面加载和进度计算（Fragment 用 notifyItemRangeChanged 带 payload 触发）。
      */
     override fun onBindViewHolder(
         holder: RecyclerView.ViewHolder,
         position: Int,
         payloads: MutableList<Any>
     ) {
-        if (payloads.contains(PAYLOAD_SWIPE) && holder is EntryViewHolder) {
-            holder.bindSwipeState()
-        } else {
-            super.onBindViewHolder(holder, position, payloads)
+        val row = getItem(position)
+        if (holder is EntryViewHolder && row is HistoryRow.Entry) {
+            val refreshSelection = payloads.contains(PAYLOAD_SELECTION)
+            val refreshSwipe = payloads.contains(PAYLOAD_SWIPE)
+            if (refreshSelection) holder.bindSelectionState(isSelected(row.item))
+            if (refreshSwipe) holder.bindSwipeState()
+            if (refreshSelection || refreshSwipe) return
         }
+        super.onBindViewHolder(holder, position, payloads)
     }
 
     private class HeaderViewHolder(
@@ -101,10 +137,12 @@ class HistoryAdapter(
         private val onItemClick: (HistoryItem) -> Unit,
         private val onItemLongClick: (HistoryItem) -> Unit,
         private val onItemDelete: (HistoryItem) -> Unit,
-        private val isSwipeEnabled: () -> Boolean
+        private val onToggleSelection: (HistoryItem) -> Unit,
+        private val isSwipeEnabled: () -> Boolean,
+        private val isSelectionMode: () -> Boolean
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(historyItem: HistoryItem) {
+        fun bind(historyItem: HistoryItem, selected: Boolean) {
             val context = binding.root.context
             val title = historyItem.videoItem.title
             binding.videoTitle.text = title
@@ -165,16 +203,37 @@ class HistoryAdapter(
 
             // 每次绑定都把当前的滑动模式同步给容器，滚入屏幕的新行不会拿到旧状态
             bindSwipeState()
+            bindSelectionState(selected)
 
             // 根节点现在是 SwipeRevealLayout，里面的卡片自己 clickable，点击到不了根节点，
-            // 所以条目点击要挂到内容卡片上；滑出来的删除区单独走 onItemDelete
+            // 所以条目点击要挂到内容卡片上；滑出来的删除区单独走 onItemDelete。
+            // 多选模式下点击和长按都只切换选中，不进播放器；两个判断读的是实时状态，切模式不用重绑监听
             val content = binding.root.contentView ?: binding.root
-            content.setOnClickListener { onItemClick(historyItem) }
+            content.setOnClickListener {
+                if (isSelectionMode()) onToggleSelection(historyItem) else onItemClick(historyItem)
+            }
             content.setOnLongClickListener {
-                onItemLongClick(historyItem)
+                if (isSelectionMode()) onToggleSelection(historyItem) else onItemLongClick(historyItem)
                 true
             }
             binding.btnSwipeDelete.setOnClickListener { onItemDelete(historyItem) }
+        }
+
+        /**
+         * 只同步选中态：勾选标记 + 卡片描边。
+         * 主色只出现在这里，卡片底色不动，多选时列表整体观感不变。
+         */
+        fun bindSelectionState(selected: Boolean) {
+            binding.selectionMark.visibility = if (selected) View.VISIBLE else View.GONE
+
+            val card = binding.root.contentView as? MaterialCardView ?: return
+            if (selected) {
+                card.strokeColor = ContextCompat.getColor(card.context, R.color.theme_primary)
+                card.strokeWidth =
+                    (SELECTED_STROKE_DP * card.resources.displayMetrics.density).toInt()
+            } else {
+                card.strokeWidth = 0
+            }
         }
 
         /**
@@ -209,6 +268,12 @@ class HistoryAdapter(
 
         /** 切删除方式时用的 payload：只刷新滑动状态，不做一次全量 bind。 */
         const val PAYLOAD_SWIPE = "payload_history_swipe"
+
+        /** 多选态变化时用的 payload：只刷新勾选标记和描边，不重跑封面与进度。 */
+        private const val PAYLOAD_SELECTION = "payload_history_selection"
+
+        /** 选中时卡片描边宽度（dp）：只做一圈主色细边，不铺整卡底色 */
+        private const val SELECTED_STROKE_DP = 2f
 
         /** 方括号 / 圆括号包起来的线路名，例如「[feifan] 第01集」「【线路2】第3集」 */
         private val BRACKET_BLOCK = Regex("""[\[【(（][^\]】)）]{0,24}[\]】)）]""")

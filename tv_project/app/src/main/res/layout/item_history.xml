@@ -95,6 +95,20 @@
                     android:visibility="gone"
                     tools:text="第1集" />
 
+                <!-- 多选勾选标记：默认隐藏，选中时才出现；只出主色，不给整张卡片铺底色 -->
+                <ImageView
+                    android:id="@+id/selectionMark"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_gravity="bottom|end"
+                    android:layout_margin="6dp"
+                    android:background="@drawable/bg_episode_badge"
+                    android:importantForAccessibility="no"
+                    android:padding="4dp"
+                    android:src="@drawable/ic_check_primary"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
             </com.google.android.material.card.MaterialCardView>
 
             <LinearLayout
