@@ -84,6 +84,12 @@ object ShortDramaProgressStore {
      * 记录某部剧看到第几集。
      *
      * 用 JSON 而不是拼分隔符：剧名里本来就可能带 : / | 之类的字符，拼字符串迟早解析错。
+     *
+     * **totalEpisodes 的语义（重要）**：它是「这部剧的总集数」，不是「当前播放线路的集数」。
+     * 调用方应当传**该剧全部线路里的最大集数**（同一个采集源里，同一部剧的不同线路常常
+     * 一长一短：第 1 条线路只有 20 集、第 2 条有 80 集）。传成当前源的 size 会出现
+     * 「用户明明看到第 60 集了，卡片上还写共 20 集」这种自相矛盾的进度。
+     * 目录页 / 详情页拿到的是 `sources`，最大集数应当由它们算好后传进来。
      */
     fun record(
         bookId: String,
@@ -157,11 +163,40 @@ object ShortDramaProgressStore {
         return progress
     }
 
+    /**
+     * 某部剧记录下来的总集数（没记录过返回 0）。
+     *
+     * 只读 [Progress.totalEpisodes]，不额外解析、不改数据格式——线上已经有进度数据落盘，
+     * 加字段会让老数据读出来是默认值，所以这里只是给调用方一个语义明确的读入口。
+     */
+    fun episodeCountFor(bookId: String): Int {
+        return progressOf(bookId)?.totalEpisodes ?: 0
+    }
+
     /** 清空全部短剧进度（只动本文件，不碰别的 prefs） */
     fun clear() {
         prefs.edit().clear().apply()
         // 缓存不清就等于没清：清完立刻读还会从内存里把旧进度翻出来
         synchronized(cacheLock) { cache.clear() }
+        // 不通知的话，列表页已经画好的卡片会一直挂着「看看到第 N 集」，
+        // 用户清完进度回到列表还以为没生效
+        notifyListeners()
+    }
+
+    /**
+     * 清除**单部剧**的进度（列表卡片上的「清除观看记录」走这条）。
+     *
+     * 只删这一条 key，不动别的剧：整体 [clear] 会把用户所有观看进度一次抹掉，
+     * 用在单卡片操作上就是灾难。
+     */
+    fun clear(bookId: String) {
+        val id = bookId.trim()
+        if (id.isEmpty()) return
+        prefs.edit().remove(KEY_PREFIX + id).apply()
+        // 缓存里那条（可能是「确认没记录」的 null）也要一起删：
+        // 否则删完立刻读还是命中旧缓存，UI 上表现为「清了但还在」
+        synchronized(cacheLock) { cache.remove(id) }
+        notifyListeners()
     }
 
     /**

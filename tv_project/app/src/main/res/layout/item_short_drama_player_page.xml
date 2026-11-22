@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  竖屏连播的「一集」页面。
+  分层（由下到上）：
+    1. PlayerView            视频画面，铺满，自带控制器关闭（app:use_controller=false），所有控件自己画
+    2. topScrim / bottomScrim 上下渐变遮罩，保证白字在任何画面上都看得清
+    3. centerIcon            单击画面后浮出的播放/暂停大图标
+    4. loadingView           加载中转圈（STATE_BUFFERING）
+    5. errorPanel            本集播放失败的可点重试浮层
+    6. bottomInfo            剧名 / 第N集 / 线路 / 细进度条 / 时间
+    7. rightRail             抖音那排竖排按钮：选集、倍速、线路、点赞
+  这一页里所有交互都在 ShortDramaPlayerPageHolder 里接线，布局只负责摆位置。
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/pageRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
+
+    <com.google.android.exoplayer2.ui.PlayerView
+        android:id="@+id/playerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/black"
+        app:resize_mode="fit"
+        app:shutter_background_color="@android:color/black"
+        app:surface_type="surface_view"
+        app:use_controller="false" />
+
+    <!-- 顶部渐变：只为了衬返回箭头，高度不用太高 -->
+    <View
+        android:id="@+id/topScrim"
+        android:layout_width="match_parent"
+        android:layout_height="140dp"
+        android:layout_gravity="top"
+        android:background="@drawable/gradient_top"
+        android:clickable="false"
+        android:focusable="false"
+        android:importantForAccessibility="no" />
+
+    <!-- 底部渐变：底部信息区的可读性全压在这一层上 -->
+    <View
+        android:id="@+id/bottomScrim"
+        android:layout_width="match_parent"
+        android:layout_height="320dp"
+        android:layout_gravity="bottom"
+        android:background="@drawable/gradient_bottom"
+        android:clickable="false"
+        android:focusable="false"
+        android:importantForAccessibility="no" />
+
+    <!-- 单击画面后浮出的播放/暂停图标：不参与无障碍焦点（状态已由播放器本身表达） -->
+    <ImageView
+        android:id="@+id/centerIcon"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_gravity="center"
+        android:alpha="0"
+        android:importantForAccessibility="no"
+        android:scaleType="centerInside"
+        android:src="@drawable/sd_ic_play" />
+
+    <ProgressBar
+        android:id="@+id/loadingView"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center"
+        android:indeterminateTint="@android:color/white"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <!-- 失败浮层：整块可点，点一下就是重试 -->
+    <LinearLayout
+        android:id="@+id/errorPanel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/sd_bg_panel_dark"
+        android:clickable="true"
+        android:contentDescription="本集播放失败，点击重试"
+        android:focusable="true"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingStart="24dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="16dp"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <TextView
+            android:id="@+id/tvErrorTip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="本集播放失败，点击重试"
+            android:textColor="@android:color/white"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvErrorHint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="可点右侧「线路」换一条源"
+            android:textColor="@color/player_control_icon_dim"
+            android:textSize="@dimen/text_caption"
+            android:visibility="gone"
+            tools:visibility="visible" />
+    </LinearLayout>
+
+    <!-- 右侧竖排按钮：贴右下，避免压住底部信息区 -->
+    <LinearLayout
+        android:id="@+id/rightRail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="190dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <!-- 选集 -->
+        <LinearLayout
+            android:id="@+id/btnEpisodes"
+            android:layout_width="56dp"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:contentDescription="选集"
+            android:focusable="true"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/sd_bg_circle_scrim"
+                android:importantForAccessibility="no"
+                android:padding="10dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/sd_ic_episodes" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:importantForAccessibility="no"
+                android:text="选集"
+                android:textColor="@android:color/white"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <!-- 倍速：圆圈里直接显示当前倍速文字，比抽象图标更直观 -->
+        <LinearLayout
+            android:id="@+id/btnSpeed"
+            android:layout_width="56dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:clickable="true"
+            android:contentDescription="切换倍速"
+            android:focusable="true"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/sd_bg_circle_scrim">
+
+                <TextView
+                    android:id="@+id/tvSpeedValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:importantForAccessibility="no"
+                    android:text="1.0x"
+                    android:textColor="@android:color/white"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:importantForAccessibility="no"
+                android:text="倍速"
+                android:textColor="@android:color/white"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <!-- 换线路：只有一条线路时由代码 GONE -->
+        <LinearLayout
+            android:id="@+id/btnLine"
+            android:layout_width="56dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:clickable="true"
+            android:contentDescription="切换线路"
+            android:focusable="true"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <ImageView
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/sd_bg_circle_scrim"
+                android:importantForAccessibility="no"
+                android:padding="10dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/sd_ic_switch_line" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:importantForAccessibility="no"
+                android:text="线路"
+                android:textColor="@android:color/white"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <!-- 点赞：双击画面也会走这里，计数纯本地占位 -->
+        <LinearLayout
+            android:id="@+id/btnLike"
+            android:layout_width="56dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:clickable="true"
+            android:contentDescription="点赞"
+            android:focusable="true"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/sd_bg_circle_scrim"
+                android:importantForAccessibility="no"
+                android:padding="10dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/sd_ic_heart" />
+
+            <TextView
+                android:id="@+id/tvLikeCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:importantForAccessibility="no"
+                android:text="0"
+                android:textColor="@android:color/white"
+                android:textSize="11sp"
+                tools:text="12" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- 底部信息区 -->
+    <LinearLayout
+        android:id="@+id/bottomInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:paddingStart="16dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="22dp">
+
+        <TextView
+            android:id="@+id/tvDramaTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@android:color/white"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            tools:text="总裁的替身新娘" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvEpisodeMeta"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
+                android:textSize="13sp"
+                tools:text="第12集 / 共80集" />
+
+            <TextView
+                android:id="@+id/tvLineName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/sd_bg_panel_dark"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:paddingStart="8dp"
+                android:paddingTop="2dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="2dp"
+                android:textColor="@color/player_control_icon_dim"
+                android:textSize="11sp"
+                tools:text="线路一" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- 高度给 28dp 是为了拖动热区；真正画出来的条只有 3dp（maxHeight/minHeight） -->
+            <SeekBar
+                android:id="@+id/seekBar"
+                android:layout_width="0dp"
+                android:layout_height="28dp"
+                android:layout_weight="1"
+                android:contentDescription="播放进度，可拖动"
+                android:max="1000"
+                android:maxHeight="3dp"
+                android:minHeight="3dp"
+                android:paddingStart="0dp"
+                android:paddingEnd="0dp"
+                android:progressDrawable="@drawable/sd_seekbar_progress"
+                android:splitTrack="false"
+                android:thumb="@null" />
+
+            <TextView
+                android:id="@+id/tvTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:text="00:00 / 00:00"
+                android:textColor="@android:color/white"
+                android:textSize="11sp"
+                tools:text="00:12 / 01:30" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</FrameLayout>

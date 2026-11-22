@@ -115,6 +115,19 @@
             android:label="免费短剧"
             android:exported="true" />
 
+        <!--
+            竖屏连播播放器：只由短剧详情页内部拉起，所以不写 android:exported（默认 false）。
+            横竖屏切换走 configChanges 自处理，避免旋转时重建 Activity 导致播放中断。
+            主题必须用 Material3 的 Theme.影视星球，Theme.AppCompat.* 下 Material3 卡片会崩。
+        -->
+        <activity
+            android:name=".presentation.shortdrama.player.ShortDramaPlayerActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize"
+            android:label="短剧播放"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.影视星球" />
+
         <activity
             android:name=".presentation.favorite.FavoriteActivity"
             android:label="我的收藏"
