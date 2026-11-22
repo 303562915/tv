@@ -57,7 +57,7 @@
 
 ## 主题配色
 
-从 Lua 版本迁移的主题色：
+主题配色：
 - 主色 (theme_primary): #2196F3 (亮蓝色)
 - 强调色 (theme_accent): #FF5722 (橙红色)
 - 文本主色 (theme_text_primary): #212121 (深色文本)

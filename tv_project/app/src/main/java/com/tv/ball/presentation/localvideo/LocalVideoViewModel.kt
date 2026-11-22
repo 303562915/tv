@@ -31,7 +31,7 @@ class LocalVideoViewModel : ViewModel() {
 
     companion object {
         /**
-         * 占位图（灰色）- 完全照搬 Lua 代码。
+         * 占位图（灰色）。
          * 低内存盒子上 320x180 ARGB_8888 的分配仍可能失败，
          * 失败退化 1x1 空图，不能把整页带崩。
          */
@@ -145,7 +145,7 @@ class LocalVideoViewModel : ViewModel() {
                 publishFolders()
                 _isLoading.value = false
 
-                // 异步加载缩略图 - 完全照搬 Lua 逻辑
+                // 异步加载缩略图
                 loadQueue.clear()
                 loadQueue.addAll(folders)
                 startLoadingThumbnails()
@@ -153,7 +153,7 @@ class LocalVideoViewModel : ViewModel() {
         }
     }
     
-    // 完全照搬 Lua 的异步加载逻辑
+    // 异步加载逻辑
     private fun startLoadingThumbnails() {
         lateinit var loadRunnable: Runnable
         loadRunnable = Runnable {
@@ -261,7 +261,7 @@ class LocalVideoViewModel : ViewModel() {
                     if (folderKey == null) continue
 
                     if (!folderMap.containsKey(folderKey)) {
-                        // 先用占位图 - 完全照搬 Lua
+                        // 先用占位图
                         folderMap[folderKey] = VideoFolder(
                             folderName = bucketName,
                             folderPath = folderKey,

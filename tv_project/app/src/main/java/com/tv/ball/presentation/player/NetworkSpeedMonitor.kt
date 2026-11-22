@@ -85,7 +85,7 @@ class NetworkSpeedMonitor(private val context: Context) {
     }
     
     /**
-     * 参考腾讯视频和Lua版本的阈值设置：
+     * 参考腾讯视频的阈值设置：
      * - 高速：> 2 MB/s (2048 KB/s)
      * - 还可以：500 KB/s - 2 MB/s
      * - 较慢：100 KB/s - 500 KB/s

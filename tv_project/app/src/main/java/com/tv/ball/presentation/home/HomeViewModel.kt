@@ -1006,7 +1006,7 @@ class HomeViewModel(
             Log.d(TAG, "HTML sample around module-poster-item: $sample")
         }
         
-        // Pattern from Lua code - 使用 DOT_MATCHES_ALL 选项
+        // 使用 DOT_MATCHES_ALL 选项
         val pattern = """<a\s+href="([^"]+)"[^>]*class="module-poster-item\s+module-item"[^>]*>.*?<div\s+class="module-item-note">\s*([^<]+)\s*</div>.*?data-original="([^"]+)".*?<div\s+class="module-poster-item-title">\s*([^<]+)\s*</div>""".toRegex(RegexOption.DOT_MATCHES_ALL)
         
         var count = 0

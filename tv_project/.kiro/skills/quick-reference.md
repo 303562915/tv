@@ -275,7 +275,5 @@ override fun onDestroyView() {
 ## 联系方式
 
 如有问题，请查看：
-- 迁移总结: `.kiro/skills/migration-summary.md`
-- 检查清单: `.kiro/skills/migration-checklist.md`
 - 轮播图文档: `.kiro/skills/banner-migration.md`
 - 详情解析文档: `.kiro/skills/video-source-detail-parsing.md`

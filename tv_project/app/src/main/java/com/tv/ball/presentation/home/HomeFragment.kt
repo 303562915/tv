@@ -182,7 +182,6 @@ class HomeFragment : Fragment() {
 //    private fun setupIndicator(count: Int) {
 //        binding.indicatorContainer.removeAllViews()
 //        
-//        // 完全照搬 Lua 的指示器样式
 //        val indicatorRadius = (4 * resources.displayMetrics.density).toInt()
 //        val indicatorSpacing = (10 * resources.displayMetrics.density).toInt()
 //        

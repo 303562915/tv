@@ -4564,7 +4564,7 @@ class VideoPlayerActivity : AppCompatActivity() {
     private fun updateNetworkSpeed(speedInfo: NetworkSpeedMonitor.SpeedInfo) {
         binding.networkSpeedText.text = speedInfo.speedText
         
-        // 根据网速质量显示不同颜色（参考Lua版本）
+        // 根据网速质量显示不同颜色
         val color = when (speedInfo.quality) {
             NetworkSpeedMonitor.SpeedQuality.POOR -> {
                 android.graphics.Color.RED

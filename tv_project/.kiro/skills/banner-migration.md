@@ -1,7 +1,7 @@
 # 轮播图迁移规则 (Banner Migration)
 
 ## 概述
-将AndroLua的轮播图功能迁移到Kotlin项目，使用ViewPager2实现无限循环轮播。
+轮播图使用 ViewPager2 实现无限循环轮播。
 
 ## 快速检查清单
 
