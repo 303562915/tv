@@ -112,9 +112,8 @@
 
 ## 构建和安装流程
 
-每次修改后必须执行：
-1. `./gradlew assembleDebug` - 构建 APK
-2. `adb install -r app/build/outputs/apk/debug/app-debug.apk` - 安装到设备
+构建只走 GitHub Actions：改完 `git push origin main`，CI 出开发版 APK，本机用
+`adb install -r <CI 产物>` 安装。本地不跑 `gradlew`。
 
 ## 注意事项
 

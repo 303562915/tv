@@ -16,12 +16,7 @@
 - [ ] `HomeFragment.kt` 包含轮播图相关代码
 
 ### 构建命令
-```bash
-# 如果遇到缓存问题，先关闭所有占用文件的进程
-./gradlew clean
-./gradlew assembleDebug
-./gradlew installDebug
-```
+构建交给 GitHub Actions（push 到 `main`），本地不跑 `gradlew`。
 
 ## 核心组件
 
@@ -187,14 +182,8 @@ val defaultBannerData = listOf(
 
 ## 故障排除
 
-### 构建失败 - 文件被占用
-```bash
-# 关闭所有IDE和Gradle进程
-# 然后重新构建
-./gradlew --stop
-./gradlew clean
-./gradlew assembleDebug
-```
+### 构建失败
+构建在 CI 上失败时，用 `gh run view <run-id> --log-failed` 读日志定位，不转本地构建。
 
 ### 轮播图不显示
 - 检查网络权限：`AndroidManifest.xml` 需要 `INTERNET` 权限

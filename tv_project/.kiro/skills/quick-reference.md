@@ -1,11 +1,8 @@
 # 快速参考指南
 
 ## ⚠️ 重要提醒
-**每次修改代码后必须运行：**
-```bash
-./gradlew installDebug
-```
-详见：`.kiro/skills/build-and-install.md`
+**构建只走 GitHub Actions**：改完代码 `git push origin main` 触发 CI，开发版 APK 出在
+<https://github.com/303562915/tv/releases/tag/dev>。本地不跑 `gradlew`（详见仓库根 `AGENTS.md`）。
 
 ---
 
@@ -148,16 +145,13 @@ adb logcat | grep "VideoSourceManager"
 adb logcat -c
 ```
 
-### 构建命令
+### 构建与安装
 ```bash
-# 清理
-./gradlew clean
+# 构建：push 到 main 由 CI 完成，本地不跑 gradlew
+git push origin main
 
-# 编译Debug版本
-./gradlew assembleDebug
-
-# 安装到设备
-./gradlew installDebug
+# 装到设备（用 CI 产物）
+adb install -r TVPlayer-dev-<run>.apk
 
 # 卸载
 adb uninstall com.tv.ball
