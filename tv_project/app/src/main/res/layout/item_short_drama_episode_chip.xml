@@ -1,29 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  选集网格单元。
-  为什么套一层无 id 的 FrameLayout：格子要「整格可点」，
-  同时文字控件需要一个明确的 id（binding 的 chipText 指向它）。
-  高度写死 44dp 是为了让 ShortDramaEpisodeSheet 能用「行数 x 固定行高」直接算出网格高度，
-  不去做 wrap_content 的全量测量（200+ 集的面板那样会很卡）。
+  选集竖列表的一行：左 56dp 圆角缩略图，右侧两行文字（第N集 · 剧名 / 线路名 · 共M集）。
+  高度写死 72dp 是为了让 ShortDramaEpisodeSheet 能用「行数 x 固定行高」直接算列表高度，
+  不去做 wrap_content 的全量测量（200+ 集的剧那样打开面板会明显顿一下）。
+  clipToOutline 配 sd_bg_thumb 的圆角 outline，缩略图才会被裁成圆角。
 -->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="44dp"
-    android:layout_margin="4dp">
+    android:layout_height="72dp"
+    android:layout_marginBottom="8dp"
+    android:background="@drawable/sd_bg_episode_row"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="8dp">
 
-    <TextView
-        android:id="@+id/chipText"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/sd_bg_episode_chip"
-        android:ellipsize="end"
-        android:gravity="center"
-        android:maxLines="1"
-        android:paddingStart="4dp"
-        android:paddingEnd="4dp"
-        android:textColor="@color/episode_chip_text"
-        android:textSize="@dimen/text_body"
-        tools:text="第12集" />
+    <ImageView
+        android:id="@+id/ivThumb"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:background="@drawable/sd_bg_thumb"
+        android:clipToOutline="true"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop" />
 
-</FrameLayout>
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/chipTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/theme_text_primary"
+            android:textSize="@dimen/text_body"
+            tools:text="第12集 · 总裁的替身新娘" />
+
+        <TextView
+            android:id="@+id/chipMeta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/theme_text_secondary"
+            android:textSize="12sp"
+            tools:text="线路一 · 共80集" />
+    </LinearLayout>
+
+</LinearLayout>

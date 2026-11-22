@@ -43,13 +43,15 @@
 
         <ImageView
             android:id="@+id/closeButton"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:src="@android:drawable/ic_menu_close_clear_cancel"
             android:tint="@android:color/white"
             android:clickable="true"
             android:focusable="true"
-            android:background="?attr/selectableItemBackgroundBorderless" />
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="关闭"
+            android:padding="12dp" />
     </LinearLayout>
 
     <!-- 标签页切换 -->
@@ -68,7 +70,7 @@
         <TextView
             android:id="@+id/basicSpeedTab"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="48dp"
             android:layout_weight="1"
             android:text="基础倍速"
             android:textColor="@color/theme_text_primary"
@@ -81,7 +83,7 @@
         <TextView
             android:id="@+id/smartSpeedTab"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="48dp"
             android:layout_weight="1"
             android:text="滑动灵敏度"
             android:textColor="@color/theme_text_secondary"
@@ -365,7 +367,8 @@
                     android:layout_height="18dp"
                     android:src="@android:drawable/ic_menu_info_details"
                     android:tint="@color/theme_text_secondary"
-                    android:layout_marginEnd="12dp" />
+                    android:layout_marginEnd="12dp"
+                    android:importantForAccessibility="no" />
 
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/longPressLockSwitch"

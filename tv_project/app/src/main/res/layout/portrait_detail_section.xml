@@ -38,7 +38,8 @@
                 android:gravity="center_horizontal"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackground">
+                android:background="?attr/selectableItemBackground"
+                android:minHeight="48dp">
 
                 <TextView
                     android:id="@+id/tabTextDetail"
@@ -67,7 +68,8 @@
                 android:gravity="center_horizontal"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackground">
+                android:background="?attr/selectableItemBackground"
+                android:minHeight="48dp">
 
                 <TextView
                     android:id="@+id/tabTextErci"
@@ -95,7 +97,8 @@
                 android:gravity="center_horizontal"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackground">
+                android:background="?attr/selectableItemBackground"
+                android:minHeight="48dp">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -189,7 +192,8 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:padding="4dp"
-                android:background="?attr/selectableItemBackground">
+                android:background="?attr/selectableItemBackground"
+                android:minHeight="48dp">
 
                 <TextView
                     android:id="@+id/introLinkText"
@@ -205,7 +209,8 @@
                     android:layout_height="14dp"
                     android:layout_marginStart="2dp"
                     android:src="@drawable/ic_expand_more"
-                    app:tint="@color/detail_action_tint" />
+                    app:tint="@color/detail_action_tint"
+                    android:importantForAccessibility="no" />
             </LinearLayout>
 
         </LinearLayout>
@@ -322,13 +327,15 @@
                 android:gravity="center"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackground">
+                android:background="?attr/selectableItemBackground"
+                android:minHeight="48dp">
 
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/ic_file_download_black_24dp"
-                    app:tint="@color/detail_action_tint" />
+                    app:tint="@color/detail_action_tint"
+                    android:importantForAccessibility="no" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -349,14 +356,16 @@
                 android:gravity="center"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackground">
+                android:background="?attr/selectableItemBackground"
+                android:minHeight="48dp">
 
                 <ImageView
                     android:id="@+id/favoriteIcon"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/ic_favorite_border_black_24dp"
-                    app:tint="@color/detail_action_tint" />
+                    app:tint="@color/detail_action_tint"
+                    android:importantForAccessibility="no" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -377,13 +386,15 @@
                 android:gravity="center"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackground">
+                android:background="?attr/selectableItemBackground"
+                android:minHeight="48dp">
 
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/ic_cast_black_24dp"
-                    app:tint="@color/detail_action_tint" />
+                    app:tint="@color/detail_action_tint"
+                    android:importantForAccessibility="no" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -404,13 +415,15 @@
                 android:gravity="center"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackground">
+                android:background="?attr/selectableItemBackground"
+                android:minHeight="48dp">
 
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/ic_share_black_24dp"
-                    app:tint="@color/detail_action_tint" />
+                    app:tint="@color/detail_action_tint"
+                    android:importantForAccessibility="no" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -431,13 +444,15 @@
                 android:gravity="center"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackground">
+                android:background="?attr/selectableItemBackground"
+                android:minHeight="48dp">
 
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/ic_link_black_24dp"
-                    app:tint="@color/detail_action_tint" />
+                    app:tint="@color/detail_action_tint"
+                    android:importantForAccessibility="no" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -484,7 +499,8 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:background="?attr/selectableItemBackground"
-                    android:padding="4dp">
+                    android:padding="4dp"
+                    android:minHeight="48dp">
 
                     <TextView
                         android:id="@+id/episodeCountText"
@@ -499,7 +515,8 @@
                         android:layout_height="16dp"
                         android:layout_marginStart="4dp"
                         android:src="@drawable/ic_expand_more"
-                        app:tint="@color/detail_action_tint" />
+                        app:tint="@color/detail_action_tint"
+                        android:importantForAccessibility="no" />
                 </LinearLayout>
             </LinearLayout>
 

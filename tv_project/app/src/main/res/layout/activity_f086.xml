@@ -158,7 +158,8 @@
             android:focusableInTouchMode="true"
             android:nextFocusUp="@id/btnBack"
             android:nextFocusDown="@id/f086ChannelSpinner"
-            app:cardCornerRadius="@dimen/group_corner">
+            app:cardCornerRadius="@dimen/group_corner"
+            android:minHeight="48dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -333,7 +334,8 @@
             android:focusableInTouchMode="true"
             android:nextFocusUp="@id/f086AutoInstall"
             android:nextFocusDown="@id/f086RepoButton"
-            app:cardCornerRadius="@dimen/group_corner">
+            app:cardCornerRadius="@dimen/group_corner"
+            android:minHeight="48dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -402,7 +404,7 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:gravity="center_vertical"
-                android:minHeight="@dimen/row_min_height"
+                android:minHeight="48dp"
                 android:nextFocusDown="@id/f086ChangelogRow"
                 android:nextFocusUp="@id/f086DownloadCard"
                 android:orientation="horizontal"

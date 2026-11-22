@@ -131,13 +131,12 @@ class DownloadActivity : AppCompatActivity() {
     }
 
     /**
-     * 下载器默认落盘目录：外部存储 Downloads/TVBall，
-     * 与 VideoDownloader.getDownloadPath 里的目录常量一致。
+     * 下载器当前的落盘目录：读「保存位置」设置（`download_settings / download_dir`），
+     * 与 [VideoDownloader.getDownloadPath] 走同一个口径 —— 这里不再自己拼 `Downloads/TVBall`，
+     * 否则用户切过目录后这一行会一直显示旧路径。
      */
-    private fun defaultDownloadDir(): String = File(
-        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-        "TVBall"
-    ).absolutePath
+    private fun defaultDownloadDir(): String =
+        VideoDownloader.currentDownloadDirPath(this)
 
     /**
      * 顶部「保存目录」行：优先取任一任务 savePath 的父目录（真实落盘位置），

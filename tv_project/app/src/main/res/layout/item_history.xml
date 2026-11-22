@@ -50,7 +50,8 @@
         android:clickable="true"
         android:focusable="true"
         android:foreground="?attr/selectableItemBackground"
-        app:cardCornerRadius="@dimen/radius_md">
+        app:cardCornerRadius="@dimen/radius_md"
+        android:minHeight="48dp">
 
         <LinearLayout
             android:layout_width="match_parent"

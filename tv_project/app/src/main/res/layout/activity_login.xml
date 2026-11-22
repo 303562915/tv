@@ -24,7 +24,8 @@
             android:layout_height="80dp"
             android:src="@drawable/ic_pv"
             android:background="@drawable/circle_white_bg"
-            android:padding="16dp" />
+            android:padding="16dp"
+            android:contentDescription="应用图标" />
 
         <TextView
             android:id="@+id/tvTitle"
@@ -81,7 +82,8 @@
                     android:paddingBottom="10dp"
                     android:clickable="true"
                     android:focusable="true"
-                    android:background="@drawable/tab_selected_bg" />
+                    android:background="@drawable/tab_selected_bg"
+                    android:minHeight="48dp" />
 
                 <TextView
                     android:id="@+id/tvRegisterTab"
@@ -96,7 +98,8 @@
                     android:paddingBottom="10dp"
                     android:clickable="true"
                     android:focusable="true"
-                    android:background="@android:color/transparent" />
+                    android:background="@android:color/transparent"
+                    android:minHeight="48dp" />
             </LinearLayout>
 
             <!-- 邮箱输入 -->
@@ -113,7 +116,8 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@drawable/center"
-                    app:tint="@color/theme_text_secondary" />
+                    app:tint="@color/theme_text_secondary"
+                    android:importantForAccessibility="no" />
 
                 <EditText
                     android:id="@+id/etEmail"
@@ -151,7 +155,8 @@
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:src="@drawable/ic_lw"
-                        app:tint="@color/theme_text_secondary" />
+                        app:tint="@color/theme_text_secondary"
+                        android:importantForAccessibility="no" />
 
                     <EditText
                         android:id="@+id/etCode"
@@ -196,7 +201,8 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@drawable/ic_lw"
-                    app:tint="@color/theme_text_secondary" />
+                    app:tint="@color/theme_text_secondary"
+                    android:importantForAccessibility="no" />
 
                 <EditText
                     android:id="@+id/etPassword"
@@ -229,7 +235,8 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@drawable/ic_lw"
-                    app:tint="@color/theme_text_secondary" />
+                    app:tint="@color/theme_text_secondary"
+                    android:importantForAccessibility="no" />
 
                 <EditText
                     android:id="@+id/etConfirmPassword"
@@ -316,7 +323,8 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:background="?attr/selectableItemBackground"
-                    android:padding="4dp" />
+                    android:padding="4dp"
+                    android:minHeight="48dp" />
 
                 <View
                     android:layout_width="0dp"
@@ -333,7 +341,8 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:background="?attr/selectableItemBackground"
-                    android:padding="4dp" />
+                    android:padding="4dp"
+                    android:minHeight="48dp" />
             </LinearLayout>
 
             <!-- 协议 -->
@@ -368,7 +377,8 @@
                     android:textSize="@dimen/text_caption"
                     android:clickable="true"
                     android:focusable="true"
-                    android:background="?attr/selectableItemBackground" />
+                    android:background="?attr/selectableItemBackground"
+                    android:minHeight="48dp" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -386,7 +396,8 @@
                     android:textSize="@dimen/text_caption"
                     android:clickable="true"
                     android:focusable="true"
-                    android:background="?attr/selectableItemBackground" />
+                    android:background="?attr/selectableItemBackground"
+                    android:minHeight="48dp" />
             </LinearLayout>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
@@ -426,7 +437,8 @@
                 android:padding="12dp"
                 android:clickable="true"
                 android:focusable="true"
-                app:tint="@color/theme_success" />
+                app:tint="@color/theme_success"
+                android:contentDescription="微信登录" />
 
             <ImageView
                 android:id="@+id/ivAlipayLogin"
@@ -437,7 +449,8 @@
                 android:padding="12dp"
                 android:clickable="true"
                 android:focusable="true"
-                app:tint="@color/theme_primary" />
+                app:tint="@color/theme_primary"
+                android:contentDescription="支付宝登录" />
         </LinearLayout>
     </LinearLayout>
 

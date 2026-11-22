@@ -30,7 +30,8 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:src="@drawable/ic_cast"
-            android:tint="@color/theme_text_secondary" />
+            android:tint="@color/theme_text_secondary"
+            android:importantForAccessibility="no" />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -59,14 +60,15 @@
 
         <ImageView
             android:id="@+id/refreshButton"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:src="@drawable/ic_refresh"
-            android:padding="4dp"
+            android:padding="12dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
-            android:tint="@color/theme_primary" />
+            android:tint="@color/theme_primary"
+            android:contentDescription="刷新设备列表" />
     </LinearLayout>
 
     <!-- 设备列表 -->
@@ -92,7 +94,8 @@
             android:layout_height="64dp"
             android:src="@drawable/ic_cast"
             android:alpha="0.3"
-            android:tint="@color/theme_text_secondary" />
+            android:tint="@color/theme_text_secondary"
+            android:importantForAccessibility="no" />
 
         <TextView
             android:id="@+id/emptyStateTitle"
@@ -147,7 +150,8 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@drawable/ic_copy"
-            android:tint="@color/theme_primary" />
+            android:tint="@color/theme_primary"
+            android:importantForAccessibility="no" />
 
         <TextView
             android:layout_width="0dp"
@@ -186,7 +190,8 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@drawable/ic_computer"
-            android:tint="@color/theme_primary" />
+            android:tint="@color/theme_primary"
+            android:importantForAccessibility="no" />
 
         <TextView
             android:layout_width="0dp"
@@ -225,7 +230,8 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@drawable/ic_play"
-            android:tint="@color/theme_primary" />
+            android:tint="@color/theme_primary"
+            android:importantForAccessibility="no" />
 
         <TextView
             android:layout_width="wrap_content"

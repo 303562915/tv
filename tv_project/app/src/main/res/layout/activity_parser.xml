@@ -98,7 +98,8 @@
                         android:id="@+id/ivPlatformIcon"
                         android:layout_width="32dp"
                         android:layout_height="32dp"
-                        android:src="@drawable/ic_play" />
+                        android:src="@drawable/ic_play"
+                        android:importantForAccessibility="no" />
 
                     <TextView
                         android:id="@+id/tvPlatformName"
@@ -163,7 +164,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="200dp"
                         android:scaleType="centerCrop"
-                        android:background="@color/theme_divider" />
+                        android:background="@color/theme_divider"
+                        android:contentDescription="视频封面" />
 
                     <!-- 图集网格 -->
                     <androidx.recyclerview.widget.RecyclerView

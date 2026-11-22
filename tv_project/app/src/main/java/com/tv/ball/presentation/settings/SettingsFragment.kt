@@ -401,19 +401,45 @@ class SettingsFragment : Fragment() {
     // 恢复默认
     // ============================================================
 
+    /**
+     * 「恢复本组默认值」：只重置本页「播放设置」这一组涉及的键，主题 / 下载 / 关于等其它小节不碰。
+     *
+     * 本组涉及的落点与键（resetPlaybackSettings 覆盖前 14 个，后 6 个在这里或 ViewModel 里逐个写）：
+     * · `user_prefs`：playback_auto_next、playback_remember_progress、playback_ended_behavior、
+     *   playback_seek_step_sec、playback_ad_skip_enabled、playback_ad_skip_seconds、
+     *   playback_preload_next、playback_preload_lead_seconds、playback_retry_count、
+     *   playback_auto_switch_route、playback_allow_mobile_data、playback_exact_seek、
+     *   local_video_exclude_ts、local_video_exclude_ext → [UserPreferences.resetPlaybackSettings]
+     * · `user_prefs`：font_scale（本页自己管，默认 1.0 标准）→ 这里补上
+     * · `player_settings`：long_press_lock_enabled（默认 true）
+     * · `skip_intro`：片头/片尾开关与时长（默认开片头、关片尾、90s / 60s）
+     * · `f057_buffer_prefs`：缓冲档位（默认均衡）
+     * · F081 播放默认值快照（倍速 / 快进 / 长按 / 字幕等）
+     * · `aspect_ratio*`：画面比例（默认自适应）
+     *
+     * 重置完重新读一遍偏好回填 View（[refreshAll]），开关与右侧文本立刻显示新的出厂值，
+     * 不需要退出再进一次页面。
+     */
     private fun setupResetRow() {
         binding.rowResetPlayback.setOnClickListener {
             AlertDialog.Builder(requireContext())
-                .setTitle(R.string.ps_reset_title)
-                .setMessage(R.string.ps_reset_message)
+                .setTitle("恢复本组默认值")
+                .setMessage("本组（播放行为、跳过与省时、预加载与缓冲、画面与网络、本地视频）的开关与档位会回到出厂值；主题、下载、关于等其它设置不受影响。")
                 .setPositiveButton(R.string.confirm) { _, _ ->
-                    viewModel.resetPlaybackSettings()
-                    refreshAll()
-                    CustomToast.show(requireContext(), getString(R.string.ps_reset_done))
+                    resetPlaybackGroup()
                 }
                 .setNegativeButton(R.string.cancel, null)
                 .show()
         }
+    }
+
+    /** 真的执行重置：ViewModel 管那六处落点，`font_scale` 本页自己写，最后统一刷新界面。 */
+    private fun resetPlaybackGroup() {
+        viewModel.resetPlaybackSettings()
+        // 「字体大小」不在 UserPreferences 里（只有设置页与播放页各读一次这个键），得单独写回标准档
+        setFontScale(FONT_SCALE_OPTIONS.first())
+        refreshAll()
+        CustomToast.show(requireContext(), "已恢复本组默认值")
     }
 
     // ============================================================

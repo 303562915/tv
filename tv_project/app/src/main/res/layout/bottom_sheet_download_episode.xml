@@ -46,7 +46,8 @@
             android:padding="8dp"
             android:clickable="true"
             android:focusable="true"
-            android:background="?attr/selectableItemBackground" />
+            android:background="?attr/selectableItemBackground"
+            android:minHeight="48dp" />
     </LinearLayout>
 
     <!-- 全选选项（多选模式下显示） -->
@@ -108,7 +109,8 @@
             android:padding="12dp"
             android:clickable="true"
             android:focusable="true"
-            android:background="?attr/selectableItemBackground" />
+            android:background="?attr/selectableItemBackground"
+            android:minHeight="48dp" />
 
         <TextView
             android:id="@+id/downloadCurrentButton"
@@ -121,7 +123,8 @@
             android:layout_marginStart="8dp"
             android:clickable="true"
             android:focusable="true"
-            android:background="?attr/selectableItemBackground" />
+            android:background="?attr/selectableItemBackground"
+            android:minHeight="48dp" />
 
         <TextView
             android:id="@+id/batchDownloadButton"
@@ -136,7 +139,8 @@
             android:clickable="true"
             android:focusable="true"
             android:visibility="gone"
-            android:background="?attr/selectableItemBackground" />
+            android:background="?attr/selectableItemBackground"
+            android:minHeight="48dp" />
     </LinearLayout>
 
 </LinearLayout>

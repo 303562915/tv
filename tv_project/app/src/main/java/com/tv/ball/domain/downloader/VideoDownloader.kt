@@ -11,6 +11,29 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
 
+/**
+ * 下载保存位置的三档，偏好里存的是枚举名（`DEFAULT` / `EXTERNAL_FILES` / `INTERNAL_CACHE`），
+ * 不是下标 —— 以后插档位也不会把老用户的值读成另一档。
+ *
+ * · [DEFAULT]        外部存储公共目录 `Downloads/TVBall`（改造前的唯一落点，默认值）
+ * · [EXTERNAL_FILES] 应用外部私有目录 `Android/data/<包名>/files/Movies`（卸载即清，不需额外权限）
+ * · [INTERNAL_CACHE] 应用内部缓存目录 `cacheDir`
+ *
+ * 只影响「之后新增的任务」：任务创建时就把目标路径写进 [DownloadTask.savePath]，
+ * 正在跑的任务不会被改写，也不会被打断。
+ */
+enum class DownloadDirKind {
+    DEFAULT,
+    EXTERNAL_FILES,
+    INTERNAL_CACHE;
+
+    companion object {
+        /** 偏好字符串 → 档位；缺失或认不出来的值一律回到 [DEFAULT]，不让坏值把落盘目录变空。 */
+        fun fromPref(raw: String?): DownloadDirKind =
+            DownloadDirKind.values().firstOrNull { it.name == raw } ?: DEFAULT
+    }
+}
+
 class VideoDownloader private constructor(private val context: Context) {
 
     companion object {
@@ -30,6 +53,66 @@ class VideoDownloader private constructor(private val context: Context) {
         /** 并发上限的合法区间：侧边栏 SeekBar 的 max 是 32。 */
         private const val MIN_MAX_CONCURRENT_DOWNLOADS = 1
         private const val MAX_MAX_CONCURRENT_DOWNLOADS = 32
+
+        /** 保存位置的偏好键：值存 [DownloadDirKind] 的枚举名。 */
+        const val KEY_DOWNLOAD_DIR = "download_dir"
+
+        /** 默认档的目录名（改造前写死的 `Downloads/TVBall`）。 */
+        private const val DEFAULT_DOWNLOAD_DIR_NAME = "TVBall"
+
+        /** 当前配置的保存位置档位；没设过或值坏了都按 [DownloadDirKind.DEFAULT]。 */
+        fun downloadDirKind(context: Context): DownloadDirKind = DownloadDirKind.fromPref(
+            runCatching {
+                context.getSharedPreferences(DOWNLOAD_PREFS_NAME, Context.MODE_PRIVATE)
+                    .getString(KEY_DOWNLOAD_DIR, null)
+            }.getOrNull()
+        )
+
+        /**
+         * 写保存位置档位。
+         *
+         * 只写偏好，不碰任何正在下载的任务：任务的落盘路径在 addDownloadTask 时就定了，
+         * 所以「切目录」天然只对之后的任务生效，不需要也不允许打断当前任务。
+         */
+        fun setDownloadDirKind(context: Context, kind: DownloadDirKind) {
+            runCatching {
+                context.getSharedPreferences(DOWNLOAD_PREFS_NAME, Context.MODE_PRIVATE)
+                    .edit()
+                    .putString(KEY_DOWNLOAD_DIR, kind.name)
+                    .apply()
+            }
+        }
+
+        /**
+         * 档位 → 真实目录，目录不存在就建出来。
+         *
+         * 外部私有目录拿不到（存储被卸载 / 分区不可用）时退回内部私有目录，
+         * 绝不返回空路径 —— 下载失败可以重试，路径为空会让整个任务没法落盘。
+         */
+        fun downloadDir(context: Context, kind: DownloadDirKind): File {
+            val resolved: File? = when (kind) {
+                DownloadDirKind.DEFAULT -> File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                    DEFAULT_DOWNLOAD_DIR_NAME
+                )
+                DownloadDirKind.EXTERNAL_FILES ->
+                    context.getExternalFilesDir(Environment.DIRECTORY_MOVIES)
+                DownloadDirKind.INTERNAL_CACHE -> context.cacheDir
+            }
+            val dir = resolved ?: context.filesDir
+            if (!dir.exists()) {
+                runCatching { dir.mkdirs() }
+            }
+            return dir
+        }
+
+        /** 当前配置对应的目录：界面显示与真正落盘共用这一处口径。 */
+        fun currentDownloadDir(context: Context): File =
+            downloadDir(context, downloadDirKind(context))
+
+        /** 当前配置目录的绝对路径。 */
+        fun currentDownloadDirPath(context: Context): String =
+            currentDownloadDir(context).absolutePath
 
         private const val SEGMENTS_PER_THREAD = 10  // 每个线程分成10段
         private const val MIN_SIZE_FOR_MULTITHREAD = 10 * 1024 * 1024  // 10MB以上才使用多线程
@@ -2129,14 +2212,10 @@ class VideoDownloader private constructor(private val context: Context) {
     }
 
     private fun getDownloadPath(fileName: String): String {
-        val downloadDir = File(
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-            "TVBall"
-        )
-        if (!downloadDir.exists()) {
-            downloadDir.mkdirs()
-        }
-        return File(downloadDir, fileName).absolutePath
+        // 目录来自「保存位置」设置（download_settings / download_dir）。
+        // 每次建任务时现读：已经建好的任务 savePath 早已落定，切目录不会改写也不会打断它们。
+        val dir = downloadDir(context, downloadDirKind(context))
+        return File(dir, fileName).absolutePath
     }
 
     private fun getFileExtension(url: String): String {

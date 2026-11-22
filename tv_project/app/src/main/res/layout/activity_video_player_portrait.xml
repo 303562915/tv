@@ -317,7 +317,8 @@
                             android:layout_width="32dp"
                             android:layout_height="32dp"
                             android:src="@android:drawable/ic_menu_info_details"
-                            app:tint="@color/theme_primary" />
+                            app:tint="@color/theme_primary"
+                            android:importantForAccessibility="no" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -341,7 +342,8 @@
                             android:layout_width="32dp"
                             android:layout_height="32dp"
                             android:src="@android:drawable/ic_menu_share"
-                            app:tint="@color/theme_primary" />
+                            app:tint="@color/theme_primary"
+                            android:importantForAccessibility="no" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -365,7 +367,8 @@
                             android:layout_width="32dp"
                             android:layout_height="32dp"
                             android:src="@android:drawable/ic_menu_search"
-                            app:tint="@color/theme_primary" />
+                            app:tint="@color/theme_primary"
+                            android:importantForAccessibility="no" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -389,7 +392,8 @@
                             android:layout_width="32dp"
                             android:layout_height="32dp"
                             android:src="@android:drawable/ic_menu_send"
-                            app:tint="@color/theme_primary" />
+                            app:tint="@color/theme_primary"
+                            android:importantForAccessibility="no" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -413,7 +417,8 @@
                             android:layout_width="32dp"
                             android:layout_height="32dp"
                             android:src="@android:drawable/ic_menu_save"
-                            app:tint="@color/theme_primary" />
+                            app:tint="@color/theme_primary"
+                            android:importantForAccessibility="no" />
 
                         <TextView
                             android:layout_width="wrap_content"

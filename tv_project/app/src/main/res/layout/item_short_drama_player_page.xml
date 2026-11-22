@@ -7,9 +7,16 @@
     3. centerIcon            单击画面后浮出的播放/暂停大图标
     4. loadingView           加载中转圈（STATE_BUFFERING）
     5. errorPanel            本集播放失败的可点重试浮层
-    6. bottomInfo            剧名 / 第N集 / 线路 / 细进度条 / 时间
-    7. rightRail             抖音那排竖排按钮：选集、倍速、线路、点赞
+    6. rightRail             抖音那排竖排按钮：头像、点赞、评论、收藏、分享、拍同款，再往下是选集/倍速/线路
+    7. bottomInfo            剧名 / 第N集 / 线路 / 细进度条 / 时间
+    8. dragHintPill          「下滑松手锁定 2 倍速」胶囊提示（只在按住后向下拖够阈值时出现）
+    9. zoomBar               双指缩小后的底部控制条（✕ / -5s / 播放暂停 / +5s / 倍速）
   这一页里所有交互都在 ShortDramaPlayerPageHolder 里接线，布局只负责摆位置。
+
+  关于 app:resize_mode
+    默认用 zoom（画面铺满、超出部分裁掉），这是抖音竖屏的常态观感；
+    用户双指捏合缩小才切到 fit（画面完整收进屏幕、上下留黑边），
+    黑边区域正好留给 zoomBar，所以控制条放在画面下方而不是画面中心。
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -24,7 +31,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@android:color/black"
-        app:resize_mode="fit"
+        app:resize_mode="zoom"
         app:shutter_background_color="@android:color/black"
         app:surface_type="surface_view"
         app:use_controller="false" />
@@ -88,7 +95,8 @@
         android:paddingEnd="24dp"
         android:paddingBottom="16dp"
         android:visibility="gone"
-        tools:visibility="visible">
+        tools:visibility="visible"
+        android:minHeight="48dp">
 
         <TextView
             android:id="@+id/tvErrorTip"
@@ -111,137 +119,76 @@
             tools:visibility="visible" />
     </LinearLayout>
 
-    <!-- 右侧竖排按钮：贴右下，避免压住底部信息区 -->
+    <!--
+      右侧竖排按钮，顺序对齐抖音：
+      头像（+关注）→ 点赞 → 评论 → 收藏 → 分享 → 拍同款 → 选集 → 倍速 → 线路。
+      评论 / 收藏 / 分享 / 拍同款 都是本地占位，点了只 toast「暂未开放」，所以下面不写数字，
+      只写功能名 —— 写 0 或写假数字都会让人以为这里真的有点赞/评论数据。
+      图标统一 36dp + 10dp 间距：条目变多以后 44dp 会把整列顶出屏幕上沿。
+    -->
     <LinearLayout
         android:id="@+id/rightRail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end|bottom"
         android:layout_marginEnd="10dp"
-        android:layout_marginBottom="190dp"
+        android:layout_marginBottom="118dp"
         android:gravity="center_horizontal"
         android:orientation="vertical">
 
-        <!-- 选集 -->
-        <LinearLayout
-            android:id="@+id/btnEpisodes"
+        <!-- 头像 + 关注：头像用剧封面裁圆，纯占位（不请求用户资料） -->
+        <FrameLayout
             android:layout_width="56dp"
-            android:layout_height="wrap_content"
-            android:clickable="true"
-            android:contentDescription="选集"
-            android:focusable="true"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
+            android:layout_height="54dp">
 
             <ImageView
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:background="@drawable/sd_bg_circle_scrim"
-                android:importantForAccessibility="no"
-                android:padding="10dp"
-                android:scaleType="centerInside"
-                android:src="@drawable/sd_ic_episodes" />
+                android:id="@+id/ivAvatar"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="top|center_horizontal"
+                android:background="@drawable/sd_bg_avatar_ring"
+                android:clickable="true"
+                android:clipToOutline="true"
+                android:contentDescription="剧集头像"
+                android:focusable="true"
+                android:scaleType="centerCrop" />
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:importantForAccessibility="no"
-                android:text="选集"
-                android:textColor="@android:color/white"
-                android:textSize="11sp" />
-        </LinearLayout>
-
-        <!-- 倍速：圆圈里直接显示当前倍速文字，比抽象图标更直观 -->
-        <LinearLayout
-            android:id="@+id/btnSpeed"
-            android:layout_width="56dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:clickable="true"
-            android:contentDescription="切换倍速"
-            android:focusable="true"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
-
-            <FrameLayout
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:background="@drawable/sd_bg_circle_scrim">
-
-                <TextView
-                    android:id="@+id/tvSpeedValue"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:importantForAccessibility="no"
-                    android:text="1.0x"
-                    android:textColor="@android:color/white"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
-            </FrameLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:importantForAccessibility="no"
-                android:text="倍速"
-                android:textColor="@android:color/white"
-                android:textSize="11sp" />
-        </LinearLayout>
-
-        <!-- 换线路：只有一条线路时由代码 GONE -->
-        <LinearLayout
-            android:id="@+id/btnLine"
-            android:layout_width="56dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:clickable="true"
-            android:contentDescription="切换线路"
-            android:focusable="true"
-            android:gravity="center_horizontal"
-            android:orientation="vertical"
-            android:visibility="gone"
-            tools:visibility="visible">
-
-            <ImageView
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:background="@drawable/sd_bg_circle_scrim"
-                android:importantForAccessibility="no"
-                android:padding="10dp"
-                android:scaleType="centerInside"
-                android:src="@drawable/sd_ic_switch_line" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:importantForAccessibility="no"
-                android:text="线路"
-                android:textColor="@android:color/white"
-                android:textSize="11sp" />
-        </LinearLayout>
+                android:id="@+id/tvFollowBadge"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="bottom|center_horizontal"
+                android:background="@drawable/sd_bg_follow_badge"
+                android:clickable="true"
+                android:contentDescription="关注"
+                android:focusable="true"
+                android:gravity="center"
+                android:paddingBottom="2dp"
+                android:text="+"
+                android:textColor="@color/theme_on_primary"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </FrameLayout>
 
         <!-- 点赞：双击画面也会走这里，计数纯本地占位 -->
         <LinearLayout
             android:id="@+id/btnLike"
             android:layout_width="56dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
+            android:layout_marginTop="10dp"
             android:clickable="true"
             android:contentDescription="点赞"
             android:focusable="true"
             android:gravity="center_horizontal"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:minHeight="48dp">
 
             <ImageView
-                android:layout_width="44dp"
-                android:layout_height="44dp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:background="@drawable/sd_bg_circle_scrim"
                 android:importantForAccessibility="no"
-                android:padding="10dp"
+                android:padding="8dp"
                 android:scaleType="centerInside"
                 android:src="@drawable/sd_ic_heart" />
 
@@ -253,8 +200,245 @@
                 android:importantForAccessibility="no"
                 android:text="0"
                 android:textColor="@android:color/white"
-                android:textSize="11sp"
+                android:textSize="10sp"
                 tools:text="12" />
+        </LinearLayout>
+
+        <!-- 评论：本地占位，只显示功能名 -->
+        <LinearLayout
+            android:id="@+id/btnComment"
+            android:layout_width="56dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:clickable="true"
+            android:contentDescription="评论"
+            android:focusable="true"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:minHeight="48dp">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/sd_bg_circle_scrim"
+                android:importantForAccessibility="no"
+                android:padding="8dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/sd_ic_comment" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:importantForAccessibility="no"
+                android:text="评论"
+                android:textColor="@android:color/white"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- 收藏：本地占位 -->
+        <LinearLayout
+            android:id="@+id/btnFavorite"
+            android:layout_width="56dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:clickable="true"
+            android:contentDescription="收藏"
+            android:focusable="true"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:minHeight="48dp">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/sd_bg_circle_scrim"
+                android:importantForAccessibility="no"
+                android:padding="8dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/sd_ic_star" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:importantForAccessibility="no"
+                android:text="收藏"
+                android:textColor="@android:color/white"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- 分享：本地占位 -->
+        <LinearLayout
+            android:id="@+id/btnShare"
+            android:layout_width="56dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:clickable="true"
+            android:contentDescription="分享"
+            android:focusable="true"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:minHeight="48dp">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/sd_bg_circle_scrim"
+                android:importantForAccessibility="no"
+                android:padding="8dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/sd_ic_share" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:importantForAccessibility="no"
+                android:text="分享"
+                android:textColor="@android:color/white"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- 拍同款：本地占位，圆形 + 加号 -->
+        <LinearLayout
+            android:id="@+id/btnShoot"
+            android:layout_width="56dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:clickable="true"
+            android:contentDescription="拍同款"
+            android:focusable="true"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:minHeight="48dp">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/sd_bg_circle_scrim"
+                android:importantForAccessibility="no"
+                android:padding="7dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/sd_ic_camera" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:importantForAccessibility="no"
+                android:text="拍同款"
+                android:textColor="@android:color/white"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- 选集 -->
+        <LinearLayout
+            android:id="@+id/btnEpisodes"
+            android:layout_width="56dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:clickable="true"
+            android:contentDescription="选集"
+            android:focusable="true"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:minHeight="48dp">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/sd_bg_circle_scrim"
+                android:importantForAccessibility="no"
+                android:padding="8dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/sd_ic_episodes" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:importantForAccessibility="no"
+                android:text="选集"
+                android:textColor="@android:color/white"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- 倍速：圆圈里直接显示当前倍速文字，比抽象图标更直观；锁定状态下这里会变成「2.0x / 锁定」 -->
+        <LinearLayout
+            android:id="@+id/btnSpeed"
+            android:layout_width="56dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:clickable="true"
+            android:contentDescription="切换倍速"
+            android:focusable="true"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:minHeight="48dp">
+
+            <FrameLayout
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/sd_bg_circle_scrim">
+
+                <TextView
+                    android:id="@+id/tvSpeedValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:importantForAccessibility="no"
+                    android:includeFontPadding="false"
+                    android:maxLines="2"
+                    android:text="1.0x"
+                    android:textColor="@android:color/white"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:importantForAccessibility="no"
+                android:text="倍速"
+                android:textColor="@android:color/white"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- 换线路：只有一条线路时由代码 GONE -->
+        <LinearLayout
+            android:id="@+id/btnLine"
+            android:layout_width="56dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:clickable="true"
+            android:contentDescription="切换线路"
+            android:focusable="true"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:visibility="gone"
+            tools:visibility="visible"
+            android:minHeight="48dp">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/sd_bg_circle_scrim"
+                android:importantForAccessibility="no"
+                android:padding="8dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/sd_ic_switch_line" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:importantForAccessibility="no"
+                android:text="线路"
+                android:textColor="@android:color/white"
+                android:textSize="10sp" />
         </LinearLayout>
 
     </LinearLayout>
@@ -347,6 +531,121 @@
                 android:textSize="11sp"
                 tools:text="00:12 / 01:30" />
         </LinearLayout>
+
+    </LinearLayout>
+
+    <!--
+      下滑锁定倍速的胶囊提示：只在「按住画面后向下拖过阈值」时浮出，
+      位置放在控制条上方，避免和底部信息区、右侧栏互相压字。
+    -->
+    <TextView
+        android:id="@+id/dragHintPill"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="188dp"
+        android:background="@drawable/sd_bg_hint_pill"
+        android:importantForAccessibility="no"
+        android:paddingStart="16dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp"
+        android:text="∨ 下滑松手锁定 2 倍速"
+        android:textColor="@android:color/white"
+        android:textSize="12sp"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <!--
+      双指缩小后的底部控制条：✕ / -5s / 播放暂停 / +5s / 倍速。
+      宽度是算好的（4x36 + 44 + 左右各 6 = 200dp），居中后两侧各留 80dp，
+      正好避开右侧竖排按钮那一列（贴右 10dp，宽 56dp）。
+    -->
+    <LinearLayout
+        android:id="@+id/zoomBar"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="132dp"
+        android:background="@drawable/sd_bg_control_bar"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <ImageView
+            android:id="@+id/btnZoomClose"
+            android:layout_width="36dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:contentDescription="收起控制条并恢复全屏"
+            android:focusable="true"
+            android:padding="9dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/sd_ic_close"
+            android:paddingBottom="15dp"
+            android:paddingTop="15dp" />
+
+        <ImageView
+            android:id="@+id/btnBack5"
+            android:layout_width="36dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:contentDescription="后退5秒"
+            android:focusable="true"
+            android:padding="9dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/sd_ic_back5"
+            android:paddingBottom="15dp"
+            android:paddingTop="15dp" />
+
+        <ImageView
+            android:id="@+id/btnBarPlay"
+            android:layout_width="36dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:contentDescription="暂停"
+            android:focusable="true"
+            android:padding="9dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/sd_ic_pause"
+            android:paddingBottom="15dp"
+            android:paddingTop="15dp" />
+
+        <ImageView
+            android:id="@+id/btnForward5"
+            android:layout_width="36dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:contentDescription="前进5秒"
+            android:focusable="true"
+            android:padding="9dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/sd_ic_forward5"
+            android:paddingBottom="15dp"
+            android:paddingTop="15dp" />
+
+        <TextView
+            android:id="@+id/btnBarSpeed"
+            android:layout_width="44dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:contentDescription="切换倍速"
+            android:focusable="true"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:text="1.0x"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            android:textStyle="bold" />
 
     </LinearLayout>
 

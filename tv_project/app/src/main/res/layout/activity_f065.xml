@@ -289,7 +289,7 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:gravity="center"
-                android:minHeight="40dp"
+                android:minHeight="48dp"
                 android:nextFocusUp="@id/f065StopButton"
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp">

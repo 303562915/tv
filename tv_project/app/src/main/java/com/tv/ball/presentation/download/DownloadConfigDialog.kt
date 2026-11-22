@@ -7,19 +7,19 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.os.StatFs
 import android.view.LayoutInflater
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import com.tv.ball.databinding.DialogDownloadConfigBinding
+import com.tv.ball.domain.downloader.DownloadDirKind
+import com.tv.ball.domain.downloader.DownloadStatus
 import com.tv.ball.domain.downloader.VideoDownloader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -104,8 +104,8 @@ class DownloadConfigDialog : DialogFragment() {
             }
         }
 
-        // 显示存储信息
-        updateStorageInfo()
+        // 显示存储信息（先按当前「保存位置」解析一遍目录，路径与可用空间都来自它）
+        refreshSaveLocation()
         
         // 自动设置防盗链请求头
         autoSetHeaders(cleanUrl)
@@ -115,13 +115,12 @@ class DownloadConfigDialog : DialogFragment() {
             copyToClipboard(cleanUrl)
         }
 
-        // 选择保存路径
+        // 选择保存位置：三档单选，写 download_settings / download_dir，只对之后的任务生效
+        binding.layoutSavePath.setOnClickListener {
+            showSaveLocationPicker()
+        }
         binding.btnChangePath.setOnClickListener {
-            // 未实现：下载器的落盘目录是写死的。
-            // VideoDownloader.getDownloadPath(fileName) 内部固定为 Downloads/TVBall，
-            // addDownloadTask 也没有接收自定义目录的参数，所以这里即使弹出 SAF 目录选择器（ACTION_OPEN_DOCUMENT_TREE）
-            // 选到的 Uri 也无处可传——只会让用户以为自己改过路径。要真正支持，得先让下载器接受目标目录。
-            Toast.makeText(requireContext(), "保存路径暂不支持修改", Toast.LENGTH_SHORT).show()
+            showSaveLocationPicker()
         }
         
         // 高级设置展开/收起
@@ -261,26 +260,95 @@ class DownloadConfigDialog : DialogFragment() {
         }
     }
 
-    private fun updateStorageInfo() {
-        try {
-            val downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            val stat = StatFs(downloadDir.path)
+    /**
+     * 「保存位置」一行：显示当前档位解析出来的**真实路径**，并刷新该分区的可用空间。
+     *
+     * 路径口径只有一处 —— [VideoDownloader.currentDownloadDir]（下载器真正落盘也读它），
+     * 这里不再自己拼 `Downloads/...`，免得界面写的目录和文件实际去的地方不是同一个。
+     */
+    private fun refreshSaveLocation() {
+        val context = requireContext()
+        val dir = try {
+            VideoDownloader.currentDownloadDir(context)
+        } catch (e: Exception) {
+            null
+        }
+
+        if (dir == null) {
+            binding.tvSavePath.text = "—"
+            binding.tvStorageInfo.text = "无法获取存储信息"
+            return
+        }
+
+        binding.tvSavePath.text = dir.absolutePath
+        binding.tvStorageInfo.text = try {
+            val stat = StatFs(dir.absolutePath)
             val availableBytes = stat.availableBytes
             val totalBytes = stat.totalBytes
             val usedBytes = totalBytes - availableBytes
-            val usedPercent = (usedBytes * 100.0 / totalBytes)
-
-            val savePath = File(downloadDir, "IDMP/Others").absolutePath
-            binding.tvSavePath.text = savePath
-            binding.tvStorageInfo.text = String.format(
+            val usedPercent = if (totalBytes > 0) usedBytes * 100.0 / totalBytes else 0.0
+            String.format(
                 "存储：%s/%s, %.1f%% 可用",
                 formatFileSize(availableBytes),
                 formatFileSize(totalBytes),
                 100 - usedPercent
             )
         } catch (e: Exception) {
-            binding.tvStorageInfo.text = "无法获取存储信息"
+            "无法获取存储信息"
         }
+    }
+
+    /**
+     * 保存位置三档单选。
+     *
+     * 选完只写偏好：落盘目录是在「新建任务」时才解析的（`addDownloadTask` → `getDownloadPath`），
+     * 所以已经在跑 / 已暂停的任务照旧在原来的目录里收尾，这里不暂停、不取消、不改写任何任务。
+     */
+    private fun showSaveLocationPicker() {
+        val context = requireContext()
+        val kinds = arrayOf(
+            DownloadDirKind.DEFAULT,
+            DownloadDirKind.EXTERNAL_FILES,
+            DownloadDirKind.INTERNAL_CACHE
+        )
+        val labels = arrayOf(
+            "默认（Downloads/TVBall）",
+            "应用外部私有目录（Android/data/…/Movies）",
+            "应用内部缓存目录"
+        )
+        val checked = kinds
+            .indexOfFirst { it == VideoDownloader.downloadDirKind(context) }
+            .coerceAtLeast(0)
+
+        AlertDialog.Builder(context)
+            .setTitle("保存位置")
+            .setSingleChoiceItems(labels, checked) { dialog, which ->
+                dialog.dismiss()
+                applySaveLocation(kinds[which])
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+
+    /** 落库 + 刷界面 + 提示。有进行中的任务时明确告知「新目录仅对之后的任务生效」。 */
+    private fun applySaveLocation(kind: DownloadDirKind) {
+        val context = requireContext()
+        VideoDownloader.setDownloadDirKind(context, kind)
+        refreshSaveLocation()
+
+        val hasActiveTask = try {
+            VideoDownloader.getInstance(context).getAllTasks().any {
+                it.status == DownloadStatus.DOWNLOADING || it.status == DownloadStatus.MERGING
+            }
+        } catch (e: Exception) {
+            false
+        }
+
+        Toast.makeText(
+            context,
+            if (hasActiveTask) "新目录仅对之后的任务生效" else "保存位置已切换",
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     private fun startDownload() {

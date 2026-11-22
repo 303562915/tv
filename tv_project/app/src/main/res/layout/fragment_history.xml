@@ -47,7 +47,8 @@
             android:paddingBottom="4dp"
             android:text="@string/history_delete_mode"
             android:textColor="@color/theme_primary"
-            android:textSize="@dimen/text_caption" />
+            android:textSize="@dimen/text_caption"
+            android:minHeight="48dp" />
     </LinearLayout>
 
     <!--

@@ -16,7 +16,8 @@
     app:strokeWidth="0dp"
     android:foreground="?attr/selectableItemBackground"
     android:clickable="true"
-    android:focusable="true">
+    android:focusable="true"
+    android:minHeight="48dp">
 
     <FrameLayout
         android:layout_width="match_parent"

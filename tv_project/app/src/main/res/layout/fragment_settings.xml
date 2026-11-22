@@ -1369,6 +1369,45 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- ========================= 恢复本组默认值 ========================= -->
+        <!-- 放在「播放设置」这一组的末尾（本地视频之后）：只重置本组涉及的偏好键，
+             点一次先弹确认框，确认后由 SettingsFragment 逐个写回出厂值 -->
+        <TextView
+            style="@style/TextAppearance.TVPlayer.SectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="@dimen/card_gap"
+            android:text="恢复默认" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:id="@+id/rowResetPlayback"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/list_row_min_height"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/card_padding"
+                android:paddingTop="10dp"
+                android:paddingEnd="@dimen/card_padding"
+                android:paddingBottom="10dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="恢复本组默认值"
+                    android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- ========================= 存储 ========================= -->
         <TextView
             style="@style/TextAppearance.TVPlayer.SectionTitle"
@@ -1430,63 +1469,5 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- ========================= 恢复默认 ========================= -->
-        <TextView
-            style="@style/TextAppearance.TVPlayer.SectionTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="@dimen/card_gap"
-            android:text="@string/ps_reset" />
-
-        <com.google.android.material.card.MaterialCardView
-            style="@style/Widget.TVPlayer.Card"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <LinearLayout
-                android:id="@+id/rowResetPlayback"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:minHeight="@dimen/list_row_min_height"
-                android:orientation="horizontal"
-                android:paddingStart="@dimen/card_padding"
-                android:paddingTop="10dp"
-                android:paddingEnd="@dimen/card_padding"
-                android:paddingBottom="10dp">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:paddingEnd="12dp">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/ps_reset"
-                        android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="@string/ps_reset_hint"
-                        android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
-                </LinearLayout>
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:importantForAccessibility="no"
-                    android:src="@drawable/ic_arrow_right"
-                    app:tint="@color/theme_text_secondary" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

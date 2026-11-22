@@ -123,15 +123,28 @@
             android:textColor="@color/theme_text_secondary"
             android:layout_marginTop="4dp" />
 
-        <!-- 保存路径 -->
+        <!-- 保存位置：点这一行弹三档单选（默认 / 应用外部私有目录 / 应用内部缓存目录），
+             选完存 download_settings / download_dir，只对之后新建的任务生效 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="保存位置:"
+            android:textSize="14sp"
+            android:textColor="@color/theme_text_secondary"
+            android:layout_marginTop="12dp" />
+
         <LinearLayout
+            android:id="@+id/layoutSavePath"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginTop="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginTop="4dp"
             android:padding="12dp"
-            android:background="@drawable/bg_dialog_input">
+            android:background="@drawable/bg_dialog_input"
+            android:minHeight="48dp">
 
             <ImageView
                 android:layout_width="20dp"
@@ -145,7 +158,9 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="/storage/emulated/0/IDMP/Others"
+                android:text="—"
+                android:maxLines="1"
+                android:ellipsize="middle"
                 android:textSize="13sp"
                 android:textColor="@color/theme_text_primary"
                 android:paddingStart="8dp"
@@ -157,7 +172,7 @@
                 android:layout_height="20dp"
                 android:src="@drawable/enter"
                 android:tint="@color/theme_text_secondary"
-                android:contentDescription="选择路径" />
+                android:contentDescription="选择保存位置" />
         </LinearLayout>
 
         <!-- 下载选项 -->

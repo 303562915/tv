@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  选集面板。浅色底 + 主色当前集，和详情页的选集网格是同一套视觉。
-  网格高度不写死：ShortDramaEpisodeSheet 会按「行数 x 固定行高」算出来并限制最大行数，
-  集数很多的剧就在面板里自己滚动，面板本身不会顶到全屏。
+  选集面板，改成抖音那套「竖列表」：左缩略图 + 右侧两行文字（第N集 · 剧名 / 线路名 · 共M集），
+  当前集用主色描边高亮，底部一个整宽的「回到第1集」。
+
+  为什么列表高度不写死 match_parent：面板本身是 wrap_content 的 BottomSheet，
+  给 RecyclerView 一个写死的高度会让集数少的剧下面空一大块；
+  实际高度由 ShortDramaEpisodeSheet 按「行数 x 固定行高」算，并限制最多 5 行（再多就在面板里滚动）。
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_bottom_sheet"
@@ -39,36 +41,48 @@
             android:textSize="16sp"
             android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/tvSheetCount"
+        <Space
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="end"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <!-- 更多推荐：纯占位入口，点了只 toast，不请求任何推荐接口 -->
+        <TextView
+            android:id="@+id/tvMoreLike"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:clickable="true"
+            android:contentDescription="更多推荐"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="2dp"
+            android:text="更多推荐 ›"
             android:textColor="@color/theme_text_secondary"
-            android:textSize="12sp"
-            tools:text="共80集" />
+            android:textSize="12sp" />
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/tvSheetLine"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textColor="@color/theme_text_secondary"
-        android:textSize="12sp"
-        android:visibility="gone"
-        tools:text="线路：线路一"
-        tools:visibility="visible" />
-
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/episodeGrid"
+        android:id="@+id/episodeList"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="12dp"
         android:clipToPadding="false"
         android:overScrollMode="never" />
+
+    <!-- 回到第 1 集：整宽按钮，比在长列表里自己往上翻快得多 -->
+    <TextView
+        android:id="@+id/btnFirstEpisode"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_button_primary"
+        android:clickable="true"
+        android:contentDescription="回到第1集"
+        android:focusable="true"
+        android:gravity="center"
+        android:text="回到第1集"
+        android:textColor="@color/theme_on_primary"
+        android:textSize="@dimen/text_body" />
 
 </LinearLayout>

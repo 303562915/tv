@@ -31,7 +31,8 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:src="@drawable/ic_cloud_storage"
-            android:tint="@color/theme_warning" />
+            android:tint="@color/theme_warning"
+            android:importantForAccessibility="no" />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -80,7 +81,8 @@
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:src="@drawable/ic_link_black_24dp"
-            android:tint="@color/theme_text_secondary" />
+            android:tint="@color/theme_text_secondary"
+            android:importantForAccessibility="no" />
 
         <TextView
             android:id="@+id/cloudUrl"
@@ -116,13 +118,15 @@
             android:paddingBottom="16dp"
             android:background="@drawable/bg_dialog_button_primary"
             android:clickable="true"
-            android:focusable="true">
+            android:focusable="true"
+            android:minHeight="48dp">
 
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_open_browser"
-                android:tint="@color/theme_on_primary" />
+                android:tint="@color/theme_on_primary"
+                android:importantForAccessibility="no" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -147,13 +151,15 @@
             android:paddingBottom="16dp"
             android:background="@drawable/bg_dialog_button_secondary"
             android:clickable="true"
-            android:focusable="true">
+            android:focusable="true"
+            android:minHeight="48dp">
 
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/clipboard"
-                android:tint="@color/theme_text_primary" />
+                android:tint="@color/theme_text_primary"
+                android:importantForAccessibility="no" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -180,6 +186,7 @@
         android:paddingBottom="14dp"
         android:background="?attr/selectableItemBackground"
         android:clickable="true"
-        android:focusable="true" />
+        android:focusable="true"
+        android:minHeight="48dp" />
 
 </LinearLayout>

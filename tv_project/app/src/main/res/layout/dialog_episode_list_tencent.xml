@@ -28,13 +28,14 @@
 
         <ImageButton
             android:id="@+id/closeButton"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/dkplayer_ic_action_close"
             android:tint="@color/theme_text_primary"
             android:scaleType="fitCenter"
-            android:padding="2dp" />
+            android:padding="14dp"
+            android:contentDescription="关闭" />
     </LinearLayout>
 
     <!-- 横向滚动的选集列表 -->

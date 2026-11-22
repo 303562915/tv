@@ -94,7 +94,8 @@
             android:focusable="true"
             android:background="?attr/selectableItemBackground"
             android:contentDescription="下载保存目录"
-            android:visibility="gone" />
+            android:visibility="gone"
+            android:minHeight="48dp" />
 
         <!-- 标签页：选中 = primary 文字，未选中 = 次要文字 -->
         <HorizontalScrollView
@@ -218,7 +219,8 @@
                 android:visibility="gone"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackground">
+                android:background="?attr/selectableItemBackground"
+                android:minHeight="48dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -259,7 +261,8 @@
                 android:visibility="gone"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackground">
+                android:background="?attr/selectableItemBackground"
+                android:minHeight="48dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -300,7 +303,8 @@
                 android:visibility="gone"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackground">
+                android:background="?attr/selectableItemBackground"
+                android:minHeight="48dp">
 
                 <TextView
                     android:layout_width="wrap_content"
