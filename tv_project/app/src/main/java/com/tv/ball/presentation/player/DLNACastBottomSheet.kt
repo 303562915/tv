@@ -21,7 +21,9 @@ import com.tv.ball.domain.dlna.DLNADevice
 import com.tv.ball.domain.dlna.DLNAManager
 import com.tv.ball.domain.webserver.LocalWebServer
 import com.tv.ball.domain.lan.LanDeviceScanner
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -37,6 +39,7 @@ class DLNACastBottomSheet : BottomSheetDialogFragment() {
     private lateinit var deviceAdapter: DLNADeviceAdapter
     private lateinit var lanScanner: LanDeviceScanner
     private lateinit var lanDeviceAdapter: LanDeviceAdapter
+    private var lanScanJob: Job? = null
     private var webServer: LocalWebServer? = null
 
     private var videoUrl: String = ""
@@ -132,26 +135,38 @@ class DLNACastBottomSheet : BottomSheetDialogFragment() {
 
     /**
      * 扫描局域网内的电脑设备
+     * 刷新时会先取消上一轮扫描，避免旧回调把已经清空的列表又填回去
      */
     private fun startLanScan() {
-        binding.lanSubtitleText.text = "正在扫描局域网电脑..."
-        binding.lanEmptyStateLayout.visibility = View.GONE
-        binding.lanDeviceRecyclerView.visibility = View.VISIBLE
+        val current = _binding ?: return
+        lanScanJob?.cancel()
+        current.lanSubtitleText.text = "正在扫描局域网电脑..."
+        current.lanEmptyStateLayout.visibility = View.GONE
+        current.lanDeviceRecyclerView.visibility = View.VISIBLE
+        lanDeviceAdapter.submitList(emptyList())
 
         val foundDevices = mutableListOf<LanDeviceScanner.LanDevice>()
 
-        lifecycleScope.launch {
-            lanScanner.scanDevices { device ->
-                foundDevices.add(device)
-                lanDeviceAdapter.submitList(foundDevices.toList())
-                binding.lanSubtitleText.text = "发现 ${foundDevices.size} 台电脑"
+        lanScanJob = viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                lanScanner.scanDevices { device ->
+                    val view = _binding ?: return@scanDevices
+                    if (foundDevices.any { it.ipAddress == device.ipAddress }) return@scanDevices
+                    foundDevices.add(device)
+                    lanDeviceAdapter.submitList(foundDevices.toList())
+                    view.lanSubtitleText.text = "发现 ${foundDevices.size} 台电脑"
+                }
+            } catch (e: CancellationException) {
+                throw e
             }
 
-            // 扫描完成
+            val view = _binding ?: return@launch
             if (foundDevices.isEmpty()) {
-                binding.lanSubtitleText.text = "未发现电脑设备"
-                binding.lanEmptyStateLayout.visibility = View.VISIBLE
-                binding.lanDeviceRecyclerView.visibility = View.GONE
+                view.lanSubtitleText.text = "未发现电脑设备"
+                view.lanEmptyStateLayout.visibility = View.VISIBLE
+                view.lanDeviceRecyclerView.visibility = View.GONE
+            } else {
+                view.lanSubtitleText.text = "发现 ${foundDevices.size} 台电脑"
             }
         }
     }
@@ -419,6 +434,8 @@ class DLNACastBottomSheet : BottomSheetDialogFragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        lanScanJob?.cancel()
+        lanScanJob = null
         dlnaManager.stopDiscovery()
         // 注意：不在这里停止服务器，因为用户可能还在使用
         _binding = null
