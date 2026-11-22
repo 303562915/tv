@@ -274,9 +274,9 @@ class PlaybackService : Service() {
         mediaSession = runCatching {
             MediaSession(this, "TVPlayerPlayback").apply {
                 setCallback(object : MediaSession.Callback() {
-                    override fun onMediaButtonEvent(mediaButtonIntent: Intent?): Boolean {
+                    override fun onMediaButtonEvent(mediaButtonIntent: Intent): Boolean {
                         @Suppress("DEPRECATION")
-                        val event = mediaButtonIntent?.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
+                        val event = mediaButtonIntent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
                         return when (event?.keyCode) {
                             KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
                             KeyEvent.KEYCODE_HEADSETHOOK -> {
