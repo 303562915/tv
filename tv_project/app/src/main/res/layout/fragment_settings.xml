@@ -1244,6 +1244,54 @@
                         android:focusableInTouchMode="true"
                         android:minHeight="48dp" />
                 </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/theme_divider" />
+
+                <!-- 允许后台播放：开着时切到后台不自动暂停，由前台服务 PlaybackService 保活 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/list_row_min_height"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/card_padding"
+                    android:paddingTop="10dp"
+                    android:paddingEnd="@dimen/card_padding"
+                    android:paddingBottom="10dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:paddingEnd="12dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="允许后台播放"
+                            android:textAppearance="@style/TextAppearance.TVPlayer.Body" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="切到后台不自动暂停，交给前台服务保活"
+                            android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
+                    </LinearLayout>
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switchPlaybackBackground"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:contentDescription="允许后台播放"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:minHeight="48dp" />
+                </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

@@ -446,6 +446,36 @@
             android:textColor="@color/theme_text_secondary" />
     </LinearLayout>
 
+    <!-- 允许后台播放：点一下翻转，右侧显示「开 / 关」；
+         开着时切到后台不自动暂停，由前台服务保活（默认关，与设置页同一个开关） -->
+    <LinearLayout
+        android:id="@+id/rowBackgroundPlay"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackground">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="允许后台播放"
+            android:textSize="14sp"
+            android:textColor="@color/theme_text_primary" />
+
+        <TextView
+            android:id="@+id/tvBackgroundPlayValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="关"
+            android:textSize="14sp"
+            android:textColor="@color/theme_text_secondary" />
+    </LinearLayout>
+
     <View
         android:layout_width="match_parent"
         android:layout_height="1px"

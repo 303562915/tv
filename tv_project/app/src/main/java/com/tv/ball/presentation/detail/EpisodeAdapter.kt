@@ -1,3 +1,7 @@
+// 死代码：无调用方，保留待删。
+// 选集实现已归一到 presentation/player/EpisodeSelectorAdapter（详情页网格走 useThemeColors = true
+// 的详情页模式），本文件的选中态/上次观看描边/长按/分批能力都已由它承接；shortdrama 包里的
+// EpisodeAdapter 是另一个同名类（ListAdapter<EpisodeItem, ...>），与本文件无关。
 package com.tv.ball.presentation.detail
 
 import android.view.LayoutInflater

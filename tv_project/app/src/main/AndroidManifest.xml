@@ -16,6 +16,8 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- 后台播放：Android 14+ 的 mediaPlayback 前台服务必须显式声明该类型权限，否则 startForeground 被拒 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
@@ -156,6 +158,14 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
+
+        <!-- 后台播放前台服务：设置页/播放菜单「允许后台播放」开启才由播放页启动；
+             不加新权限，Android 14+ 若拒绝则由代码 try/catch 退回普通通知（不崩） -->
+        <service
+            android:name=".service.PlaybackService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
 
         <!-- 功能中心外壳：94 个 feature 页面的唯一入口，缺这条注册它们就全部不可达 -->
         <activity

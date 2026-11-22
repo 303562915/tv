@@ -249,6 +249,12 @@ class LocalVideoActivity : AppCompatActivity() {
         }
     }
     
+    override fun onResume() {
+        super.onResume()
+        // 从下载页切了「保存位置」回来时重新扫描，否则新目录里的文件要重进页面才出现
+        checkPermissionAndLoad()
+    }
+
     private fun checkPermissionAndLoad() {
         // 权限查询 / 拉起授权框在部分定制 ROM 上会抛异常（权限组被裁剪、Activity 已销毁），
         // 这里兜住并给出可读提示，不让入口闪退。

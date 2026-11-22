@@ -52,6 +52,7 @@ import com.tv.ball.domain.model.Episode
 import com.tv.ball.data.model.FavoriteEntity
 import com.tv.ball.feature.f014.F014Engine
 import com.tv.ball.presentation.favorite.FavoriteViewModel
+import com.tv.ball.service.PlaybackService
 import com.tv.ball.util.VideoFlowLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -231,6 +232,12 @@ class VideoPlayerActivity : AppCompatActivity() {
     // 「⋯ 更多」菜单里那一行翻的就是它；读一次就够，切换时立刻重算三处可见性
     private var showDebugInfo = false
 
+    /**
+     * 允许后台播放（默认关）：设置页 / 播放菜单写 `user_prefs / playback_background_enabled`，
+     * onCreate 读一次存到本字段；开着时 onPause 不暂停，交给 PlaybackService 前台服务保活。
+     */
+    private var backgroundPlaybackEnabled = false
+
     // 丢帧调试行上一次写进去的文案：200ms 的 tick 里没变化就不 setText
     private var lastDroppedFramesText = ""
     // 上一次写进浮层的文本：200ms tick 里文本没变就不重复 setText，省掉每帧的重排
@@ -268,6 +275,11 @@ class VideoPlayerActivity : AppCompatActivity() {
         // 之后靠「⋯ 更多」菜单里的开关改，改完立刻重算可见性
         showDebugInfo = getSharedPreferences("player_settings", MODE_PRIVATE)
             .getBoolean(KEY_SHOW_DEBUG_INFO, false)
+
+        // 允许后台播放（默认关）：设置页 / 播放菜单写同一个键，这里整个 onCreate 只读一次；
+        // 关着时行为与旧版完全一致（onPause 照旧暂停、不起服务）
+        backgroundPlaybackEnabled = getSharedPreferences(USER_PREFS_FILE, MODE_PRIVATE)
+            .getBoolean(KEY_PLAYBACK_BACKGROUND, false)
 
         // 加载播放器布局
         binding = ActivityVideoPlayerBinding.inflate(layoutInflater)
@@ -3210,6 +3222,12 @@ class VideoPlayerActivity : AppCompatActivity() {
         private const val FONT_PREFS_NAME = "user_prefs"
         private const val KEY_FONT_SCALE = "font_scale"
 
+        /** user_prefs 文件名：后台播放开关与设置页共用同一文件同一键。 */
+        private const val USER_PREFS_FILE = "user_prefs"
+
+        /** 允许后台播放的键（默认 false），写入方：设置页 / 播放菜单。 */
+        private const val KEY_PLAYBACK_BACKGROUND = "playback_background_enabled"
+
         /** 详情视图 tag：同一份视图只缩放一次，重复调用不会把倍数叠乘上去。 */
         private const val TAG_FONT_SCALE_APPLIED = "detail_font_scale_applied"
 
@@ -5097,6 +5115,20 @@ class VideoPlayerActivity : AppCompatActivity() {
         menuSheet.setDebugInfoEnabled(showDebugInfo)
         menuSheet.setOnDebugInfoToggledListener { enabled -> setDebugInfoEnabled(enabled) }
 
+        // 允许后台播放：菜单与设置页同一个键（user_prefs / playback_background_enabled），
+        // 落盘与本页字段刷新都在这里做
+        menuSheet.setBackgroundPlayEnabled(backgroundPlaybackEnabled)
+        menuSheet.setOnBackgroundPlayToggledListener { enabled ->
+            backgroundPlaybackEnabled = enabled
+            getSharedPreferences(USER_PREFS_FILE, MODE_PRIVATE).edit()
+                .putBoolean(KEY_PLAYBACK_BACKGROUND, enabled).apply()
+            Toast.makeText(
+                this,
+                if (enabled) "后台播放已开启：切到后台不再自动暂停" else "后台播放已关闭",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
         menuSheet.show(supportFragmentManager, PlayerMenuBottomSheet.TAG)
     }
 
@@ -6012,6 +6044,10 @@ class VideoPlayerActivity : AppCompatActivity() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N && isInPictureInPictureMode) {
             // 画中画模式下继续播放
             android.util.Log.d("VideoPlayer", "⏸️ [生命周期] onPause - 画中画模式，继续播放")
+        } else if (backgroundPlaybackEnabled && !isFinishing) {
+            // 允许后台播放开启（默认关）：不暂停，交给前台服务 PlaybackService 保活，
+            // 通知上的播放/暂停与关闭按钮继续控制播放
+            startBackgroundPlaybackService()
         } else {
             // 非画中画模式，暂停播放
             exoPlayerManager.pause()
@@ -6028,6 +6064,24 @@ class VideoPlayerActivity : AppCompatActivity() {
         
         // 保持后台播放器继续缓冲（不释放）
         android.util.Log.d("VideoPlayer", "⏸️ [生命周期] onPause - 保持后台播放器缓冲")
+    }
+
+    /**
+     * 起后台播放前台服务：只在「允许后台播放开启 + 非画中画 + 非 isFinishing」的 onPause 路径调用。
+     *
+     * 拒绝路径一律兜底 try/catch：
+     * - API 31+ 起前台服务有后台启动限制（ForegroundServiceStartNotAllowedException）；
+     * - Android 14+ 的 mediaPlayback 类型要求 FOREGROUND_SERVICE_MEDIA_PLAYBACK 权限（本次约定不加新权限）。
+     * 起不了就退回普通通知路径（「正在播放」提示已在播放开始时发过），播放不中断、绝不崩。
+     */
+    private fun startBackgroundPlaybackService() {
+        try {
+            PlaybackService.start(this, nowPlayingNotificationTitleText())
+            android.util.Log.d("VideoPlayer", "🎧 [生命周期] onPause - 后台播放开启，前台服务已请求")
+        } catch (e: Exception) {
+            // ForegroundServiceStartNotAllowedException / SecurityException / IllegalStateException 等
+            android.util.Log.w("VideoPlayer", "启动后台播放前台服务失败，退回普通通知: ${e.message}")
+        }
     }
     
     override fun onResume() {
@@ -6928,6 +6982,10 @@ class VideoPlayerActivity : AppCompatActivity() {
 
         // 离开播放页：撤掉「正在播放」提示（onStop 里已按 isFinishing 撤过一次，这里兜底）
         cancelNowPlayingNotification()
+
+        // 用户真正退出播放页：停掉后台播放前台服务（服务 onDestroy 里撤通知、释放 MediaSession）；
+        // 关着后台播放时 stopService 对未启动的服务是 no-op
+        PlaybackService.stop(this)
 
         // 摘掉画中画按钮的广播接收器，避免页面销毁后还收着点击
         pipReceiver?.let {

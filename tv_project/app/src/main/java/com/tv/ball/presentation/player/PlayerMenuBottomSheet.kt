@@ -44,6 +44,11 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
     private var debugInfoEnabled = false
     private var onDebugInfoToggled: ((Boolean) -> Unit)? = null
 
+    // 允许后台播放：状态由播放页给（与设置页同一个键 user_prefs / playback_background_enabled），
+    // 菜单不自己落盘，只显示 + 回传点击
+    private var backgroundPlayEnabled = false
+    private var onBackgroundPlayToggled: ((Boolean) -> Unit)? = null
+
     private val sleepTimerRefreshHandler = Handler(Looper.getMainLooper())
     private val sleepTimerRefreshRunnable = object : Runnable {
         override fun run() {
@@ -190,6 +195,10 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
         // 具体收放哪三处（状态浮层 / 丢帧 / 加载日志）由播放页实现
         binding.rowDebugInfo.setOnClickListener { toggleDebugInfo() }
         refreshDebugInfoState()
+
+        // 允许后台播放：默认关，点一下翻转；右侧只写「开 / 关」，落盘由播放页做（与设置页同键）
+        binding.rowBackgroundPlay.setOnClickListener { toggleBackgroundPlay() }
+        refreshBackgroundPlayState()
     }
 
     private fun refreshPipState() {
@@ -264,6 +273,18 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
         debugInfoEnabled = !debugInfoEnabled
         refreshDebugInfoState()
         onDebugInfoToggled?.invoke(debugInfoEnabled)
+    }
+
+    private fun refreshBackgroundPlayState() {
+        val binding = _binding ?: return
+        binding.tvBackgroundPlayValue.text = if (backgroundPlayEnabled) "开" else "关"
+    }
+
+    /** 点一下翻转：先刷本行文字再回传，播放页负责落盘（user_prefs / playback_background_enabled）。 */
+    private fun toggleBackgroundPlay() {
+        backgroundPlayEnabled = !backgroundPlayEnabled
+        refreshBackgroundPlayState()
+        onBackgroundPlayToggled?.invoke(backgroundPlayEnabled)
     }
 
     private fun setSpeed(speed: Float) {
@@ -389,6 +410,17 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
     /** 用户翻转开关：回传新值，播放页负责落盘并立刻收放三处调试信息。 */
     fun setOnDebugInfoToggledListener(listener: (Boolean) -> Unit) {
         this.onDebugInfoToggled = listener
+    }
+
+    /** 后台播放开关的当前值由播放页给（与设置页同一个键），菜单只负责显示。 */
+    fun setBackgroundPlayEnabled(enabled: Boolean) {
+        this.backgroundPlayEnabled = enabled
+        refreshBackgroundPlayState()
+    }
+
+    /** 用户翻转开关：回传新值，播放页负责落盘（user_prefs / playback_background_enabled）并更新字段。 */
+    fun setOnBackgroundPlayToggledListener(listener: (Boolean) -> Unit) {
+        this.onBackgroundPlayToggled = listener
     }
 
     override fun onDestroyView() {

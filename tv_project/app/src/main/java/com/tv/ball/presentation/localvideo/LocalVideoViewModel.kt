@@ -305,14 +305,24 @@ class LocalVideoViewModel : ViewModel() {
     }
     
     /**
-     * 扫描下载目录，确保下载的视频能显示出来
+     * 扫描下载目录，确保下载的视频能显示出来。
+     * 目录口径与下载核心一致：跟随「下载目录」设置（默认 Downloads/TVBall，可切外部私有/内部缓存），
+     * 改目录后本地视频页要能列出新目录里的文件。
      */
     private fun scanDownloadDirectory(folderMap: MutableMap<String, VideoFolder>, excluded: Set<String>) {
         try {
-            val downloadDir = File(
-                android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS),
-                "TVBall"
-            )
+            val downloadDir = runCatching {
+                com.tv.ball.domain.downloader.VideoDownloader.downloadDir(
+                    context,
+                    com.tv.ball.domain.downloader.VideoDownloader.downloadDirKind(context)
+                )
+            }.getOrElse {
+                // 设置读取失败时退回默认公共目录，保证扫描不中断
+                File(
+                    android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS),
+                    "TVBall"
+                )
+            }
             
             if (!downloadDir.exists() || !downloadDir.isDirectory) {
                 return

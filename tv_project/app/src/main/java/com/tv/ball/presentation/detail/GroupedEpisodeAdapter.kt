@@ -1,3 +1,6 @@
+// 死代码：无调用方，保留待删。
+// grep 全仓只有本文件自身和 item_episode.xml 的 tools 预览注释提到它，没有任何 Activity/Fragment
+// 实例化过它；详情页实际用的是 VideoDetailActivity + EpisodeSelectorAdapter。
 package com.tv.ball.presentation.detail
 
 import android.view.LayoutInflater

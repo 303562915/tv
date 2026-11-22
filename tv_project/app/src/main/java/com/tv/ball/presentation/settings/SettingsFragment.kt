@@ -197,6 +197,17 @@ class SettingsFragment : Fragment() {
             notifySaved()
         }
 
+        // 允许后台播放 → user_prefs / playback_background_enabled（默认 false）
+        // 读取点：VideoPlayerActivity.onCreate 读一次存 backgroundPlaybackEnabled，
+        // 开着时 onPause 不暂停、交给 PlaybackService 前台服务保活；
+        // 播放菜单里的同一开关也写这个键，两处显示自动一致
+        binding.switchPlaybackBackground.setOnCheckedChangeListener { _, checked ->
+            if (syncGuard()) return@setOnCheckedChangeListener
+            playbackBackgroundPrefs().edit()
+                .putBoolean(KEY_PLAYBACK_BACKGROUND, checked).apply()
+            notifySaved()
+        }
+
         // 排除 .ts 分片文件 → local_video_exclude_ts（默认 true）
         // 读取点：LocalVideoMedia.excludedExtensions()，本地视频列表 / 文件夹详情 / 下载目录扫描每次扫描前各读一次
         binding.switchLocalVideoExcludeTs.setOnCheckedChangeListener { _, checked ->
@@ -468,6 +479,10 @@ class SettingsFragment : Fragment() {
         syncSwitch(b.switchAutoRoute, prefs.isPlaybackAutoSwitchRoute())
         syncSwitch(b.switchExactSeek, prefs.isPlaybackExactSeek())
         syncSwitch(b.switchMobileData, prefs.isPlaybackAllowMobileData())
+        syncSwitch(
+            b.switchPlaybackBackground,
+            playbackBackgroundPrefs().getBoolean(KEY_PLAYBACK_BACKGROUND, false)
+        )
 
         b.tvPlaybackEndedBehavior.text = when (prefs.getPlaybackEndedBehavior()) {
             UserPreferences.ENDED_BEHAVIOR_STOP -> getString(R.string.ps_ended_stop)
@@ -839,11 +854,21 @@ class SettingsFragment : Fragment() {
     private fun playerPrefs() =
         requireContext().getSharedPreferences("player_settings", Context.MODE_PRIVATE)
 
+    /**
+     * 后台播放开关直接读 `user_prefs` 文件：[UserPreferences] 没有为这个键做封装
+     * （本次改动不扩它的 API），设置页与播放菜单、播放页共用同一文件同一键。
+     */
+    private fun playbackBackgroundPrefs() =
+        requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
     private companion object {
         const val KEY_LONG_PRESS_LOCK = "long_press_lock_enabled"
 
         /** 与 [UserPreferences] 共用的 SharedPreferences 文件名。 */
         const val PREFS_NAME = "user_prefs"
+
+        /** 允许后台播放的键（默认 false）：播放页 / 播放菜单与本页共用，见 [playbackBackgroundPrefs]。 */
+        const val KEY_PLAYBACK_BACKGROUND = "playback_background_enabled"
 
         /** 字体大小档位：1.0 标准 / 1.15 大 / 1.3 特大。播放页只读这一个键。 */
         const val KEY_FONT_SCALE = "font_scale"
