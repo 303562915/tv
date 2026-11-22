@@ -67,7 +67,7 @@
             android:maxLines="1"
             android:ellipsize="end"
             android:autoSizeTextType="uniform"
-            android:autoSizeMinTextSize="9sp"
+            android:autoSizeMinTextSize="7sp"
             android:autoSizeMaxTextSize="9sp"
             android:autoSizeStepGranularity="1sp" />
     </LinearLayout>
