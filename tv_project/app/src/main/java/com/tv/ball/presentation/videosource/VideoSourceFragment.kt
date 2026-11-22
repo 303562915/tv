@@ -118,55 +118,53 @@ class VideoSourceFragment : Fragment() {
         }
     }
 
+    /** 单次探测的硬上限：8s。OkHttp 的 callTimeout 负责真的掐断连接，测速不会再无限转圈。 */
+    private companion object {
+        private const val PROBE_TIMEOUT_MS = 8_000L
+        private const val REASON_TIMEOUT = "超时"
+        private const val REASON_CONNECT_FAILED = "连接失败"
+    }
+
+    /** 一次探测的结果：成功只有响应时间，失败带一句可以直接显示的简短原因。 */
+    private data class ProbeResult(val responseTime: Int?, val failureReason: String? = null)
+
     private fun testResponseTimes() {
         // 上一轮还没跑完就先掐掉：否则两轮的写回会按旧下标往新列表里塞
         refreshJob?.cancel()
         val snapshot = videoSources.toList()
+
+        // 重测时先把每一项置回「测试中」，上一轮的结果不留在屏幕上
+        videoSources.indices.forEach { index ->
+            videoSources[index] = videoSources[index].copy(responseTime = null, failureReason = null)
+        }
+        if (this::adapter.isInitialized && videoSources.isNotEmpty()) {
+            adapter.notifyItemRangeChanged(0, videoSources.size)
+        }
+
         refreshJob = lifecycleScope.launch {
             val client = OkHttpClient.Builder()
                 .connectTimeout(2, TimeUnit.SECONDS)
-                .readTimeout(2, TimeUnit.SECONDS)
-                .callTimeout(3, TimeUnit.SECONDS) // 总超时限制
+                .readTimeout(3, TimeUnit.SECONDS)
+                .callTimeout(PROBE_TIMEOUT_MS, TimeUnit.MILLISECONDS) // 单次探测硬超时 8s
                 .build()
 
-            // 并发测试所有源
+            // 并发测试所有源；失败原因各自带回，不再一律是 null（那会让界面一直显示「测试中…」）
             snapshot.indices.map { i ->
                 async(Dispatchers.IO) {
                     val source = snapshot[i]
                     val config = VideoSourceConfigs.getConfig(source.sourceKey)
 
-                    val responseTime = if (config != null) {
-                        try {
-                            // 提取基础URL进行测试
-                            val testUrl = extractBaseUrl(config.baseUrl)
-                            val startTime = System.currentTimeMillis()
-
-                            val request = Request.Builder()
-                                .url(testUrl)
-                                .head() // 使用HEAD请求减少数据传输
-                                .build()
-
-                            val response = client.newCall(request).execute()
-                            response.close()
-                            val endTime = System.currentTimeMillis()
-
-                            if (response.isSuccessful) {
-                                (endTime - startTime).toInt()
-                            } else {
-                                null
-                            }
-                        } catch (e: Exception) {
-                            // 超时或网络错误
-                            null
-                        }
+                    val result = if (config == null) {
+                        ProbeResult(null, REASON_CONNECT_FAILED)
                     } else {
-                        null
+                        // 提取基础URL进行测试
+                        probe(client, extractBaseUrl(config.baseUrl))
                     }
 
-                    // 返回索引和响应时间
-                    i to responseTime
+                    // 返回索引和探测结果
+                    i to result
                 }
-            }.awaitAll().forEach { (index, responseTime) ->
+            }.awaitAll().forEach { (index, result) ->
                 // 在主线程更新UI
                 withContext(Dispatchers.Main) {
                     // 期间列表被刷新过就丢掉这一轮的结果
@@ -175,12 +173,79 @@ class VideoSourceFragment : Fragment() {
                     ) {
                         return@withContext
                     }
-                    videoSources[index] = videoSources[index].copy(responseTime = responseTime)
+                    videoSources[index] = videoSources[index].copy(
+                        responseTime = result.responseTime,
+                        failureReason = result.failureReason
+                    )
                     if (this@VideoSourceFragment::adapter.isInitialized) {
                         adapter.notifyItemChanged(index)
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * 带硬超时的一次探测：HEAD 优先（省流量），
+     * 源站 / CDN 不认 HEAD（403 / 405 / 501）时退回只取首字节的 GET 再测。
+     *
+     * 超时由 OkHttp 的 callTimeout 掐断，异常映射成「超时」/「连接失败」/「HTTP xxx」，
+     * 列表里不会再出现一直转圈的项目。
+     */
+    private fun probe(client: OkHttpClient, testUrl: String): ProbeResult {
+        val startedAt = System.currentTimeMillis()
+        return try {
+            val request = Request.Builder()
+                .url(testUrl)
+                .head() // 使用HEAD请求减少数据传输
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                when {
+                    response.isSuccessful ->
+                        ProbeResult((System.currentTimeMillis() - startedAt).toInt())
+                    response.code == 403 || response.code == 405 || response.code == 501 ->
+                        probeWithGet(client, testUrl)
+                    else -> ProbeResult(null, "HTTP ${response.code}")
+                }
+            }
+        } catch (e: java.net.SocketTimeoutException) {
+            ProbeResult(null, REASON_TIMEOUT)
+        } catch (e: java.io.InterruptedIOException) {
+            // callTimeout 到点抛的就是它（连接 / 读 / 写超时都归到这一类）
+            ProbeResult(null, REASON_TIMEOUT)
+        } catch (e: java.io.IOException) {
+            ProbeResult(null, REASON_CONNECT_FAILED)
+        } catch (e: Exception) {
+            ProbeResult(null, REASON_CONNECT_FAILED)
+        }
+    }
+
+    /** HEAD 不被支持时的兜底探测：只取首字节，同样受 8s 硬超时约束。 */
+    private fun probeWithGet(client: OkHttpClient, testUrl: String): ProbeResult {
+        val startedAt = System.currentTimeMillis()
+        return try {
+            val request = Request.Builder()
+                .url(testUrl)
+                .header("Range", "bytes=0-0")
+                .get()
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    ProbeResult((System.currentTimeMillis() - startedAt).toInt())
+                } else {
+                    ProbeResult(null, "HTTP ${response.code}")
+                }
+            }
+        } catch (e: java.net.SocketTimeoutException) {
+            ProbeResult(null, REASON_TIMEOUT)
+        } catch (e: java.io.InterruptedIOException) {
+            ProbeResult(null, REASON_TIMEOUT)
+        } catch (e: java.io.IOException) {
+            ProbeResult(null, REASON_CONNECT_FAILED)
+        } catch (e: Exception) {
+            ProbeResult(null, REASON_CONNECT_FAILED)
         }
     }
 

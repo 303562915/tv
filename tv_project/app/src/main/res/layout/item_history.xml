@@ -40,7 +40,7 @@
             android:layout_marginTop="2dp"
             android:text="删除"
             android:textColor="@color/white"
-            android:textSize="11sp" />
+            android:textSize="12sp" />
     </LinearLayout>
 
     <com.google.android.material.card.MaterialCardView
@@ -72,8 +72,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:background="@color/surface_block"
-                    android:scaleType="centerCrop"
-                    tools:ignore="ContentDescription" />
+                    android:contentDescription="视频封面"
+                    android:scaleType="centerCrop" />
 
                 <!-- 集数角标：清洗掉线路名后只剩「第1集」，没有就不显示 -->
                 <TextView
@@ -91,7 +91,7 @@
                     android:paddingEnd="6dp"
                     android:paddingBottom="2dp"
                     android:textColor="@color/theme_text_secondary"
-                    android:textSize="10sp"
+                    android:textSize="12sp"
                     android:visibility="gone"
                     tools:text="第1集" />
 

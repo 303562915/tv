@@ -64,24 +64,30 @@ class LocalVideoViewModel : ViewModel() {
     private val loadQueue = mutableListOf<VideoFolder>()
     
     fun loadLocalVideos() {
-        viewModelScope.launch {
-            _isLoading.value = true
+        if (_isLoading.value) return
+        // MediaStore 查询 + 下载目录遍历全部在 IO 线程跑，主线程只负责收结果、开 loading 状态
+        viewModelScope.launch(Dispatchers.IO) {
+            withContext(Dispatchers.Main) { _isLoading.value = true }
+
             // 定制 ROM 的 MediaProvider 可能被裁剪 / 中途死亡（DeadObjectException），
             // 扫描失败只降级成空列表，不能把协程异常抛成闪退。
             val folders = try {
-                withContext(Dispatchers.IO) { scanVideoFolders() }
+                scanVideoFolders()
             } catch (e: Throwable) {
                 android.util.Log.e("LocalVideoViewModel", "扫描本地视频失败: ${e.message}", e)
                 emptyList()
             }
-            // 先用占位图显示列表
-            _videoFolders.value = folders
-            _isLoading.value = false
-            
-            // 异步加载缩略图 - 完全照搬 Lua 逻辑
-            loadQueue.clear()
-            loadQueue.addAll(folders)
-            startLoadingThumbnails()
+
+            // 结果回主线程：先出列表（占位图），再异步补缩略图
+            withContext(Dispatchers.Main) {
+                _videoFolders.value = folders
+                _isLoading.value = false
+
+                // 异步加载缩略图 - 完全照搬 Lua 逻辑
+                loadQueue.clear()
+                loadQueue.addAll(folders)
+                startLoadingThumbnails()
+            }
         }
     }
     

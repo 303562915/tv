@@ -49,6 +49,7 @@ class VideoSourceAdapter(
                 speedText.setTextColor(ContextCompat.getColor(context, R.color.theme_primary))
             } else {
                 val responseTime = source.responseTime
+                val failureReason = source.failureReason
                 if (responseTime != null) {
                     speedText.text = "${responseTime}ms"
                     val colorRes = when {
@@ -57,8 +58,12 @@ class VideoSourceAdapter(
                         else -> R.color.theme_error
                     }
                     speedText.setTextColor(ContextCompat.getColor(context, colorRes))
+                } else if (!failureReason.isNullOrBlank()) {
+                    // 测速失败：直接给简短原因（超时 / 连接失败 / HTTP xxx），不再一直「测试中…」
+                    speedText.text = failureReason
+                    speedText.setTextColor(ContextCompat.getColor(context, R.color.theme_error))
                 } else {
-                    speedText.text = "测试中..."
+                    speedText.text = "测试中…"
                     speedText.setTextColor(
                         ContextCompat.getColor(context, R.color.theme_text_secondary)
                     )

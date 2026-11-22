@@ -7,9 +7,12 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -19,6 +22,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.tv.ball.R
 import com.tv.ball.databinding.ActivityLocalVideoBinding
 import com.tv.ball.presentation.player.VideoPlayerActivity
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class LocalVideoActivity : AppCompatActivity() {
@@ -35,6 +39,14 @@ class LocalVideoActivity : AppCompatActivity() {
         }
     }
     private lateinit var adapter: LocalVideoAdapter
+
+    /**
+     * 「正在扫描…」提示行。
+     *
+     * 布局里只有居中的 ProgressBar 与空态视图，列表上方没有现成的提示行，
+     * 这里在代码里补一行（不改 activity_local_video.xml），扫描完成即隐藏。
+     */
+    private var scanningLabel: TextView? = null
     
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -107,6 +119,35 @@ class LocalVideoActivity : AppCompatActivity() {
             R.color.theme_primary,
             R.color.theme_accent
         )
+
+        setupScanningLabel()
+    }
+
+    /** 在列表上方补一行「正在扫描…」，扫描结束（isLoading=false）时隐藏。 */
+    private fun setupScanningLabel() {
+        val root = binding.root as? ConstraintLayout ?: return
+        val label = TextView(this).apply {
+            id = View.generateViewId()
+            text = "正在扫描…"
+            textSize = 13f
+            gravity = android.view.Gravity.CENTER
+            setTextColor(ContextCompat.getColor(this@LocalVideoActivity, R.color.theme_text_secondary))
+            setBackgroundColor(ContextCompat.getColor(this@LocalVideoActivity, R.color.surface_card))
+            val padV = (6 * resources.displayMetrics.density).toInt()
+            setPadding(0, padV, 0, padV)
+            visibility = View.GONE
+            elevation = 2f
+        }
+        val params = ConstraintLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        ).apply {
+            topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+            startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+            endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+        }
+        root.addView(label, params)
+        scanningLabel = label
     }
     
     private fun observeViewModel() {

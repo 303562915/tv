@@ -47,6 +47,7 @@
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
+                    android:importantForAccessibility="no"
                     android:src="@drawable/ic_search"
                     app:tint="@color/theme_text_secondary" />
 
@@ -68,6 +69,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="观看历史"
             android:padding="8dp"
             android:src="@drawable/history"
             app:tint="@color/theme_text_secondary" />
@@ -184,6 +186,7 @@
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
+                android:importantForAccessibility="no"
                 android:src="@drawable/play"
                 app:tint="?attr/colorPrimary" />
         </LinearLayout>

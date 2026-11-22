@@ -233,8 +233,9 @@ class LocalVideoFolderActivity : AppCompatActivity() {
             return
         }
         lifecycleScope.launch {
+            // MediaStore 查询 + 目录遍历统一走 LocalVideoMedia.onIo（Dispatchers.IO），结果回主线程渲染
             val result = try {
-                withContext(Dispatchers.IO) { loadVideosInternal() }
+                LocalVideoMedia.onIo { loadVideosInternal() }
             } catch (e: Throwable) {
                 android.util.Log.e("LocalVideoFolder", "读取文件夹失败: ${e.message}", e)
                 FolderLoadResult.Failed("读取失败：${e.javaClass.simpleName}")

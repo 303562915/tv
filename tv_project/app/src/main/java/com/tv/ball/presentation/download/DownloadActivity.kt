@@ -17,8 +17,11 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.tv.ball.databinding.ActivityDownloadBinding
+import com.tv.ball.domain.downloader.DownloadStatus
 import com.tv.ball.domain.downloader.DownloadTask
 import com.tv.ball.domain.downloader.VideoDownloader
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class DownloadActivity : AppCompatActivity() {
@@ -35,6 +38,9 @@ class DownloadActivity : AppCompatActivity() {
         private const val REQUEST_MANAGE_STORAGE = 101
         private const val REQUEST_FILE_IMPORT = 102
         private const val REQUEST_FILE_PICKER = 103
+
+        /** 进行中任务的进度刷新节流窗口：500ms 攒一批，只更新进度条 / 速度 / 剩余时间。 */
+        private const val PROGRESS_REFRESH_INTERVAL_MS = 500L
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,7 +80,97 @@ class DownloadActivity : AppCompatActivity() {
     }
 
     private var currentFilter = "all"
-    
+
+    /** 上一次真正提交给 adapter 的任务 id 序列，用来判断是「结构变了」还是「只有进度在动」。 */
+    private var submittedTaskIds: List<Long> = emptyList()
+
+    /** 节流窗口内攒下的进度快照：id -> 最新任务。 */
+    private val pendingProgress = LinkedHashMap<Long, DownloadTask>()
+
+    /** 上一次推给列表项的进度快照，避免同一批进度反复 notifyItemChanged。 */
+    private val pushedProgress = HashMap<Long, DownloadTask>()
+
+    private var progressFlushJob: Job? = null
+
+    /** 按当前标签页过滤；筛选口径集中在这里，避免两处各写一份。 */
+    private fun filteredTasks(allTasks: List<DownloadTask>): List<DownloadTask> {
+        return when (currentFilter) {
+            "downloading" -> allTasks.filter {
+                it.status == DownloadStatus.DOWNLOADING ||
+                    it.status == DownloadStatus.MERGING ||
+                    it.status == DownloadStatus.PAUSED
+            }
+            "completed" -> allTasks.filter { it.status == DownloadStatus.COMPLETED }
+            "error" -> allTasks.filter { it.status == DownloadStatus.FAILED }
+            "scheduled" -> allTasks.filter { it.status == DownloadStatus.PENDING }
+            else -> allTasks // "all"
+        }
+    }
+
+    /**
+     * 任务列表的统一入口。
+     *
+     * - 结构变了（增删任务、切标签、状态变化）→ 立刻 submitList，由 DiffUtil 只刷新变动行；
+     * - 结构没变、只有进度/速度在跳 → 攒进 [pendingProgress]，每 500ms 批量
+     *   [DownloadAdapter.updateProgress]，只更新进度条与速度/剩余时间文本。
+     */
+    private fun applyTasks(allTasks: List<DownloadTask>, forceSubmit: Boolean = false) {
+        val filtered = filteredTasks(allTasks)
+
+        val structureChanged = forceSubmit ||
+            filtered.size != submittedTaskIds.size ||
+            filtered.indices.any { submittedTaskIds[it] != filtered[it].id }
+
+        val currentById = adapter.currentList.associateBy { it.id }
+        val statusChanged = !structureChanged && filtered.any { task ->
+            val old = currentById[task.id]
+            old != null && old.status != task.status
+        }
+
+        if (structureChanged || statusChanged) {
+            // 结构/状态变化：丢掉攒着的进度，走 DiffUtil 整批提交（不是整表刷新）
+            pendingProgress.clear()
+            progressFlushJob?.cancel()
+            progressFlushJob = null
+            pushedProgress.clear()
+            submittedTaskIds = filtered.map { it.id }
+            adapter.submitList(filtered)
+            return
+        }
+
+        filtered.forEach { task ->
+            val previous = pushedProgress[task.id] ?: currentById[task.id]
+            if (previous == null) {
+                pendingProgress[task.id] = task
+                return@forEach
+            }
+            if (previous.progress != task.progress ||
+                previous.speed != task.speed ||
+                previous.downloadedSize != task.downloadedSize ||
+                previous.totalSize != task.totalSize ||
+                previous.partProgresses != task.partProgresses
+            ) {
+                pendingProgress[task.id] = task
+            }
+        }
+
+        if (pendingProgress.isNotEmpty()) {
+            scheduleProgressFlush()
+        }
+    }
+
+    private fun scheduleProgressFlush() {
+        if (progressFlushJob?.isActive == true) return
+        progressFlushJob = lifecycleScope.launch {
+            delay(PROGRESS_REFRESH_INTERVAL_MS)
+            val batch = pendingProgress.values.toList()
+            pendingProgress.clear()
+            if (batch.isEmpty()) return@launch
+            batch.forEach { pushedProgress[it.id] = it }
+            adapter.updateProgress(batch)
+        }
+    }
+
     private fun setupTabs() {
         // 默认选中"全部"
         binding.tabAll.setTextColor(tabSelectedColor)
@@ -120,30 +216,11 @@ class DownloadActivity : AppCompatActivity() {
     private fun filterDownloads(filter: String) {
         currentFilter = filter
         android.util.Log.d(TAG, "筛选下载任务: $filter")
-        
-        // 触发重新收集，observeDownloads会应用筛选
-        lifecycleScope.launch {
-            val allTasks = videoDownloader.tasksFlow.value
-            val filteredTasks = when (filter) {
-                "downloading" -> allTasks.filter { 
-                    it.status == com.tv.ball.domain.downloader.DownloadStatus.DOWNLOADING || 
-                    it.status == com.tv.ball.domain.downloader.DownloadStatus.MERGING ||
-                    it.status == com.tv.ball.domain.downloader.DownloadStatus.PAUSED
-                }
-                "completed" -> allTasks.filter { 
-                    it.status == com.tv.ball.domain.downloader.DownloadStatus.COMPLETED 
-                }
-                "error" -> allTasks.filter { 
-                    it.status == com.tv.ball.domain.downloader.DownloadStatus.FAILED 
-                }
-                "scheduled" -> allTasks.filter { 
-                    it.status == com.tv.ball.domain.downloader.DownloadStatus.PENDING 
-                }
-                else -> allTasks // "all"
-            }
-            adapter.submitList(filteredTasks)
-            android.util.Log.d(TAG, "筛选结果: ${filteredTasks.size} / ${allTasks.size} 个任务")
-        }
+
+        // 切标签是结构变化：直接整批提交（DiffUtil 会算出真正的增删）
+        val allTasks = videoDownloader.tasksFlow.value
+        applyTasks(allTasks, forceSubmit = true)
+        android.util.Log.d(TAG, "筛选结果: ${adapter.itemCount} / ${allTasks.size} 个任务")
     }
     
     private fun setupButtons() {
@@ -579,25 +656,8 @@ class DownloadActivity : AppCompatActivity() {
     private fun observeDownloads() {
         lifecycleScope.launch {
             videoDownloader.tasksFlow.collect { allTasks ->
-                // 应用当前筛选
-                val filteredTasks = when (currentFilter) {
-                    "downloading" -> allTasks.filter { 
-                        it.status == com.tv.ball.domain.downloader.DownloadStatus.DOWNLOADING || 
-                        it.status == com.tv.ball.domain.downloader.DownloadStatus.MERGING ||
-                        it.status == com.tv.ball.domain.downloader.DownloadStatus.PAUSED
-                    }
-                    "completed" -> allTasks.filter { 
-                        it.status == com.tv.ball.domain.downloader.DownloadStatus.COMPLETED 
-                    }
-                    "error" -> allTasks.filter { 
-                        it.status == com.tv.ball.domain.downloader.DownloadStatus.FAILED 
-                    }
-                    "scheduled" -> allTasks.filter { 
-                        it.status == com.tv.ball.domain.downloader.DownloadStatus.PENDING 
-                    }
-                    else -> allTasks // "all"
-                }
-                adapter.submitList(filteredTasks)
+                // 结构变化走 DiffUtil 提交；只有进度在动就进 500ms 节流窗口
+                applyTasks(allTasks)
             }
         }
     }

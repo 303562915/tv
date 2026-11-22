@@ -26,6 +26,27 @@ internal object LocalVideoMedia {
     private const val TAG = "LocalVideoMedia"
 
     /**
+     * 线程约束：这个对象里的所有 MediaStore 查询、缩略图读取、目录遍历都是阻塞调用，
+     * 必须在 `Dispatchers.IO` 上执行，主线程只接结果。
+     *
+     * 列表页 / 详情页统一用 [onIo] 进入 IO 线程；真被主线程调用时打一条警告，
+     * 方便下次又在主线程上扫盘时立刻定位（低配盒子上这就是滑不动的原因）。
+     */
+    suspend fun <T> onIo(block: () -> T): T = kotlinx.coroutines.withContext(
+        kotlinx.coroutines.Dispatchers.IO
+    ) { block() }
+
+    private fun warnIfOnMainThread(what: String) {
+        try {
+            if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
+                android.util.Log.w(TAG, "$what 在主线程执行：调用方应放到 Dispatchers.IO")
+            }
+        } catch (e: Throwable) {
+            // 线程判断失败不影响查询本身
+        }
+    }
+
+    /**
      * 「没有 BUCKET_ID」的哨兵值。
      * 注意 BUCKET_ID 实际是父目录路径的 hashCode，**可以是负数**，
      * 所以既不能用 0 也不能用 -1 当「无效」，必须用这个显式哨兵。
@@ -224,6 +245,7 @@ internal object LocalVideoMedia {
      */
     fun listDirectory(folderPath: String?): List<File>? {
         if (folderPath.isNullOrBlank()) return null
+        warnIfOnMainThread("列目录 $folderPath")
         return try {
             val dir = File(folderPath)
             if (!dir.isDirectory) return null
@@ -254,6 +276,7 @@ internal object LocalVideoMedia {
 
     /** 查询主体：任何异常都向上抛，由调用方区分「读取失败」与「确实没有视频」。 */
     private fun runQuery(context: Context, selection: String, selectionArgs: Array<String>): List<MediaVideo> {
+        warnIfOnMainThread("MediaStore 查询 $selection")
         val result = mutableListOf<MediaVideo>()
         val projection = buildProjection()
         // 按 BUCKET_ID / 路径 / 相对路径的三种查询都走这里，排除规则必须在这里拦一次，
