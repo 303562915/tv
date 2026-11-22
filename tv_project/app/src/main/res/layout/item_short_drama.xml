@@ -7,6 +7,9 @@
   2. 加「完结」角标（盖在封面右上），复用现成的 bg_tag_orange / theme_warning 配色，
      不新增 drawable 资源。
   3. 加「看到第 N 集」一行（只在有进度时显示），用主题色与集数/评分/播放量区分开。
+  4. 卡片加点击/焦点能力 + 前景水波纹：原来根节点点击没有按压反馈，点下去像没反应。
+  5. 标题固定占两行高度（minLines=2 + gravity=top）：单行标题与两行标题的卡片等高，
+     否则同一行网格里卡片一高一低。
 -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -14,6 +17,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="4dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
     app:cardCornerRadius="8dp"
     app:cardElevation="2dp">
 
@@ -59,7 +65,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
+            android:gravity="top"
             android:maxLines="2"
+            android:minLines="2"
             android:padding="8dp"
             android:textColor="@color/theme_text_primary"
             android:textSize="14sp"

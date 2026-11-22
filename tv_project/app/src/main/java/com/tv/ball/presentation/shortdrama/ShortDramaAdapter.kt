@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.tv.ball.R
 import com.tv.ball.databinding.ItemShortDramaBinding
 import com.tv.ball.util.ImageLoader
+import java.util.Locale
 
 /**
  * 短剧卡片适配器。
@@ -21,6 +22,38 @@ import com.tv.ball.util.ImageLoader
 class ShortDramaAdapter(
     private val onItemClick: (ShortDramaItem) -> Unit
 ) : ListAdapter<ShortDramaItem, ShortDramaAdapter.ViewHolder>(DiffCallback()) {
+
+    /**
+     * 进度变化监听器的实例。
+     * 必须是同一个对象才能 removeListener 摘掉，所以存成字段，而不是每次现造一个 lambda。
+     */
+    private var progressListener: (() -> Unit)? = null
+
+    /**
+     * 为什么要在挂到 RecyclerView 时才注册监听：
+     * 进度不在 ShortDramaItem 里，DiffCallback 比较不到它 —— 用户看完一集回到列表，
+     * 数据没变、列表就不会重绑，卡片上还是旧的「看到第 N 集」。这里补一条通知链路。
+     */
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+        val listener: () -> Unit = {
+            // 再 post 一帧才 notify：进度是播放页写完回调过来的，此刻列表可能正在
+            // layout / onBind 过程中，直接 notify 会撞上
+            // "Cannot call this method while RecyclerView is computing a layout or scrolling"。
+            recyclerView.post { notifyItemRangeChanged(0, itemCount) }
+        }
+        // 同一个 adapter 万一被挂到第二个 RecyclerView 上，先摘掉旧监听器，避免泄漏 + 重复回调
+        progressListener?.let { ShortDramaProgressStore.removeListener(it) }
+        progressListener = listener
+        ShortDramaProgressStore.addListener(listener)
+    }
+
+    /** 摘监听，避免 RecyclerView/Activity 销毁后监听器还持有适配器与旧视图 */
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView)
+        progressListener?.let { ShortDramaProgressStore.removeListener(it) }
+        progressListener = null
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemShortDramaBinding.inflate(
@@ -84,8 +117,17 @@ class ShortDramaAdapter(
                 context = binding.root.context,
                 url = item.cover,
                 imageView = binding.ivCover,
-                placeholder = R.drawable.ic_placeholder
+                placeholder = R.drawable.ic_placeholder,
+                // 封面是 3:4（布局里 layout_constraintDimensionRatio="H,3:4"），
+                // ImageLoader 默认 400x600 是 2:3，centerCrop 会把上下裁掉；这里按比例给 360x480，
+                // 也避免平板 4~5 列时按 400px 宽解码造成的过采样浪费。
+                width = 360,
+                height = 480
             )
+
+            // 封面是纯装饰图，但读屏用户需要知道这张卡讲什么，所以用标题做无障碍描述。
+            // 放在 bind 里而不是布局里写死：标题是数据驱动的，ViewHolder 复用时必须跟着换。
+            binding.ivCover.contentDescription = item.title
 
             binding.root.setOnClickListener {
                 onItemClick(item)
@@ -96,8 +138,10 @@ class ShortDramaAdapter(
             return try {
                 val num = count.toLong()
                 when {
-                    num >= 100000000 -> String.format("%.1f亿", num / 100000000.0)
-                    num >= 10000 -> String.format("%.1f万", num / 10000.0)
+                    // 必须指定 Locale：String.format 默认吃系统语言，
+                    // 德语/法语等用逗号作小数点的语言下会输出「1,5万」，看起来像 15 万。
+                    num >= 100000000 -> String.format(Locale.US, "%.1f亿", num / 100000000.0)
+                    num >= 10000 -> String.format(Locale.US, "%.1f万", num / 10000.0)
                     else -> count
                 }
             } catch (e: Exception) {

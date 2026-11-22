@@ -35,6 +35,16 @@ class ShortDramaViewModel : ViewModel() {
     private val _searchKeyword = MutableStateFlow("")
     val searchKeyword: StateFlow<String> = _searchKeyword.asStateFlow()
 
+    /**
+     * 后面还有没有数据。
+     *
+     * 为什么要有这个状态：仓库里采集源一页固定 20 条，如果只按「这次拿回几条 < 20」推到底，
+     * 最后一页恰好是满 20 条时列表页推不出来，用户必须先滚到底打一次空请求才看到「没有更多了」。
+     * 这里在请求侧就知道答案（某页返回空 = 到底），所以直接暴露出去给界面用。
+     */
+    private val _hasMore = MutableStateFlow(true)
+    val hasMore: StateFlow<Boolean> = _hasMore.asStateFlow()
+
     private var currentCategory = ShortDramaRepository.tabs.first().label
     private var currentPage = 1
     private var isLoadingMore = false
@@ -73,6 +83,20 @@ class ShortDramaViewModel : ViewModel() {
         load(1, refresh = true)
     }
 
+    /**
+     * 消费掉当前错误。
+     *
+     * 为什么需要它：error 是 StateFlow<String?>，StateFlow 不会因为「被读过」就自己清空，
+     * 所以旋转屏幕重新 collect、或从详情页返回列表页重新订阅，同一条旧错误会再弹一次 Toast。
+     * 弹过的调用方负责把它清掉。
+     *
+     * 注意：这里只清值，不改 error 的类型（ShortDramaFragment 也在收集 viewModel.error，
+     * 改成别的类型那边编译不过）。
+     */
+    fun consumeError() {
+        _error.value = null
+    }
+
     fun loadMore() {
         if (!isLoadingMore && !_isLoading.value) {
             load(currentPage, refresh = false)
@@ -92,6 +116,9 @@ class ShortDramaViewModel : ViewModel() {
             currentPage = 1
             _dramas.value = emptyList()
             endReached = false
+            // 新的一轮取数开始：上一轮「到底」的结论只对上一轮有效，先恢复成「还有更多」，
+            // 否则换了分类/关键词之后分页会被旧的到底状态挡住
+            _hasMore.value = true
             if (keyword.isEmpty()) {
                 ShortDramaRepository.invalidateTabCache(category)
             } else {
@@ -130,9 +157,14 @@ class ShortDramaViewModel : ViewModel() {
                 if (items.isEmpty()) {
                     if (page <= 1) {
                         _error.value = if (keyword.isNotEmpty()) "没搜到「$keyword」相关的短剧" else "该分类暂时没有短剧"
+                        // 首页就没数据：后面也不会有，直接标记没有更多
+                        _hasMore.value = false
                     } else {
                         // 第 2 页起为空 = 到底了（也可能是采集源翻页无效，Repository 那边已按空返回）
                         endReached = true
+                        // 只有「这一页真的没数据」才置 false；不用「条数 < 20」去猜，
+                        // 最后一页恰好满 20 条的那种情况猜不出来
+                        _hasMore.value = false
                     }
                 } else {
                     _dramas.value = if (refresh || page <= 1) items else _dramas.value + items

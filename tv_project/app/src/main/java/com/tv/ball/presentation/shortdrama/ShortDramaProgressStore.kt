@@ -2,9 +2,12 @@ package com.tv.ball.presentation.shortdrama
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import com.tv.ball.di.Dependencies
 import org.json.JSONObject
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * 短剧观看进度（本地存储）。
@@ -20,6 +23,13 @@ import org.json.JSONObject
  * 所以这里只做「拼一个 JSON + prefs.edit().apply()」：
  * - 不联网、不查库、不启协程；
  * - 用 apply() 而不是 commit()，写盘异步化，不阻塞主线程。
+ *
+ * 为什么加了内存缓存和监听器
+ * --------------------------
+ * 列表页每 bind 一张卡就要读一次进度，而「读一次」= prefs.getString + JSONObject 解析。
+ * 滚动时这个开销会落在主线程上，所以加一层内存缓存：读到就留在内存，之后只查 Map。
+ * 但缓存带来了新问题——播放页写进度的不进列表页的 Map，卡片会一直显示旧的「看到第 N 集」。
+ * 于是再补一个监听器：写成功后回调一次，列表页收到就刷卡片。
  */
 object ShortDramaProgressStore {
 
@@ -28,6 +38,28 @@ object ShortDramaProgressStore {
 
     /** 每条进度一个 key，前缀 + bookId，方便按剧取、也方便以后按前缀整体清 */
     private const val KEY_PREFIX = "p_"
+
+    /**
+     * 内存缓存：值类型是 Progress?，因为「读过盘，确认没记录」也要缓存，
+     * 否则没有进度的剧每次 bind 都会重新读一次盘。
+     */
+    private val cache = HashMap<String, Progress?>()
+
+    /** 缓存锁：读在列表页主线程、写在起播路径，两边都可能有，加个对象锁最省事 */
+    private val cacheLock = Any()
+
+    /**
+     * 进度变化监听器。
+     * CopyOnWriteArrayList：回调时顺手改列表（比如页面销毁时 removeListener）不会把遍历搞崩，
+     * 而且这里读写比极端（写一次刷全表 / 读只在增删监听器），正合适。
+     */
+    private val listeners = CopyOnWriteArrayList<() -> Unit>()
+
+    /**
+     * 主线程 Handler：监听方基本都是要改 View 的，统一 post 到主线程回调，
+     * 调用方（record 可能发生在播放器回调或子线程）不用自己切线程。
+     */
+    private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
 
     /**
      * 为什么延迟初始化：
@@ -63,42 +95,96 @@ object ShortDramaProgressStore {
     ) {
         val id = bookId.trim()
         if (id.isEmpty()) return
+        val progress = Progress(
+            bookId = id,
+            title = title.trim(),
+            cover = cover.trim(),
+            episodeNum = episodeNum,
+            totalEpisodes = totalEpisodes,
+            providerKey = providerKey.trim(),
+            updatedAt = System.currentTimeMillis()
+        )
         val json = JSONObject().apply {
-            put("bookId", id)
-            put("title", title.trim())
-            put("cover", cover.trim())
-            put("episodeNum", episodeNum)
-            put("totalEpisodes", totalEpisodes)
-            put("providerKey", providerKey.trim())
-            put("updatedAt", System.currentTimeMillis())
+            put("bookId", progress.bookId)
+            put("title", progress.title)
+            put("cover", progress.cover)
+            put("episodeNum", progress.episodeNum)
+            put("totalEpisodes", progress.totalEpisodes)
+            put("providerKey", progress.providerKey)
+            put("updatedAt", progress.updatedAt)
         }.toString()
         // apply()：异步落盘，不卡起播
         prefs.edit().putString(KEY_PREFIX + id, json).apply()
+        // 落盘是异步的，缓存必须同步更新：
+        // 否则紧接着在列表页读到的还是旧值（甚至是被缓存下来的 null），卡片会显示上一集。
+        synchronized(cacheLock) { cache[id] = progress }
+        notifyListeners()
     }
 
     /** 读某部剧的进度；没记录过或数据坏了都返回 null。 */
     fun progressOf(bookId: String): Progress? {
         val id = bookId.trim()
         if (id.isEmpty()) return null
-        val raw = prefs.getString(KEY_PREFIX + id, null) ?: return null
-        return runCatching {
-            val o = JSONObject(raw)
-            Progress(
-                bookId = o.optString("bookId", id),
-                title = o.optString("title"),
-                cover = o.optString("cover"),
-                episodeNum = o.optInt("episodeNum", 0),
-                totalEpisodes = o.optInt("totalEpisodes", 0),
-                providerKey = o.optString("providerKey"),
-                updatedAt = o.optLong("updatedAt", 0L)
-            )
-        }.onFailure {
-            Log.w(TAG, "进度解析失败 bookId=$id: ${it.message}")
-        }.getOrNull()
+        // 先查内存。用 containsKey 而不是「get() != null」判断命中：
+        // 「缓存了一个 null」（= 读过盘、确认这部没记录）和「没缓存过」是两件事，
+        // 混为一谈的话，没进度的剧每次 bind 都会重新 getString + JSONObject 解析一遍。
+        synchronized(cacheLock) {
+            if (cache.containsKey(id)) {
+                return cache[id]
+            }
+        }
+        val raw = prefs.getString(KEY_PREFIX + id, null)
+        val progress = if (raw == null) {
+            null
+        } else {
+            runCatching {
+                val o = JSONObject(raw)
+                Progress(
+                    bookId = o.optString("bookId", id),
+                    title = o.optString("title"),
+                    cover = o.optString("cover"),
+                    episodeNum = o.optInt("episodeNum", 0),
+                    totalEpisodes = o.optInt("totalEpisodes", 0),
+                    providerKey = o.optString("providerKey"),
+                    updatedAt = o.optLong("updatedAt", 0L)
+                )
+            }.onFailure {
+                Log.w(TAG, "进度解析失败 bookId=$id: ${it.message}")
+            }.getOrNull()
+        }
+        // 解析结果（包括 null）一并回填，下次直接命中
+        synchronized(cacheLock) { cache[id] = progress }
+        return progress
     }
 
     /** 清空全部短剧进度（只动本文件，不碰别的 prefs） */
     fun clear() {
         prefs.edit().clear().apply()
+        // 缓存不清就等于没清：清完立刻读还会从内存里把旧进度翻出来
+        synchronized(cacheLock) { cache.clear() }
+    }
+
+    /**
+     * 注册进度变化监听器。
+     * 回调在主线程；监听方要改 RecyclerView 的话请自己再 post 一帧（见 ShortDramaAdapter），
+     * 因为这里只保证在主线程、不保证此时不在布局计算过程中。
+     */
+    fun addListener(listener: () -> Unit) {
+        listeners.addIfAbsent(listener)
+    }
+
+    /** 注销监听器；页面销毁 / 适配器脱离 RecyclerView 时必须调，否则会一直持有引用 */
+    fun removeListener(listener: () -> Unit) {
+        listeners.remove(listener)
+    }
+
+    private fun notifyListeners() {
+        if (listeners.isEmpty()) return
+        // 刻意不在 record 的调用线程上直接回调：record 可能来自播放器回调（不保证主线程），
+        // 而监听方要动 View。统一 post 到主线程，调用方就不用自己包 runOnUiThread。
+        mainHandler.post {
+            // toList()：回调过程中若有监听器被移除，遍历的是快照，不会抛异常
+            listeners.toList().forEach { it() }
+        }
     }
 }

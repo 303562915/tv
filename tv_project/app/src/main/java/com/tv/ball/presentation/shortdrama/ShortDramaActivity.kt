@@ -42,14 +42,22 @@ class ShortDramaActivity : AppCompatActivity() {
         private const val TAG = "ShortDramaActivity"
 
         /**
-         * 每页条数。仓库里采集源固定一页 20 条（ShortDramaRepository 注释与 pg 翻页一致），
-         * ViewModel 没有暴露「到底」状态，所以只能靠「这次追加回来几条 < 20」推断没有更多。
+         * 每页条数。仓库里采集源固定一页 20 条（ShortDramaRepository 注释与 pg 翻页一致）。
+         * ViewModel 现在会通过 hasMore 直接告诉界面「到底没有」，这里只在它没给出信号时兜底推断：
          * 采集源少给一条不算到底，用 < 而不是 != 是为了容忍源端截断。
          */
         private const val PAGE_SIZE = 20
 
         /** 输入防抖：300ms 内继续打字就把上一次的搜索任务掐掉 */
         private const val SEARCH_DEBOUNCE_MS = 300L
+
+        /**
+         * 搜索历史下拉末尾的「清空搜索历史」哨兵项。
+         * 为什么把动作做成一条可点的「词」：历史下拉就是 AutoCompleteTextView 直接吃 ArrayAdapter，
+         * 没有单独的按钮位；在不新增布局文件的前提下，把它拼进列表末尾最省事。抽成常量是为了
+         * 让「拼」和「判断点中的是不是它」两处都引用同一个字符串，避免手写两遍出错。
+         */
+        private const val CLEAR_HISTORY_LABEL = "清空搜索历史"
 
         /** 骨架卡片数：首屏一屏能看到的量，6 个足够铺满手机三列两行 */
         private const val SKELETON_COUNT = 6
@@ -286,7 +294,23 @@ class ShortDramaActivity : AppCompatActivity() {
             submitted
         }
 
+        // 一键清空：清完输入框要顺手退出搜索态（回到当前分类），并把键盘收掉，
+        // 否则用户清完还得自己按一下返回键才看得到分类列表
+        binding.btnClearSearch.setOnClickListener {
+            clearSearchInputSilently()
+            hideKeyboard()
+            if (viewModel.searchKeyword.value.isNotEmpty()) {
+                resetPaging()
+                viewModel.exitSearch()
+            }
+            updateClearButton()
+        }
+
         binding.etSearch.doAfterTextChanged { text ->
+            // 清除按钮跟着输入框内容走，必须放在 suppressWatcher 提前返回之前：
+            // 程序化填词 / 清空（点热门词、点 Tab、清空按钮）同样是「有没有内容」的变化，
+            // 放到后面的话这些路径按钮状态就不会更新
+            updateClearButton()
             if (suppressWatcher) return@doAfterTextChanged
             val kw = text?.toString().orEmpty()
             searchDebounceJob?.cancel()
@@ -314,9 +338,28 @@ class ShortDramaActivity : AppCompatActivity() {
         }
         binding.etSearch.setOnClickListener { showHistoryDropdown() }
 
-        // 点历史词 = 明确提交（AutoCompleteTextView 会先把文案替换掉，之后的防抖被 submitSearch 取消）
+        // 点历史词 = 明确提交（AutoCompleteTextView 会先把文案替换掉，之后的防抖被 submitSearch 取消）；
+        // 点中末尾的「清空搜索历史」= 清历史 + 收下拉，不能当成一次搜索
         binding.etSearch.setOnItemClickListener { parent, _, position, _ ->
             val kw = parent.getItemAtPosition(position) as? String ?: return@setOnItemClickListener
+            if (kw == CLEAR_HISTORY_LABEL) {
+                // AutoCompleteTextView 在回调我们之前已经把这条文案 replaceText 进输入框，
+                // 并因此触发过一次 watcher 排上了防抖搜索，所以要先掐掉这个任务；
+                // 再把输入框恢复成「当前搜索词」（浏览态就是空），不然「清空搜索历史」几个字会留在框里
+                searchDebounceJob?.cancel()
+                searchDebounceJob = null
+                ShortDramaSearchHistory.clear()
+                binding.etSearch.setAdapter(null)
+                binding.etSearch.dismissDropDown()
+                val currentKeyword = viewModel.searchKeyword.value
+                if (currentKeyword.isNotEmpty()) {
+                    fillSearchInputSilently(currentKeyword)
+                } else {
+                    clearSearchInputSilently()
+                }
+                updateClearButton()
+                return@setOnItemClickListener
+            }
             submitSearch(kw, record = true)
         }
     }
@@ -335,6 +378,9 @@ class ShortDramaActivity : AppCompatActivity() {
      * 把搜索历史挂到 AutoCompleteTextView 上（completionThreshold 在 XML 里是 1）。
      * show=false 只更新数据、不弹浮层：进入搜索态时先备好建议，等用户点输入框再展开，
      * 避免刚搜完又被一个浮层盖住结果。
+     *
+     * 历史列表末尾拼一条「清空搜索历史」：ShortDramaSearchHistory.clear() 之前没有任何调用点，
+     * 用户没有清历史的入口。历史非空才拼，没有历史时这条本身就是个死条目。
      */
     private fun attachHistoryAdapter(show: Boolean) {
         val history = ShortDramaSearchHistory.all()
@@ -343,7 +389,9 @@ class ShortDramaActivity : AppCompatActivity() {
             binding.etSearch.dismissDropDown()
             return
         }
-        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, history.toMutableList())
+        // 历史非空才拼清空项：没有历史时给一条「清空搜索历史」是没有意义的死条目
+        val entries = (history + CLEAR_HISTORY_LABEL).toMutableList()
+        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, entries)
         binding.etSearch.setAdapter(adapter)
         // XML 里 completionThreshold=1 只管「有输入时的过滤」；输入框为空时要列出整份历史，
         // 得把阈值降到 0，否则空文本不会触发过滤，下拉是空的。
@@ -404,6 +452,18 @@ class ShortDramaActivity : AppCompatActivity() {
         binding.etSearch.dismissDropDown()
     }
 
+    /**
+     * 清除按钮只在「输入框里有字」时出现，空的时候收起来，免得占着一块点不到东西的位置。
+     * 注意：watcher 里的调用点在 suppressWatcher 判断之前，所以程序化填词/清空也会走到这里。
+     */
+    private fun updateClearButton() {
+        binding.btnClearSearch.visibility = if (binding.etSearch.text.isNullOrEmpty()) {
+            View.GONE
+        } else {
+            View.VISIBLE
+        }
+    }
+
     private fun hideKeyboard() {
         val imm = getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager ?: return
         imm.hideSoftInputFromWindow(binding.etSearch.windowToken, 0)
@@ -454,11 +514,12 @@ class ShortDramaActivity : AppCompatActivity() {
     }
 
     /**
-     * 一次请求结束后推断「到底没有」。
+     * 一次请求结束后按条数推断「到底没有」（兜底用）。
      *
-     * 为什么只能这么推断：ShortDramaViewModel 没有公开「没有更多」状态（这次不允许改它），
-     * 只能在 Activity 侧看条数——首屏/搜索看「本页拿回几条」，翻页看「这次比请求前多了几条」，
-     * 少于 PAGE_SIZE 就认为后面没了。
+     * 真实信号是 [ShortDramaViewModel.hasMore]：只有「这一页真的没数据」才置 false，
+     * 最后一页恰好满 20 条也能判对。这里保留推断是为了覆盖 hasMore 没有变化的情况
+     * （请求被跳过、没有状态变化时没人推它）：首屏/搜索看「本页拿回几条」，
+     * 翻页看「这次比请求前多了几条」，少于 PAGE_SIZE 就认为后面没了。
      */
     private fun evaluateEndReached(isAppend: Boolean, baseSize: Int) {
         val size = viewModel.dramas.value.size
@@ -472,6 +533,10 @@ class ShortDramaActivity : AppCompatActivity() {
     private fun requestLoadMore() {
         if (noMore || viewModel.isLoading.value) return
         appendRequested = true
+        // 真的发出翻页请求了，就把上一轮的失败态收掉：失败提示只在「没有任何请求在途」时有意义。
+        // 为什么在这里清而不是等 error 变 null：弹完 Toast 会立刻 consumeError()，
+        // 那条 null 通知不再用来复位 footer（见 observeViewModel 里的说明），所以发起请求的这一刻自己清。
+        footerFailed = false
         // 基准取 StateFlow 里的真实条数，不用 adapter.itemCount：
         // ListAdapter.submitList 是异步 diff，itemCount 会晚一帧才变，拿它算差值会永远得到 0
         appendBaseSize = viewModel.dramas.value.size
@@ -612,6 +677,10 @@ class ShortDramaActivity : AppCompatActivity() {
                     // 一页就拿全（< 20）时，进页面直接就能显示「没有更多了」，不用等用户先翻一次
                     evaluateEndReached(isAppend = appendRequested, baseSize = appendBaseSize)
                     appendRequested = false
+                    // ViewModel 在请求侧就知道「这一页真的没数据 = 到底」，
+                    // 比按条数猜准（最后一页恰好满 20 条时猜不出来，用户必须先滚到底打一次空请求）。
+                    // 真实信号优先，上面 evaluateEndReached 的条数推断只留作兜底。
+                    if (!viewModel.hasMore.value) noMore = true
                 }
                 renderState()
             }
@@ -630,9 +699,12 @@ class ShortDramaActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             viewModel.error.collect { error ->
-                if (error == null) {
-                    footerFailed = false
-                } else {
+                // null 只代表「这条错误已经被消费掉」，不再拿它复位 footer：
+                // 下面弹完 Toast 会立刻 consumeError()，若在这里清 footerFailed，
+                // 刚亮起来的「加载失败，点我重试」会被自己那张 null 通知抹掉。
+                // footer 的复位交给发请求的那几处（resetPaging() / retryFromFooter() / requestLoadMore()），
+                // 它们本来就负责把 footerFailed 清掉。
+                if (error != null) {
                     Log.e(TAG, "短剧列表请求失败: $error")
                     // 列表里还有内容 = 翻页失败，交给 footer 的「点我重试」；
                     // 首屏失败（列表为空）由空态 + Toast 提示，footer 不重复占位
@@ -641,6 +713,9 @@ class ShortDramaActivity : AppCompatActivity() {
                         footerFailed = true
                     }
                     Toast.makeText(this@ShortDramaActivity, error, Toast.LENGTH_SHORT).show()
+                    // StateFlow 不会因为「读过」自己清空：留着这条旧错误，页面旋转后重新 collect、
+                    // 或从详情页返回再订阅，都会把同一句话再弹一次，所以弹完立刻消费掉
+                    viewModel.consumeError()
                 }
                 renderState()
             }

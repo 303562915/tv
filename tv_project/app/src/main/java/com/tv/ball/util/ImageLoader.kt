@@ -26,18 +26,29 @@ object ImageLoader {
     
     /**
      * 加载图片到ImageView
+     * @param placeholder 加载中/失败时显示的占位图资源 id；传 0 表示「明确不要占位图」，
+     *   此时加载失败会清空 ImageView（见 onLoadFailed 里的说明）
      * @param priority 加载优先级，默认NORMAL
+     * @param width / height 解码尺寸（override）。放在 priority 之后且带默认值，
+     *   仓库里已有的调用点不用改；需要贴合控件比例时由调用方传（例：3:4 封面传 360x480）
      */
     fun load(
         context: Context,
         url: String?,
         imageView: ImageView,
         placeholder: Int,
-        priority: Priority = Priority.NORMAL
+        priority: Priority = Priority.NORMAL,
+        width: Int = 400,
+        height: Int = 600
     ) {
-        // 如果URL为空，清空ImageView，不显示占位图
+        // URL 为空时：有占位图就画占位图，没有（placeholder = 0）才清空。
+        // 原来无条件清空，等于把 placeholder 参数彻底废掉，短剧卡片加载中就是一片白。
         if (url.isNullOrBlank()) {
-            imageView.setImageDrawable(null)
+            if (placeholder != 0) {
+                imageView.setImageResource(placeholder)
+            } else {
+                imageView.setImageDrawable(null)
+            }
             return
         }
 
@@ -47,7 +58,9 @@ object ImageLoader {
 
         Glide.with(context)
             .load(url)
-            .override(400, 600) // 添加缩略图尺寸，加快加载
+            .override(width, height) // 解码尺寸由调用方给，避免和控件比例不一致被 centerCrop 裁掉
+            .placeholder(placeholder) // 加载中先画占位图，别让卡片空着
+            .error(placeholder) // 失败时也画占位图（0 = 不设，Glide 内部按 >0 判断，安全）
             .centerCrop()
             .diskCacheStrategy(DiskCacheStrategy.ALL) // 缓存原图和转换后的图
             .priority(priority)
@@ -69,7 +82,15 @@ object ImageLoader {
                         }
                     }
                     url?.let { ImageLoadMonitor.onLoadFailure(it, errorDetail) }
-                    // 加载失败时清空ImageView，不显示占位图
+                    // 分两种情况，别一刀切清空：
+                    // 1) 有占位图 → 返回 false 让 Glide 自己把 error 占位图（= placeholder）画上去；
+                    //    这里若再 setImageDrawable(null)，等于占位图刚设就被抹掉，卡片还是白块。
+                    // 2) placeholder = 0 → 调用方明确不要占位图（VideoListAdapter 传的就是 0，
+                    //    BannerAdapter 走 loadBanner 同样传 0）。
+                    //    必须清空：RecyclerView 复用 ViewHolder 时，不清就会残留上一部剧的封面。
+                    if (placeholder != 0) {
+                        return false
+                    }
                     imageView.setImageDrawable(null)
                     return true
                 }
