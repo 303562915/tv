@@ -1,12 +1,18 @@
 package com.tv.ball.presentation.player
 
+import android.app.PendingIntent
 import android.app.PictureInPictureParams
+import android.app.RemoteAction
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
+import android.graphics.drawable.Icon
 import android.os.Handler
 import android.os.Looper
 import android.util.Rational
@@ -93,6 +99,10 @@ class VideoPlayerActivity : AppCompatActivity() {
     private lateinit var gestureDetector: GestureDetector
     private val hideControlsHandler = Handler(Looper.getMainLooper())
     private val hideControlsRunnable = Runnable { hideControls() }
+
+    // 画中画：窗口里只留一个「暂停 / 继续」按钮，通过广播回到本页执行
+    private var pipReceiver: BroadcastReceiver? = null
+    private var pipToggleAction: PendingIntent? = null
     private val hideGestureHintHandler = Handler(Looper.getMainLooper())
     private val hideGestureHintRunnable = Runnable { hideGestureHint() }
     private val longPressHandler = Handler(Looper.getMainLooper())  // 专门用于长按检测的Handler
@@ -245,6 +255,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         setupGestureDetector()
         setupPlayer()
         setupControls()
+        registerPipReceiver()
         observeViewModel()
         loadVideoFromIntent()
         // videoId / videoTitle 在 loadVideoFromIntent() 里才赋好，这里按库里的真实状态刷一次收藏图标
@@ -2850,7 +2861,7 @@ class VideoPlayerActivity : AppCompatActivity() {
     }
     
     /**
-     * 更新状态文字（显示在进度条下方）
+     * 更新状态文字（浮层，压在画面上、底栏上沿之上，不参与底栏布局）
      */
     private fun updateStatusText(message: String) {
         runOnUiThread {
@@ -2861,7 +2872,14 @@ class VideoPlayerActivity : AppCompatActivity() {
                     visibility = View.GONE
                     return@apply
                 }
+                if (isInPictureInPictureMode) {
+                    // 画中画窗口只留画面，不放状态提示
+                    visibility = View.GONE
+                    return@apply
+                }
                 text = message
+                // 浮层不占底栏位置：把底边抬到底部控制栏上沿（底栏收起时贴屏幕底）
+                applyStatusOverlayOffset()
                 visibility = View.VISIBLE
                 
                 // 移除之前的延迟任务
@@ -2884,6 +2902,27 @@ class VideoPlayerActivity : AppCompatActivity() {
     
     private val hideStatusTextRunnable = Runnable {
         binding.statusText?.visibility = View.GONE
+    }
+
+    /**
+     * 状态浮层贴到底部控制栏上沿。
+     * 它本身是 FrameLayout 的绝对定位子项，改 margin 只移动它自己，
+     * 不会撑高或挤动底部控制栏。
+     */
+    private fun applyStatusOverlayOffset() {
+        try {
+            val bar = binding.bottomControlBar
+            val barHeight = if (bar.visibility == View.VISIBLE) bar.height else 0
+            val text = binding.statusText
+            val lp = text.layoutParams as? FrameLayout.LayoutParams ?: return
+            val target = barHeight + dpToPixel(8)
+            if (lp.bottomMargin != target) {
+                lp.bottomMargin = target
+                text.layoutParams = lp
+            }
+        } catch (e: Exception) {
+            android.util.Log.w("VideoPlayer", "状态浮层定位失败: ${e.message}")
+        }
     }
     
     private fun startDownload() {
@@ -4797,6 +4836,12 @@ class VideoPlayerActivity : AppCompatActivity() {
                 if (isFinishing || isDestroyed) return
                 runOnUiThread { handlePlayerStateOverlays(playbackState) }
             }
+
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                if (isFinishing || isDestroyed) return
+                // 画中画里按钮要跟着「暂停/继续」翻转
+                runOnUiThread { refreshPipActions() }
+            }
         })
     }
 
@@ -4824,6 +4869,8 @@ class VideoPlayerActivity : AppCompatActivity() {
 
     /** 缓冲小字：复用已有 loadingView，只在其下方显示「缓冲中…」 */
     private fun showBufferingHint() {
+        // 画中画窗口不叠任何提示，只留画面和一个暂停/继续按钮
+        if (isInPictureInPictureMode) return
         try {
             binding.loadingView.visibility = View.VISIBLE
             binding.bufferingHintText.visibility = View.VISIBLE
@@ -4984,6 +5031,8 @@ class VideoPlayerActivity : AppCompatActivity() {
     }
 
     private fun toggleControlsVisibility() {
+        // 画中画窗口里不弹控制栏：窗口只有一个暂停/继续按钮
+        if (isInPictureInPictureMode) return
         if (isControlsVisible) {
             hideControlsWithAnimation()
         } else {
@@ -4992,6 +5041,7 @@ class VideoPlayerActivity : AppCompatActivity() {
     }
     
     private fun showControls() {
+        if (isInPictureInPictureMode) return
         isControlsVisible = true
         binding.topToolbar.visibility = if (isLocked) View.GONE else View.VISIBLE
         binding.bottomControlBar.visibility = if (isLocked) View.GONE else View.VISIBLE
@@ -5001,10 +5051,13 @@ class VideoPlayerActivity : AppCompatActivity() {
             binding.topToolbar.alpha = 1f
             enforcePortraitTopBar()
         }
+        // 底栏重新出现后，状态浮层跟着抬到底栏上沿
+        if (binding.statusText?.visibility == View.VISIBLE) applyStatusOverlayOffset()
         resetHideControlsTimer()
     }
     
     private fun showControlsWithAnimation() {
+        if (isInPictureInPictureMode) return
         isControlsVisible = true
         
         // 淡入动画
@@ -5038,6 +5091,11 @@ class VideoPlayerActivity : AppCompatActivity() {
     }
     
     private fun hideControls() {
+        // 画中画窗口：一律全部收起，别把竖屏「顶栏常显」那套搬进小窗
+        if (isInPictureInPictureMode) {
+            hideOverlaysForPictureInPicture()
+            return
+        }
         isControlsVisible = false
         // 控制条收起时顺手收掉进度气泡，避免残留在底栏上沿
         hideSeekTimeBubble()
@@ -5721,6 +5779,104 @@ class VideoPlayerActivity : AppCompatActivity() {
         }
     }
     
+    /** 画中画窗口里唯一的动作：暂停 / 继续 */
+    private val PIP_ACTION_TOGGLE = "com.tv.ball.pip.TOGGLE_PLAY_PAUSE"
+
+    /**
+     * 注册画中画按钮的广播接收器。
+     * 画中画窗口里的 RemoteAction 只认 PendingIntent，收回来在这里执行，
+     * 不额外起 Service，也不改播放器的任何生命周期逻辑。
+     */
+    private fun registerPipReceiver() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        if (pipReceiver != null) return
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action != PIP_ACTION_TOGGLE) return
+                // 直接看播放器状态，避免和界面上的按钮状态不一致
+                if (exoPlayerManager.getPlayer()?.isPlaying == true) {
+                    exoPlayerManager.pause()
+                } else {
+                    exoPlayerManager.play()
+                }
+                updatePlayPauseButton()
+                // 图标要立刻从「暂停」换成「继续」，否则窗口里还停在上一个状态
+                refreshPipActions()
+            }
+        }
+        pipReceiver = receiver
+        val filter = IntentFilter(PIP_ACTION_TOGGLE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("UnspecifiedRegisterReceiverFlag")
+            registerReceiver(receiver, filter)
+        }
+        pipToggleAction = PendingIntent.getBroadcast(
+            this,
+            0,
+            Intent(PIP_ACTION_TOGGLE).setPackage(packageName),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
+
+    /** 画中画参数：视频宽高比 + 唯一一个暂停/继续按钮 */
+    private fun buildPipParams(): PictureInPictureParams? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return null
+        val videoWidth = exoPlayerManager.getVideoWidth()
+        val videoHeight = exoPlayerManager.getVideoHeight()
+        val builder = PictureInPictureParams.Builder()
+            .setAspectRatio(
+                if (videoWidth > 0 && videoHeight > 0) Rational(videoWidth, videoHeight)
+                else Rational(16, 9)
+            )
+        val toggle = pipToggleAction
+        if (toggle != null) {
+            val playing = exoPlayerManager.isPlaying()
+            val label = if (playing) "暂停" else "继续"
+            builder.setActions(
+                listOf(
+                    RemoteAction(
+                        Icon.createWithResource(
+                            this,
+                            if (playing) R.drawable.ic_pause_black_24dp
+                            else R.drawable.ic_play_arrow_black_24dp
+                        ),
+                        label,
+                        label,
+                        toggle
+                    )
+                )
+            )
+        }
+        return builder.build()
+    }
+
+    /** 播放状态变了就重设一次画中画参数，窗口里的按钮图标/文案才不会停在旧状态 */
+    private fun refreshPipActions() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        if (!isInPictureInPictureMode) return
+        val params = buildPipParams() ?: return
+        runCatching { setPictureInPictureParams(params) }
+    }
+
+    /** 画中画窗口只留画面：所有覆盖层收起，别让图标压在视频上 */
+    private fun hideOverlaysForPictureInPicture() {
+        isControlsVisible = false
+        try {
+            binding.topToolbar.visibility = View.GONE
+            binding.bottomControlBar.visibility = View.GONE
+            binding.leftControlBar.visibility = View.GONE
+            binding.statusText?.visibility = View.GONE
+            binding.longPressSpeedLayout.visibility = View.GONE
+            binding.loadingView.visibility = View.GONE
+            hideSeekTimeBubble()
+            hideGestureHint()
+        } catch (e: Exception) {
+            android.util.Log.w("VideoPlayer", "画中画收覆盖层失败: ${e.message}")
+        }
+    }
+
     /**
      * 尝试进入画中画模式
      */
@@ -5732,28 +5888,15 @@ class VideoPlayerActivity : AppCompatActivity() {
                     android.util.Log.w("VideoPlayer", "设备不支持画中画功能")
                     return
                 }
-                
-                // 获取视频宽高比
-                val videoWidth = exoPlayerManager.getVideoWidth()
-                val videoHeight = exoPlayerManager.getVideoHeight()
-                
-                val rational = if (videoWidth > 0 && videoHeight > 0) {
-                    Rational(videoWidth, videoHeight)
-                } else {
-                    Rational(16, 9) // 默认16:9
-                }
-                
-                val params = PictureInPictureParams.Builder()
-                    .setAspectRatio(rational)
-                    .build()
-                
-                val result = enterPictureInPictureMode(params)
+
+                val params = buildPipParams()
+                val result = if (params != null) enterPictureInPictureMode(params) else false
                 android.util.Log.d("VideoPlayer", "进入画中画模式: ${if (result) "成功" else "失败"}")
             } catch (e: Exception) {
                 android.util.Log.e("VideoPlayer", "进入画中画模式失败: ${e.message}", e)
             }
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            // Android 7.0-7.1 使用旧API
+            // Android 7.0-7.1 使用旧API（这两个版本没有远程按钮）
             try {
                 @Suppress("DEPRECATION")
                 enterPictureInPictureMode()
@@ -5774,15 +5917,15 @@ class VideoPlayerActivity : AppCompatActivity() {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         
         if (isInPictureInPictureMode) {
-            // 进入画中画模式 - 隐藏控制UI
+            // 进入画中画模式 - 收起全部覆盖层，只留画面与一个暂停/继续按钮
             android.util.Log.d("VideoPlayer", "📺 进入画中画模式")
-            hideControls()
-            binding.lockButton.visibility = View.GONE
+            hideOverlaysForPictureInPicture()
             
             // 确保继续播放
             if (!exoPlayerManager.isPlaying()) {
                 exoPlayerManager.play()
             }
+            refreshPipActions()
         } else {
             // 退出画中画模式 - 恢复控制UI
             android.util.Log.d("VideoPlayer", "📺 退出画中画模式")
@@ -5815,6 +5958,13 @@ class VideoPlayerActivity : AppCompatActivity() {
         )
         VideoFlowLogger.endSession()
         // ====================================
+
+        // 摘掉画中画按钮的广播接收器，避免页面销毁后还收着点击
+        pipReceiver?.let {
+            runCatching { unregisterReceiver(it) }
+        }
+        pipReceiver = null
+        pipToggleAction = null
 
         super.onDestroy()
         hideControlsHandler.removeCallbacks(hideControlsRunnable)

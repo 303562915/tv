@@ -713,22 +713,6 @@
                 android:tint="@color/player_control_icon" />
         </LinearLayout>
 
-        <!-- 状态文字显示（进度条下方） -->
-        <TextView
-            android:id="@+id/statusText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
-            android:text=""
-            android:textColor="@color/white"
-            android:alpha="0.8"
-            android:textSize="12sp"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:visibility="gone" />
-
         <!-- 加载日志显示 -->
         <TextView
             android:id="@+id/loadingLogText"
@@ -803,6 +787,27 @@
                 android:textSize="13sp" />
         </LinearLayout>
     </LinearLayout>
+
+    <!-- 状态提示（缓冲中 / 切换线路 / 解析中 …）：绝对定位浮层（FrameLayout 子项），
+         不参与底部控制栏的测量与高度，只压在画面上；显示时由代码把底边抬到底栏上沿 -->
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_marginStart="12dp"
+        android:background="@drawable/gesture_hint_background"
+        android:backgroundTint="#B3101010"
+        android:elevation="6dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:paddingStart="10dp"
+        android:paddingTop="5dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="5dp"
+        android:textColor="@android:color/white"
+        android:textSize="12sp"
+        android:visibility="gone" />
 
     <!-- 拖动进度条时的拇指时间气泡：绝对定位浮层（FrameLayout 子项），不参与底栏高度/布局。
          visibility 由 onStartTrackingTouch/onStopTrackingTouch 控制，位置由 translationX/Y 跟随拇指；
