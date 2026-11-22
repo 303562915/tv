@@ -132,7 +132,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:text="浏览器打开"
+                android:text="@string/cloud_sheet_open_browser"
                 android:textColor="@color/theme_on_primary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -165,7 +165,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:text="复制链接"
+                android:text="@string/parser_copy_link"
                 android:textColor="@color/theme_text_primary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -178,7 +178,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="取消"
+        android:text="@string/cancel"
         android:textColor="@color/theme_text_secondary"
         android:textSize="15sp"
         android:gravity="center"

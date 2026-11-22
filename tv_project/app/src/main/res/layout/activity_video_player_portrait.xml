@@ -48,7 +48,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="正在缓冲"
+                android:text="@string/player_backup_buffering"
                 android:textColor="@android:color/white"
                 android:textSize="@dimen/text_body" />
         </LinearLayout>
@@ -207,7 +207,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="36dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:text="选集"
+                android:text="@string/common_episodes"
                 android:textColor="@android:color/white"
                 android:textSize="@dimen/text_caption"
                 android:visibility="gone" />
@@ -254,7 +254,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="播放日志"
+                android:text="@string/portrait_play_log"
                 android:textColor="@color/theme_text_primary"
                 android:textSize="@dimen/text_body"
                 android:textStyle="bold" />
@@ -267,7 +267,7 @@
                 android:textColor="@color/theme_text_secondary"
                 android:textSize="@dimen/text_caption"
                 android:fontFamily="monospace"
-                android:text="等待播放..." />
+                android:text="@string/portrait_log_waiting" />
 
             <!-- 视频标题和信息 -->
             <TextView
@@ -324,7 +324,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="日志"
+                            android:text="@string/portrait_log_label"
                             android:textSize="@dimen/text_caption" />
                     </LinearLayout>
 
@@ -349,7 +349,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="投屏"
+                            android:text="@string/portrait_cast"
                             android:textSize="@dimen/text_caption" />
                     </LinearLayout>
 
@@ -374,7 +374,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="快源"
+                            android:text="@string/portrait_quick_source"
                             android:textSize="@dimen/text_caption" />
                     </LinearLayout>
 
@@ -399,7 +399,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="外控"
+                            android:text="@string/portrait_external_control"
                             android:textSize="@dimen/text_caption" />
                     </LinearLayout>
 
@@ -424,7 +424,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="离线"
+                            android:text="@string/portrait_offline"
                             android:textSize="@dimen/text_caption" />
                     </LinearLayout>
                 </LinearLayout>
@@ -435,7 +435,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="视频源"
+                android:text="@string/source"
                 android:textColor="@color/theme_text_primary"
                 android:textSize="@dimen/text_body"
                 android:textStyle="bold" />
@@ -451,7 +451,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="选集"
+                android:text="@string/common_episodes"
                 android:textColor="@color/theme_text_primary"
                 android:textSize="@dimen/text_body"
                 android:textStyle="bold" />

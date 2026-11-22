@@ -21,7 +21,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="投屏方式"
+        android:text="@string/cast_sheet_title"
         android:textColor="@color/theme_text_primary"
         android:textSize="18sp"
         android:textStyle="bold"
@@ -69,7 +69,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="复制视频地址（推荐）"
+                    android:text="@string/cast_sheet_copy_url_recommended"
                     android:textColor="@color/theme_text_primary"
                     android:textSize="16sp" />
 
@@ -77,7 +77,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="复制后在投屏应用中粘贴"
+                    android:text="@string/cast_sheet_copy_url_hint"
                     android:textColor="@color/theme_text_secondary"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -111,7 +111,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="使用系统播放器"
+                    android:text="@string/cast_system_player"
                     android:textColor="@color/theme_text_primary"
                     android:textSize="16sp" />
 
@@ -119,7 +119,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="调用系统默认播放器打开"
+                    android:text="@string/cast_system_player_hint"
                     android:textColor="@color/theme_text_secondary"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -153,7 +153,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="分享到其他应用"
+                    android:text="@string/cast_share_other"
                     android:textColor="@color/theme_text_primary"
                     android:textSize="16sp" />
 
@@ -161,7 +161,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="通过分享菜单发送链接"
+                    android:text="@string/cast_share_other_hint"
                     android:textColor="@color/theme_text_secondary"
                     android:textSize="12sp" />
             </LinearLayout>

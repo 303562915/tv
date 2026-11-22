@@ -37,7 +37,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="倍速设置"
+            android:text="@string/speed_dialog_title"
             android:textColor="@android:color/white"
             android:textSize="18sp" />
 
@@ -72,7 +72,7 @@
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_weight="1"
-            android:text="基础倍速"
+            android:text="@string/speed_dialog_tab_basic"
             android:textColor="@color/theme_text_primary"
             android:textSize="14sp"
             android:gravity="center"
@@ -85,7 +85,7 @@
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_weight="1"
-            android:text="滑动灵敏度"
+            android:text="@string/speed_dialog_tab_smart"
             android:textColor="@color/theme_text_secondary"
             android:textSize="14sp"
             android:gravity="center"
@@ -114,7 +114,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="播放速度设置"
+                android:text="@string/speed_dialog_speed_section"
                 android:textColor="@color/theme_text_secondary"
                 android:textSize="12sp"
                 android:paddingStart="16dp"
@@ -222,7 +222,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="其他设置"
+                android:text="@string/speed_dialog_other_section"
                 android:textColor="@color/theme_text_secondary"
                 android:textSize="12sp"
                 android:paddingStart="16dp"
@@ -243,7 +243,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="长按速度设置"
+                    android:text="@string/speed_dialog_long_press_section"
                     android:textColor="@android:color/white"
                     android:textSize="15sp"
                     android:paddingBottom="12dp" />
@@ -358,7 +358,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="长按上滑锁定倍速"
+                    android:text="@string/speed_dialog_long_press_lock"
                     android:textColor="@android:color/white"
                     android:textSize="15sp" />
 
@@ -400,7 +400,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="滑动快进/快退灵敏度"
+                android:text="@string/speed_dialog_swipe_sensitivity"
                 android:textColor="@color/theme_text_secondary"
                 android:textSize="12sp"
                 android:paddingStart="16dp"
@@ -508,7 +508,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="数值越大，滑动相同距离快进/快退的时间越多"
+                android:text="@string/speed_dialog_swipe_sensitivity_hint"
                 android:textColor="@color/theme_text_secondary"
                 android:textSize="12sp"
                 android:paddingStart="16dp"

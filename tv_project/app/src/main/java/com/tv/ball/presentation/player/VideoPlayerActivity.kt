@@ -1,5 +1,6 @@
 package com.tv.ball.presentation.player
 
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.PictureInPictureParams
 import android.app.RemoteAction
@@ -32,6 +33,8 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -2079,6 +2082,11 @@ class VideoPlayerActivity : AppCompatActivity() {
             // 横屏顶栏顶部内边距回到 12dp
             applyTopToolbarPadding(isLandscape = true)
 
+            // 横屏状态栏：这一行可见，内容是「HH:mm + 电量百分比」
+            // （网速项保留原逻辑，没数据时由 updateNetworkSpeed() 自己置 GONE）
+            binding.playerStatusRow.visibility = View.VISIBLE
+            updateSystemInfo()
+
             // 横屏：有下一集时才显示下一集按钮
             updateNextButtonVisibility()
 
@@ -2133,6 +2141,9 @@ class VideoPlayerActivity : AppCompatActivity() {
 
             // 竖屏顶栏往下挪：12dp + 状态栏高度，别压住状态栏
             applyTopToolbarPadding(isLandscape = false)
+
+            // 竖屏不显示时间/电量状态栏，保持 GONE
+            binding.playerStatusRow.visibility = View.GONE
 
             // 添加竖屏详情视图
             addPortraitDetailView()
@@ -3219,6 +3230,15 @@ class VideoPlayerActivity : AppCompatActivity() {
 
         /** 底部弹窗选集网格的封顶高度占屏幕高度的比例（超过才钉死高度，让网格能滚、能触发懒加载） */
         private const val EPISODE_GRID_MAX_SCREEN_RATIO = 0.6f
+
+        /** 电量取不到 / 为 0 时的占位符：宁可显示它，也不留空白。 */
+        private const val BATTERY_UNKNOWN_TEXT = "--"
+
+        /** 「正在播放」提示通知的 id（固定一条，重复发只更新不叠加）。 */
+        private const val NOW_PLAYING_NOTIFICATION_ID = 4301
+
+        /** 点通知回播放页用的 PendingIntent requestCode。 */
+        private const val NOW_PLAYING_REQUEST_CODE = 4301
     }
 
     /**
@@ -4878,6 +4898,11 @@ class VideoPlayerActivity : AppCompatActivity() {
     
     private fun updateNetworkSpeed(speedInfo: NetworkSpeedMonitor.SpeedInfo) {
         binding.networkSpeedText.text = speedInfo.speedText
+
+        // 横屏状态栏里的网速项：没有数据（首帧 / 流量取不到时速度是 0）就整项 GONE，
+        // 不留「0 KB/s」这种假数据；有数据时照原逻辑显示
+        val hasSpeedData = speedInfo.bytesPerSecond > 0L && speedInfo.speedText.isNotBlank()
+        binding.networkSpeedText.visibility = if (hasSpeedData) View.VISIBLE else View.GONE
         
         // 根据网速质量显示不同颜色
         val color = when (speedInfo.quality) {
@@ -5519,15 +5544,23 @@ class VideoPlayerActivity : AppCompatActivity() {
     }
     
     private fun updateSystemInfo() {
-        // 更新时间
-        val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-        binding.currentTimeText.text = timeFormat.format(Date())
-        
-        // 更新网络状态
-        binding.networkStatusText.text = systemInfoMonitor.getNetworkType()
-        
-        // 更新电池图标
-        binding.batteryIcon.setImageResource(systemInfoMonitor.getBatteryIconResource())
+        try {
+            // 横屏状态栏只到分钟：秒数每秒跳一次太吵，也和「时间 + 电量」的定位不符
+            val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+            binding.currentTimeText.text = timeFormat.format(Date())
+
+            // 更新网络状态
+            binding.networkStatusText.text = systemInfoMonitor.getNetworkType()
+
+            // 电量百分比：0 / 取不到（getIntProperty 可能返回 -1 或 Integer.MIN_VALUE）一律写占位符
+            val batteryLevel = runCatching { systemInfoMonitor.getBatteryLevel() }.getOrDefault(0)
+            binding.batteryText.text = if (batteryLevel in 1..100) "$batteryLevel%" else BATTERY_UNKNOWN_TEXT
+
+            // 更新电池图标
+            binding.batteryIcon.setImageResource(systemInfoMonitor.getBatteryIconResource())
+        } catch (e: Exception) {
+            android.util.Log.w("VideoPlayer", "更新状态栏信息失败: ${e.message}")
+        }
     }
     
     /**
@@ -5600,6 +5633,8 @@ class VideoPlayerActivity : AppCompatActivity() {
                 if (isFinishing || isDestroyed) return
                 // 画中画里按钮要跟着「暂停/继续」翻转
                 runOnUiThread { refreshPipActions() }
+                // 播放真正开始（含自动连播换集）后发「正在播放」提示；暂停不撤，离开播放页才撤
+                if (isPlaying) runOnUiThread { postNowPlayingNotification() }
             }
         })
     }
@@ -6034,9 +6069,118 @@ class VideoPlayerActivity : AppCompatActivity() {
         updateFavoriteIcon()
     }
     
+    // ==================== 「正在播放」提示通知（只提示 + 点击回播放页，不含播放控制） ====================
+
+    /** 已发过通知的标题：同一集重复起播不重发，避免把同一条通知反复刷。 */
+    private var nowPlayingNotificationTitle: String? = null
+
+    /** 通知标题用的视频标题：优先 VIDEO_TITLE，拿不到再退顶栏标题。 */
+    private fun nowPlayingNotificationTitleText(): String {
+        val fromIntent = videoTitle.trim()
+        if (fromIntent.isNotEmpty()) return fromIntent
+        val fromToolbar = binding.titleText.text?.toString()?.trim().orEmpty()
+        return fromToolbar.ifEmpty { "未命名视频" }
+    }
+
+    /**
+     * 播放开始后发一条低优先级「正在播放：<标题>」：
+     * - 通知总开关关着 / 没授予 POST_NOTIFICATIONS → 直接跳过，不影响播放；
+     * - 渠道只用**已有**渠道（优先 download_channel），一条都没有就放弃，本轮不新建渠道；
+     * - 不做播放/暂停按钮 —— 那是后续 MediaSession 改造的事，这里只负责提示与点击返回。
+     */
+    private fun postNowPlayingNotification() {
+        if (isFinishing || isDestroyed) return
+
+        val notificationManager = getSystemService(NotificationManager::class.java) ?: return
+        if (!NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+            plog("通知总开关关闭，跳过「正在播放」提示")
+            return
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            plog("没有 POST_NOTIFICATIONS 权限，跳过「正在播放」提示")
+            return
+        }
+
+        val channelId = findExistingNotificationChannelId(notificationManager) ?: run {
+            plog("没有可复用的通知渠道，跳过「正在播放」提示")
+            return
+        }
+
+        val title = nowPlayingNotificationTitleText()
+        if (nowPlayingNotificationTitle == title) return
+
+        val openPlayerIntent = Intent(this, VideoPlayerActivity::class.java).apply {
+            // 播放页还在栈里就复用同一个实例：CLEAR_TOP + SINGLE_TOP 不会重建页面，播放不中断
+            // （本页没重写 onNewIntent，getIntent() 仍是原始 intent，状态不会被覆盖）；
+            // 进程被回收后按下面补的参数重新打开同一视频
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra("VIDEO_ID", videoId)
+            putExtra("VIDEO_TITLE", videoTitle)
+            putExtra(
+                "VIDEO_URL",
+                currentPlayingUrl.ifBlank { intent.getStringExtra("VIDEO_URL") ?: "" }
+            )
+            putExtra("THUMBNAIL_URL", thumbnailUrl ?: "")
+            putExtra("DETAIL_URL", detailUrl ?: "")
+        }
+        val contentIntent = PendingIntent.getActivity(
+            this,
+            NOW_PLAYING_REQUEST_CODE,
+            openPlayerIntent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setContentTitle("正在播放：$title")
+            .setContentIntent(contentIntent)
+            .setSmallIcon(android.R.drawable.ic_media_play)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setShowWhen(false)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .build()
+
+        try {
+            NotificationManagerCompat.from(this).notify(NOW_PLAYING_NOTIFICATION_ID, notification)
+            nowPlayingNotificationTitle = title
+            plog("已发「正在播放」提示通知: $title（渠道 $channelId）")
+        } catch (e: SecurityException) {
+            android.util.Log.w("VideoPlayer", "缺通知权限，「正在播放」提示跳过", e)
+        }
+    }
+
+    /** 退出播放页时撤掉「正在播放」提示。 */
+    private fun cancelNowPlayingNotification() {
+        nowPlayingNotificationTitle = null
+        runCatching {
+            NotificationManagerCompat.from(this).cancel(NOW_PLAYING_NOTIFICATION_ID)
+        }
+    }
+
+    /**
+     * 在**已存在**的渠道里挑一条用：优先下载渠道（download_channel），
+     * 没有就取重要性最低的那条；一条都没有返回 null —— 绝不新建渠道。
+     */
+    private fun findExistingNotificationChannelId(manager: NotificationManager): String? {
+        val preferred = com.tv.ball.presentation.download.DownloadCompletionNotifier.CHANNEL_ID
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return preferred
+        val channels = manager.notificationChannels ?: return null
+        if (channels.any { it.id == preferred }) return preferred
+        return channels.minByOrNull { it.importance }?.id
+    }
+
     override fun onStop() {
         super.onStop()
         android.util.Log.d("VideoPlayer", "⏹️ [生命周期] onStop")
+
+        // 真正退出播放页（返回键 / finish）才撤掉「正在播放」提示；
+        // 切后台、进画中画不算退出，提示保留
+        if (isFinishing) cancelNowPlayingNotification()
         
         // 检查是否支持画中画且不在画中画模式
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N && 
@@ -6781,6 +6925,9 @@ class VideoPlayerActivity : AppCompatActivity() {
         )
         VideoFlowLogger.endSession()
         // ====================================
+
+        // 离开播放页：撤掉「正在播放」提示（onStop 里已按 isFinishing 撤过一次，这里兜底）
+        cancelNowPlayingNotification()
 
         // 摘掉画中画按钮的广播接收器，避免页面销毁后还收着点击
         pipReceiver?.let {

@@ -14,7 +14,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="播放设置"
+        android:text="@string/playback_setting"
         android:textSize="18sp"
         android:textStyle="bold"
         android:textColor="@color/theme_text_primary"
@@ -24,7 +24,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="画面比例"
+        android:text="@string/player_menu_aspect_ratio"
         android:textSize="14sp"
         android:textColor="@color/theme_text_secondary"
         android:paddingTop="8dp"
@@ -41,7 +41,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="自适应"
+            android:text="@string/player_menu_aspect_fit"
             android:textColor="@color/theme_text_primary"
             android:buttonTint="@color/theme_primary"
             android:checked="true" />
@@ -75,7 +75,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="铺满"
+            android:text="@string/player_menu_aspect_fill"
             android:textColor="@color/theme_text_primary"
             android:buttonTint="@color/theme_primary" />
 
@@ -84,7 +84,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="放大"
+            android:text="@string/player_menu_aspect_zoom"
             android:textColor="@color/theme_text_primary"
             android:buttonTint="@color/theme_primary" />
 
@@ -105,7 +105,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="播放倍速"
+        android:text="@string/player_menu_speed"
         android:textSize="14sp"
         android:textColor="@color/theme_text_secondary"
         android:paddingBottom="8dp" />
@@ -234,7 +234,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="重复播放"
+        android:text="@string/player_menu_repeat"
         android:textSize="14sp"
         android:textColor="@color/theme_text_secondary"
         android:paddingBottom="8dp" />
@@ -250,7 +250,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="关闭"
+            android:text="@string/player_menu_repeat_off"
             android:textColor="@color/theme_text_primary"
             android:buttonTint="@color/theme_primary"
             android:checked="true" />
@@ -260,7 +260,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="单集循环"
+            android:text="@string/player_menu_repeat_one"
             android:textColor="@color/theme_text_primary"
             android:buttonTint="@color/theme_primary" />
 
@@ -269,7 +269,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="列表循环"
+            android:text="@string/player_menu_repeat_all"
             android:textColor="@color/theme_text_primary"
             android:buttonTint="@color/theme_primary" />
     </RadioGroup>
@@ -292,7 +292,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="自动跳过片头"
+            android:text="@string/player_menu_auto_skip_intro"
             android:textSize="14sp"
             android:textColor="@color/theme_text_primary" />
 
@@ -312,7 +312,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="自动跳过片尾"
+            android:text="@string/player_menu_auto_skip_outro"
             android:textSize="14sp"
             android:textColor="@color/theme_text_primary" />
 
@@ -345,7 +345,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="睡眠定时器"
+            android:text="@string/player_menu_sleep_timer"
             android:textSize="14sp"
             android:textColor="@color/theme_text_primary" />
 
@@ -374,7 +374,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="字幕"
+            android:text="@string/player_menu_subtitle"
             android:textSize="14sp"
             android:textColor="@color/theme_text_primary" />
 
@@ -403,7 +403,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="画中画"
+            android:text="@string/player_menu_pip"
             android:textSize="14sp"
             android:textColor="@color/theme_text_primary" />
 
@@ -433,7 +433,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="显示调试信息"
+            android:text="@string/player_menu_debug_info"
             android:textSize="14sp"
             android:textColor="@color/theme_text_primary" />
 
@@ -458,7 +458,7 @@
         android:id="@+id/downloadButton"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:text="⬇️ 下载视频"
+        android:text="@string/player_menu_download_video"
         android:textSize="16sp"
         android:textColor="@color/theme_on_primary"
         android:background="@drawable/bg_dialog_button_primary"
@@ -469,7 +469,7 @@
         android:id="@+id/castButton"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:text="📺 投屏"
+        android:text="@string/player_menu_cast"
         android:textSize="16sp"
         android:textColor="@color/theme_text_primary"
         android:background="@drawable/bg_dialog_button_secondary" />

@@ -18,7 +18,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="解析链接"
+            android:text="@string/parse_links_title"
             android:textColor="@color/theme_text_primary"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -27,7 +27,7 @@
             android:id="@+id/refreshButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="重新解析"
+            android:text="@string/parse_links_refresh"
             android:textColor="@color/theme_primary"
             android:textSize="14sp"
             android:padding="8dp"
@@ -63,7 +63,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="暂无解析链接"
+            android:text="@string/parse_links_empty_title"
             android:textColor="@color/theme_text_secondary"
             android:textSize="14sp" />
 
@@ -71,7 +71,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="点击重新解析开始嗅探"
+            android:text="@string/parse_links_empty_hint"
             android:textColor="@color/theme_text_secondary"
             android:textSize="12sp" />
     </LinearLayout>

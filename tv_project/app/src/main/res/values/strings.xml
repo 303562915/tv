@@ -289,4 +289,112 @@
     <string name="player_new_recommend">推荐</string>
     <string name="player_new_follow">加追</string>
     <string name="player_new_cast">投屏</string>
+
+    <!-- ============ 播放页-竖屏布局（activity_video_player_portrait） ============ -->
+    <string name="portrait_play_log">播放日志</string>
+    <string name="portrait_log_waiting">等待播放...</string>
+    <string name="portrait_log_label">日志</string>
+    <string name="portrait_cast">投屏</string>
+    <string name="portrait_quick_source">快源</string>
+    <string name="portrait_external_control">外控</string>
+    <string name="portrait_offline">离线</string>
+
+    <!-- ============ 投屏选择（bottom_sheet_cast） ============ -->
+    <string name="cast_sheet_title">投屏方式</string>
+    <string name="cast_sheet_copy_url_recommended">复制视频地址（推荐）</string>
+    <string name="cast_sheet_copy_url_hint">复制后在投屏应用中粘贴</string>
+    <string name="cast_system_player">使用系统播放器</string>
+    <string name="cast_system_player_hint">调用系统默认播放器打开</string>
+    <string name="cast_share_other">分享到其他应用</string>
+    <string name="cast_share_other_hint">通过分享菜单发送链接</string>
+
+    <!-- ============ 网盘资源弹层（bottom_sheet_cloud_storage） ============ -->
+    <string name="cloud_sheet_open_browser">浏览器打开</string>
+
+    <!-- ============ DLNA 投屏（bottom_sheet_dlna_cast） ============ -->
+    <string name="dlna_cast_title">投屏到设备</string>
+    <string name="dlna_cast_searching">正在搜索设备...</string>
+    <string name="dlna_cast_empty_title">未发现 DLNA 设备</string>
+    <string name="dlna_cast_empty_hint">请确保设备与手机在同一WiFi网络</string>
+    <string name="dlna_cast_other_methods">其他投屏方式</string>
+    <string name="dlna_cast_copy_url">复制视频地址</string>
+    <string name="dlna_cast_recommend_badge">推荐</string>
+    <string name="dlna_cast_pc_browser">电脑浏览器播放</string>
+    <string name="dlna_cast_new_badge">新功能</string>
+
+    <!-- ============ 选集下载弹层（bottom_sheet_download_episode） ============ -->
+    <string name="download_sheet_title">选择要下载的剧集</string>
+    <string name="download_sheet_multi_select">多选</string>
+    <string name="download_sheet_select_all">全选</string>
+    <string name="download_sheet_current">下载当前</string>
+    <string name="download_sheet_batch">批量下载</string>
+
+    <!-- ============ 可可影视筛选（bottom_sheet_keke_filter） ============ -->
+    <string name="keke_filter_title">筛选条件</string>
+    <string name="keke_filter_type">类型</string>
+    <string name="keke_filter_region">地区</string>
+    <string name="keke_filter_year">年份</string>
+    <string name="keke_filter_language">语言</string>
+    <string name="keke_filter_reset">重置</string>
+    <string name="keke_filter_apply">应用</string>
+
+    <!-- ============ 解析链接（bottom_sheet_parse_links / dialog_parse_links） ============ -->
+    <string name="parse_links_title">解析链接</string>
+    <string name="parse_links_refresh">重新解析</string>
+    <string name="parse_links_empty_title">暂无解析链接</string>
+    <string name="parse_links_empty_hint">点击重新解析开始嗅探</string>
+
+    <!-- ============ 播放器菜单（bottom_sheet_player_menu） ============ -->
+    <string name="player_menu_aspect_ratio">画面比例</string>
+    <string name="player_menu_aspect_fit">自适应</string>
+    <string name="player_menu_aspect_fill">铺满</string>
+    <string name="player_menu_aspect_zoom">放大</string>
+    <string name="player_menu_speed">播放倍速</string>
+    <string name="player_menu_repeat">重复播放</string>
+    <string name="player_menu_repeat_off">关闭</string>
+    <string name="player_menu_repeat_one">单集循环</string>
+    <string name="player_menu_repeat_all">列表循环</string>
+    <string name="player_menu_auto_skip_intro">自动跳过片头</string>
+    <string name="player_menu_auto_skip_outro">自动跳过片尾</string>
+    <string name="player_menu_sleep_timer">睡眠定时器</string>
+    <string name="player_menu_subtitle">字幕</string>
+    <string name="player_menu_pip">画中画</string>
+    <string name="player_menu_debug_info">显示调试信息</string>
+    <string name="player_menu_download_video">⬇️ 下载视频</string>
+    <string name="player_menu_cast">📺 投屏</string>
+
+    <!-- ============ 媒体资源列表（bottom_sheet_resource_list） ============ -->
+    <string name="resource_list_title">检测到的媒体资源</string>
+
+    <!-- ============ 下载配置对话框（dialog_download_config） ============ -->
+    <string name="download_config_title">下载文件</string>
+    <string name="download_config_link_label">链接: 复制</string>
+    <string name="download_config_page_link">下载/引用页面链接</string>
+    <string name="download_config_save_as">另存为：</string>
+    <string name="download_config_size">大小:</string>
+    <string name="download_config_save_path">保存位置:</string>
+    <string name="download_config_wifi_only">仅限WiFi</string>
+    <string name="download_config_retry_on_error">出错重试</string>
+    <string name="download_config_use_proxy">使用代理</string>
+    <string name="download_config_hide_file">隐藏文件</string>
+    <string name="download_config_pre_download">预先下载</string>
+    <string name="download_config_advanced">高级设置</string>
+    <string name="download_config_type">类型：</string>
+    <string name="download_config_threads">多线程数：</string>
+    <string name="download_config_speed_limit">下载速度限制：</string>
+    <string name="download_config_user_agent">用户代理：</string>
+    <string name="download_config_custom_headers">自定义请求头：</string>
+    <string name="download_config_add_to_queue">添加</string>
+    <string name="download_config_connect">连接</string>
+
+    <!-- ============ 倍速设置对话框（dialog_speed_settings） ============ -->
+    <string name="speed_dialog_title">倍速设置</string>
+    <string name="speed_dialog_tab_basic">基础倍速</string>
+    <string name="speed_dialog_tab_smart">滑动灵敏度</string>
+    <string name="speed_dialog_speed_section">播放速度设置</string>
+    <string name="speed_dialog_other_section">其他设置</string>
+    <string name="speed_dialog_long_press_section">长按速度设置</string>
+    <string name="speed_dialog_long_press_lock">长按上滑锁定倍速</string>
+    <string name="speed_dialog_swipe_sensitivity">滑动快进/快退灵敏度</string>
+    <string name="speed_dialog_swipe_sensitivity_hint">数值越大，滑动相同距离快进/快退的时间越多</string>
 </resources>

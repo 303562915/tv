@@ -331,8 +331,9 @@
         android:orientation="vertical"
         android:padding="12dp">
 
-        <!-- 状态栏：时间、网络、电量 -->
+        <!-- 状态栏：时间、网络、电量（横屏由 updateOrientationUI() 置为 VISIBLE，竖屏保持 GONE） -->
         <LinearLayout
+            android:id="@+id/playerStatusRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="end"
@@ -350,14 +351,15 @@
                 android:layout_width="8dp"
                 android:layout_height="wrap_content" />
 
-            <!-- 网速显示 -->
+            <!-- 网速显示（没数据时由代码置 GONE，默认也不显示占位） -->
             <TextView
                 android:id="@+id/networkSpeedText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/white"
                 android:textSize="@dimen/text_caption"
-                android:text="0 KB/s" />
+                android:text="0 KB/s"
+                android:visibility="gone" />
 
             <Space
                 android:layout_width="8dp"
@@ -382,6 +384,20 @@
                 android:importantForAccessibility="no"
                 android:src="@android:drawable/ic_lock_idle_charging"
                 android:tint="@color/player_control_icon" />
+
+            <Space
+                android:layout_width="4dp"
+                android:layout_height="wrap_content" />
+
+            <!-- 电量百分比文本：取不到电量时由代码写占位符，不留空白 -->
+            <TextView
+                android:id="@+id/batteryText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/text_caption"
+                android:text="--" />
         </LinearLayout>
 
         <!-- 标题栏：左 = 返回 + 标题；右 = 跳过片头 / TV 投屏 / 分享 / 更多 -->

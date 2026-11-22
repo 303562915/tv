@@ -15,7 +15,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="下载文件"
+            android:text="@string/download_config_title"
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="@color/theme_text_primary"
@@ -32,7 +32,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="链接: 复制"
+                android:text="@string/download_config_link_label"
                 android:textSize="14sp"
                 android:textColor="@color/theme_text_secondary" />
 
@@ -40,7 +40,7 @@
                 android:id="@+id/btnCopyUrl"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="复制"
+                android:text="@string/common_copy"
                 android:textSize="14sp"
                 android:textColor="@color/theme_primary"
                 android:padding="4dp" />
@@ -63,7 +63,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="下载/引用页面链接"
+            android:text="@string/download_config_page_link"
             android:textSize="14sp"
             android:textColor="@color/theme_text_secondary"
             android:layout_marginTop="12dp" />
@@ -86,7 +86,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="另存为："
+            android:text="@string/download_config_save_as"
             android:textSize="14sp"
             android:textColor="@color/theme_text_secondary"
             android:layout_marginTop="16dp" />
@@ -108,7 +108,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="大小:"
+            android:text="@string/download_config_size"
             android:textSize="14sp"
             android:textColor="@color/theme_text_secondary"
             android:layout_marginTop="12dp" />
@@ -128,7 +128,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="保存位置:"
+            android:text="@string/download_config_save_path"
             android:textSize="14sp"
             android:textColor="@color/theme_text_secondary"
             android:layout_marginTop="12dp" />
@@ -192,7 +192,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="仅限WiFi"
+                    android:text="@string/download_config_wifi_only"
                     android:textSize="14sp"
                     android:textColor="@color/theme_text_primary"
                     android:checked="true"
@@ -203,7 +203,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="出错重试"
+                    android:text="@string/download_config_retry_on_error"
                     android:textSize="14sp"
                     android:textColor="@color/theme_text_primary"
                     android:checked="true"
@@ -214,7 +214,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="使用代理"
+                    android:text="@string/download_config_use_proxy"
                     android:textSize="14sp"
                     android:textColor="@color/theme_text_primary"
                     android:buttonTint="@color/theme_primary" />
@@ -231,7 +231,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="隐藏文件"
+                    android:text="@string/download_config_hide_file"
                     android:textSize="14sp"
                     android:textColor="@color/theme_text_primary"
                     android:buttonTint="@color/theme_primary" />
@@ -241,7 +241,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="预先下载"
+                    android:text="@string/download_config_pre_download"
                     android:textSize="14sp"
                     android:textColor="@color/theme_text_primary"
                     android:checked="true"
@@ -257,7 +257,7 @@
                 android:id="@+id/cbAdvancedSettings"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="高级设置"
+                android:text="@string/download_config_advanced"
                 android:textSize="14sp"
                 android:textColor="@color/theme_text_primary"
                 android:layout_marginTop="8dp"
@@ -277,7 +277,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="类型："
+                android:text="@string/download_config_type"
                 android:textSize="14sp"
                 android:textColor="@color/theme_text_secondary" />
 
@@ -293,7 +293,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="多线程数："
+                android:text="@string/download_config_threads"
                 android:textSize="14sp"
                 android:textColor="@color/theme_text_secondary"
                 android:layout_marginTop="12dp" />
@@ -338,7 +338,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="下载速度限制："
+                android:text="@string/download_config_speed_limit"
                 android:textSize="14sp"
                 android:textColor="@color/theme_text_secondary"
                 android:layout_marginTop="12dp" />
@@ -383,7 +383,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="用户代理："
+                android:text="@string/download_config_user_agent"
                 android:textSize="14sp"
                 android:textColor="@color/theme_text_secondary"
                 android:layout_marginTop="12dp" />
@@ -400,7 +400,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="自定义请求头："
+                android:text="@string/download_config_custom_headers"
                 android:textSize="14sp"
                 android:textColor="@color/theme_text_secondary"
                 android:layout_marginTop="12dp" />
@@ -434,7 +434,7 @@
                 android:layout_width="0dp"
                 android:layout_height="48dp"
                 android:layout_weight="1"
-                android:text="添加"
+                android:text="@string/download_config_add_to_queue"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="@color/theme_text_primary"
@@ -446,7 +446,7 @@
                 android:layout_width="0dp"
                 android:layout_height="48dp"
                 android:layout_weight="1"
-                android:text="取消"
+                android:text="@string/cancel"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="@color/theme_text_secondary"
@@ -458,7 +458,7 @@
                 android:layout_width="0dp"
                 android:layout_height="48dp"
                 android:layout_weight="1"
-                android:text="连接"
+                android:text="@string/download_config_connect"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="@color/theme_on_primary"

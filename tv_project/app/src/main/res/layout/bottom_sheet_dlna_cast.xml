@@ -43,7 +43,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="投屏到设备"
+                android:text="@string/dlna_cast_title"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@color/theme_text_primary" />
@@ -52,7 +52,7 @@
                 android:id="@+id/subtitleText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="正在搜索设备..."
+                android:text="@string/dlna_cast_searching"
                 android:textSize="13sp"
                 android:textColor="@color/theme_text_secondary"
                 android:layout_marginTop="2dp" />
@@ -101,7 +101,7 @@
             android:id="@+id/emptyStateTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="未发现 DLNA 设备"
+            android:text="@string/dlna_cast_empty_title"
             android:textSize="16sp"
             android:textColor="@color/theme_text_primary"
             android:layout_marginTop="16dp" />
@@ -110,7 +110,7 @@
             android:id="@+id/emptyStateHint"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="请确保设备与手机在同一WiFi网络"
+            android:text="@string/dlna_cast_empty_hint"
             android:textSize="13sp"
             android:textColor="@color/theme_text_secondary"
             android:layout_marginTop="4dp"
@@ -129,7 +129,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="其他投屏方式"
+        android:text="@string/dlna_cast_other_methods"
         android:textSize="13sp"
         android:textColor="@color/theme_text_secondary"
         android:textStyle="bold"
@@ -158,14 +158,14 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="16dp"
-            android:text="复制视频地址"
+            android:text="@string/dlna_cast_copy_url"
             android:textSize="15sp"
             android:textColor="@color/theme_text_primary" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="推荐"
+            android:text="@string/dlna_cast_recommend_badge"
             android:textSize="11sp"
             android:textColor="@color/theme_on_warning_container"
             android:background="@drawable/bg_tag_orange"
@@ -198,14 +198,14 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="16dp"
-            android:text="电脑浏览器播放"
+            android:text="@string/dlna_cast_pc_browser"
             android:textSize="15sp"
             android:textColor="@color/theme_text_primary" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="新功能"
+            android:text="@string/dlna_cast_new_badge"
             android:textSize="11sp"
             android:textColor="@color/theme_on_success_container"
             android:background="@drawable/bg_tag_green"
@@ -237,7 +237,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:text="使用系统播放器"
+            android:text="@string/cast_system_player"
             android:textSize="15sp"
             android:textColor="@color/theme_text_primary" />
     </LinearLayout>
@@ -247,7 +247,7 @@
         android:id="@+id/cancelButton"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:text="取消"
+        android:text="@string/cancel"
         android:textSize="15sp"
         android:textColor="@color/theme_text_secondary"
         android:gravity="center"
