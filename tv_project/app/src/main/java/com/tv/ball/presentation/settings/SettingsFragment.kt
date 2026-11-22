@@ -30,6 +30,10 @@ import com.tv.ball.util.CustomToast
  * 2. 播放侧在哪儿读（写在每个条目的注释里）；
  * 3. 默认值是什么。
  *
+ * 这一页是**入口**：开关写进持久化键，真正读这些键的代码在播放页
+ * （VideoPlayerActivity / ExoPlayerManager / SkipIntroManager）。本页不重复实现播放行为，
+ * 也不留「写了没人读」的假开关 —— 拨动无效果的那种键早就删掉了。
+ *
  * 没有空壳占位：写进去的值要么已经被播放器消费，要么是同批改动里补上的读取点。
  * 「长按倍速」没有放上来 —— 播放页的 getLongPressSpeed() 优先读 F004 倍速曲线，
  * `player_settings` 里的 long_press_speed 是死键，摆个改不动的开关等于骗人。
@@ -99,7 +103,8 @@ class SettingsFragment : Fragment() {
         }
 
         // 记忆播放进度 → playback_remember_progress（默认 true）
-        // 读取点：播放页 onReady 恢复进度前判一次（补丁待接入，见汇报）
+        // 读取点：VideoPlayerActivity.rememberPlaybackProgress（getter 每次读盘，恢复进度前判一次）
+        // 行为在播放器内生效，本页只做入口
         binding.switchPlaybackRememberProgress.setOnCheckedChangeListener { _, checked ->
             if (syncGuard()) return@setOnCheckedChangeListener
             prefs.setPlaybackRememberProgress(checked)
@@ -132,7 +137,7 @@ class SettingsFragment : Fragment() {
         }
 
         // 跳过片头广告 → playback_ad_skip_enabled（默认 false）
-        // 判定已就绪：SkipIntroManager.shouldSkipAd() / getAdSkipPositionMs()；播放页调用点待接入
+        // 读取点：VideoPlayerActivity.checkSkipIntro() → SkipIntroManager.shouldSkipAd()（开播后一次性快进）
         binding.switchAdSkip.setOnCheckedChangeListener { _, checked ->
             if (syncGuard()) return@setOnCheckedChangeListener
             prefs.setPlaybackAdSkipEnabled(checked)
@@ -140,7 +145,7 @@ class SettingsFragment : Fragment() {
         }
 
         // 预加载下一集 → playback_preload_next（默认 true）
-        // 读取点：播放页 checkAndPreloadNextEpisode() 入口（补丁待接入）
+        // 读取点：VideoPlayerActivity.checkAndPreloadNextEpisode() 入口先判该键，关掉就完全不预加载
         binding.switchPreloadNext.setOnCheckedChangeListener { _, checked ->
             if (syncGuard()) return@setOnCheckedChangeListener
             prefs.setPlaybackPreloadNext(checked)
@@ -148,7 +153,7 @@ class SettingsFragment : Fragment() {
         }
 
         // 失败自动切换线路 → playback_auto_switch_route（默认 true）
-        // 读取点：播放页 onError 里切下一条链接的分支（补丁待接入）
+        // 读取点：VideoPlayerActivity 出错分支里 isPlaybackAutoSwitchRoute() && … 才自动换下一条线路
         binding.switchAutoRoute.setOnCheckedChangeListener { _, checked ->
             if (syncGuard()) return@setOnCheckedChangeListener
             prefs.setPlaybackAutoSwitchRoute(checked)
@@ -164,7 +169,7 @@ class SettingsFragment : Fragment() {
         }
 
         // 允许移动网络播放 → playback_allow_mobile_data（默认 true）
-        // 读取点：播放页 handleNetworkChange() 的 MOBILE 分支（补丁待接入）
+        // 读取点：VideoPlayerActivity.handleNetworkChange() 的 MOBILE 分支：关掉立刻暂停并提示
         binding.switchMobileData.setOnCheckedChangeListener { _, checked ->
             if (syncGuard()) return@setOnCheckedChangeListener
             prefs.setPlaybackAllowMobileData(checked)
@@ -289,7 +294,7 @@ class SettingsFragment : Fragment() {
         }
 
         // 预加载提前量 → playback_preload_lead_seconds（默认 10 秒）
-        // 读取点：播放页的 preloadThresholdSeconds（补丁待接入）
+        // 读取点：VideoPlayerActivity.preloadThresholdSeconds → getPlaybackPreloadLeadSeconds()（getter 每次读盘，改完即生效）
         binding.rowPreloadLead.setOnClickListener {
             val seconds = intArrayOf(5, 10, 15, 20, 30)
             val current = prefs.getPlaybackPreloadLeadSeconds()

@@ -4817,9 +4817,8 @@ class VideoPlayerActivity : AppCompatActivity() {
         // 防止快速循环调用
         val currentTime = System.currentTimeMillis()
         if (currentTime - lastPauseTime < LIFECYCLE_THROTTLE_MS) {
-            android.util.Log.w("VideoPlayer", "⚠️ [生命周期] onPause - 忽略快速重复调用 (${currentTime - lastPauseTime}ms)")
-            android.util.Log.w("VideoPlayer", "⚠️ [生命周期] 调用堆栈: ${Thread.currentThread().stackTrace.take(10).joinToString("\n")}")
-            return
+            // 节流只去重日志：不能跳过 pause()/进度保存，否则 500ms 内的第二次暂停被吞
+            android.util.Log.d("VideoPlayer", "⏸️ [生命周期] onPause - 快速连续回调（仅去重日志）")
         }
         lastPauseTime = currentTime
         
@@ -4849,8 +4848,8 @@ class VideoPlayerActivity : AppCompatActivity() {
         // 防止快速循环调用
         val currentTime = System.currentTimeMillis()
         if (currentTime - lastResumeTime < LIFECYCLE_THROTTLE_MS) {
-            android.util.Log.w("VideoPlayer", "⚠️ [生命周期] onResume - 忽略快速重复调用 (${currentTime - lastResumeTime}ms)")
-            return
+            // 节流只去重日志：恢复播放不能被跳过
+            android.util.Log.d("VideoPlayer", "▶️ [生命周期] onResume - 快速连续回调（仅去重日志）")
         }
         lastResumeTime = currentTime
         

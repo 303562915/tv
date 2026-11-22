@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import com.tv.ball.R
 import com.tv.ball.databinding.FragmentHistoryBinding
 import com.tv.ball.di.Dependencies
@@ -99,7 +100,9 @@ class HistoryFragment : Fragment() {
 
         // 先改模式再刷绑定：容器手势和 ItemTouchHelper 只能有一个生效，避免两套手势抢同一次左滑
         adapter.swipeEnabled = !direct
-        adapter.notifyDataSetChanged()
+        // ListAdapter 上不能 notifyDataSetChanged（会把 DiffUtil 的动画和身份追踪一起废掉），
+        // 只让可见行按 payload 重刷滑动状态
+        adapter.notifyItemRangeChanged(0, adapter.itemCount, HistoryAdapter.PAYLOAD_SWIPE)
 
         swipeHelper?.attachToRecyclerView(null)
         swipeHelper = null
@@ -275,9 +278,16 @@ class HistoryFragment : Fragment() {
     }
 
     private fun deleteItem(historyItem: HistoryItem) {
-        viewModel.deleteHistory(historyItem.videoItem.title)
-        // 删除提示走轻量 toast：不再用带「撤销」的 Snackbar，避免遮挡列表底部
-        com.tv.ball.util.CustomToast.show(requireContext(), getString(R.string.history_deleted))
+        // 下发唯一键（detailUrl + 集数）而不是标题：同名不同线路 / 不同集不会被一起删掉
+        viewModel.deleteHistory(historyItem)
+        // 删除即给「撤销」：撤销调 addHistory，用原观看时间写回，记录不会跳回列表最前
+        Snackbar.make(
+            binding.root,
+            getString(R.string.history_deleted),
+            Snackbar.LENGTH_LONG
+        ).setAction(UNDO_LABEL) {
+            viewModel.addHistory(historyItem)
+        }.show()
     }
 
     private fun parseEpisodesFromJson(json: String): List<com.tv.ball.domain.model.Episode> {
@@ -310,5 +320,10 @@ class HistoryFragment : Fragment() {
         super.onDestroyView()
         (activity as? HistoryActivity)?.onClearAll = null
         _binding = null
+    }
+
+    private companion object {
+        /** 撤销按钮文案：不新增 string 资源，跟本页其它就地文案保持一致。 */
+        const val UNDO_LABEL = "撤销"
     }
 }

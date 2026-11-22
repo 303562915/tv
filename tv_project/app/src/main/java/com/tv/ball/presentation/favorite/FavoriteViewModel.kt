@@ -123,9 +123,13 @@ class FavoriteViewModel(
      */
     fun createCategory(name: String): String? = normalizeCategoryName(name)
 
-    fun deleteFavorite(videoId: Long) {
+    /**
+     * 删一条收藏：用列表项的主键 id 走 DAO 的 @Delete，只删这一行。
+     * 不用 deleteFavoriteByVideoId —— 那是按业务 id 批量删，遇到同 videoId 的多条会一起删掉。
+     */
+    fun deleteFavorite(item: FavoriteItem) {
         viewModelScope.launch {
-            favoriteDao.deleteFavoriteByVideoId(videoId)
+            favoriteDao.deleteFavorite(item.toEntity())
         }
     }
 
@@ -139,20 +143,7 @@ class FavoriteViewModel(
      */
     fun restoreFavorite(item: FavoriteItem) {
         viewModelScope.launch {
-            favoriteDao.insertFavorite(
-                FavoriteEntity(
-                    id = item.id,
-                    videoId = item.videoId,
-                    title = item.title,
-                    thumbnailUrl = item.thumbnailUrl,
-                    detailUrl = item.detailUrl,
-                    episodesJson = item.episodesJson,
-                    parsedVideoUrl = item.parsedVideoUrl,
-                    videoHeaders = item.videoHeaders,
-                    addedAt = item.addedAt,
-                    category = item.category
-                )
-            )
+            favoriteDao.insertFavorite(item.toEntity())
         }
     }
 
@@ -208,6 +199,23 @@ class FavoriteViewModel(
         if (normalized.length > MAX_CATEGORY_NAME_LENGTH) return null
         return normalized
     }
+
+    /**
+     * 列表项 → 实体：删除（@Delete 按主键 id）与撤销（REPLACE 原样写回）共用这一份映射，
+     * 字段一一对应，别在两处各写一遍。
+     */
+    private fun FavoriteItem.toEntity(): FavoriteEntity = FavoriteEntity(
+        id = id,
+        videoId = videoId,
+        title = title,
+        thumbnailUrl = thumbnailUrl,
+        detailUrl = detailUrl,
+        episodesJson = episodesJson,
+        parsedVideoUrl = parsedVideoUrl,
+        videoHeaders = videoHeaders,
+        addedAt = addedAt,
+        category = category
+    )
 
     private fun FavoriteEntity.toFavoriteItem(): FavoriteItem = FavoriteItem(
         id = id,

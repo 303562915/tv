@@ -2,6 +2,8 @@ package com.tv.ball.presentation.history
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tv.ball.data.local.HistoryDao
+import com.tv.ball.data.model.HistoryEntity
 import com.tv.ball.presentation.home.VideoItem
 import com.tv.ball.domain.repository.HistoryRepository
 import com.tv.ball.di.Dependencies
@@ -33,7 +35,9 @@ data class HistoryGroup(
 )
 
 class HistoryViewModel(
-    private val historyRepository: HistoryRepository = Dependencies.historyRepository
+    private val historyRepository: HistoryRepository = Dependencies.historyRepository,
+    /** 按唯一键删单条时走 DAO 的 @Delete（主键 id），不连带删掉同名同剧的其它记录。 */
+    private val historyDao: HistoryDao = Dependencies.historyDao
 ) : ViewModel() {
 
     private val _historyList = MutableStateFlow<List<HistoryItem>>(emptyList())
@@ -47,6 +51,13 @@ class HistoryViewModel(
 
     private val _selectedItems = MutableStateFlow<Set<String>>(emptySet())
     val selectedItems: StateFlow<Set<String>> = _selectedItems
+
+    /**
+     * 列表当前对应的「删除唯一键 → 实体」索引。
+     * 列表只显示每部剧的最新一条（DAO 里按 videoTitle 取 MAX(id)），但库中同名多集/多线路仍在，
+     * 所以「删一条」必须落到主键 id 上，不能拿标题去下发。
+     */
+    private var entitiesByDeleteKey: Map<String, HistoryEntity> = emptyMap()
 
     init {
         // 只在 ViewModel 创建时订阅一次：Fragment 每次重建都调 loadHistory() 会累积永不结束的 collector
@@ -76,6 +87,7 @@ class HistoryViewModel(
                         lastWatchedAt = entity.lastWatchedAt
                     )
                 }
+                entitiesByDeleteKey = historyEntities.associateBy { entityDeleteKey(it) }
                 _historyList.value = items
 
                 // 分组处理
@@ -120,9 +132,19 @@ class HistoryViewModel(
         return groups
     }
 
-    fun deleteHistory(videoTitle: String) {
+    /**
+     * 删一条历史：按唯一键（detailUrl + currentEpisode，缺失 detailUrl 时退到标题）命中实体，
+     * 再按主键 id 删这一行。同名不同线路 / 不同集不会被一起删掉。
+     * 实体索引还没回填（列表首帧尚未到）时才退回按标题删，保证操作仍然生效。
+     */
+    fun deleteHistory(item: HistoryItem) {
+        val entity = entitiesByDeleteKey[historyDeleteKey(item)]
         viewModelScope.launch {
-            historyRepository.deleteHistoryByTitle(videoTitle)
+            if (entity != null) {
+                historyDao.deleteHistory(entity)
+            } else {
+                historyRepository.deleteHistoryByTitle(item.videoItem.title)
+            }
         }
     }
 
@@ -163,14 +185,14 @@ class HistoryViewModel(
     }
 
     /**
-     * 切换项目选择状态
+     * 切换项目选择状态。[selectionKey] 用 [historyDeleteKey] 的口径，选中集与删除口径一致。
      */
-    fun toggleItemSelection(videoTitle: String) {
+    fun toggleItemSelection(selectionKey: String) {
         val current = _selectedItems.value.toMutableSet()
-        if (current.contains(videoTitle)) {
-            current.remove(videoTitle)
+        if (current.contains(selectionKey)) {
+            current.remove(selectionKey)
         } else {
-            current.add(videoTitle)
+            current.add(selectionKey)
         }
         _selectedItems.value = current
     }
@@ -179,20 +201,51 @@ class HistoryViewModel(
      * 全选
      */
     fun selectAll() {
-        _selectedItems.value = _historyList.value.map { it.videoItem.title }.toSet()
+        _selectedItems.value = _historyList.value.map { historyDeleteKey(it) }.toSet()
     }
 
     /**
-     * 删除选中的项目
+     * 删除选中的项目：与 [deleteHistory] 同口径，按唯一键命中实体后按主键删。
      */
     fun deleteSelected() {
+        val keys = _selectedItems.value
+        val index = entitiesByDeleteKey
         viewModelScope.launch {
-            _selectedItems.value.forEach { title ->
-                historyRepository.deleteHistoryByTitle(title)
+            keys.forEach { key ->
+                index[key]?.let { historyDao.deleteHistory(it) }
             }
             _selectedItems.value = emptySet()
             _isSelectionMode.value = false
         }
     }
 }
+
+/**
+ * 列表一行的身份键（[HistoryAdapter] 的 DiffUtil.areItemsTheSame 用）。
+ *
+ * 历史条目没有稳定 videoId，所以 detailUrl 优先；缺失时退到详情页 URL / 标题。
+ * 同一部剧的不同线路、不同集不会再被当成同一条。
+ */
+internal fun historyIdentityKey(item: HistoryItem): String =
+    routeKey(item.detailUrl, item.videoItem.detailUrl) ?: item.videoItem.title
+
+/**
+ * 删除唯一键：详情页 URL（缺失时退到标题）+ 当前集数。
+ * [HistoryViewModel.deleteHistory] 与适配器身份键都用它派生，避免「按标题删」误伤同名条目。
+ */
+internal fun historyDeleteKey(item: HistoryItem): String =
+    (routeKey(item.detailUrl, item.videoItem.detailUrl) ?: item.videoItem.title) +
+        KEY_SEPARATOR + item.currentEpisode.orEmpty()
+
+/** 实体的同一把钥匙：字段来源与 [historyDeleteKey] 一一对应（videoItem.detailUrl 即 detailUrl ?: videoUrl）。 */
+private fun entityDeleteKey(entity: HistoryEntity): String =
+    (routeKey(entity.detailUrl, entity.videoUrl) ?: entity.videoTitle) +
+        KEY_SEPARATOR + entity.currentEpisode.orEmpty()
+
+/** 取第一个非空白的 URL 当身份键。 */
+private fun routeKey(vararg candidates: String?): String? =
+    candidates.firstOrNull { !it.isNullOrBlank() }
+
+/** 键的分隔符：用不可见字符，标题里出现也不会有歧义。 */
+private const val KEY_SEPARATOR = "\u0000"
 

@@ -20,6 +20,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import com.tv.ball.R
 import com.tv.ball.databinding.FragmentFavoriteBinding
 import com.tv.ball.di.Dependencies
@@ -126,7 +127,8 @@ class FavoriteFragment : Fragment() {
         val direct = Dependencies.configRepository.isSwipeDeleteDirect()
 
         adapter.swipeEnabled = !direct
-        adapter.notifyDataSetChanged()
+        // ListAdapter 上不能 notifyDataSetChanged，只让可见行按 payload 重刷滑动状态
+        adapter.notifyItemRangeChanged(0, adapter.itemCount, FavoriteAdapter.PAYLOAD_SWIPE)
 
         swipeHelper?.attachToRecyclerView(null)
         swipeHelper = null
@@ -207,9 +209,12 @@ class FavoriteFragment : Fragment() {
     }
 
     private fun deleteFavoriteItem(favoriteItem: FavoriteItem) {
-        viewModel.deleteFavorite(favoriteItem.videoId)
-        // 删除提示走轻量 toast，不再用带「撤销」的 Snackbar
-        com.tv.ball.util.CustomToast.show(requireContext(), "已取消收藏")
+        // 按收藏项主键 id 删这一条，不按 videoId 批量删
+        viewModel.deleteFavorite(favoriteItem)
+        // 删除即给「撤销」：把原实体原样写回，位置、分类、解析缓存都不变
+        Snackbar.make(binding.root, "已取消收藏", Snackbar.LENGTH_LONG)
+            .setAction(UNDO_LABEL) { viewModel.restoreFavorite(favoriteItem) }
+            .show()
     }
 
     private fun observeViewModel() {
@@ -443,5 +448,10 @@ class FavoriteFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private companion object {
+        /** 撤销按钮文案：不新增 string 资源，跟本页其它就地文案保持一致。 */
+        const val UNDO_LABEL = "撤销"
     }
 }

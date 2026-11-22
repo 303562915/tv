@@ -42,6 +42,7 @@ material = { group = "com.google.android.material", name = "material", version.r
 exoplayer-core = { group = "com.google.android.exoplayer", name = "exoplayer-core", version.ref = "exoplayer" }
 exoplayer-ui = { group = "com.google.android.exoplayer", name = "exoplayer-ui", version.ref = "exoplayer" }
 exoplayer-hls = { group = "com.google.android.exoplayer", name = "exoplayer-hls", version.ref = "exoplayer" }
+exoplayer-dash = { group = "com.google.android.exoplayer", name = "exoplayer-dash", version.ref = "exoplayer" }
 
 # OkHttp
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }

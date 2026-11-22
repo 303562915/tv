@@ -38,6 +38,18 @@ class FavoriteAdapter(
         holder.bind(getItem(position))
     }
 
+    /**
+     * 带 payload 的绑定：切「露出按钮 / 滑动即删除」时只刷滑动状态，
+     * 不重跑封面加载与时间格式化（Fragment 用 notifyItemRangeChanged(…, PAYLOAD_SWIPE) 触发）。
+     */
+    override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: MutableList<Any>) {
+        if (payloads.contains(PAYLOAD_SWIPE)) {
+            holder.bindSwipeState()
+        } else {
+            super.onBindViewHolder(holder, position, payloads)
+        }
+    }
+
     class ViewHolder(
         private val binding: ItemFavoriteBinding,
         private val onItemClick: (FavoriteItem) -> Unit,
@@ -71,7 +83,7 @@ class FavoriteAdapter(
             )
 
             // 每次绑定都把当前的滑动模式同步给容器，滚入屏幕的新行不会拿到旧状态
-            binding.root.swipeEnabled = isSwipeEnabled()
+            bindSwipeState()
 
             // 根节点是 SwipeRevealLayout、卡片自己 clickable，点击到不了根节点，
             // 所以点卡片 = 打开详情，滑动露出的删除按钮才 = 取消收藏
@@ -90,6 +102,16 @@ class FavoriteAdapter(
                 onItemDelete(favoriteItem)
             }
         }
+
+        /**
+         * 只同步滑动状态：切删除方式时走 payload 绑定，不重跑封面 / 时间那套逻辑。
+         * 切成「滑动即删除」后容器不再接管横向手势，已经展开的删除区要收回去。
+         */
+        fun bindSwipeState() {
+            val enabled = isSwipeEnabled()
+            binding.root.swipeEnabled = enabled
+            if (!enabled && binding.root.isOpened()) binding.root.close()
+        }
     }
 
     private class DiffCallback : DiffUtil.ItemCallback<FavoriteItem>() {
@@ -100,5 +122,10 @@ class FavoriteAdapter(
         override fun areContentsTheSame(oldItem: FavoriteItem, newItem: FavoriteItem): Boolean {
             return oldItem == newItem
         }
+    }
+
+    companion object {
+        /** 切删除方式时用的 payload：只刷新滑动状态，不做一次全量 bind。 */
+        const val PAYLOAD_SWIPE = "payload_favorite_swipe"
     }
 }

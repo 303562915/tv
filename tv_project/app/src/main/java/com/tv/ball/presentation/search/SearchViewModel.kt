@@ -6,8 +6,11 @@ import com.tv.ball.presentation.home.VideoItem
 import com.tv.ball.domain.repository.VideoRepository
 import com.tv.ball.di.Dependencies
 import com.tv.ball.presentation.ranking.RankingItem
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class SearchViewModel(
@@ -26,6 +29,13 @@ class SearchViewModel(
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
+
+    /** 当前在飞的搜索任务：新查询一定要先把它取消，别让两条请求抢着写结果。 */
+    private var searchJob: Job? = null
+
+    /** 当前生效的查询串。回包时用它校验，过期结果直接丢弃。 */
+    private val _activeQuery = MutableStateFlow("")
+    val activeQuery: StateFlow<String> = _activeQuery
 
     private val _selectedSources = MutableStateFlow<Set<String>>(setOf(
         "iqiyi", "360zy", "ffzy5", "dbzy", "niuniuzy3", "jisuzy"
@@ -52,11 +62,17 @@ class SearchViewModel(
     }
 
     /**
-     * 多站点搜索
+     * 多站点搜索。
+     *
+     * 输入侧有 300ms 防抖，这里再兜一层：新查询先 cancel 上一次，
+     * 回包时再校验查询串仍是当前输入——慢的旧请求即使已返回也不能覆盖新结果。
      */
     fun searchMultiSites(query: String) {
-        android.util.Log.d(TAG, "多站点搜索关键字: $query, 站点: ${_selectedSources.value}")
-        viewModelScope.launch {
+        val normalized = query.trim()
+        _activeQuery.value = normalized
+        searchJob?.cancel()
+        android.util.Log.d(TAG, "多站点搜索关键字: $normalized, 站点: ${_selectedSources.value}")
+        searchJob = viewModelScope.launch {
             _isLoading.value = true
 
             try {
@@ -68,16 +84,32 @@ class SearchViewModel(
                 }
 
                 android.util.Log.d(TAG, "开始在 ${sources.size} 个站点搜索...")
-                val results = videoRepository.searchMultiSites(query, sources)
+                val results = videoRepository.searchMultiSites(normalized, sources)
+                if (_activeQuery.value != normalized) {
+                    android.util.Log.d(TAG, "丢弃过期结果: $normalized")
+                    return@launch
+                }
                 android.util.Log.d(TAG, "搜索结果: ${results.size} 个视频")
                 _searchResults.value = results
+            } catch (e: CancellationException) {
+                // 被新查询取消：不是失败，交给新 job 收尾
+                throw e
             } catch (e: Exception) {
                 android.util.Log.e(TAG, "多站点搜索失败: ${e.message}", e)
-                _searchResults.value = emptyList()
+                if (_activeQuery.value == normalized) _searchResults.value = emptyList()
             } finally {
-                _isLoading.value = false
+                // 只有「这份查询还活着」才收 loading，否则新 job 刚点亮的进度条会被旧 job 关掉
+                if (isActive) _isLoading.value = false
             }
         }
+    }
+
+    /** 输入被清空 / 页面退出时调用：停掉在飞的请求，别让旧结果回填到空输入上。 */
+    fun cancelActiveSearch() {
+        searchJob?.cancel()
+        searchJob = null
+        _activeQuery.value = ""
+        _isLoading.value = false
     }
     
     /**

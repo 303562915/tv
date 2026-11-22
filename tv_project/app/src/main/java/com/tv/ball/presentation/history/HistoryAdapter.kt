@@ -65,6 +65,22 @@ class HistoryAdapter(
         }
     }
 
+    /**
+     * 带 payload 的绑定：切「露出按钮 / 滑动即删除」时只刷滑动状态，
+     * 不重跑封面加载和进度计算（Fragment 用 notifyItemRangeChanged(…, PAYLOAD_SWIPE) 触发）。
+     */
+    override fun onBindViewHolder(
+        holder: RecyclerView.ViewHolder,
+        position: Int,
+        payloads: MutableList<Any>
+    ) {
+        if (payloads.contains(PAYLOAD_SWIPE) && holder is EntryViewHolder) {
+            holder.bindSwipeState()
+        } else {
+            super.onBindViewHolder(holder, position, payloads)
+        }
+    }
+
     private class HeaderViewHolder(
         private val binding: ItemHistoryHeaderBinding
     ) : RecyclerView.ViewHolder(binding.root) {
@@ -141,7 +157,7 @@ class HistoryAdapter(
             )
 
             // 每次绑定都把当前的滑动模式同步给容器，滚入屏幕的新行不会拿到旧状态
-            binding.root.swipeEnabled = isSwipeEnabled()
+            bindSwipeState()
 
             // 根节点现在是 SwipeRevealLayout，里面的卡片自己 clickable，点击到不了根节点，
             // 所以条目点击要挂到内容卡片上；滑出来的删除区单独走 onItemDelete
@@ -153,6 +169,16 @@ class HistoryAdapter(
             }
             binding.btnSwipeDelete.setOnClickListener { onItemDelete(historyItem) }
         }
+
+        /**
+         * 只同步滑动状态：切删除方式时走 payload 绑定，不重跑封面 / 进度那套逻辑。
+         * 切成「滑动即删除」后容器不再接管横向手势，已经展开的删除区要收回去。
+         */
+        fun bindSwipeState() {
+            val enabled = isSwipeEnabled()
+            binding.root.swipeEnabled = enabled
+            if (!enabled && binding.root.isOpened()) binding.root.close()
+        }
     }
 
     private class DiffCallback : DiffUtil.ItemCallback<HistoryRow>() {
@@ -161,7 +187,8 @@ class HistoryAdapter(
                 oldItem is HistoryRow.Header && newItem is HistoryRow.Header ->
                     oldItem.title == newItem.title
                 oldItem is HistoryRow.Entry && newItem is HistoryRow.Entry ->
-                    oldItem.item.videoItem.title == newItem.item.videoItem.title
+                    // 身份键用 detailUrl（缺失时退到详情页 URL / 标题）：同名不同线路、不同集不再互相顶掉
+                    historyIdentityKey(oldItem.item) == historyIdentityKey(newItem.item)
                 else -> false
             }
 
@@ -172,6 +199,9 @@ class HistoryAdapter(
     companion object {
         private const val TYPE_HEADER = 0
         private const val TYPE_ENTRY = 1
+
+        /** 切删除方式时用的 payload：只刷新滑动状态，不做一次全量 bind。 */
+        const val PAYLOAD_SWIPE = "payload_history_swipe"
 
         /** 方括号 / 圆括号包起来的线路名，例如「[feifan] 第01集」「【线路2】第3集」 */
         private val BRACKET_BLOCK = Regex("""[\[【(（][^\]】)）]{0,24}[\]】)）]""")

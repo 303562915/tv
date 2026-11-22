@@ -45,13 +45,17 @@ class ExoPlayerManager constructor(
         com.google.android.exoplayer2.upstream.DefaultLoadErrorHandlingPolicy(retry)
     }
     
-    // 缓存实例
-    private val cache: com.google.android.exoplayer2.upstream.cache.SimpleCache by lazy {
-        val cacheDir = java.io.File(context.cacheDir, "exoplayer_cache")
-        val evictor = com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor(CACHE_SIZE)
-        val databaseProvider = com.google.android.exoplayer2.database.StandaloneDatabaseProvider(context)
-        com.google.android.exoplayer2.upstream.cache.SimpleCache(cacheDir, evictor, databaseProvider)
-    }
+    // 缓存实例：释放后置空，下次用到再重建（lazy 单例在 release 后会锁死目录）
+    private var cacheInstance: com.google.android.exoplayer2.upstream.cache.SimpleCache? = null
+
+    private val cache: com.google.android.exoplayer2.upstream.cache.SimpleCache
+        get() = cacheInstance ?: run {
+            val cacheDir = java.io.File(context.cacheDir, "exoplayer_cache")
+            val evictor = com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor(CACHE_SIZE)
+            val databaseProvider = com.google.android.exoplayer2.database.StandaloneDatabaseProvider(context)
+            com.google.android.exoplayer2.upstream.cache.SimpleCache(cacheDir, evictor, databaseProvider)
+                .also { cacheInstance = it }
+        }
     
     fun initializePlayer(): ExoPlayer {
         if (player == null) {
@@ -351,9 +355,10 @@ class ExoPlayerManager constructor(
             Log.d(TAG, "是否本地文件: ${cleanUrl.startsWith("/") || cleanUrl.startsWith("file://")}")
             
             if (headers != null && headers.isNotEmpty()) {
-                Log.d(TAG, "使用自定义请求头:")
+                Log.d(TAG, "使用自定义请求头: ${headers.keys.joinToString(",")}")
                 headers.forEach { (key, value) ->
-                    Log.d(TAG, "  $key: $value")
+                    // 只打 key 与长度，不把鉴权头的值写进日志
+                    Log.d(TAG, "  $key: len=${value.length}")
                 }
             } else {
                 Log.d(TAG, "无自定义请求头")
@@ -440,9 +445,9 @@ class ExoPlayerManager constructor(
                 
                 // 合并自定义请求头（自定义请求头优先级更高）
                 if (customHeaders != null && customHeaders.isNotEmpty()) {
-                    Log.d(TAG, "合并自定义请求头:")
+                    Log.d(TAG, "合并自定义请求头: ${customHeaders.keys.joinToString(",")}")
                     customHeaders.forEach { (key, value) ->
-                        Log.d(TAG, "  $key: $value")
+                        Log.d(TAG, "  $key: len=${value.length}")
                         defaultRequestProperties[key] = value
                     }
                 }
@@ -518,8 +523,8 @@ class ExoPlayerManager constructor(
                 }
                 url.contains(".mpd") -> {
                     Log.d(TAG, "创建 DASH 媒体源")
-                    // DASH格式支持（重试次数来自「播放设置 → 断线重试次数」）
-                    ProgressiveMediaSource.Factory(dataSourceFactory)
+                    // DASH 必须用 DashMediaSource，用 Progressive 必然解析失败
+                    com.google.android.exoplayer2.source.dash.DashMediaSource.Factory(dataSourceFactory)
                         .setLoadErrorHandlingPolicy(loadErrorHandlingPolicy)
                         .createMediaSource(MediaItem.fromUri(uri))
                 }
@@ -640,6 +645,9 @@ class ExoPlayerManager constructor(
         player?.release()
         player = null
         playerListener = null
+        // 缓存不释放会占着目录句柄，Activity 重建时二次打开同目录会撞锁
+        cacheInstance?.let { runCatching { it.release() } }
+        cacheInstance = null
     }
     
     fun getPlayer(): ExoPlayer? = player

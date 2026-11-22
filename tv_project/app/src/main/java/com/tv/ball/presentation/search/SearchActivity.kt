@@ -2,6 +2,10 @@ package com.tv.ball.presentation.search
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.inputmethod.EditorInfo
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -26,6 +30,13 @@ class SearchActivity : AppCompatActivity() {
     private lateinit var videoAdapter: VideoListAdapter
     private lateinit var rankingAdapter: RankingAdapter
     private var isRankingMode = true
+
+    /** 输入防抖：连续敲键只发最后一次请求。 */
+    private val debounceHandler = Handler(Looper.getMainLooper())
+    private var pendingSearch: Runnable? = null
+
+    /** 程序化改搜索框文本（点历史 chip / 榜单项）时置位，避免又触发一次防抖。 */
+    private var programmaticTextChange = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,7 +78,7 @@ class SearchActivity : AppCompatActivity() {
         // 榜单适配器
         rankingAdapter = RankingAdapter { rankingItem ->
             // 点击榜单项，搜索该视频
-            binding.etSearch.setText(rankingItem.title)
+            setSearchText(rankingItem.title)
             performSearch()
         }
     }
@@ -81,6 +92,18 @@ class SearchActivity : AppCompatActivity() {
                 false
             }
         }
+
+        // 边敲边搜：300ms 内的连续输入只发一次，旧请求由 ViewModel 取消
+        binding.etSearch.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+
+            override fun afterTextChanged(s: Editable?) {
+                if (programmaticTextChange) return
+                scheduleSearch(s?.toString().orEmpty())
+            }
+        })
 
         binding.btnSearch.setOnClickListener {
             performSearch()
@@ -124,7 +147,7 @@ class SearchActivity : AppCompatActivity() {
                     isClickable = true
                     isCheckable = false
                     setOnClickListener {
-                        binding.etSearch.setText(query)
+                        setSearchText(query)
                         performSearch()
                     }
                 }
@@ -163,26 +186,67 @@ class SearchActivity : AppCompatActivity() {
         }
     }
 
+    /** IME / 搜索按钮 / tab chip 这类明确动作：取消排队中的防抖，立刻搜一次。 */
     private fun performSearch() {
         val query = binding.etSearch.text.toString().trim()
-        if (query.isNotEmpty()) {
+        if (query.isEmpty()) return
+        cancelPendingSearch()
+        // 明确动作（IME / 按钮 / chip）才记搜索历史；边敲边搜只出结果，不往历史里塞半截词
+        submitSearch(query, recordHistory = true)
+    }
+
+    /**
+     * 输入防抖：每次输入先取消上一次的排队任务；清空输入时连在飞的请求一起停掉，
+     * 避免旧结果回填到空输入上。
+     */
+    private fun scheduleSearch(raw: String) {
+        cancelPendingSearch()
+        val query = raw.trim()
+        if (query.isEmpty()) {
+            viewModel.cancelActiveSearch()
+            return
+        }
+        val task = Runnable {
+            pendingSearch = null
+            submitSearch(query, recordHistory = false)
+        }
+        pendingSearch = task
+        debounceHandler.postDelayed(task, SEARCH_DEBOUNCE_MS)
+    }
+
+    private fun cancelPendingSearch() {
+        pendingSearch?.let { debounceHandler.removeCallbacks(it) }
+        pendingSearch = null
+    }
+
+    /** 真正下发一次搜索：切到结果模式后交给 ViewModel（新查询会取消上一次）。 */
+    private fun submitSearch(query: String, recordHistory: Boolean) {
+        if (recordHistory) {
             // 保存搜索历史
             SearchHistoryManager.addSearchHistory(query)
             updateSearchHistory()
-            
-            // 隐藏Tab和历史，只显示搜索结果
-            binding.tabLayout.visibility = View.GONE
-            binding.historySection.visibility = View.GONE
-            
-            // 切换到搜索模式
-            if (isRankingMode) {
-                isRankingMode = false
-                switchToSearchMode()
-            }
-            
-            // 使用多站点搜索
-            viewModel.searchMultiSites(query)
         }
+
+        // 隐藏Tab和历史，只显示搜索结果
+        binding.tabLayout.visibility = View.GONE
+        binding.historySection.visibility = View.GONE
+
+        // 切换到搜索模式
+        if (isRankingMode) {
+            isRankingMode = false
+            switchToSearchMode()
+        }
+
+        // 使用多站点搜索
+        viewModel.searchMultiSites(query)
+    }
+
+    /** 程序化填入搜索框（点历史 chip / 榜单项）：不触发防抖，由调用方立刻 performSearch。 */
+    private fun setSearchText(query: String) {
+        programmaticTextChange = true
+        binding.etSearch.setText(query)
+        binding.etSearch.setSelection(binding.etSearch.text?.length ?: 0)
+        programmaticTextChange = false
     }
 
     private fun observeViewModel() {
@@ -234,5 +298,18 @@ class SearchActivity : AppCompatActivity() {
         ) { current, total ->
             android.util.Log.d("SearchActivity", "预加载进度: $current/$total")
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // 页面退出：排队中的防抖任务与在飞的搜索一起停掉，别让回调打到已销毁的视图上
+        cancelPendingSearch()
+        debounceHandler.removeCallbacksAndMessages(null)
+        viewModel.cancelActiveSearch()
+    }
+
+    private companion object {
+        /** 输入防抖窗口：连续敲键后 300ms 才真正发请求。 */
+        const val SEARCH_DEBOUNCE_MS = 300L
     }
 }

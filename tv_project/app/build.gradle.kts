@@ -49,8 +49,8 @@ android {
                 ?: project.findProperty("TVPLAYER_DEV_BUILD_NUMBER") as String?
             )?.toIntOrNull() ?: 0
 
-        versionCode = 33
-        versionName = "1.2.30"
+        versionCode = 34
+        versionName = "1.2.31"
         buildConfigField("int", "DEV_BUILD_NUMBER", "$devBuildNumber")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -143,6 +143,7 @@ dependencies {
     implementation(libs.exoplayer.core)
     implementation(libs.exoplayer.ui)
     implementation(libs.exoplayer.hls)
+    implementation(libs.exoplayer.dash)
     
     // OkHttp
     implementation(libs.okhttp)
