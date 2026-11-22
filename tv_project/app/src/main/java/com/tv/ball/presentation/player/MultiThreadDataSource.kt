@@ -40,7 +40,7 @@ class MultiThreadDataSource(
         
         try {
             // 先打开一次获取文件大小
-            val length = dataSource!!.open(dataSpec)
+            val length = requireNotNull(dataSource) { "DataSource 初始化失败" }.open(dataSpec)
             bytesRemaining = if (length == com.google.android.exoplayer2.C.LENGTH_UNSET.toLong()) {
                 // 如果无法获取长度，使用单线程
                 length

@@ -43,6 +43,13 @@ class HistoryAdapter(
     override fun getItemViewType(position: Int): Int =
         if (getItem(position) is HistoryRow.Header) TYPE_HEADER else TYPE_ENTRY
 
+    /**
+     * 给 ItemTouchHelper 用：这个 ViewHolder 是不是可滑删的条目。
+     * 分组标题不该被拖动 / 滑走，否则删完一条重新分组时手势会落到 header 上。
+     */
+    fun isSwipeableHolder(holder: RecyclerView.ViewHolder): Boolean =
+        holder.itemViewType == TYPE_ENTRY
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return if (viewType == TYPE_HEADER) {

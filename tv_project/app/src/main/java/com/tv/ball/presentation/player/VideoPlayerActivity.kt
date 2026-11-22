@@ -202,7 +202,7 @@ class VideoPlayerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        android.util.Log.d("VideoPlayer", "=== onCreate 开始 ===")
+        plog("=== onCreate 开始 ===")
 
         // 加载播放器布局
         binding = ActivityVideoPlayerBinding.inflate(layoutInflater)
@@ -247,7 +247,7 @@ class VideoPlayerActivity : AppCompatActivity() {
 
         // 设置全屏和保持屏幕常亮
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        android.util.Log.d("VideoPlayer", "当前屏幕方向: ${resources.configuration.orientation}")
+        plog("当前屏幕方向: ${resources.configuration.orientation}")
 
         // 确保手势提示初始是隐藏的
         hideGestureHint()
@@ -272,13 +272,13 @@ class VideoPlayerActivity : AppCompatActivity() {
     }
     
     private fun setupGestureDetector() {
-        android.util.Log.d("VideoPlayer", "=== setupGestureDetector 初始化手势检测器 ===")
+        plog("=== setupGestureDetector 初始化手势检测器 ===")
         var isScrolling = false
         var longPressDetected = false  // 标记是否已检测到长按
 
         gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
             override fun onDown(e: MotionEvent): Boolean {
-                android.util.Log.d("VideoPlayer", "手势 onDown: x=${e.x}, y=${e.y}, isSpeedLocked=$isSpeedLocked, normalSpeed=$normalSpeed")
+                plog("手势 onDown: x=${e.x}, y=${e.y}, isSpeedLocked=$isSpeedLocked, normalSpeed=$normalSpeed")
                 // 重置所有标记
                 isScrolling = false
                 longPressDetected = false
@@ -291,44 +291,44 @@ class VideoPlayerActivity : AppCompatActivity() {
                 
                 // 启动长按检测（500ms后）
                 longPressCheckRunnable = Runnable {
-                    android.util.Log.d("VideoPlayer", "=== 长按检测Runnable执行 ===")
-                    android.util.Log.d("VideoPlayer", "长按检测Runnable执行: isScrolling=$isScrolling, isLocked=$isLocked, isSpeedLocked=$isSpeedLocked, isPlaying=${exoPlayerManager.isPlaying()}")
+                    plog("=== 长按检测Runnable执行 ===")
+                    plog("长按检测Runnable执行: isScrolling=$isScrolling, isLocked=$isLocked, isSpeedLocked=$isSpeedLocked, isPlaying=${exoPlayerManager.isPlaying()}")
                     
                     if (!isScrolling && !isLocked && exoPlayerManager.isPlaying()) {
                         // 如果已经锁定倍速，再次长按取消锁定并恢复速度
                         if (isSpeedLocked) {
                             isSpeedLocked = false
-                            android.util.Log.d("VideoPlayer", "!!! 再次长按，取消锁定: normalSpeed=$normalSpeed")
+                            plog("!!! 再次长按，取消锁定: normalSpeed=$normalSpeed")
                             exoPlayerManager.setPlaybackSpeed(normalSpeed)
                             hideLongPressSpeedHint()
-                            android.util.Log.d("VideoPlayer", "!!! 再次长按，已恢复速度: ${exoPlayerManager.getPlaybackSpeed()}x")
+                            plog("!!! 再次长按，已恢复速度: ${exoPlayerManager.getPlaybackSpeed()}x")
                         } else {
                             // 未锁定时，激活长按加速（但不显示提示，等待滑动）
                             longPressDetected = true
                             isLongPressActive = true
                             val currentSpeed = exoPlayerManager.getPlaybackSpeed()
                             val longPressSpeed = getLongPressSpeed()
-                            android.util.Log.d("VideoPlayer", "!!! 长按激活前: currentSpeed=$currentSpeed, normalSpeed=$normalSpeed, longPressSpeed=$longPressSpeed")
+                            plog("!!! 长按激活前: currentSpeed=$currentSpeed, normalSpeed=$normalSpeed, longPressSpeed=$longPressSpeed")
                             // 只有当前速度不是长按速度时，才保存normalSpeed
                             if (currentSpeed != longPressSpeed) {
                                 normalSpeed = currentSpeed
-                                android.util.Log.d("VideoPlayer", "!!! 长按激活: 保存normalSpeed=$normalSpeed")
+                                plog("!!! 长按激活: 保存normalSpeed=$normalSpeed")
                             } else {
-                                android.util.Log.d("VideoPlayer", "!!! 长按激活: 当前已是长按速度，不保存normalSpeed（保持=$normalSpeed）")
+                                plog("!!! 长按激活: 当前已是长按速度，不保存normalSpeed（保持=$normalSpeed）")
                             }
-                            android.util.Log.d("VideoPlayer", "!!! 准备设置播放速度: $longPressSpeed")
+                            plog("!!! 准备设置播放速度: $longPressSpeed")
                             exoPlayerManager.setPlaybackSpeed(longPressSpeed)
-                            android.util.Log.d("VideoPlayer", "!!! 已设置播放速度，当前速度: ${exoPlayerManager.getPlaybackSpeed()}x")
+                            plog("!!! 已设置播放速度，当前速度: ${exoPlayerManager.getPlaybackSpeed()}x")
                             // 立即显示提示（不等待滑动）
                             showLongPressSpeedHint(longPressSpeed, false)
-                            android.util.Log.d("VideoPlayer", "长按检测成功: ${normalSpeed}x -> ${longPressSpeed}x, isLongPressActive=$isLongPressActive, 已显示加速提示")
+                            plog("长按检测成功: ${normalSpeed}x -> ${longPressSpeed}x, isLongPressActive=$isLongPressActive, 已显示加速提示")
                         }
                     } else {
                         android.util.Log.d("VideoPlayer", "!!! 长按检测失败: isScrolling=$isScrolling, isLocked=$isLocked, isPlaying=${exoPlayerManager.isPlaying()}")
                     }
                 }
-                android.util.Log.d("VideoPlayer", "启动长按检测任务，500ms后执行")
-                longPressHandler.postDelayed(longPressCheckRunnable!!, 500)
+                plog("启动长按检测任务，500ms后执行")
+                longPressCheckRunnable?.let { longPressHandler.postDelayed(it, 500) }
                 
                 return true
             }
@@ -350,7 +350,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             override fun onDoubleTap(e: MotionEvent): Boolean {
                 // 双击：只切播放/暂停，并封锁 300ms 内的单击逻辑
                 doubleTapGuardUntilMs = android.os.SystemClock.elapsedRealtime() + doubleTapWindowMs
-                android.util.Log.d("VideoPlayer", "手势 onDoubleTap: isLocked=$isLocked")
+                plog("手势 onDoubleTap: isLocked=$isLocked")
                 if (!isLocked) {
                     togglePlayPause()
                 }
@@ -363,7 +363,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                 distanceX: Float,
                 distanceY: Float
             ): Boolean {
-                android.util.Log.d("VideoPlayer", "!!! 手势 onScroll 被调用: distanceX=$distanceX, distanceY=$distanceY, isLocked=$isLocked, isLongPressActive=$isLongPressActive")
+                plog("!!! 手势 onScroll 被调用: distanceX=$distanceX, distanceY=$distanceY, isLocked=$isLocked, isLongPressActive=$isLongPressActive")
 
                 if (isLocked || e1 == null) {
                     android.util.Log.d("VideoPlayer", "手势被锁定或e1为null，返回false")
@@ -373,7 +373,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                 // 检查是否是长按后滑动（优先处理）
                 if (isLongPressActive && !isSpeedLocked && isLongPressLockEnabled()) {
                     val swipeDistance = e1.y - e2.y  // 上滑为正值，下滑为负值
-                    android.util.Log.d("VideoPlayer", "!!! 长按中滑动: swipeDistance=$swipeDistance, e1.y=${e1.y}, e2.y=${e2.y}")
+                    plog("!!! 长按中滑动: swipeDistance=$swipeDistance, e1.y=${e1.y}, e2.y=${e2.y}")
                     
                     // 如果上滑超过150像素，锁定倍速
                     if (swipeDistance > 150f) {
@@ -382,7 +382,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                         longPressDetected = false
                         val longPressSpeed = getLongPressSpeed()
                         showLongPressSpeedHint(longPressSpeed, true)
-                        android.util.Log.d("VideoPlayer", "!!! 倍速已锁定: ${longPressSpeed}x")
+                        plog("!!! 倍速已锁定: ${longPressSpeed}x")
                         
                         // 重置滑动标记，避免触发其他手势
                         isScrolling = false
@@ -392,18 +392,18 @@ class VideoPlayerActivity : AppCompatActivity() {
                     // 如果下滑超过80像素，显示"松手恢复速度"提示
                     else if (swipeDistance < -80f) {
                         showSpeedRestoreHint()
-                        android.util.Log.d("VideoPlayer", "!!! 下滑提示：松手恢复速度")
+                        plog("!!! 下滑提示：松手恢复速度")
                         return true
                     }
                     // 如果上滑超过30像素，显示加速提示（但不锁定）
                     else if (swipeDistance > 30f) {
                         val longPressSpeed = getLongPressSpeed()
                         showLongPressSpeedHint(longPressSpeed, false)
-                        android.util.Log.d("VideoPlayer", "!!! 显示加速提示: ${longPressSpeed}x")
+                        plog("!!! 显示加速提示: ${longPressSpeed}x")
                         return true
                     }
                     // 长按状态下的滑动不触发其他手势
-                    android.util.Log.d("VideoPlayer", "长按状态下滑动，不触发其他手势")
+                    plog("长按状态下滑动，不触发其他手势")
                     return true
                 }
 
@@ -411,7 +411,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                 if (!isScrolling) {
                     isScrolling = true
                     longPressCheckRunnable?.let { longPressHandler.removeCallbacks(it) }
-                    android.util.Log.d("VideoPlayer", "开始滑动，取消长按检测")
+                    plog("开始滑动，取消长按检测")
                 }
 
                 // 取消之前的隐藏任务
@@ -422,7 +422,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                 val totalDeltaY = e2.y - e1.y
 
 
-                android.util.Log.d("VideoPlayer", "总滑动距离: deltaX=$totalDeltaX, deltaY=$totalDeltaY")
+                plog("总滑动距离: deltaX=$totalDeltaX, deltaY=$totalDeltaY")
 
                 // 判断手势类型（只在第一次判断，并且滑动距离超过阈值）
                 if (gestureType == GestureType.NONE) {
@@ -435,7 +435,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                     val absDeltaX = abs(totalDeltaX)
                     val absDeltaY = abs(totalDeltaY)
 
-                    android.util.Log.d("VideoPlayer", "绝对滑动距离: X=$absDeltaX, Y=$absDeltaY, 起始X=${e1.x}, 屏幕宽度=$screenWidth")
+                    plog("绝对滑动距离: X=$absDeltaX, Y=$absDeltaY, 起始X=${e1.x}, 屏幕宽度=$screenWidth")
 
                     if (absDeltaX > minSwipeDistance || absDeltaY > minSwipeDistance) {
                         // 判断是横向还是纵向滑动，需要有明显的方向差异（1.5倍）
@@ -453,7 +453,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                                 if (initialBrightness < 0) {
                                     initialBrightness = 0.5f
                                 }
-                                android.util.Log.d("VideoPlayer", "手势类型: 亮度调整 (左侧纵向), 初始亮度=$initialBrightness")
+                                plog("手势类型: 亮度调整 (左侧纵向), 初始亮度=$initialBrightness")
                             } else {
                                 // 右侧 - 调整音量
                                 gestureType = GestureType.VOLUME
@@ -461,13 +461,13 @@ class VideoPlayerActivity : AppCompatActivity() {
                                 val maxVolume = audioManager.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC)
                                 val currentVolume = audioManager.getStreamVolume(android.media.AudioManager.STREAM_MUSIC)
                                 initialVolume = currentVolume.toFloat() / maxVolume
-                                android.util.Log.d("VideoPlayer", "手势类型: 音量调整 (右侧纵向), 初始音量=$initialVolume")
+                                plog("手势类型: 音量调整 (右侧纵向), 初始音量=$initialVolume")
                             }
                         } else {
-                            android.util.Log.d("VideoPlayer", "滑动方向不明确，等待更多滑动数据 (X=$absDeltaX, Y=$absDeltaY)")
+                            plog("滑动方向不明确，等待更多滑动数据 (X=$absDeltaX, Y=$absDeltaY)")
                         }
                     } else {
-                        android.util.Log.d("VideoPlayer", "滑动距离未达到阈值: X=$absDeltaX, Y=$absDeltaY")
+                        plog("滑动距离未达到阈值: X=$absDeltaX, Y=$absDeltaY")
                     }
                 }
 
@@ -500,7 +500,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         var downY = 0f
         
         binding.playerView.setOnTouchListener { view, event ->
-            android.util.Log.d("VideoPlayer", "playerView 触摸事件: action=${event.action}, x=${event.x}, y=${event.y}, isLongPressActive=$isLongPressActive")
+            plog("playerView 触摸事件: action=${event.action}, x=${event.x}, y=${event.y}, isLongPressActive=$isLongPressActive")
             
             // 先传递给GestureDetector
             val gestureHandled = gestureDetector.onTouchEvent(event)
@@ -517,33 +517,33 @@ class VideoPlayerActivity : AppCompatActivity() {
                     // 手动检测长按后的滑动
                     if (isLongPressActive && !isSpeedLocked && isLongPressLockEnabled()) {
                         val swipeDistance = downY - event.y  // 上滑为正值，下滑为负值
-                        android.util.Log.d("VideoPlayer", "!!! ACTION_MOVE 检测滑动: swipeDistance=$swipeDistance, downY=$downY, currentY=${event.y}, normalSpeed=$normalSpeed")
+                        plog("!!! ACTION_MOVE 检测滑动: swipeDistance=$swipeDistance, downY=$downY, currentY=${event.y}, normalSpeed=$normalSpeed")
                         
                         // 如果上滑超过150像素，锁定倍速
                         if (swipeDistance > 150f) {
                             isSpeedLocked = true
                             isLongPressActive = false
                             val longPressSpeed = getLongPressSpeed()
-                            android.util.Log.d("VideoPlayer", "!!! 锁定前: normalSpeed=$normalSpeed, currentSpeed=${exoPlayerManager.getPlaybackSpeed()}")
+                            plog("!!! 锁定前: normalSpeed=$normalSpeed, currentSpeed=${exoPlayerManager.getPlaybackSpeed()}")
                             // 注意：不要修改normalSpeed，它应该保持为长按前的速度
                             showLongPressSpeedHint(longPressSpeed, true)
-                            android.util.Log.d("VideoPlayer", "!!! 倍速已锁定: ${longPressSpeed}x, normalSpeed保持为=$normalSpeed (应该是1.0)")
+                            plog("!!! 倍速已锁定: ${longPressSpeed}x, normalSpeed保持为=$normalSpeed (应该是1.0)")
                         }
                         // 如果下滑超过80像素，显示"松手恢复速度"提示
                         else if (swipeDistance < -80f) {
                             showSpeedRestoreHint()
-                            android.util.Log.d("VideoPlayer", "!!! 下滑提示：松手恢复速度")
+                            plog("!!! 下滑提示：松手恢复速度")
                         }
                         // 如果上滑超过30像素，显示加速提示（但不锁定）
                         else if (swipeDistance > 30f) {
                             val longPressSpeed = getLongPressSpeed()
                             showLongPressSpeedHint(longPressSpeed, false)
-                            android.util.Log.d("VideoPlayer", "!!! 显示加速提示: ${longPressSpeed}x")
+                            plog("!!! 显示加速提示: ${longPressSpeed}x")
                         }
                     }
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    android.util.Log.d("VideoPlayer", "!!! 触摸事件 UP/CANCEL, isLongPressActive=$isLongPressActive, isSpeedLocked=$isSpeedLocked, normalSpeed=$normalSpeed, currentSpeed=${exoPlayerManager.getPlaybackSpeed()}")
+                    plog("!!! 触摸事件 UP/CANCEL, isLongPressActive=$isLongPressActive, isSpeedLocked=$isSpeedLocked, normalSpeed=$normalSpeed, currentSpeed=${exoPlayerManager.getPlaybackSpeed()}")
                     
                     // 取消长按检测任务
                     longPressCheckRunnable?.let { 
@@ -557,7 +557,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                         // 恢复到之前的速度
                         exoPlayerManager.setPlaybackSpeed(normalSpeed)
                         hideLongPressSpeedHint()
-                        android.util.Log.d("VideoPlayer", "!!! 取消长按加速，恢复速度: ${normalSpeed}x")
+                        plog("!!! 取消长按加速，恢复速度: ${normalSpeed}x")
                     }
 
                     // 重置滑动标记
@@ -642,7 +642,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         layoutParams.screenBrightness = newBrightness
         window.attributes = layoutParams
 
-        android.util.Log.d("VideoPlayer", "亮度调整: deltaY=$deltaY, change=$change, newBrightness=$newBrightness")
+        plog("亮度调整: deltaY=$deltaY, change=$change, newBrightness=$newBrightness")
         
         // 显示亮度进度条（使用亮度图标）
         showVolumeOrBrightnessProgress(
@@ -663,7 +663,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         val volumeLevel = (newVolume * maxVolume).toInt()
         audioManager.setStreamVolume(android.media.AudioManager.STREAM_MUSIC, volumeLevel, 0)
 
-        android.util.Log.d("VideoPlayer", "音量调整: deltaY=$deltaY, change=$change, newVolume=$newVolume, volumeLevel=$volumeLevel")
+        plog("音量调整: deltaY=$deltaY, change=$change, newVolume=$newVolume, volumeLevel=$volumeLevel")
         
         // 显示音量进度条（使用音量图标）
         val iconRes = if (newVolume == 0f) {
@@ -765,7 +765,7 @@ class VideoPlayerActivity : AppCompatActivity() {
      * 显示进度调整提示（中间大显示）
      */
     private fun showProgressSeekHint(currentPos: Long, duration: Long) {
-        android.util.Log.d("VideoPlayer", "显示进度调整提示: $currentPos / $duration")
+        plog("显示进度调整提示: $currentPos / $duration")
         
         // 不显示遮罩层，保持界面清爽
         // binding.progressOverlay.visibility = View.VISIBLE
@@ -816,7 +816,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             return
         }
         
-        android.util.Log.d("VideoPlayer", "!!! showProgressPreview 被调用: positionMs=$positionMs, URI=$videoUri, scheme=$scheme")
+        plog("!!! showProgressPreview 被调用: positionMs=$positionMs, URI=$videoUri, scheme=$scheme")
         
         // 防抖：如果时间点变化小于300毫秒，不重新提取
         val timeDiff = kotlin.math.abs(positionMs - lastPreviewTime)
@@ -828,7 +828,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         
         // 如果精灵图还没生成，先生成
         if (thumbnailSprite == null && !isThumbnailGenerating) {
-            android.util.Log.d("VideoPlayer", "精灵图未生成，开始生成...")
+            plog("精灵图未生成，开始生成...")
             generateThumbnailSprite()
             return
         }
@@ -842,7 +842,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         // 从精灵图中提取对应位置的缩略图
         val duration = exoPlayerManager.getDuration()
         if (duration <= 0) {
-            android.util.Log.d("VideoPlayer", "视频时长无效: $duration")
+            plog("视频时长无效: $duration")
             return
         }
         
@@ -850,25 +850,25 @@ class VideoPlayerActivity : AppCompatActivity() {
         val thumbnailIndex = ((positionMs.toFloat() / duration) * totalThumbnails).toInt()
             .coerceIn(0, totalThumbnails - 1)
         
-        android.util.Log.d("VideoPlayer", "计算缩略图索引: positionMs=$positionMs, duration=$duration, index=$thumbnailIndex")
+        plog("计算缩略图索引: positionMs=$positionMs, duration=$duration, index=$thumbnailIndex")
         
         // 检查缓存
         val cacheKey = thumbnailIndex.toLong()
         if (previewCache.containsKey(cacheKey)) {
             binding.progressPreviewImage.setImageBitmap(previewCache[cacheKey])
             binding.progressPreviewImage.visibility = View.VISIBLE
-            android.util.Log.d("VideoPlayer", "✓ 使用缓存预览: index=$thumbnailIndex, 图片已设置并显示")
+            plog("✓ 使用缓存预览: index=$thumbnailIndex, 图片已设置并显示")
             return
         }
         
-        android.util.Log.d("VideoPlayer", "缓存未命中，开始从精灵图裁剪...")
+        plog("缓存未命中，开始从精灵图裁剪...")
         
         // 从精灵图中裁剪出对应的缩略图
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val sprite = thumbnailSprite ?: return@launch
                 
-                android.util.Log.d("VideoPlayer", "精灵图尺寸: ${sprite.width}x${sprite.height}, 单个缩略图: ${thumbnailWidth}x${thumbnailHeight}")
+                plog("精灵图尺寸: ${sprite.width}x${sprite.height}, 单个缩略图: ${thumbnailWidth}x${thumbnailHeight}")
                 
                 // 计算在精灵图中的位置（行列）
                 val row = thumbnailIndex / thumbnailColumns
@@ -878,7 +878,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                 val x = col * thumbnailWidth
                 val y = row * thumbnailHeight
                 
-                android.util.Log.d("VideoPlayer", "裁剪位置: row=$row, col=$col, x=$x, y=$y")
+                plog("裁剪位置: row=$row, col=$col, x=$x, y=$y")
                 
                 val thumbnail = android.graphics.Bitmap.createBitmap(
                     sprite,
@@ -890,7 +890,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                     binding.progressPreviewImage.setImageBitmap(thumbnail)
                     binding.progressPreviewImage.visibility = View.VISIBLE
                     
-                    android.util.Log.d("VideoPlayer", "✓ 预览图已设置并显示: index=$thumbnailIndex, visibility=${binding.progressPreviewImage.visibility}")
+                    plog("✓ 预览图已设置并显示: index=$thumbnailIndex, visibility=${binding.progressPreviewImage.visibility}")
                     
                     // 缓存
                     if (previewCache.size >= 20) {
@@ -901,7 +901,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                     }
                     previewCache[cacheKey] = thumbnail
                     
-                    android.util.Log.d("VideoPlayer", "预览显示成功: index=$thumbnailIndex, position=${positionMs}ms")
+                    plog("预览显示成功: index=$thumbnailIndex, position=${positionMs}ms")
                 }
             } catch (e: Exception) {
                 android.util.Log.e("VideoPlayer", "预览失败", e)
@@ -918,7 +918,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         if (isThumbnailGenerating) return
         
         isThumbnailGenerating = true
-        android.util.Log.d("VideoPlayer", "开始生成缩略图精灵图...")
+        plog("开始生成缩略图精灵图...")
         
         lifecycleScope.launch(Dispatchers.IO) {
             try {
@@ -947,7 +947,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                     return@launch
                 }
                 
-                android.util.Log.d("VideoPlayer", "本地视频URI: $videoUri, scheme: $scheme")
+                plog("本地视频URI: $videoUri, scheme: $scheme")
                 
                 // 创建一个临时的MediaMetadataRetriever来提取帧
                 val retriever = android.media.MediaMetadataRetriever()
@@ -959,7 +959,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                             // file:// URI，提取路径
                             val path = videoUri.path
                             if (path != null) {
-                                android.util.Log.d("VideoPlayer", "使用文件路径: $path")
+                                plog("使用文件路径: $path")
                                 retriever.setDataSource(path)
                             } else {
                                 android.util.Log.e("VideoPlayer", "无法从URI提取文件路径")
@@ -974,7 +974,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                         }
                         else -> {
                             // 其他情况，尝试直接使用URI字符串
-                            android.util.Log.d("VideoPlayer", "使用URI字符串: ${videoUri.toString()}")
+                            plog("使用URI字符串: ${videoUri.toString()}")
                             retriever.setDataSource(videoUri.toString())
                         }
                     }
@@ -1036,14 +1036,14 @@ class VideoPlayerActivity : AppCompatActivity() {
                             frame.recycle()
                             scaledFrame.recycle()
                             
-                            android.util.Log.d("VideoPlayer", "已提取第 ${i + 1}/$totalThumbnails 帧")
+                            plog("已提取第 ${i + 1}/$totalThumbnails 帧")
                         }
                     }
                     
                     thumbnailSprite = sprite
                     isThumbnailGenerating = false
                     
-                    android.util.Log.d("VideoPlayer", "缩略图精灵图生成完成！尺寸: ${spriteWidth}x${spriteHeight}")
+                    plog("缩略图精灵图生成完成！尺寸: ${spriteWidth}x${spriteHeight}")
                     
                 } catch (e: Exception) {
                     android.util.Log.e("VideoPlayer", "生成缩略图精灵图失败", e)
@@ -1060,7 +1060,7 @@ class VideoPlayerActivity : AppCompatActivity() {
     }
     
     private fun showGestureHint(text: String) {
-        android.util.Log.d("VideoPlayer", "显示手势提示: $text")
+        plog("显示手势提示: $text")
         
         // 显示文字提示（用于音量/亮度调整）
         binding.gestureHintText.text = text
@@ -1166,7 +1166,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                 @Suppress("DEPRECATION")
                 vibrator.vibrate(duration)
             }
-            android.util.Log.d("VideoPlayer", "震动反馈: ${duration}ms")
+            plog("震动反馈: ${duration}ms")
         } catch (e: Exception) {
             android.util.Log.e("VideoPlayer", "震动失败: ${e.message}")
         }
@@ -1250,7 +1250,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                     // 「记忆播放进度」关掉时视为没有保存进度：不 seek，但仍然标记已恢复，避免反复判断
                     val savedPosition = if (rememberPlaybackProgress) viewModel.getSavedPosition() else 0L
                     if (savedPosition > 0) {
-                        android.util.Log.d("VideoPlayer", "恢复播放进度: ${savedPosition}ms")
+                        plog("恢复播放进度: ${savedPosition}ms")
                         exoPlayerManager.seekTo(savedPosition)
                         hasRestoredPlaybackPosition = true
                     } else {
@@ -1261,13 +1261,13 @@ class VideoPlayerActivity : AppCompatActivity() {
                 
                 // 自动开始播放
                 exoPlayerManager.play()
-                android.util.Log.d("VideoPlayer", "播放器就绪，开始播放")
+                plog("播放器就绪，开始播放")
                 
                 // 重置倍速状态（确保每次播放新视频时状态正确）
                 isSpeedLocked = false
                 isLongPressActive = false
                 normalSpeed = 1.0f
-                android.util.Log.d("VideoPlayer", "播放器就绪，重置倍速状态: normalSpeed=$normalSpeed")
+                plog("播放器就绪，重置倍速状态: normalSpeed=$normalSpeed")
 
                 // 根据视频时长改变播放器下方区域的背景颜色
                 updateDetailSectionBackground()
@@ -1276,7 +1276,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                 val videoWidth = exoPlayerManager.getVideoWidth()
                 val videoHeight = exoPlayerManager.getVideoHeight()
                 
-                android.util.Log.d("VideoPlayer", "视频尺寸: ${videoWidth}x${videoHeight}")
+                plog("视频尺寸: ${videoWidth}x${videoHeight}")
                 
                 if (videoWidth > 0 && videoHeight > 0) {
                     // 如果视频高度大于宽度，说明是竖屏视频，自动切换到竖屏全屏
@@ -1303,7 +1303,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             }
             
             override fun onEnded() {
-                android.util.Log.d("VideoPlayer", "播放结束 onEnded 被调用")
+                plog("播放结束 onEnded 被调用")
                 viewModel.savePlaybackProgress()
 
                 // 结束卡片：「已播完」+ 重播 / 下一集（保留原有自动连播逻辑，卡片只是叠加层）
@@ -1320,12 +1320,12 @@ class VideoPlayerActivity : AppCompatActivity() {
                 
                 // 短剧自动播放下一集
                 val isShortDrama = intent.getBooleanExtra("IS_SHORT_DRAMA", false)
-                android.util.Log.d("VideoPlayer", "isShortDrama=$isShortDrama, hasNextEpisode=${shortDramaManager.hasNextEpisode()}")
+                plog("isShortDrama=$isShortDrama, hasNextEpisode=${shortDramaManager.hasNextEpisode()}")
                 
                 if (isShortDrama && shortDramaManager.hasNextEpisode()) {
                     android.util.Log.d("VideoPlayer", "准备自动播放短剧下一集")
                     shortDramaManager.onPlaybackEnded { episode ->
-                        android.util.Log.d("VideoPlayer", "收到下一集回调: ${episode.name}")
+                        plog("收到下一集回调: ${episode.name}")
                         
                         // 如果已经预加载了URL，直接使用
                         if (!episode.url.isEmpty()) {
@@ -1386,15 +1386,15 @@ class VideoPlayerActivity : AppCompatActivity() {
             }
             
             override fun onPlayingChanged(isPlaying: Boolean) {
-                android.util.Log.d("VideoPlayer", "========================================")
-                android.util.Log.d("VideoPlayer", "onPlayingChanged 被调用")
-                android.util.Log.d("VideoPlayer", "  isPlaying: $isPlaying")
-                android.util.Log.d("VideoPlayer", "  当前位置: ${exoPlayerManager.getCurrentPosition()}ms")
-                android.util.Log.d("VideoPlayer", "  缓冲位置: ${exoPlayerManager.getBufferedPosition()}ms")
-                android.util.Log.d("VideoPlayer", "  isBuffering: ${exoPlayerManager.isBuffering()}")
-                android.util.Log.d("VideoPlayer", "  isPlayerReady: ${exoPlayerManager.isPlayerReady()}")
+                plog("========================================")
+                plog("onPlayingChanged 被调用")
+                plog("  isPlaying: $isPlaying")
+                plog("  当前位置: ${exoPlayerManager.getCurrentPosition()}ms")
+                plog("  缓冲位置: ${exoPlayerManager.getBufferedPosition()}ms")
+                plog("  isBuffering: ${exoPlayerManager.isBuffering()}")
+                plog("  isPlayerReady: ${exoPlayerManager.isPlayerReady()}")
                 android.util.Log.d("VideoPlayer", "  → 不调用 ViewModel，避免循环")
-                android.util.Log.d("VideoPlayer", "========================================")
+                plog("========================================")
                 
                 // 不调用 ViewModel 的 play/pause，避免状态循环
                 // 只更新 UI
@@ -1408,7 +1408,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                     if (!hasStartedRouteTest) {
                         hasStartedRouteTest = true
                         Handler(Looper.getMainLooper()).postDelayed({
-                            android.util.Log.d("VideoPlayer", "触发线路速度测试")
+                            plog("触发线路速度测试")
                             viewModel.testAndSwitchToFastestRoute()
                         }, 3000)
                     }
@@ -1614,7 +1614,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         val durationMs = exoPlayerManager.getDuration()
         val durationMinutes = (durationMs / 1000 / 60).toInt()
         
-        android.util.Log.d("VideoPlayer", "视频时长: ${durationMinutes}分钟 (${durationMs}ms)")
+        plog("视频时长: ${durationMinutes}分钟 (${durationMs}ms)")
         
         // 判断是否为电影（≥60分钟）
         val isMovie = durationMinutes >= 60
@@ -1690,7 +1690,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                 // 标记已播放过动画
                 hasPlayedRevealAnimation = true
 
-                android.util.Log.d("VideoPlayer", "播放背景揭露动画: ${if (isMovie) "深蓝色" else "白色"} (2秒)")
+                plog("播放背景揭露动画: ${if (isMovie) "深蓝色" else "白色"} (2秒)")
             }
         } else {
             // Android 5.0 以下直接设置颜色
@@ -1833,8 +1833,8 @@ class VideoPlayerActivity : AppCompatActivity() {
     
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
-        android.util.Log.d("VideoPlayer", "=== onConfigurationChanged: orientation=${newConfig.orientation} ===")
-        android.util.Log.d("VideoPlayer", "ORIENTATION_PORTRAIT=1, ORIENTATION_LANDSCAPE=2, 当前=${newConfig.orientation}")
+        plog("=== onConfigurationChanged: orientation=${newConfig.orientation} ===")
+        plog("ORIENTATION_PORTRAIT=1, ORIENTATION_LANDSCAPE=2, 当前=${newConfig.orientation}")
         updateOrientationUI()
     }
     
@@ -2307,7 +2307,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         
         if (isDirectVideoUrl) {
             // 直接视频链接（m3u8等），可以批量下载
-            android.util.Log.d("VideoPlayer", "检测到直接视频链接，开始批量下载 ${episodes.size} 个剧集")
+            plog("检测到直接视频链接，开始批量下载 ${episodes.size} 个剧集")
             Toast.makeText(this, "开始批量下载 ${episodes.size} 个剧集", Toast.LENGTH_SHORT).show()
             
             episodes.forEach { episode ->
@@ -2356,7 +2356,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         // 更新进度
         progressDialog.setMessage("正在解析第${currentIndex + 1}/${episodes.size}集: ${episode.name}")
         
-        android.util.Log.d("VideoPlayer", "开始解析第${currentIndex + 1}集: ${episode.name}")
+        plog("开始解析第${currentIndex + 1}集: ${episode.name}")
         
         // 临时播放该集以触发嗅探
         lifecycleScope.launch {
@@ -2386,7 +2386,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                     // 找到视频链接
                     val videoUrl = sniffedVideoLinks.firstOrNull { isVideoUrl(it) }
                     if (videoUrl != null) {
-                        android.util.Log.d("VideoPlayer", "解析成功，添加到下载队列: $videoUrl")
+                        plog("解析成功，添加到下载队列: $videoUrl")
                         startDownloadTask(videoUrl, downloadTitle, emptyMap())
                     } else {
                         android.util.Log.w("VideoPlayer", "未找到有效视频链接，跳过: ${episode.name}")
@@ -2420,13 +2420,13 @@ class VideoPlayerActivity : AppCompatActivity() {
         // 优先使用当前正在播放的链接（已验证可用）
         val actualVideoUrl = if (currentPlayingUrl.isNotEmpty() && isVideoUrl(currentPlayingUrl)) {
             // 第一优先：当前正在播放的URL（已验证可播放）
-            android.util.Log.d("VideoPlayer", "使用当前播放链接: $currentPlayingUrl")
+            plog("使用当前播放链接: $currentPlayingUrl")
             currentPlayingUrl
         } else if (sniffedVideoLinks.isNotEmpty()) {
             // 第二优先：从嗅探到的链接中找到第一个真实的视频链接
             val validVideoLink = sniffedVideoLinks.firstOrNull { isVideoUrl(it) }
             if (validVideoLink != null) {
-                android.util.Log.d("VideoPlayer", "使用嗅探到的视频链接: $validVideoLink")
+                plog("使用嗅探到的视频链接: $validVideoLink")
                 validVideoLink
             } else {
                 // 嗅探到的链接都不是视频链接
@@ -2435,7 +2435,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             }
         } else if (isVideoUrl(url)) {
             // 第三优先：如果传入的URL本身就是视频链接
-            android.util.Log.d("VideoPlayer", "使用传入的视频链接: $url")
+            plog("使用传入的视频链接: $url")
             url
         } else {
             // 没有可用的视频链接，提示用户
@@ -2443,35 +2443,35 @@ class VideoPlayerActivity : AppCompatActivity() {
             return
         }
         
-        android.util.Log.d("VideoPlayer", "准备下载，使用URL: $actualVideoUrl")
+        plog("准备下载，使用URL: $actualVideoUrl")
         
         // 获取请求头，用于下载
         val headers = viewModel.getVideoHeaders() ?: emptyMap()
-        android.util.Log.d("VideoPlayer", "从ViewModel获取的请求头: $headers")
-        android.util.Log.d("VideoPlayer", "请求头数量: ${headers.size}")
+        plog("从ViewModel获取的请求头: $headers")
+        plog("请求头数量: ${headers.size}")
         
         // 获取当前页面URL作为引用页面
         val currentPageUrl = intent.getStringExtra("VIDEO_URL") ?: url
-        android.util.Log.d("VideoPlayer", "当前页面URL（引用页面）: $currentPageUrl")
+        plog("当前页面URL（引用页面）: $currentPageUrl")
         
         val dialog = com.tv.ball.presentation.download.DownloadConfigDialog.newInstance(actualVideoUrl, title, currentPageUrl)
         dialog.setOnStartDownloadListener { downloadUrl, downloadTitle, wifiOnly, customHeaders, threadCount ->
-            android.util.Log.d("VideoPlayer", "对话框返回的自定义请求头: $customHeaders")
-            android.util.Log.d("VideoPlayer", "线程数: $threadCount")
+            plog("对话框返回的自定义请求头: $customHeaders")
+            plog("线程数: $threadCount")
             
             // 合并ViewModel中的请求头和用户自定义的请求头
             val mergedHeaders = headers.toMutableMap().apply {
                 putAll(customHeaders)
             }
             
-            android.util.Log.d("VideoPlayer", "合并后的请求头: $mergedHeaders")
+            plog("合并后的请求头: $mergedHeaders")
             startDownloadWithParams(downloadUrl, downloadTitle, mergedHeaders, threadCount)
         }
         dialog.show(supportFragmentManager, "DownloadConfig")
     }
     
     private fun startDownloadWithParams(url: String, title: String, customHeaders: Map<String, String> = emptyMap(), threadCount: Int = 10) {
-        android.util.Log.d("VideoPlayer", "startDownloadWithParams: $title, headers: $customHeaders, threadCount: $threadCount")
+        plog("startDownloadWithParams: $title, headers: $customHeaders, threadCount: $threadCount")
         
         if (url.isEmpty()) {
             Toast.makeText(this, "无法获取下载地址", Toast.LENGTH_SHORT).show()
@@ -2590,9 +2590,9 @@ class VideoPlayerActivity : AppCompatActivity() {
             )
         }
         
-        android.util.Log.d("VideoPlayer", "显示解析记录: 总共 ${sniffedVideoLinks.size} 个链接，过滤后 ${filteredLinks.size} 个")
+        plog("显示解析记录: 总共 ${sniffedVideoLinks.size} 个链接，过滤后 ${filteredLinks.size} 个")
         filteredLinks.forEachIndexed { index, link ->
-            android.util.Log.d("VideoPlayer", "链接 ${index + 1}: $link")
+            plog("链接 ${index + 1}: $link")
         }
         
         // 显示 BottomSheet
@@ -2785,7 +2785,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                     onLinkFound = { link ->
                         // 找到链接立即回调
                         runOnUiThread {
-                            android.util.Log.d("VideoPlayer", "实时发现链接: $link")
+                            plog("实时发现链接: $link")
                             
                             // 检查是否是 TS 分片文件，如果是则跳过
                             val lowerUrl = link.lowercase()
@@ -2796,12 +2796,12 @@ class VideoPlayerActivity : AppCompatActivity() {
                                        lowerUrl.contains("chunk")
                             
                             if (isTs) {
-                                android.util.Log.d("VideoPlayer", "✗ 跳过 TS 分片文件: $link")
+                                plog("✗ 跳过 TS 分片文件: $link")
                                 return@runOnUiThread
                             }
                             
                             sniffedVideoLinks.add(link)
-                            android.util.Log.d("VideoPlayer", "✓ 添加有效链接: $link")
+                            plog("✓ 添加有效链接: $link")
                             
                             // 如果还没开始播放，选择优先级最高的链接播放
                             if (!hasStartedPlaying) {
@@ -2818,7 +2818,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                                 }
                                 
                                 if (bestLink != null) {
-                                    android.util.Log.d("VideoPlayer", "选择最优链接播放: $bestLink")
+                                    plog("选择最优链接播放: $bestLink")
                                     updateStatusText("准备播放")
                                     // 保存解析后的链接到ViewModel
                                     viewModel.setParsedVideoUrl(bestLink)
@@ -2936,8 +2936,8 @@ class VideoPlayerActivity : AppCompatActivity() {
             videoTitle
         }
         
-        android.util.Log.d("VideoPlayer", "Download URL: $downloadUrl")
-        android.util.Log.d("VideoPlayer", "Download Title: $downloadTitle")
+        plog("Download URL: $downloadUrl")
+        plog("Download Title: $downloadTitle")
         
         if (downloadUrl.isNullOrEmpty()) {
             Toast.makeText(this, "无法获取下载地址", Toast.LENGTH_SHORT).show()
@@ -3155,7 +3155,7 @@ class VideoPlayerActivity : AppCompatActivity() {
 
     private fun setupPortraitEpisodeList() {
         val episodes = playlistManager.getPlaylist()
-        android.util.Log.d("VideoPlayer", "setupPortraitEpisodeList: episodes.size=${episodes.size}")
+        plog("setupPortraitEpisodeList: episodes.size=${episodes.size}")
         
         if (episodes.isEmpty()) {
             android.util.Log.w("VideoPlayer", "setupPortraitEpisodeList: 播放列表为空，无法设置选集列表")
@@ -3194,7 +3194,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             // 最高优先级：线路名或URL包含 m3u8
             if (lowerName.contains("m3u8") || firstUrl.contains(".m3u8")) {
                 score += 1000
-                android.util.Log.d("VideoPlayer", "✓✓✓ M3U8线路优先: $sourceName")
+                plog("✓✓✓ M3U8线路优先: $sourceName")
             }
             
             // 次优先级：线路名包含 HD、高清、1080p 等
@@ -3237,14 +3237,14 @@ class VideoPlayerActivity : AppCompatActivity() {
         
         // 创建Adapter，使用当前线路中的索引
         portraitEpisodeAdapter = EpisodeSelectorAdapter(indexInSelectedLine, compact = true) { index, episode ->
-            android.util.Log.d("VideoPlayer", "点击集数: index=$index, name=${episode.name}, url=${episode.url}")
+            plog("点击集数: index=$index, name=${episode.name}, url=${episode.url}")
             
             // 需要找到原始索引（在完整列表中的位置）
             // 优先通过 URL 匹配（更可靠）
             val originalIndex = episodes.indexOfFirst { it.url == episode.url }
             
             if (originalIndex != -1) {
-                android.util.Log.d("VideoPlayer", "找到原始索引: $originalIndex, 开始播放")
+                plog("找到原始索引: $originalIndex, 开始播放")
                 playEpisode(originalIndex)
                 
                 // 更新当前线路中的索引
@@ -3389,7 +3389,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             // 最高优先级：线路名或URL包含 m3u8
             if (lowerName.contains("m3u8") || firstUrl.contains(".m3u8")) {
                 score += 1000
-                android.util.Log.d("VideoPlayer", "✓✓✓ M3U8线路优先（底部弹窗）: $sourceName")
+                plog("✓✓✓ M3U8线路优先（底部弹窗）: $sourceName")
             }
             
             // 次优先级：线路名包含 HD、高清、1080p 等
@@ -3536,7 +3536,7 @@ class VideoPlayerActivity : AppCompatActivity() {
     private fun showEpisodeDialog() {
         try {
             android.util.Log.d("VideoPlayer", "showEpisodeDialog called")
-            android.util.Log.d("VideoPlayer", "Playlist size: ${playlistManager.getPlaylistSize()}")
+            plog("Playlist size: ${playlistManager.getPlaylistSize()}")
 
             if (playlistManager.getPlaylistSize() == 0) {
                 Toast.makeText(this, "没有播放列表", Toast.LENGTH_SHORT).show()
@@ -3544,7 +3544,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             }
 
             val playlist = playlistManager.getPlaylist()
-            android.util.Log.d("VideoPlayer", "Playlist: $playlist")
+            plog("Playlist: $playlist")
 
             if (playlist.isEmpty()) {
                 Toast.makeText(this, "播放列表为空", Toast.LENGTH_SHORT).show()
@@ -3553,7 +3553,7 @@ class VideoPlayerActivity : AppCompatActivity() {
 
             // 分组剧集：按线路分组
             val episodeGroups = groupEpisodesBySource(playlist)
-            android.util.Log.d("VideoPlayer", "Episode groups: ${episodeGroups.size}")
+            plog("Episode groups: ${episodeGroups.size}")
 
             // 根据线路数量选择不同的布局
             if (episodeGroups.size == 1) {
@@ -3634,7 +3634,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         })
 
         dialogEpisodeAdapter = EpisodeSelectorAdapter(playlistManager.getCurrentIndex()) { index, episode ->
-            android.util.Log.d("VideoPlayer", "Episode clicked: $index - ${episode.name}")
+            plog("Episode clicked: $index - ${episode.name}")
             // 在原始列表中查找索引
             val originalIndex = allEpisodes.indexOfFirst { it.url == episode.url }
             if (originalIndex >= 0) {
@@ -3711,7 +3711,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         }
 
         dialogEpisodeAdapter = EpisodeSelectorAdapter(playlistManager.getCurrentIndex()) { index, episode ->
-            android.util.Log.d("VideoPlayer", "Episode clicked: $index - ${episode.name}")
+            plog("Episode clicked: $index - ${episode.name}")
             // 在原始列表中查找索引
             val originalIndex = allEpisodes.indexOfFirst { it.url == episode.url }
             if (originalIndex >= 0) {
@@ -3777,13 +3777,13 @@ class VideoPlayerActivity : AppCompatActivity() {
     )
     
     private fun playEpisode(index: Int) {
-        android.util.Log.d("VideoPlayer", "=== playEpisode 开始 ===")
-        android.util.Log.d("VideoPlayer", "索引: $index")
+        plog("=== playEpisode 开始 ===")
+        plog("索引: $index")
         
         val episode = playlistManager.selectEpisode(index)
         if (episode != null) {
-            android.util.Log.d("VideoPlayer", "集数名称: ${episode.name}")
-            android.util.Log.d("VideoPlayer", "集数URL: ${episode.url}")
+            plog("集数名称: ${episode.name}")
+            plog("集数URL: ${episode.url}")
             
             binding.titleText.text = "$videoTitle - ${episode.name}"
             hasSkippedIntro = false
@@ -4159,7 +4159,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                                 
                                 // 更新当前播放URL，用于下载等功能
                                 currentPlayingUrl = it
-                                android.util.Log.d("VideoPlayerActivity", "更新currentPlayingUrl: $it")
+                                plog("更新currentPlayingUrl: $it")
                                 
                                 val headers = viewModel.getVideoHeaders()
                                 exoPlayerManager.prepareMedia(it, headers)
@@ -4172,7 +4172,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                 
                 launch {
                     viewModel.playerState.collect { state ->
-                        android.util.Log.d("VideoPlayerActivity", "播放器状态变化: $state, pendingSeekPosition=$pendingSeekPosition, hasRestoredPlaybackPosition=$hasRestoredPlaybackPosition")
+                        plog("播放器状态变化: $state, pendingSeekPosition=$pendingSeekPosition, hasRestoredPlaybackPosition=$hasRestoredPlaybackPosition")
                         when (state) {
                             is PlayerState.Loading -> {
                                 binding.loadingView.visibility = View.VISIBLE
@@ -4208,7 +4208,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                                 
                                 // 播放器准备好或开始播放后，如果有待恢复的位置且还没恢复过，则恢复播放位置
                                 if (!hasRestoredPlaybackPosition && rememberPlaybackProgress && pendingSeekPosition > 0) {
-                                    android.util.Log.d("VideoPlayerActivity", "播放器准备好，从历史记录恢复播放位置: $pendingSeekPosition ms")
+                                    plog("播放器准备好，从历史记录恢复播放位置: $pendingSeekPosition ms")
                                     // 延迟一点再 seek，确保播放器完全准备好
                                     lifecycleScope.launch {
                                         kotlinx.coroutines.delay(300)
@@ -4241,15 +4241,15 @@ class VideoPlayerActivity : AppCompatActivity() {
                 
                 launch {
                     viewModel.currentPosition.collect { position ->
-                        android.util.Log.d("VideoPlayerActivity", "currentPosition 更新: $position ms, hasRestoredPlaybackPosition=$hasRestoredPlaybackPosition")
+                        plog("currentPosition 更新: $position ms, hasRestoredPlaybackPosition=$hasRestoredPlaybackPosition")
                         // 只在还没恢复过位置时，保存待恢复的位置
                         if (!hasRestoredPlaybackPosition && rememberPlaybackProgress && position > 0) {
                             if (exoPlayerManager.isPlayerReady()) {
-                                android.util.Log.d("VideoPlayerActivity", "播放器已准备好，立即恢复播放位置: $position ms")
+                                plog("播放器已准备好，立即恢复播放位置: $position ms")
                                 exoPlayerManager.seekTo(position)
                                 hasRestoredPlaybackPosition = true
                             } else {
-                                android.util.Log.d("VideoPlayerActivity", "播放器未准备好，保存待恢复的播放位置: $position ms")
+                                plog("播放器未准备好，保存待恢复的播放位置: $position ms")
                                 pendingSeekPosition = position
                             }
                         }
@@ -4260,7 +4260,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                 launch {
                     viewModel.routeSwitchEvent.collect { episode ->
                         episode?.let {
-                            android.util.Log.d("VideoPlayerActivity", "收到线路切换事件: ${it.name}")
+                            plog("收到线路切换事件: ${it.name}")
                             
                             // 更新标题
                             binding.titleText.text = "$videoTitle - ${it.name}"
@@ -4270,7 +4270,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                                 ep.url == it.url 
                             }
                             if (newIndex >= 0) {
-                                android.util.Log.d("VideoPlayerActivity", "更新选集UI，新索引: $newIndex")
+                                plog("更新选集UI，新索引: $newIndex")
                                 playlistManager.selectEpisode(newIndex)
                                 
                                 // 更新所有选集适配器
@@ -4285,7 +4285,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                 launch {
                     viewModel.routeTestStatus.collect { status ->
                         status?.let {
-                            android.util.Log.d("VideoPlayerActivity", "线路测试状态: $it")
+                            plog("线路测试状态: $it")
                             updateStatusText(it)
                         }
                     }
@@ -4331,14 +4331,14 @@ class VideoPlayerActivity : AppCompatActivity() {
         
         // 检查是否是短剧
         val isShortDrama = intent.getBooleanExtra("IS_SHORT_DRAMA", false)
-        android.util.Log.d("VideoPlayer", "loadVideoFromIntent: isShortDrama=$isShortDrama")
+        plog("loadVideoFromIntent: isShortDrama=$isShortDrama")
         
         // 检查是否传入了播放列表
         episodesJson = intent.getStringExtra("EPISODES_JSON")
         val startIndex = intent.getIntExtra("START_INDEX", 0)
         
-        android.util.Log.d("VideoPlayer", "episodesJson=$episodesJson")
-        android.util.Log.d("VideoPlayer", "startIndex=$startIndex")
+        plog("episodesJson=$episodesJson")
+        plog("startIndex=$startIndex")
         
         // 初始化短剧管理器
         shortDramaManager.initShortDramaMode(isShortDrama, episodesJson, startIndex)
@@ -4410,7 +4410,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             // 分割每个对象
             val items = content.split("},")
             
-            android.util.Log.d("VideoPlayer", "开始解析剧集JSON，共 ${items.size} 个条目")
+            plog("开始解析剧集JSON，共 ${items.size} 个条目")
             
             for ((index, item) in items.withIndex()) {
                 val cleanItem = item.trim().removePrefix("{").removeSuffix("}")
@@ -4425,7 +4425,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                     val url = urlMatch.groupValues[1]
                     val isCloud = isCloudMatch?.groupValues?.get(1) == "true"
                     
-                    android.util.Log.d("VideoPlayer", "解析第${index+1}集: name=$name, isCloud=$isCloud, url=${url.take(50)}...")
+                    plog("解析第${index+1}集: name=$name, isCloud=$isCloud, url=${url.take(50)}...")
                     
                     // 不再过滤网盘资源，全部添加到列表中
                     // 网盘资源在播放时会有特殊处理
@@ -4445,7 +4445,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             e.printStackTrace()
         }
         
-        android.util.Log.d("VideoPlayer", "解析剧集完成: 总共 ${episodes.size} 集")
+        plog("解析剧集完成: 总共 ${episodes.size} 集")
         return episodes
     }
     
@@ -4478,7 +4478,7 @@ class VideoPlayerActivity : AppCompatActivity() {
      * 处理网络切换
      */
     private fun handleNetworkChange(networkType: NetworkStatusMonitor.NetworkType, message: String) {
-        android.util.Log.d("VideoPlayer", "网络切换: $networkType - $message")
+        plog("网络切换: $networkType - $message")
         
         when (networkType) {
             NetworkStatusMonitor.NetworkType.MOBILE -> {
@@ -4934,7 +4934,7 @@ class VideoPlayerActivity : AppCompatActivity() {
     }
 
     private fun replayCurrentVideo() {
-        android.util.Log.d("VideoPlayer", "结束卡片：重播")
+        plog("结束卡片：重播")
         hidePlaybackEndedCard()
         try {
             exoPlayerManager.seekTo(0)
@@ -4946,7 +4946,7 @@ class VideoPlayerActivity : AppCompatActivity() {
     }
 
     private fun playNextFromEndedCard() {
-        android.util.Log.d("VideoPlayer", "结束卡片：播放下一集")
+        plog("结束卡片：播放下一集")
         hidePlaybackEndedCard()
         if (!hasNextEpisodeForEndCard()) return
         if (intent.getBooleanExtra("IS_SHORT_DRAMA", false)) {
@@ -5242,7 +5242,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             // 恢复播放进度
             val savedPosition = if (rememberPlaybackProgress) viewModel.getSavedPosition() else 0L
             if (savedPosition > 0 && exoPlayerManager.getCurrentPosition() == 0L) {
-                android.util.Log.d("VideoPlayer", "▶️ [生命周期] 恢复播放进度: ${savedPosition}ms")
+                plog("▶️ [生命周期] 恢复播放进度: ${savedPosition}ms")
                 exoPlayerManager.seekTo(savedPosition)
             }
             
@@ -5256,7 +5256,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         // 检查后台播放器状态
         backgroundPlayer?.let {
             val bufferedSeconds = it.bufferedPosition / 1000
-            android.util.Log.d("VideoPlayer", "📊 [后台播放器] 已缓冲: ${bufferedSeconds}秒")
+            plog("📊 [后台播放器] 已缓冲: ${bufferedSeconds}秒")
         }
     }
     
@@ -5295,23 +5295,24 @@ class VideoPlayerActivity : AppCompatActivity() {
      * 播放短剧剧集（带自动解析嗅探）
      */
     private fun playShortDramaEpisode(episode: ShortDramaEpisode, retryCount: Int = 0) {
-        android.util.Log.d("VideoPlayer", "播放短剧剧集: ${episode.name}, url=${episode.url}, videoId=${episode.videoId}, retryCount=$retryCount")
+        plog("播放短剧剧集: ${episode.name}, url=${episode.url}, videoId=${episode.videoId}, retryCount=$retryCount")
         
         binding.titleText.text = "$videoTitle - ${episode.name}"
         hasSkippedIntro = false
         hasSkippedAd = false  // 新的一集：片头广告重新可跳
         
-        // 检查是否有预加载的URL
-        if (preloadedNextEpisodeUrl != null && preloadedNextEpisodeUrl!!.isNotEmpty()) {
-            android.util.Log.d("VideoPlayer", "✅ 使用预加载的URL: $preloadedNextEpisodeUrl")
-            episode.url = preloadedNextEpisodeUrl!!
+        // 检查是否有预加载的URL（先取局部快照，避免字段状态被并发改写导致非空断言失效）
+        val preloadedUrl = preloadedNextEpisodeUrl
+        if (!preloadedUrl.isNullOrEmpty()) {
+            plog("✅ 使用预加载的URL: $preloadedUrl")
+            episode.url = preloadedUrl
             // 清空预加载URL，避免重复使用
             preloadedNextEpisodeUrl = null
         }
         
         // 如果URL为空但有videoId，需要先获取播放地址
         if (episode.url.isEmpty() && episode.videoId.isNotEmpty()) {
-            android.util.Log.d("VideoPlayer", "URL为空，开始获取播放地址: videoId=${episode.videoId}")
+            plog("URL为空，开始获取播放地址: videoId=${episode.videoId}")
             Toast.makeText(this, "正在获取播放地址...", Toast.LENGTH_SHORT).show()
             
             // 显示加载状态
@@ -5324,7 +5325,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                     
                     if (realUrl.isNotEmpty()) {
                         episode.url = realUrl
-                        android.util.Log.d("VideoPlayer", "获取播放地址成功: $realUrl")
+                        plog("获取播放地址成功: $realUrl")
                         
                         // 加载并播放视频（会自动嗅探）
                         viewModel.loadVideo(
@@ -5422,7 +5423,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         // 如果剩余时间小于阈值，开始预加载
         if (remainingSeconds <= preloadThresholdSeconds && remainingSeconds > 0) {
             if (isShortDrama && shortDramaManager.hasNextEpisode()) {
-                android.util.Log.d("VideoPlayer", "触发预加载：剩余 $remainingSeconds 秒，开始预加载下一集")
+                plog("触发预加载：剩余 $remainingSeconds 秒，开始预加载下一集")
                 hasTriggeredPreload = true
                 preloadNextShortDramaEpisode()  // 启用预加载功能
             }
@@ -5443,7 +5444,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                 val nextEpisode = shortDramaManager.getEpisodeAt(nextEpisodeIndex)
                 
                 if (nextEpisode != null) {
-                    android.util.Log.d("VideoPlayer", "⏳ [预加载] 开始预加载下一集: ${nextEpisode.name}, videoId=${nextEpisode.videoId}")
+                    plog("⏳ [预加载] 开始预加载下一集: ${nextEpisode.name}, videoId=${nextEpisode.videoId}")
                     val startTime = System.currentTimeMillis()
                     
                     // 如果URL为空，需要获取
@@ -5452,7 +5453,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                         if (url.isNotEmpty()) {
                             nextEpisode.url = url
                             preloadedNextEpisodeUrl = url
-                            android.util.Log.d("VideoPlayer", "✅ [预加载] URL获取成功: $url (耗时: ${System.currentTimeMillis() - startTime}ms)")
+                            plog("✅ [预加载] URL获取成功: $url (耗时: ${System.currentTimeMillis() - startTime}ms)")
                             url
                         } else {
                             android.util.Log.e("VideoPlayer", "❌ [预加载] URL获取失败")
@@ -5460,7 +5461,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                         }
                     } else {
                         preloadedNextEpisodeUrl = nextEpisode.url
-                        android.util.Log.d("VideoPlayer", "✅ [预加载] URL已存在: ${nextEpisode.url}")
+                        plog("✅ [预加载] URL已存在: ${nextEpisode.url}")
                         nextEpisode.url
                     }
                     
@@ -5484,7 +5485,7 @@ class VideoPlayerActivity : AppCompatActivity() {
      */
     private fun prepareBackgroundPlayer(videoUrl: String) {
         try {
-            android.util.Log.d("VideoPlayer", "🎬 [后台播放器] 开始准备播放器")
+            plog("🎬 [后台播放器] 开始准备播放器")
             
             // 释放旧的后台播放器
             releaseBackgroundPlayer()
@@ -5516,14 +5517,14 @@ class VideoPlayerActivity : AppCompatActivity() {
                                 com.google.android.exoplayer2.Player.STATE_READY -> {
                                     isBackgroundPlayerReady = true
                                     val bufferedMs = bufferedPosition
-                                    android.util.Log.d("VideoPlayer", "✅ [后台播放器] 准备完成，已缓冲: ${bufferedMs / 1000}秒")
+                                    plog("✅ [后台播放器] 准备完成，已缓冲: ${bufferedMs / 1000}秒")
                                 }
                                 com.google.android.exoplayer2.Player.STATE_BUFFERING -> {
                                     val bufferedMs = bufferedPosition
-                                    android.util.Log.d("VideoPlayer", "⏳ [后台播放器] 正在缓冲: ${bufferedMs / 1000}秒")
+                                    plog("⏳ [后台播放器] 正在缓冲: ${bufferedMs / 1000}秒")
                                 }
                                 com.google.android.exoplayer2.Player.STATE_ENDED -> {
-                                    android.util.Log.d("VideoPlayer", "⏹️ [后台播放器] 缓冲结束")
+                                    plog("⏹️ [后台播放器] 缓冲结束")
                                 }
                             }
                         }
@@ -5551,7 +5552,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             backgroundPlayer?.setMediaSource(mediaSource)
             backgroundPlayer?.prepare()
             
-            android.util.Log.d("VideoPlayer", "🎬 [后台播放器] 已开始缓冲: $videoUrl")
+            plog("🎬 [后台播放器] 已开始缓冲: $videoUrl")
             
         } catch (e: Exception) {
             android.util.Log.e("VideoPlayer", "❌ [后台播放器] 创建失败: ${e.message}", e)
@@ -5617,7 +5618,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                 }
             }
         }
-        countdownHandler.post(countdownRunnable!!)
+        countdownRunnable?.let { countdownHandler.post(it) }
     }
     
     /**
@@ -5643,7 +5644,7 @@ class VideoPlayerActivity : AppCompatActivity() {
      * 立即播放下一集
      */
     private fun playNextEpisodeImmediately() {
-        android.util.Log.d("VideoPlayer", "🚀 [立即播放] 开始播放下一集")
+        plog("🚀 [立即播放] 开始播放下一集")
         
         // 如果后台播放器已准备好，直接切换
         if (isBackgroundPlayerReady && backgroundPlayer != null) {
@@ -5656,7 +5657,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             
             // 触发播放下一集
             shortDramaManager.onPlaybackEnded { episode ->
-                android.util.Log.d("VideoPlayer", "收到下一集回调: ${episode.name}")
+                plog("收到下一集回调: ${episode.name}")
                 
                 // 如果已经预加载了URL，直接使用
                 if (!episode.url.isEmpty()) {
@@ -5673,7 +5674,7 @@ class VideoPlayerActivity : AppCompatActivity() {
      */
     private fun switchToBackgroundPlayer() {
         try {
-            android.util.Log.d("VideoPlayer", "🔄 [切换播放器] 开始切换")
+            plog("🔄 [切换播放器] 开始切换")
             
             // 1. 停止并释放当前播放器
             exoPlayerManager.pause()
@@ -5692,7 +5693,7 @@ class VideoPlayerActivity : AppCompatActivity() {
                 // 注意：这里需要修改ExoPlayerManager支持传入已有播放器
                 // 暂时使用直接操作的方式
                 
-                android.util.Log.d("VideoPlayer", "✅ [切换播放器] 切换成功，开始播放")
+                plog("✅ [切换播放器] 切换成功，开始播放")
                 
                 // 更新UI
                 updatePlayPauseButton()
@@ -5900,7 +5901,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             try {
                 @Suppress("DEPRECATION")
                 enterPictureInPictureMode()
-                android.util.Log.d("VideoPlayer", "进入画中画模式（旧API）")
+                plog("进入画中画模式（旧API）")
             } catch (e: Exception) {
                 android.util.Log.e("VideoPlayer", "进入画中画模式失败: ${e.message}", e)
             }
@@ -5918,7 +5919,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         
         if (isInPictureInPictureMode) {
             // 进入画中画模式 - 收起全部覆盖层，只留画面与一个暂停/继续按钮
-            android.util.Log.d("VideoPlayer", "📺 进入画中画模式")
+            plog("📺 进入画中画模式")
             hideOverlaysForPictureInPicture()
             
             // 确保继续播放
@@ -5928,7 +5929,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             refreshPipActions()
         } else {
             // 退出画中画模式 - 恢复控制UI
-            android.util.Log.d("VideoPlayer", "📺 退出画中画模式")
+            plog("📺 退出画中画模式")
             binding.lockButton.visibility = View.VISIBLE
             showControls()
         }
@@ -5944,7 +5945,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && 
             exoPlayerManager.isPlaying() && 
             !isInPictureInPictureMode) {
-            android.util.Log.d("VideoPlayer", "用户离开，自动进入画中画模式")
+            plog("用户离开，自动进入画中画模式")
             tryEnterPictureInPictureMode()
         }
     }
@@ -6094,3 +6095,14 @@ class VideoPlayerActivity : AppCompatActivity() {
 }
 
 
+
+// ============================================================
+// 调试日志收敛：release 构建不输出调试日志，Log.e / Log.w 不受影响
+// ============================================================
+private const val PLAYER_LOG_TAG = "VideoPlayer"
+
+private fun plog(msg: String) {
+    if (com.tv.ball.BuildConfig.DEBUG) {
+        android.util.Log.d(PLAYER_LOG_TAG, msg)
+    }
+}

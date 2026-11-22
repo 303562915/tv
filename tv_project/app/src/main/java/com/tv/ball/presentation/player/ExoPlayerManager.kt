@@ -310,7 +310,7 @@ class ExoPlayerManager constructor(
                     })
                 }
         }
-        return player!!
+        return requireNotNull(player) { "ExoPlayer 初始化失败：player 未被创建" }
     }
 
     /**

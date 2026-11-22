@@ -382,10 +382,10 @@ class HomeFragment : Fragment() {
                 super.onPageSelected(position)
 
                 // 更新 Tab 样式
-                for (i in 0 until binding.tabLayout.tabCount) {
-                    val tab = binding.tabLayout.getTabAt(i)
-                    (tab?.customView as? TextView)?.let { styleTab(it, i == position) }
-                }
+                refreshTabStyles(position)
+
+                // 记住这次选中的分类：进程被杀 / 冷启动再进来还停在这一页
+                rememberCategory(position)
 
                 // 切到该分类：已有缓存就先把数据推给它那页，只有完全没数据时才发请求
                 renderPage(position)
@@ -409,6 +409,14 @@ class HomeFragment : Fragment() {
             fillViewportIfNeeded(position)
         }
         if (position == binding.viewPager.currentItem) updateListState()
+    }
+
+    /** Tab 样式按「当前是哪一页」重刷一遍（页签是 TabLayoutMediator 按分类下标建的） */
+    private fun refreshTabStyles(selected: Int) {
+        for (i in 0 until binding.tabLayout.tabCount) {
+            val tab = binding.tabLayout.getTabAt(i)
+            (tab?.customView as? TextView)?.let { styleTab(it, i == selected) }
+        }
     }
 
     private fun buildTabView(name: String, selected: Boolean): TextView {
@@ -570,11 +578,36 @@ class HomeFragment : Fragment() {
             }
             val savedPage = savedInstanceState.getInt(KEY_CURRENT_PAGE, -1)
             if (savedPage in categories.indices) rememberedPage = savedPage
+        } else {
+            // 没有 savedInstanceState = 冷启动（进程被杀 / 首次进来），此时只有 SharedPreferences 里
+            // 记着的「上次选中的分类 id」可用；按 id 查下标，id 已不在列表里就回退 0
+            rememberedPage = savedCategoryIndex()
         }
-        if (rememberedPage in categories.indices && rememberedPage != binding.viewPager.currentItem) {
-            binding.viewPager.setCurrentItem(rememberedPage, false)
+        if (rememberedPage in categories.indices) {
+            if (rememberedPage != binding.viewPager.currentItem) {
+                binding.viewPager.setCurrentItem(rememberedPage, false)
+            }
+            // 页签是先按 currentItem(=0) 建出来的，恢复到别的页后要立刻按新页重刷样式
+            refreshTabStyles(rememberedPage)
         }
     }
+
+    /** 上次停留的分类在本列表里的下标；没存过 / 存的 id 已失效都退到 0 */
+    private fun savedCategoryIndex(): Int {
+        val savedId = homePrefs().getInt(KEY_LAST_CATEGORY_ID, NO_CATEGORY)
+        val index = categories.indexOfFirst { it.id == savedId }
+        return if (index >= 0) index else 0
+    }
+
+    /** 切换分类时写入，供下次启动恢复 */
+    private fun rememberCategory(position: Int) {
+        val category = categories.getOrNull(position) ?: return
+        homePrefs().edit().putInt(KEY_LAST_CATEGORY_ID, category.id).apply()
+    }
+
+    /** 首页自己的偏好文件：只存「上次选中的分类 id」这一个键，不和播放设置混在一起 */
+    private fun homePrefs() = requireContext()
+        .getSharedPreferences(PREFS_HOME, android.content.Context.MODE_PRIVATE)
 
     /** 数据回来后再滚：这时 LayoutManager 才有子项可定位 */
     private fun applyPendingScroll() {
@@ -747,6 +780,13 @@ class HomeFragment : Fragment() {
         private const val KEY_SCROLL_POSITIONS = "home_scroll_positions"
         private const val KEY_SCROLL_OFFSETS = "home_scroll_offsets"
         private const val KEY_CURRENT_PAGE = "home_current_page"
+
+        /** 首页偏好文件 / 键：进程级记忆之外，跨进程也要记住上次选中的分类 */
+        private const val PREFS_HOME = "home_prefs"
+        private const val KEY_LAST_CATEGORY_ID = "home_last_category_id"
+
+        /** 没有存过分类 id 时的哨兵值（真实分类 id 都是正整数） */
+        private const val NO_CATEGORY = -1
 
         /** 进程内记忆：MainActivity 用 replace() 换页时拿不到 savedInstanceState，这里兜底 */
         private val scrollMemory = mutableMapOf<Int, Pair<Int, Int>>()

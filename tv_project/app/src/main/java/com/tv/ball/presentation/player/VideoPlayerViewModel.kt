@@ -270,7 +270,7 @@ class VideoPlayerViewModel(
                             
                             // 优化：使用实时回调，一旦找到链接立即播放
                             val sniffer = VideoLinkSniffer(
-                                context!!,
+                                requireNotNull(context) { "context 未初始化，无法进行 WebView 嗅探" },
                                 onProgressUpdate = { progress ->
                                     android.util.Log.d("VideoPlayerViewModel", "嗅探进度: $progress")
                                     _playerState.value = PlayerState.LoadingWithMessage(progress)

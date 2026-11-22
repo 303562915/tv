@@ -173,6 +173,8 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(database: SupportSQLiteDatabase) {
                 // 清理重复的历史记录，只保留每个标题的最新记录
                 // 1. 创建临时表
+                //    注意：这里必须提前带上 videoSource 列，否则 6->7 结束时表结构与
+                //    HistoryEntity 不一致，Room 会抛 "Migration didn't properly handle: history"。
                 database.execSQL("""
                     CREATE TABLE IF NOT EXISTS history_temp (
                         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -185,15 +187,23 @@ abstract class AppDatabase : RoomDatabase() {
                         lastWatchedAt INTEGER NOT NULL,
                         detailUrl TEXT,
                         episodesJson TEXT,
-                        currentEpisode TEXT
+                        currentEpisode TEXT,
+                        videoSource TEXT
                     )
                 """)
                 
                 // 2. 创建复合唯一索引
+                //    索引名与列顺序必须严格等于 HistoryEntity 的
+                //    @Entity(indices = [Index(value = ["videoTitle", "currentEpisode", "videoSource"], unique = true)])
+                //    Room 期望的自动命名是 index_history_<col1>_<col2>_<col3>。
                 database.execSQL("""
-                    CREATE UNIQUE INDEX IF NOT EXISTS index_history_temp_videoTitle_currentEpisode 
-                    ON history_temp(videoTitle, currentEpisode)
+                    CREATE UNIQUE INDEX IF NOT EXISTS index_history_videoTitle_currentEpisode_videoSource 
+                    ON history_temp(videoTitle, currentEpisode, videoSource)
                 """)
+                
+                // 2.1 清掉旧版本误建的临时索引名（若存在），避免遗留错名索引
+                database.execSQL("DROP INDEX IF EXISTS index_history_temp_videoTitle_currentEpisode")
+                
                 
                 // 3. 只保留每个 videoTitle 的最新记录
                 database.execSQL("""
@@ -255,6 +265,11 @@ abstract class AppDatabase : RoomDatabase() {
                 """)
                 
                 // 2. 创建复合唯一索引（videoTitle + currentEpisode + videoSource）
+                //    SQLite 的索引名是库级唯一的；若 history 表上已存在同名索引，
+                //    下面的 IF NOT EXISTS 会被静默跳过，随后 DROP TABLE history 会把索引一起带走，
+                //    重命名后 history 变成无索引表 -> Room 校验失败 -> 清库。
+                //    因此先删掉同名旧索引，保证索引确实建在 history_new 上。
+                database.execSQL("DROP INDEX IF EXISTS index_history_videoTitle_currentEpisode_videoSource")
                 database.execSQL("""
                     CREATE UNIQUE INDEX IF NOT EXISTS index_history_videoTitle_currentEpisode_videoSource 
                     ON history_new(videoTitle, currentEpisode, videoSource)
@@ -281,6 +296,17 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(database: SupportSQLiteDatabase) {
                 // 收藏分类：TEXT 可空，旧记录自动为 NULL（=「未分类」），无需回填
                 database.execSQL("ALTER TABLE favorites ADD COLUMN category TEXT")
+
+                // 索引名兜底修正（幂等，重复执行无副作用）
+                // 早期 6->7 迁移把唯一索引建成 index_history_temp_videoTitle_currentEpisode，
+                // 与 HistoryEntity 声明的 index_history_videoTitle_currentEpisode_videoSource 不一致。
+                // 任何从 <=10 升上来的库都会经过本迁移，这里统一改名 + 校正列序，
+                // 避免 Room 抛 "Migration didn't properly handle" 被 fallbackToDestructiveMigration 清库。
+                database.execSQL("DROP INDEX IF EXISTS index_history_temp_videoTitle_currentEpisode")
+                database.execSQL("""
+                    CREATE UNIQUE INDEX IF NOT EXISTS index_history_videoTitle_currentEpisode_videoSource 
+                    ON history(videoTitle, currentEpisode, videoSource)
+                """)
             }
         }
     }

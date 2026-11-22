@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import com.tv.ball.databinding.ActivitySearchBinding
 import com.tv.ball.presentation.detail.VideoDetailActivity
@@ -30,6 +31,13 @@ class SearchActivity : AppCompatActivity() {
     private lateinit var videoAdapter: VideoListAdapter
     private lateinit var rankingAdapter: RankingAdapter
     private var isRankingMode = true
+
+    /** 榜单全量（接口一次吐完，没有分页参数）；下面两个变量是本地分批展示的游标 */
+    private var allRankings: List<com.tv.ball.presentation.ranking.RankingItem> = emptyList()
+    private var rankingShownCount = 0
+
+    /** 追加下一页的防抖：submitList 还没落地时不重复追加 */
+    private var isLoadingMoreRanking = false
 
     /** 输入防抖：连续敲键只发最后一次请求。 */
     private val debounceHandler = Handler(Looper.getMainLooper())
@@ -80,6 +88,38 @@ class SearchActivity : AppCompatActivity() {
             // 点击榜单项，搜索该视频
             setSearchText(rankingItem.title)
             performSearch()
+        }
+
+        setupRankingPaging()
+    }
+
+    /**
+     * 榜单分页：接口 api.52vmy.cn/api/wl/top/tv 没有 page/size 参数，一次就把全量榜单吐回来，
+     * 所以做本地分批展示——先给 30 条，滚到底再追加 30 条。
+     * 一屏直接绑几十上百条 item 会同时触发几十次封面请求，滚动也更容易掉帧。
+     */
+    private fun setupRankingPaging() {
+        binding.rvSearchResults.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                if (dy <= 0) return
+                appendNextRankingPageIfNeeded()
+            }
+        })
+    }
+
+    /** 滚到「已展示的最后一条」时追加下一页；防抖靠 isLoadingMoreRanking，到底后自然停 */
+    private fun appendNextRankingPageIfNeeded() {
+        if (!isRankingMode || isLoadingMoreRanking) return
+        if (allRankings.size <= rankingShownCount) return
+        val layoutManager = binding.rvSearchResults.layoutManager as? LinearLayoutManager ?: return
+        if (layoutManager.findLastVisibleItemPosition() < rankingShownCount - 1) return
+
+        isLoadingMoreRanking = true
+        rankingShownCount = minOf(rankingShownCount + RANKING_PAGE_SIZE, allRankings.size)
+        rankingAdapter.submitList(allRankings.take(rankingShownCount)) {
+            isLoadingMoreRanking = false
+            // 新的一页如果不满一屏就不会再有 onScrolled，这里补一次检查，接着续下一页
+            binding.rvSearchResults.post { appendNextRankingPageIfNeeded() }
         }
     }
 
@@ -237,6 +277,9 @@ class SearchActivity : AppCompatActivity() {
             switchToSearchMode()
         }
 
+        // 切换高亮关键词要在 submitList 之前落好：结果回来时 onBind 读的就是当前这次的词
+        videoAdapter.highlightQuery = query
+
         // 使用多站点搜索
         viewModel.searchMultiSites(query)
     }
@@ -266,9 +309,15 @@ class SearchActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             viewModel.rankingList.collect { rankings ->
-                rankingAdapter.submitList(rankings)
+                // 换了一份榜单：游标归零，重新从第一页开始展示
+                allRankings = rankings
+                rankingShownCount = minOf(RANKING_PAGE_SIZE, rankings.size)
+                isLoadingMoreRanking = false
+                rankingAdapter.submitList(rankings.take(rankingShownCount))
                 if (isRankingMode) {
                     binding.tvNoResults.visibility = if (rankings.isEmpty()) View.VISIBLE else View.GONE
+                    // 首批不满一屏时不会触发滚动，补一次检查把后面的页续上
+                    binding.rvSearchResults.post { appendNextRankingPageIfNeeded() }
                 }
             }
         }
@@ -311,5 +360,8 @@ class SearchActivity : AppCompatActivity() {
     private companion object {
         /** 输入防抖窗口：连续敲键后 300ms 才真正发请求。 */
         const val SEARCH_DEBOUNCE_MS = 300L
+
+        /** 榜单本地分批的大小：一次展示 / 追加 30 条。 */
+        const val RANKING_PAGE_SIZE = 30
     }
 }

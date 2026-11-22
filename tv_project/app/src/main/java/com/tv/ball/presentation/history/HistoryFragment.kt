@@ -145,6 +145,19 @@ class HistoryFragment : Fragment() {
                 target: RecyclerView.ViewHolder
             ): Boolean = false
 
+            /**
+             * 分组标题不参与滑删：不给任何方向，连「滑出去再弹回来」的抖动都不会发生。
+             * 条目仍然左右都可滑，滑走时按 bindingAdapterPosition 取到的是条目本身。
+             */
+            override fun getMovementFlags(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder
+            ): Int = if (adapter.isSwipeableHolder(viewHolder)) {
+                makeMovementFlags(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT)
+            } else {
+                makeMovementFlags(0, 0)
+            }
+
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.bindingAdapterPosition
                 if (position == RecyclerView.NO_POSITION) return
