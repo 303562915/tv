@@ -230,7 +230,7 @@
                     android:layout_height="wrap_content"
                     android:textAppearance="@style/TextAppearance.TVPlayer.Body"
                     android:textColor="@color/theme_primary"
-                    android:textSize="20sp"
+                    android:textSize="@dimen/text_headline"
                     android:textStyle="bold" />
 
                 <!-- 只做展示：电视上 D-Pad 左右键留给焦点导航，位置由下面两个按钮微调 -->

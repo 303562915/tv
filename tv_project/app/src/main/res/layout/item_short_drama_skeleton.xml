@@ -14,7 +14,7 @@
     android:layout_margin="4dp"
     android:clickable="false"
     android:focusable="false"
-    app:cardCornerRadius="8dp"
+    app:cardCornerRadius="@dimen/radius_sm"
     app:cardElevation="2dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout

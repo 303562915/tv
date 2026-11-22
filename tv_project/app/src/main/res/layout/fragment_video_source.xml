@@ -29,11 +29,11 @@
              只留图标不留文字；44dp 触摸区、图标 24dp，与其他页工具条图标按钮一致 -->
         <ImageButton
             android:id="@+id/btnRefresh"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="重新测速"
-            android:padding="10dp"
+            android:padding="12dp"
             android:scaleType="centerInside"
             android:src="@drawable/ic_fl_bolt"
             app:tint="@color/theme_primary" />

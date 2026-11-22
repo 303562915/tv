@@ -78,7 +78,7 @@
                         android:inputType="text"
                         android:maxLines="1"
                         android:textColor="@color/theme_text_primary"
-                        android:textSize="14sp" />
+                        android:textSize="@dimen/text_body" />
 
                     <Button
                         android:id="@+id/btnAddDir"
@@ -167,7 +167,7 @@
                         android:inputType="text"
                         android:maxLines="1"
                         android:textColor="@color/theme_text_primary"
-                        android:textSize="14sp" />
+                        android:textSize="@dimen/text_body" />
 
                     <Button
                         android:id="@+id/btnAddExt"
@@ -237,7 +237,7 @@
                         android:inputType="text"
                         android:maxLines="1"
                         android:textColor="@color/theme_text_primary"
-                        android:textSize="14sp" />
+                        android:textSize="@dimen/text_body" />
 
                     <Button
                         android:id="@+id/btnTest"
@@ -254,7 +254,7 @@
                     android:layout_marginTop="@dimen/card_gap"
                     android:text="@string/f023_verdict_idle"
                     android:textColor="@color/theme_text_primary"
-                    android:textSize="16sp" />
+                    android:textSize="@dimen/text_title" />
 
                 <TextView
                     android:id="@+id/testRule"

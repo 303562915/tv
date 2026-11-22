@@ -74,7 +74,7 @@
                     android:scrollbars="vertical"
                     android:textColor="@color/theme_text_primary"
                     android:textColorHint="@color/theme_text_secondary"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/text_body" />
 
                 <TextView
                     android:id="@+id/f015SampleSize"
@@ -110,7 +110,7 @@
                         android:paddingBottom="12dp"
                         android:text="@string/f015_sample_utf8"
                         android:textColor="@color/theme_text_primary"
-                        android:textSize="14sp" />
+                        android:textSize="@dimen/text_body" />
 
                     <TextView
                         android:id="@+id/f015SampleGbk"
@@ -133,7 +133,7 @@
                         android:paddingBottom="12dp"
                         android:text="@string/f015_sample_gbk"
                         android:textColor="@color/theme_text_primary"
-                        android:textSize="14sp" />
+                        android:textSize="@dimen/text_body" />
 
                     <TextView
                         android:id="@+id/f015SampleUtf16"
@@ -155,7 +155,7 @@
                         android:paddingBottom="12dp"
                         android:text="@string/f015_sample_utf16"
                         android:textColor="@color/theme_text_primary"
-                        android:textSize="14sp" />
+                        android:textSize="@dimen/text_body" />
                 </LinearLayout>
 
                 <TextView
@@ -370,7 +370,7 @@
                     android:lineSpacingExtra="4dp"
                     android:padding="12dp"
                     android:textColor="@color/theme_text_primary"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/text_body" />
 
                 <TextView
                     android:id="@+id/f015PreviewMore"

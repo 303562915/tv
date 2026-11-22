@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="视频流程日志"
-        android:textSize="24sp"
+        android:textSize="@dimen/text_display"
         android:textStyle="bold"
         android:textColor="@color/theme_text_primary"
         android:paddingBottom="16dp" />
@@ -26,7 +26,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="暂无日志\n\n播放视频后会自动记录流程日志"
-            android:textSize="14sp"
+            android:textSize="@dimen/text_body"
             android:textColor="@color/theme_text_secondary"
             android:lineSpacingExtra="4dp" />
 

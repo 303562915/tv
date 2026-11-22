@@ -238,7 +238,7 @@
                             android:layout_height="wrap_content"
                             android:text="聚合解析"
                             android:textColor="?android:attr/textColorPrimary"
-                            android:textSize="16sp"
+                            android:textSize="@dimen/text_title"
                             android:textStyle="bold" />
 
                         <TextView
@@ -247,7 +247,7 @@
                             android:layout_marginTop="4dp"
                             android:text="支持各大平台视频图文无水印提取"
                             android:textColor="?android:attr/textColorSecondary"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/text_caption" />
                     </LinearLayout>
 
                     <TextView
@@ -256,7 +256,7 @@
                         android:layout_marginStart="8dp"
                         android:text="›"
                         android:textColor="?android:attr/textColorSecondary"
-                        android:textSize="24sp" />
+                        android:textSize="@dimen/text_display" />
                 </LinearLayout>
 
                 <View
@@ -289,7 +289,7 @@
                             android:layout_height="wrap_content"
                             android:text="下载管理"
                             android:textColor="?android:attr/textColorPrimary"
-                            android:textSize="16sp"
+                            android:textSize="@dimen/text_title"
                             android:textStyle="bold" />
 
                         <TextView
@@ -298,7 +298,7 @@
                             android:layout_marginTop="4dp"
                             android:text="管理离线视频下载"
                             android:textColor="?android:attr/textColorSecondary"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/text_caption" />
                     </LinearLayout>
 
                     <TextView
@@ -307,7 +307,7 @@
                         android:layout_marginStart="8dp"
                         android:text="›"
                         android:textColor="?android:attr/textColorSecondary"
-                        android:textSize="24sp" />
+                        android:textSize="@dimen/text_display" />
                 </LinearLayout>
 
                 <View
@@ -340,7 +340,7 @@
                             android:layout_height="wrap_content"
                             android:text="免费短剧"
                             android:textColor="?android:attr/textColorPrimary"
-                            android:textSize="16sp"
+                            android:textSize="@dimen/text_title"
                             android:textStyle="bold" />
 
                         <TextView
@@ -349,7 +349,7 @@
                             android:layout_marginTop="4dp"
                             android:text="在做了 免费的短视频短剧"
                             android:textColor="?android:attr/textColorSecondary"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/text_caption" />
                     </LinearLayout>
 
                     <TextView
@@ -358,7 +358,7 @@
                         android:layout_marginStart="8dp"
                         android:text="›"
                         android:textColor="?android:attr/textColorSecondary"
-                        android:textSize="24sp"
+                        android:textSize="@dimen/text_display"
                         android:visibility="gone" />
                 </LinearLayout>
 
@@ -392,7 +392,7 @@
                             android:layout_height="wrap_content"
                             android:text="内置浏览器"
                             android:textColor="?android:attr/textColorPrimary"
-                            android:textSize="16sp"
+                            android:textSize="@dimen/text_title"
                             android:textStyle="bold" />
 
                         <TextView
@@ -401,7 +401,7 @@
                             android:layout_marginTop="4dp"
                             android:text="智能嗅探视频资源，一键下载播放"
                             android:textColor="?android:attr/textColorSecondary"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/text_caption" />
                     </LinearLayout>
 
                     <TextView
@@ -410,7 +410,7 @@
                         android:layout_marginStart="8dp"
                         android:text="›"
                         android:textColor="?android:attr/textColorSecondary"
-                        android:textSize="24sp" />
+                        android:textSize="@dimen/text_display" />
                 </LinearLayout>
 
                 <View
@@ -443,7 +443,7 @@
                             android:layout_height="wrap_content"
                             android:text="视频流程日志"
                             android:textColor="?android:attr/textColorPrimary"
-                            android:textSize="16sp"
+                            android:textSize="@dimen/text_title"
                             android:textStyle="bold" />
 
                         <TextView
@@ -452,7 +452,7 @@
                             android:layout_marginTop="4dp"
                             android:text="查看从嗅探到播放的完整日志，长按复制"
                             android:textColor="?android:attr/textColorSecondary"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/text_caption" />
                     </LinearLayout>
 
                     <TextView
@@ -461,7 +461,7 @@
                         android:layout_marginStart="8dp"
                         android:text="›"
                         android:textColor="?android:attr/textColorSecondary"
-                        android:textSize="24sp" />
+                        android:textSize="@dimen/text_display" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -507,7 +507,7 @@
                             android:layout_height="wrap_content"
                             android:text="扩列交友"
                             android:textColor="?android:attr/textColorPrimary"
-                            android:textSize="16sp"
+                            android:textSize="@dimen/text_title"
                             android:textStyle="bold" />
 
                         <TextView
@@ -516,7 +516,7 @@
                             android:layout_marginTop="4dp"
                             android:text="正在开发 有意见可以提提"
                             android:textColor="?android:attr/textColorSecondary"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/text_caption" />
                     </LinearLayout>
 
                     <TextView
@@ -525,7 +525,7 @@
                         android:layout_marginStart="8dp"
                         android:text="›"
                         android:textColor="?android:attr/textColorSecondary"
-                        android:textSize="24sp"
+                        android:textSize="@dimen/text_display"
                         android:visibility="gone" />
                 </LinearLayout>
 
@@ -559,7 +559,7 @@
                             android:layout_height="wrap_content"
                             android:text="官网"
                             android:textColor="?android:attr/textColorPrimary"
-                            android:textSize="16sp"
+                            android:textSize="@dimen/text_title"
                             android:textStyle="bold" />
 
                         <TextView
@@ -568,7 +568,7 @@
                             android:layout_marginTop="4dp"
                             android:text="官网反馈 越来越好用"
                             android:textColor="?android:attr/textColorSecondary"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/text_caption" />
                     </LinearLayout>
 
                     <TextView
@@ -577,7 +577,7 @@
                         android:layout_marginStart="8dp"
                         android:text="›"
                         android:textColor="?android:attr/textColorSecondary"
-                        android:textSize="24sp" />
+                        android:textSize="@dimen/text_display" />
                 </LinearLayout>
 
                 <View
@@ -610,7 +610,7 @@
                             android:layout_height="wrap_content"
                             android:text="软件分享"
                             android:textColor="?android:attr/textColorPrimary"
-                            android:textSize="16sp"
+                            android:textSize="@dimen/text_title"
                             android:textStyle="bold" />
 
                         <TextView
@@ -619,7 +619,7 @@
                             android:layout_marginTop="4dp"
                             android:text="分享给你好友 安利宝藏软件"
                             android:textColor="?android:attr/textColorSecondary"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/text_caption" />
                     </LinearLayout>
 
                     <TextView
@@ -628,7 +628,7 @@
                         android:layout_marginStart="8dp"
                         android:text="›"
                         android:textColor="?android:attr/textColorSecondary"
-                        android:textSize="24sp" />
+                        android:textSize="@dimen/text_display" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

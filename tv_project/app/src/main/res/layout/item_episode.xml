@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 选集格子：未选中 block 底；当前集由代码改实心 primary；圆角 8dp -->
+<!-- 选集格子（目前只有 detail.GroupedEpisodeAdapter 在用；详情页 6 列网格用的是 item_episode_detail.xml）
+     未选中 block 底；当前集由代码改实心 primary；圆角 radius_sm。
+     结构：上「集号」、下「剧集名」两行，集号 44dp 高保证触摸目标够大 -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -20,24 +22,48 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <TextView
-            android:id="@+id/tvEpisode"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="40dp"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
-            android:textSize="14sp"
-            android:textStyle="normal"
-            android:textColor="@color/episode_text_color"
-            android:gravity="center"
-            android:maxLines="2"
-            android:ellipsize="end"
-            tools:text="1集" />
+            android:orientation="vertical">
 
-        <!-- 「上次看到这一集」的小角标：只有带历史记录的那一格显示，显隐由 GroupedEpisodeAdapter 控制 -->
+            <!-- 集号：单行，超长截断；minHeight 44dp 保证触摸目标不低于无障碍下限 -->
+            <TextView
+                android:id="@+id/tvEpisode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="44dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="2dp"
+                android:textSize="@dimen/text_body"
+                android:textStyle="normal"
+                android:textColor="@color/episode_text_color"
+                android:gravity="center"
+                android:maxLines="1"
+                android:ellipsize="end"
+                tools:text="1" />
+
+            <!-- 剧集名：单行截断，避免「第X集 某某某某」这类名字把格子撑成两行 -->
+            <TextView
+                android:id="@+id/tvEpisodeName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="8dp"
+                android:textSize="10sp"
+                android:textColor="@color/theme_text_secondary"
+                android:gravity="center"
+                android:maxLines="1"
+                android:ellipsize="end"
+                tools:text="第1集" />
+
+        </LinearLayout>
+
+        <!-- 历史遗留角标：本布局只剩 GroupedEpisodeAdapter 在读它（grep 确认该适配器 0 处外部引用）。
+             详情页的「上次看到」统一用 2dp 主题色描边表达，代码里此控件持续 GONE，不要再拿它表达高亮。 -->
         <TextView
             android:id="@+id/lastWatchedBadge"
             android:layout_width="wrap_content"

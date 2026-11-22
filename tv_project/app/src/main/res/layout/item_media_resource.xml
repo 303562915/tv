@@ -35,7 +35,7 @@
                 android:paddingEnd="8dp"
                 android:paddingBottom="2dp"
                 android:textColor="@color/theme_text_secondary"
-                android:textSize="12sp"
+                android:textSize="@dimen/text_caption"
                 tools:text="视频" />
 
             <TextView
@@ -44,7 +44,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:textColor="@color/theme_text_secondary"
-                android:textSize="12sp"
+                android:textSize="@dimen/text_caption"
                 tools:text="25.6 MB" />
 
         </LinearLayout>
@@ -80,7 +80,7 @@
                 android:paddingEnd="16dp"
                 android:text="播放"
                 android:textColor="@color/theme_text_primary"
-                android:textSize="14sp" />
+                android:textSize="@dimen/text_body" />
 
             <!-- 主操作：实心 primary -->
             <Button
@@ -92,7 +92,7 @@
                 android:paddingEnd="16dp"
                 android:text="下载"
                 android:textColor="@color/theme_on_primary"
-                android:textSize="14sp" />
+                android:textSize="@dimen/text_body" />
 
         </LinearLayout>
 

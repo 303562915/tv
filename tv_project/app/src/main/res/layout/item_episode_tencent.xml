@@ -4,8 +4,9 @@
     android:id="@+id/episodeCard"
     style="@style/Widget.TVPlayer.Card"
     android:layout_width="match_parent"
-    android:layout_height="64dp"
+    android:layout_height="wrap_content"
     android:layout_margin="4dp"
+    android:minHeight="60dp"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
@@ -19,7 +20,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:gravity="center"
-        android:padding="4dp">
+        android:padding="2dp">
 
         <!-- VIP 标签 -->
         <TextView
@@ -42,16 +43,16 @@
         <TextView
             android:id="@+id/episodeNumber"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:minHeight="28dp"
             android:gravity="center"
             android:text="1"
             android:textColor="@color/theme_text_primary"
             android:textSize="15sp"
             android:textStyle="bold"
             android:autoSizeTextType="uniform"
-            android:autoSizeMinTextSize="12sp"
-            android:autoSizeMaxTextSize="15sp"
+            android:autoSizeMinTextSize="13sp"
+            android:autoSizeMaxTextSize="16sp"
             android:autoSizeStepGranularity="1sp"
             android:maxLines="1" />
 
@@ -67,8 +68,8 @@
             android:maxLines="1"
             android:ellipsize="end"
             android:autoSizeTextType="uniform"
-            android:autoSizeMinTextSize="7sp"
-            android:autoSizeMaxTextSize="9sp"
+            android:autoSizeMinTextSize="9sp"
+            android:autoSizeMaxTextSize="11sp"
             android:autoSizeStepGranularity="1sp" />
     </LinearLayout>
 

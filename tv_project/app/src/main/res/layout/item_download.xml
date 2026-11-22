@@ -91,7 +91,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="1920x1040~sOZy9HAUjr.mp4 (继传: 确定)"
-                    android:textSize="14sp"
+                    android:textSize="@dimen/text_body"
                     android:textColor="@color/theme_text_primary"
                     android:maxLines="1"
                     android:ellipsize="end"
@@ -104,7 +104,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="10% | 100MB - 第 20 个，共 3238 个"
-                    android:textSize="12sp"
+                    android:textSize="@dimen/text_caption"
                     android:textColor="@color/theme_text_secondary"
                     android:maxLines="1"
                     android:ellipsize="end"
@@ -128,7 +128,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="错误: HTTP 403 Forbidden"
-                    android:textSize="12sp"
+                    android:textSize="@dimen/text_caption"
                     android:textColor="@color/theme_error"
                     android:maxLines="1"
                     android:ellipsize="end"
@@ -150,7 +150,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="(续传: 确定)"
-                    android:textSize="12sp"
+                    android:textSize="@dimen/text_caption"
                     android:textColor="@color/theme_text_secondary"
                     android:gravity="end"
                     android:visibility="gone" />
@@ -168,7 +168,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="已暂停"
-                        android:textSize="12sp"
+                        android:textSize="@dimen/text_caption"
                         android:textColor="@color/theme_text_secondary" />
 
                     <!-- 剩余时间 -->
@@ -177,7 +177,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text=" 3s"
-                        android:textSize="12sp"
+                        android:textSize="@dimen/text_caption"
                         android:textColor="@color/theme_text_secondary"
                         android:layout_marginStart="4dp" />
                 </LinearLayout>
@@ -186,8 +186,9 @@
             <!-- 右侧暂停/播放按钮 -->
             <ImageButton
                 android:id="@+id/ivPlayPause"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="4dp"
                 android:src="@drawable/album_pause_btn"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:scaleType="centerInside"

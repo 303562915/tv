@@ -110,7 +110,7 @@
                         android:fontFamily="monospace"
                         android:text="@string/f076_total_empty"
                         android:textColor="@color/theme_primary"
-                        android:textSize="20sp"
+                        android:textSize="@dimen/text_headline"
                         android:textStyle="bold" />
                 </LinearLayout>
 

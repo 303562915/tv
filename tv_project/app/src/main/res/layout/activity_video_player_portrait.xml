@@ -50,7 +50,7 @@
                 android:layout_marginTop="8dp"
                 android:text="正在缓冲"
                 android:textColor="@android:color/white"
-                android:textSize="14sp" />
+                android:textSize="@dimen/text_body" />
         </LinearLayout>
 
         <!-- 手势反馈提示 -->
@@ -62,7 +62,7 @@
             android:background="@drawable/gesture_hint_background"
             android:padding="16dp"
             android:textColor="@color/theme_text_primary"
-            android:textSize="16sp"
+            android:textSize="@dimen/text_title"
             android:visibility="gone" />
 
         <!-- 错误提示 -->
@@ -72,7 +72,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:textColor="@android:color/white"
-            android:textSize="16sp"
+            android:textSize="@dimen/text_title"
             android:visibility="gone" />
 
         <!-- 顶部工具栏 -->
@@ -93,10 +93,11 @@
 
                 <ImageButton
                     android:id="@+id/backButton"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="返回"
+                    android:padding="6dp"
                     android:src="@android:drawable/ic_menu_revert" />
 
                 <TextView
@@ -108,14 +109,15 @@
                     android:ellipsize="marquee"
                     android:singleLine="true"
                     android:textColor="@android:color/white"
-                    android:textSize="16sp" />
+                    android:textSize="@dimen/text_title" />
 
                 <ImageButton
                     android:id="@+id/menuButton"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="菜单"
+                    android:padding="6dp"
                     android:src="@android:drawable/ic_menu_more" />
             </LinearLayout>
         </LinearLayout>
@@ -137,10 +139,11 @@
             <!-- 播放/暂停按钮 -->
             <ImageButton
                 android:id="@+id/playPauseButton"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="播放/暂停"
+                android:padding="6dp"
                 android:src="@android:drawable/ic_media_play" />
 
             <!-- 当前时间 -->
@@ -151,7 +154,7 @@
                 android:layout_marginStart="8dp"
                 android:text="02:21"
                 android:textColor="@android:color/white"
-                android:textSize="12sp" />
+                android:textSize="@dimen/text_caption" />
 
             <!-- 进度条 -->
             <SeekBar
@@ -175,24 +178,26 @@
                 android:layout_marginEnd="8dp"
                 android:text="12:39"
                 android:textColor="@android:color/white"
-                android:textSize="12sp" />
+                android:textSize="@dimen/text_caption" />
 
             <!-- 旋转屏幕按钮 -->
             <ImageButton
                 android:id="@+id/fullscreenButton"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="全屏"
+                android:padding="6dp"
                 android:src="@android:drawable/ic_menu_crop" />
 
             <!-- 下一集按钮 - 竖屏时隐藏 -->
             <ImageButton
                 android:id="@+id/nextButton"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="下一集"
+                android:padding="6dp"
                 android:src="@android:drawable/ic_media_next"
                 android:visibility="gone" />
 
@@ -204,7 +209,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:text="选集"
                 android:textColor="@android:color/white"
-                android:textSize="12sp"
+                android:textSize="@dimen/text_caption"
                 android:visibility="gone" />
         </LinearLayout>
 
@@ -221,10 +226,11 @@
 
             <ImageButton
                 android:id="@+id/lockButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="@android:color/transparent"
                 android:contentDescription="锁定"
+                android:padding="4dp"
                 android:src="@drawable/closure_unlock_btn"
                 android:tint="@android:color/white" />
         </LinearLayout>
@@ -250,7 +256,7 @@
                 android:layout_height="wrap_content"
                 android:text="播放日志"
                 android:textColor="@color/theme_text_primary"
-                android:textSize="14sp"
+                android:textSize="@dimen/text_body"
                 android:textStyle="bold" />
 
             <TextView
@@ -259,7 +265,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:textColor="@color/theme_text_secondary"
-                android:textSize="12sp"
+                android:textSize="@dimen/text_caption"
                 android:fontFamily="monospace"
                 android:text="等待播放..." />
 
@@ -270,7 +276,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:textColor="@color/theme_text_primary"
-                android:textSize="16sp"
+                android:textSize="@dimen/text_title"
                 android:textStyle="bold" />
 
             <TextView
@@ -318,7 +324,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="日志"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/text_caption" />
                     </LinearLayout>
 
                     <!-- 投屏 -->
@@ -342,7 +348,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="投屏"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/text_caption" />
                     </LinearLayout>
 
                     <!-- 快源 -->
@@ -366,7 +372,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="快源"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/text_caption" />
                     </LinearLayout>
 
                     <!-- 外控 -->
@@ -390,7 +396,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="外控"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/text_caption" />
                     </LinearLayout>
 
                     <!-- 离线 -->
@@ -414,7 +420,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="离线"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/text_caption" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -426,7 +432,7 @@
                 android:layout_marginTop="16dp"
                 android:text="视频源"
                 android:textColor="@color/theme_text_primary"
-                android:textSize="14sp"
+                android:textSize="@dimen/text_body"
                 android:textStyle="bold" />
 
             <Spinner
@@ -442,7 +448,7 @@
                 android:layout_marginTop="16dp"
                 android:text="选集"
                 android:textColor="@color/theme_text_primary"
-                android:textSize="14sp"
+                android:textSize="@dimen/text_body"
                 android:textStyle="bold" />
 
             <androidx.recyclerview.widget.RecyclerView

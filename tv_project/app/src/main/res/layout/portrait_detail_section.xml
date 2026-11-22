@@ -74,7 +74,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="二创"
-                    android:textColor="@color/detail_action_tint"
+                    android:textColor="@color/theme_text_secondary"
                     android:textSize="15sp" />
 
                 <View
@@ -108,7 +108,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="讨论"
-                        android:textColor="@color/detail_action_tint"
+                        android:textColor="@color/theme_text_secondary"
                         android:textSize="15sp" />
 
                     <!-- 讨论计数徽标：当前数据模型没有讨论数，默认隐藏 -->
@@ -196,7 +196,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="简介"
-                    android:textColor="@color/detail_action_tint"
+                    android:textColor="@color/theme_text_secondary"
                     android:textSize="12sp" />
 
                 <ImageView
@@ -219,7 +219,7 @@
             android:lineSpacingExtra="2dp"
             android:paddingStart="@dimen/page_margin"
             android:paddingEnd="@dimen/page_margin"
-            android:textColor="@color/detail_action_tint"
+            android:textColor="@color/theme_text_secondary"
             android:textSize="13sp"
             android:visibility="gone" />
 
@@ -232,7 +232,7 @@
             android:paddingStart="@dimen/page_margin"
             android:paddingEnd="@dimen/page_margin"
             android:text="8.5分 · 8118播放"
-            android:textColor="@color/detail_action_tint"
+            android:textColor="@color/theme_text_secondary"
             android:textSize="12sp" />
 
         <!-- ③ 标签行：胶囊标签，只显示已有数据 -->
@@ -256,7 +256,7 @@
                 android:paddingTop="4dp"
                 android:paddingEnd="10dp"
                 android:paddingBottom="4dp"
-                android:textColor="@color/detail_action_tint"
+                android:textColor="@color/theme_text_secondary"
                 android:textSize="12sp" />
 
             <TextView
@@ -269,7 +269,7 @@
                 android:paddingTop="4dp"
                 android:paddingEnd="10dp"
                 android:paddingBottom="4dp"
-                android:textColor="@color/detail_action_tint"
+                android:textColor="@color/theme_text_secondary"
                 android:textSize="12sp" />
 
             <TextView
@@ -283,7 +283,7 @@
                 android:paddingEnd="10dp"
                 android:paddingBottom="4dp"
                 android:text="高清"
-                android:textColor="@color/detail_action_tint"
+                android:textColor="@color/theme_text_secondary"
                 android:textSize="12sp" />
 
             <TextView
@@ -296,7 +296,7 @@
                 android:paddingEnd="10dp"
                 android:paddingBottom="4dp"
                 android:text="会员"
-                android:textColor="@color/detail_action_tint"
+                android:textColor="@color/theme_text_secondary"
                 android:textSize="12sp" />
 
         </LinearLayout>
@@ -335,7 +335,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="下载"
-                    android:textColor="@color/detail_action_tint"
+                    android:textColor="@color/theme_text_secondary"
                     android:textSize="11sp" />
             </LinearLayout>
 
@@ -363,7 +363,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="收藏"
-                    android:textColor="@color/detail_action_tint"
+                    android:textColor="@color/theme_text_secondary"
                     android:textSize="11sp" />
             </LinearLayout>
 
@@ -390,7 +390,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="投屏"
-                    android:textColor="@color/detail_action_tint"
+                    android:textColor="@color/theme_text_secondary"
                     android:textSize="11sp" />
             </LinearLayout>
 
@@ -417,7 +417,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="分享"
-                    android:textColor="@color/detail_action_tint"
+                    android:textColor="@color/theme_text_secondary"
                     android:textSize="11sp" />
             </LinearLayout>
 
@@ -444,7 +444,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="解析"
-                    android:textColor="@color/detail_action_tint"
+                    android:textColor="@color/theme_text_secondary"
                     android:textSize="11sp" />
             </LinearLayout>
 
@@ -491,7 +491,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="全25集"
-                        android:textColor="@color/detail_action_tint"
+                        android:textColor="@color/theme_text_secondary"
                         android:textSize="13sp" />
 
                     <ImageView
@@ -513,7 +513,7 @@
                 app:tabMode="scrollable"
                 app:tabIndicatorColor="@color/theme_primary"
                 app:tabSelectedTextColor="@color/theme_primary"
-                app:tabTextColor="@color/detail_action_tint"
+                app:tabTextColor="@color/theme_text_secondary"
                 app:tabIndicatorHeight="2dp"
                 app:tabTextAppearance="@style/TabTextSmall"
                 app:tabRippleColor="@null"
@@ -552,7 +552,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="暂无内容"
-            android:textColor="@color/detail_action_tint"
+            android:textColor="@color/theme_text_secondary"
             android:textSize="13sp" />
 
     </LinearLayout>

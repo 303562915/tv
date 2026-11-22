@@ -26,11 +26,12 @@
 
             <ImageButton
                 android:id="@+id/btnBack"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/f069_action_back"
                 android:focusable="true"
+                android:padding="4dp"
                 android:src="@drawable/ic_back"
                 app:tint="@color/theme_text_primary" />
 
@@ -67,7 +68,7 @@
             android:minHeight="48dp"
             android:text="@string/f069_switch_label"
             android:textColor="@color/theme_text_primary"
-            android:textSize="14sp" />
+            android:textSize="@dimen/text_body" />
 
         <TextView
             android:layout_width="match_parent"

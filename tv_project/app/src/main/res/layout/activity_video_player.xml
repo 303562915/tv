@@ -70,7 +70,7 @@
             android:layout_marginTop="8dp"
             android:text="正在缓冲"
             android:textColor="@android:color/white"
-            android:textSize="14sp" />
+            android:textSize="@dimen/text_body" />
         
         <TextView
             android:id="@+id/bandwidthText"
@@ -78,7 +78,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:textColor="@android:color/white"
-            android:textSize="12sp"
+            android:textSize="@dimen/text_caption"
             android:visibility="gone" />
 
         <!-- 缓冲小字：STATE_BUFFERING 时显示，复用 loadingView，不新增全屏遮罩 -->
@@ -90,7 +90,7 @@
             android:alpha="0.85"
             android:text="缓冲中…"
             android:textColor="@android:color/white"
-            android:textSize="12sp"
+            android:textSize="@dimen/text_caption"
             android:visibility="gone" />
     </LinearLayout>
 
@@ -289,7 +289,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:textColor="@android:color/white"
-        android:textSize="16sp"
+        android:textSize="@dimen/text_title"
         android:visibility="gone" />
     
     <!-- 网速质量提示 -->
@@ -302,7 +302,7 @@
         android:background="@drawable/gesture_hint_background"
         android:padding="12dp"
         android:textColor="@android:color/white"
-        android:textSize="14sp"
+        android:textSize="@dimen/text_body"
         android:visibility="gone" />
     
     <!-- 跳过片头按钮已移入顶部标题栏右侧（胶囊样式在 topToolbar 内） -->
@@ -318,7 +318,7 @@
         android:background="@drawable/gesture_hint_background"
         android:text="5秒后播放下一集"
         android:textColor="@android:color/white"
-        android:textSize="14sp"
+        android:textSize="@dimen/text_body"
         android:padding="12dp"
         android:visibility="gone" />
 
@@ -344,7 +344,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/white"
-                android:textSize="12sp" />
+                android:textSize="@dimen/text_caption" />
 
             <Space
                 android:layout_width="8dp"
@@ -356,7 +356,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/white"
-                android:textSize="12sp"
+                android:textSize="@dimen/text_caption"
                 android:text="0 KB/s" />
 
             <Space
@@ -368,7 +368,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/white"
-                android:textSize="12sp" />
+                android:textSize="@dimen/text_caption" />
 
             <Space
                 android:layout_width="8dp"
@@ -394,11 +394,11 @@
 
             <ImageButton
                 android:id="@+id/backButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="返回"
-                android:padding="8dp"
+                android:padding="12dp"
                 android:src="@drawable/ic_back_tencent_style"
                 android:scaleType="centerInside"
                 android:tint="@color/player_control_icon" />
@@ -412,7 +412,7 @@
                 android:ellipsize="end"
                 android:singleLine="true"
                 android:textColor="@color/player_control_text"
-                android:textSize="16sp" />
+                android:textSize="@dimen/text_title" />
 
             <!-- 跳过片头（胶囊按钮，横屏顶部右侧） -->
             <Button
@@ -556,7 +556,7 @@
                 android:layout_height="wrap_content"
                 android:text="检测到更快路线"
                 android:textColor="@color/theme_on_primary"
-                android:textSize="16sp"
+                android:textSize="@dimen/text_title"
                 android:textStyle="bold" />
 
             <TextView
@@ -566,7 +566,7 @@
                 android:layout_marginTop="4dp"
                 android:text="线路1 (1200KB/s)"
                 android:textColor="@color/theme_on_primary"
-                android:textSize="14sp" />
+                android:textSize="@dimen/text_body" />
 
             <TextView
                 android:id="@+id/fasterRouteCountdown"
@@ -576,7 +576,7 @@
                 android:text="3秒后自动消失"
                 android:textColor="@color/theme_on_primary"
                 android:alpha="0.8"
-                android:textSize="12sp" />
+                android:textSize="@dimen/text_caption" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -585,7 +585,7 @@
                 android:text="点击切换"
                 android:textColor="@color/theme_on_primary"
                 android:alpha="0.8"
-                android:textSize="12sp" />
+                android:textSize="@dimen/text_caption" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
@@ -626,7 +626,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@android:color/white"
-            android:textSize="12sp"
+            android:textSize="@dimen/text_caption"
             android:visibility="gone" />
 
         <!-- 主控制行：左 = 暂停/播放 + 下一集；中 = 当前时间 + 进度条 + 总时长；右 = 画面比例 + 全屏 -->
@@ -638,11 +638,11 @@
 
             <ImageButton
                 android:id="@+id/playPauseButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="播放/暂停"
-                android:padding="8dp"
+                android:padding="12dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/dkplayer_ic_action_pause"
                 android:tint="@color/player_control_icon" />
@@ -652,12 +652,12 @@
                  默认 GONE，由 updateOrientationUI() 的竖屏分支打开 -->
             <ImageButton
                 android:id="@+id/qualityButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_marginStart="4dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="清晰度"
-                android:padding="8dp"
+                android:padding="12dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_hd"
                 android:tint="@color/player_control_icon"
@@ -665,12 +665,12 @@
 
             <ImageButton
                 android:id="@+id/nextButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_marginStart="4dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="下一集"
-                android:padding="8dp"
+                android:padding="12dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/album_play_next"
                 android:tint="@color/player_control_icon"
@@ -726,12 +726,12 @@
             <!-- 画面比例入口已收到「⋯ 更多」菜单，底栏只保留一个展开图标（fullscreenButton） -->
             <ImageButton
                 android:id="@+id/fullscreenButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_marginStart="4dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="全屏"
-                android:padding="8dp"
+                android:padding="12dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/dkplayer_ic_action_fullscreen1"
                 android:tint="@color/player_control_icon" />
@@ -747,7 +747,7 @@
             android:layout_marginEnd="8dp"
             android:text=""
             android:textColor="@color/white"
-            android:textSize="12sp"
+            android:textSize="@dimen/text_caption"
             android:maxLines="1"
             android:ellipsize="end"
             android:alpha="0.6"
@@ -764,11 +764,11 @@
 
             <ImageButton
                 android:id="@+id/screenshotButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="截屏"
-                android:padding="8dp"
+                android:padding="12dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/dkplayer_ic_action_close"
                 android:tint="@color/player_control_icon_dim"
@@ -830,7 +830,7 @@
         android:paddingEnd="10dp"
         android:paddingBottom="5dp"
         android:textColor="@android:color/white"
-        android:textSize="12sp"
+        android:textSize="@dimen/text_caption"
         android:visibility="gone" />
 
     <!-- 拖动进度条时的拇指时间气泡：绝对定位浮层（FrameLayout 子项），不参与底栏高度/布局。
@@ -852,7 +852,7 @@
         android:paddingEnd="10dp"
         android:paddingBottom="5dp"
         android:textColor="@android:color/white"
-        android:textSize="12sp"
+        android:textSize="@dimen/text_caption"
         android:visibility="gone" />
 
     <!-- 播放结束卡片：播放器 STATE_ENDED 时显示「已播完」+ 重播 / 下一集（无下一集时隐藏） -->
@@ -878,7 +878,7 @@
             android:gravity="center"
             android:text="已播完"
             android:textColor="@android:color/white"
-            android:textSize="16sp"
+            android:textSize="@dimen/text_title"
             android:textStyle="bold" />
 
         <LinearLayout

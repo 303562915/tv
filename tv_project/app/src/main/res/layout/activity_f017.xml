@@ -98,7 +98,7 @@
                         android:background="@drawable/bg_button_secondary"
                         android:text="@string/f017_minus_1s"
                         android:textColor="@color/theme_text_primary"
-                        android:textSize="14sp" />
+                        android:textSize="@dimen/text_body" />
 
                     <Button
                         android:id="@+id/btnMinus100"
@@ -109,7 +109,7 @@
                         android:background="@drawable/bg_button_secondary"
                         android:text="@string/f017_minus_01s"
                         android:textColor="@color/theme_text_primary"
-                        android:textSize="14sp" />
+                        android:textSize="@dimen/text_body" />
 
                     <Button
                         android:id="@+id/btnPlus100"
@@ -120,7 +120,7 @@
                         android:background="@drawable/bg_button_secondary"
                         android:text="@string/f017_plus_01s"
                         android:textColor="@color/theme_text_primary"
-                        android:textSize="14sp" />
+                        android:textSize="@dimen/text_body" />
 
                     <Button
                         android:id="@+id/btnPlus1000"
@@ -131,7 +131,7 @@
                         android:background="@drawable/bg_button_secondary"
                         android:text="@string/f017_plus_1s"
                         android:textColor="@color/theme_text_primary"
-                        android:textSize="14sp" />
+                        android:textSize="@dimen/text_body" />
                 </LinearLayout>
 
                 <Button

@@ -96,7 +96,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:textColor="@color/theme_text_primary"
-                    android:textSize="16sp" />
+                    android:textSize="@dimen/text_title" />
 
                 <TextView
                     android:layout_width="match_parent"
@@ -109,7 +109,7 @@
                 <TextView
                     android:id="@+id/f078ResetAll"
                     android:layout_width="wrap_content"
-                    android:layout_height="44dp"
+                    android:layout_height="48dp"
                     android:layout_marginTop="12dp"
                     android:background="@drawable/bg_primary_button"
                     android:clickable="true"
@@ -117,11 +117,13 @@
                     android:focusableInTouchMode="true"
                     android:gravity="center"
                     android:minWidth="160dp"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="2dp"
                     android:paddingStart="20dp"
                     android:paddingEnd="20dp"
                     android:text="@string/f078_action_reset_all"
                     android:textColor="@color/theme_on_primary"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/text_body" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -147,7 +149,7 @@
             android:layout_marginTop="@dimen/card_gap"
             android:lineSpacingExtra="2dp"
             android:textColor="@color/theme_text_secondary"
-            android:textSize="12sp" />
+            android:textSize="@dimen/text_caption" />
 
         <TextView
             android:layout_width="match_parent"

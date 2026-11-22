@@ -247,7 +247,7 @@
                         android:minWidth="72dp"
                         android:gravity="center"
                         android:textColor="@color/theme_text_primary"
-                        android:textSize="20sp"
+                        android:textSize="@dimen/text_headline"
                         android:textStyle="bold"
                         tools:text="1.75x" />
 

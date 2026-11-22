@@ -44,7 +44,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="支持解析抖音、快手、B站等平台视频"
-                    android:textSize="14sp"
+                    android:textSize="@dimen/text_body"
                     android:textColor="@color/theme_text_secondary" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -70,7 +70,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="视频链接"
-                    android:textSize="16sp"
+                    android:textSize="@dimen/text_title"
                     android:textColor="@color/theme_text_primary"
                     android:textStyle="bold"
                     android:paddingBottom="8dp" />
@@ -82,7 +82,7 @@
                     android:hint="粘贴视频分享链接..."
                     android:minHeight="48dp"
                     android:background="@android:color/transparent"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/text_body" />
 
                 <!-- 平台识别 -->
                 <LinearLayout
@@ -106,7 +106,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:text="抖音"
-                        android:textSize="16sp"
+                        android:textSize="@dimen/text_title"
                         android:textColor="@color/theme_text_primary"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -118,8 +118,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:text="开始解析"
-                    android:textSize="16sp"
-                    app:cornerRadius="8dp"
+                    android:textSize="@dimen/text_title"
+                    app:cornerRadius="@dimen/radius_sm"
                     style="@style/Widget.MaterialComponents.Button" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -147,7 +147,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="解析结果"
-                    android:textSize="16sp"
+                    android:textSize="@dimen/text_title"
                     android:textColor="@color/theme_text_primary"
                     android:textStyle="bold"
                     android:paddingBottom="12dp" />
@@ -181,7 +181,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:text="视频标题"
-                    android:textSize="16sp"
+                    android:textSize="@dimen/text_title"
                     android:textColor="@color/theme_text_primary"
                     android:textStyle="bold"
                     android:maxLines="2"
@@ -194,7 +194,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="作者"
-                    android:textSize="14sp"
+                    android:textSize="@dimen/text_body"
                     android:textColor="@color/theme_text_secondary" />
 
                 <!-- 操作按钮 -->

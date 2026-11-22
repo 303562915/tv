@@ -20,7 +20,7 @@
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
-    app:cardCornerRadius="8dp"
+    app:cardCornerRadius="@dimen/radius_sm"
     app:cardElevation="2dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -70,7 +70,7 @@
             android:minLines="2"
             android:padding="8dp"
             android:textColor="@color/theme_text_primary"
-            android:textSize="14sp"
+            android:textSize="@dimen/text_body"
             app:layout_constraintTop_toBottomOf="@id/ivCover"
             tools:text="短剧标题" />
 
@@ -87,7 +87,7 @@
             android:paddingEnd="4dp"
             android:paddingBottom="8dp"
             android:textColor="@color/theme_text_secondary"
-            android:textSize="12sp"
+            android:textSize="@dimen/text_caption"
             app:layout_constraintEnd_toStartOf="@id/tvPlayCount"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvTitle"
@@ -103,7 +103,7 @@
             android:paddingEnd="8dp"
             android:paddingBottom="8dp"
             android:textColor="@color/theme_text_secondary"
-            android:textSize="12sp"
+            android:textSize="@dimen/text_caption"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/tvEpisodes"
             app:layout_constraintTop_toBottomOf="@id/tvTitle"
@@ -118,7 +118,7 @@
             android:paddingEnd="8dp"
             android:paddingBottom="8dp"
             android:textColor="@color/theme_primary"
-            android:textSize="12sp"
+            android:textSize="@dimen/text_caption"
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

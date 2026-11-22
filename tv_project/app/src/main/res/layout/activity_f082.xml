@@ -209,7 +209,7 @@
                     android:text="@string/f082_preview_sample"
                     android:textAppearance="@style/TextAppearance.TVPlayer.Body"
                     android:textColor="@color/theme_text_primary"
-                    android:textSize="16sp" />
+                    android:textSize="@dimen/text_title" />
 
                 <View
                     android:layout_width="match_parent"
@@ -234,7 +234,7 @@
                     android:lineSpacingExtra="4dp"
                     android:text="@string/f082_preview_sample"
                     android:textColor="@color/theme_primary"
-                    android:textSize="16sp" />
+                    android:textSize="@dimen/text_title" />
 
                 <!-- 算式行：16.0 sp × 120% = 19.2 sp -->
                 <TextView

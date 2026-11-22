@@ -40,7 +40,7 @@
             android:layout_marginTop="2dp"
             android:text="删除"
             android:textColor="@color/white"
-            android:textSize="12sp" />
+            android:textSize="@dimen/text_caption" />
     </LinearLayout>
 
     <com.google.android.material.card.MaterialCardView
@@ -91,7 +91,7 @@
                     android:paddingEnd="6dp"
                     android:paddingBottom="2dp"
                     android:textColor="@color/theme_text_secondary"
-                    android:textSize="12sp"
+                    android:textSize="@dimen/text_caption"
                     android:visibility="gone"
                     tools:text="第1集" />
 
@@ -137,7 +137,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:textColor="@color/theme_text_secondary"
-                    android:textSize="12sp"
+                    android:textSize="@dimen/text_caption"
                     tools:text="第1集 · 今天 21:06" />
 
                 <Space
@@ -167,7 +167,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="@color/theme_primary"
-                        android:textSize="12sp"
+                        android:textSize="@dimen/text_caption"
                         android:textStyle="bold"
                         tools:text="41%" />
 
@@ -181,7 +181,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="@color/theme_text_secondary"
-                        android:textSize="12sp"
+                        android:textSize="@dimen/text_caption"
                         tools:text="剩余 27:13" />
 
                 </LinearLayout>

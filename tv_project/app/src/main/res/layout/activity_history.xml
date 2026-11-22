@@ -23,11 +23,11 @@
         <!-- 返回：44dp 触摸区，图标 24dp -->
         <ImageButton
             android:id="@+id/btnBack"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/nav_back"
-            android:padding="10dp"
+            android:padding="12dp"
             android:scaleType="centerInside"
             android:src="@drawable/ic_back"
             app:tint="@color/theme_text_primary" />
@@ -53,7 +53,7 @@
             android:paddingEnd="12dp"
             android:text="@string/clear_history"
             android:textColor="@color/theme_error"
-            android:textSize="14sp" />
+            android:textSize="@dimen/text_body" />
 
     </LinearLayout>
 

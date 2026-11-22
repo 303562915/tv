@@ -281,7 +281,7 @@
                     android:singleLine="true"
                     android:textColor="@color/theme_text_primary"
                     android:textColorHint="@color/theme_text_secondary"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/text_body" />
 
                 <!-- 最小缓冲 -->
                 <TextView
@@ -308,7 +308,7 @@
                     android:singleLine="true"
                     android:textColor="@color/theme_text_primary"
                     android:textColorHint="@color/theme_text_secondary"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/text_body" />
 
                 <!-- 最大缓冲 -->
                 <TextView
@@ -335,7 +335,7 @@
                     android:singleLine="true"
                     android:textColor="@color/theme_text_primary"
                     android:textColorHint="@color/theme_text_secondary"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/text_body" />
 
                 <!-- 并发连接数 -->
                 <TextView
@@ -362,7 +362,7 @@
                     android:singleLine="true"
                     android:textColor="@color/theme_text_primary"
                     android:textColorHint="@color/theme_text_secondary"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/text_body" />
 
                 <TextView
                     android:layout_width="match_parent"
@@ -459,7 +459,7 @@
                     android:padding="12dp"
                     android:textColor="@color/theme_text_primary"
                     android:textIsSelectable="true"
-                    android:textSize="12sp" />
+                    android:textSize="@dimen/text_caption" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

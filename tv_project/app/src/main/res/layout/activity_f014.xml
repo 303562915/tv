@@ -130,7 +130,7 @@
                     <TextView
                         android:id="@+id/f014AddButton"
                         android:layout_width="wrap_content"
-                        android:layout_height="44dp"
+                        android:layout_height="48dp"
                         android:layout_marginStart="@dimen/card_gap"
                         android:background="@drawable/bg_secondary_button"
                         android:clickable="true"
@@ -139,11 +139,13 @@
                         android:foreground="@drawable/bg_focus_ring"
                         android:gravity="center"
                         android:minWidth="72dp"
+                        android:paddingTop="2dp"
+                        android:paddingBottom="2dp"
                         android:paddingStart="16dp"
                         android:paddingEnd="16dp"
                         android:text="@string/f014_add"
                         android:textColor="@color/theme_text_primary"
-                        android:textSize="14sp" />
+                        android:textSize="@dimen/text_body" />
                 </LinearLayout>
 
                 <TextView
@@ -208,7 +210,7 @@
                         android:paddingEnd="16dp"
                         android:text="@string/f014_reset"
                         android:textColor="@color/theme_text_primary"
-                        android:textSize="14sp" />
+                        android:textSize="@dimen/text_body" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

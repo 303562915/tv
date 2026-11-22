@@ -33,11 +33,11 @@
         <!-- 返回：44dp 触摸区，图标 24dp -->
         <ImageButton
             android:id="@+id/btnBack"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/nav_back"
-            android:padding="10dp"
+            android:padding="12dp"
             android:scaleType="centerInside"
             android:src="@drawable/ic_back"
             app:tint="@color/theme_text_primary" />
@@ -78,7 +78,7 @@
             android:paddingEnd="16dp"
             android:textColor="@color/theme_text_primary"
             android:textColorHint="@color/theme_text_secondary"
-            android:textSize="14sp" />
+            android:textSize="@dimen/text_body" />
 
         <!-- 清除按钮：输入框让出 44dp 给这里，免得长词只能一个字一个字删。
              为什么用 TextView + 「✕」字形而不是 ImageView：不新增 drawable 资源文件，
@@ -89,7 +89,7 @@
             android:layout_height="44dp"
             android:gravity="center"
             android:text="✕"
-            android:textSize="16sp"
+            android:textSize="@dimen/text_title"
             android:textColor="@color/theme_text_secondary"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="清除搜索词"
@@ -172,7 +172,7 @@
                     android:layout_gravity="center"
                     android:text="暂无短剧"
                     android:textColor="@color/theme_text_secondary"
-                    android:textSize="16sp"
+                    android:textSize="@dimen/text_title"
                     android:visibility="gone" />
 
             </FrameLayout>

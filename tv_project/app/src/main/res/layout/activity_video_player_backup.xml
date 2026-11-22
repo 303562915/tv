@@ -43,7 +43,7 @@
             android:layout_marginTop="8dp"
             android:text="正在缓冲"
             android:textColor="@android:color/white"
-            android:textSize="14sp" />
+            android:textSize="@dimen/text_body" />
         
         <TextView
             android:id="@+id/bandwidthText"
@@ -51,7 +51,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:textColor="@android:color/white"
-            android:textSize="12sp"
+            android:textSize="@dimen/text_caption"
             android:visibility="gone" />
     </LinearLayout>
 
@@ -84,7 +84,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:textColor="@android:color/white"
-        android:textSize="16sp"
+        android:textSize="@dimen/text_title"
         android:visibility="gone" />
     
     <!-- 网速质量提示 -->
@@ -97,7 +97,7 @@
         android:background="@drawable/gesture_hint_background"
         android:padding="12dp"
         android:textColor="@android:color/white"
-        android:textSize="14sp"
+        android:textSize="@dimen/text_body"
         android:visibility="gone" />
     
     <!-- 跳过片头按钮 -->
@@ -111,7 +111,7 @@
         android:background="@drawable/gesture_hint_background"
         android:text="跳过片头 ⏭"
         android:textColor="@android:color/white"
-        android:textSize="14sp"
+        android:textSize="@dimen/text_body"
         android:padding="12dp"
         android:visibility="gone" />
 
@@ -136,7 +136,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/white"
-                android:textSize="12sp" />
+                android:textSize="@dimen/text_caption" />
 
             <Space
                 android:layout_width="8dp"
@@ -148,7 +148,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/white"
-                android:textSize="12sp"
+                android:textSize="@dimen/text_caption"
                 android:text="0 KB/s" />
 
             <Space
@@ -160,7 +160,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/white"
-                android:textSize="12sp" />
+                android:textSize="@dimen/text_caption" />
 
             <Space
                 android:layout_width="8dp"
@@ -184,10 +184,11 @@
 
             <ImageButton
                 android:id="@+id/backButton"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="返回"
+                android:padding="6dp"
                 android:src="@drawable/dkplayer_ic_action_arrow_back"
                 android:scaleType="centerInside"
                 android:tint="@android:color/white" />
@@ -201,14 +202,15 @@
                 android:ellipsize="marquee"
                 android:singleLine="true"
                 android:textColor="@android:color/white"
-                android:textSize="16sp" />
+                android:textSize="@dimen/text_title" />
 
             <ImageButton
                 android:id="@+id/shareButton"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="分享"
+                android:padding="10dp"
                 android:src="@drawable/share"
                 android:scaleType="fitCenter"
                 android:tint="@android:color/white"
@@ -216,10 +218,11 @@
 
             <ImageButton
                 android:id="@+id/castButton"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="投屏"
+                android:padding="10dp"
                 android:src="@drawable/fit_to_screen"
                 android:scaleType="fitCenter"
                 android:tint="@android:color/white"
@@ -227,10 +230,11 @@
 
             <ImageButton
                 android:id="@+id/menuButton"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="菜单"
+                android:padding="10dp"
                 android:src="@drawable/dots_vertical"
                 android:scaleType="fitCenter"
                 android:tint="@android:color/white" />
@@ -274,7 +278,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@android:color/white"
-            android:textSize="12sp"
+            android:textSize="@dimen/text_caption"
             android:visibility="gone" />
 
         <!-- 进度条 -->
@@ -290,7 +294,7 @@
                 android:layout_height="wrap_content"
                 android:text="00:00"
                 android:textColor="@android:color/white"
-                android:textSize="12sp" />
+                android:textSize="@dimen/text_caption" />
 
             <FrameLayout
                 android:layout_width="0dp"
@@ -319,7 +323,7 @@
                 android:layout_height="wrap_content"
                 android:text="00:00"
                 android:textColor="@android:color/white"
-                android:textSize="12sp" />
+                android:textSize="@dimen/text_caption" />
         </LinearLayout>
 
         <!-- 控制按钮 -->
@@ -332,21 +336,23 @@
 
             <ImageButton
                 android:id="@+id/playPauseButton"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="播放/暂停"
+                android:padding="8dp"
                 android:src="@drawable/dkplayer_ic_action_pause"
                 android:scaleType="fitCenter"
                 android:tint="@android:color/white" />
 
             <ImageButton
                 android:id="@+id/nextButton"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_marginStart="8dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="下一集"
+                android:padding="8dp"
                 android:src="@drawable/album_play_next"
                 android:scaleType="fitCenter"
                 android:tint="@android:color/white"
@@ -354,11 +360,12 @@
 
             <ImageButton
                 android:id="@+id/screenshotButton"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_marginStart="8dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="截屏"
+                android:padding="8dp"
                 android:src="@drawable/dkplayer_ic_action_close"
                 android:scaleType="fitCenter"
                 android:tint="@android:color/white"
@@ -376,7 +383,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:text="清晰"
                 android:textColor="@android:color/white"
-                android:textSize="12sp" />
+                android:textSize="@dimen/text_caption" />
 
             <Button
                 android:id="@+id/episodeButton"
@@ -385,7 +392,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:text="选集"
                 android:textColor="@android:color/white"
-                android:textSize="12sp" />
+                android:textSize="@dimen/text_caption" />
 
             <Button
                 android:id="@+id/speedButton"
@@ -394,25 +401,27 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:text="倍速"
                 android:textColor="@android:color/white"
-                android:textSize="12sp" />
+                android:textSize="@dimen/text_caption" />
 
             <ImageButton
                 android:id="@+id/rotateButton"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="旋转"
+                android:padding="8dp"
                 android:src="@drawable/fit_to_screen"
                 android:scaleType="fitCenter"
                 android:tint="@android:color/white" />
 
             <ImageButton
                 android:id="@+id/fullscreenButton"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_marginStart="8dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="全屏"
+                android:padding="8dp"
                 android:src="@drawable/dkplayer_ic_action_fullscreen1"
                 android:scaleType="fitCenter"
                 android:tint="@android:color/white" />

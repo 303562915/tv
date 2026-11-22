@@ -130,7 +130,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="1dp"
                     android:textColor="@color/theme_text_secondary"
-                    android:textSize="12sp" />
+                    android:textSize="@dimen/text_caption" />
 
                 <TextView
                     android:layout_width="match_parent"
@@ -140,7 +140,7 @@
                     android:maxLines="2"
                     android:text="@string/f086_tagline"
                     android:textColor="@color/theme_text_secondary"
-                    android:textSize="12sp" />
+                    android:textSize="@dimen/text_caption" />
             </LinearLayout>
         </LinearLayout>
 
@@ -184,7 +184,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/f086_check_update"
                         android:textColor="@color/theme_text_primary"
-                        android:textSize="16sp"
+                        android:textSize="@dimen/text_title"
                         android:textStyle="bold" />
 
                     <LinearLayout
@@ -211,7 +211,7 @@
                             android:maxLines="3"
                             android:text="@string/f086_check_hint"
                             android:textColor="@color/theme_text_secondary"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/text_caption" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -257,7 +257,7 @@
                     android:layout_weight="1"
                     android:text="@string/f086_channel_label"
                     android:textColor="@color/theme_text_primary"
-                    android:textSize="16sp" />
+                    android:textSize="@dimen/text_title" />
 
                 <Spinner
                     android:id="@+id/f086ChannelSpinner"
@@ -302,7 +302,7 @@
                     android:layout_weight="1"
                     android:text="@string/f086_auto_install"
                     android:textColor="@color/theme_text_primary"
-                    android:textSize="16sp" />
+                    android:textSize="@dimen/text_title" />
 
                 <!-- 开关与倍速面板同一个美化样式：拇指/轨道按选中态取色 -->
                 <androidx.appcompat.widget.SwitchCompat
@@ -359,7 +359,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/f086_download_page"
                         android:textColor="@color/theme_text_primary"
-                        android:textSize="16sp" />
+                        android:textSize="@dimen/text_title" />
 
                     <TextView
                         android:layout_width="match_parent"
@@ -422,7 +422,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/f086_action_repo"
                         android:textColor="@color/theme_text_primary"
-                        android:textSize="16sp" />
+                        android:textSize="@dimen/text_title" />
 
                     <TextView
                         android:layout_width="match_parent"

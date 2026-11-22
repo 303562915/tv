@@ -264,7 +264,7 @@
                     android:fontFamily="monospace"
                     android:text="@string/f075_result_bytes_empty"
                     android:textColor="@color/theme_text_primary"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/text_body" />
 
                 <!-- 只在回落目录时出现，平时为空串，占位高度由 wrap_content 决定 -->
                 <TextView

@@ -129,7 +129,7 @@
                         android:maxLines="1"
                         android:text="@string/profile_user_default"
                         android:textColor="@color/theme_text_primary"
-                        android:textSize="14sp"
+                        android:textSize="@dimen/text_body"
                         android:textStyle="bold" />
 
                     <TextView
@@ -158,7 +158,7 @@
                     android:maxLines="1"
                     android:text="@string/profile_edit_name"
                     android:textColor="@color/theme_text_secondary"
-                    android:textSize="12sp" />
+                    android:textSize="@dimen/text_caption" />
             </LinearLayout>
 
             <ImageView
@@ -185,7 +185,7 @@
         android:layout_marginBottom="@dimen/group_title_gap"
         android:text="@string/section_content"
         android:textColor="@color/theme_text_secondary"
-        android:textSize="12sp"
+        android:textSize="@dimen/text_caption"
         android:textStyle="bold" />
 
     <com.google.android.material.card.MaterialCardView
@@ -237,7 +237,7 @@
                     android:maxLines="2"
                     android:text="@string/local_video"
                     android:textColor="@color/theme_text_primary"
-                    android:textSize="14sp"
+                    android:textSize="@dimen/text_body"
                     android:textStyle="bold" />
 
                 <ImageView
@@ -291,7 +291,7 @@
                     android:maxLines="2"
                     android:text="@string/my_favorite"
                     android:textColor="@color/theme_text_primary"
-                    android:textSize="14sp"
+                    android:textSize="@dimen/text_body"
                     android:textStyle="bold" />
 
                 <ImageView
@@ -344,7 +344,7 @@
                     android:maxLines="2"
                     android:text="@string/watch_history"
                     android:textColor="@color/theme_text_primary"
-                    android:textSize="14sp"
+                    android:textSize="@dimen/text_body"
                     android:textStyle="bold" />
 
                 <ImageView
@@ -371,7 +371,7 @@
         android:layout_marginBottom="@dimen/group_title_gap"
         android:text="@string/section_settings"
         android:textColor="@color/theme_text_secondary"
-        android:textSize="12sp"
+        android:textSize="@dimen/text_caption"
         android:textStyle="bold" />
 
     <com.google.android.material.card.MaterialCardView
@@ -423,7 +423,7 @@
                     android:maxLines="2"
                     android:text="@string/theme_setting"
                     android:textColor="@color/theme_text_primary"
-                    android:textSize="14sp"
+                    android:textSize="@dimen/text_body"
                     android:textStyle="bold" />
 
                 <ImageView
@@ -476,7 +476,7 @@
                     android:maxLines="2"
                     android:text="@string/playback_setting"
                     android:textColor="@color/theme_text_primary"
-                    android:textSize="14sp"
+                    android:textSize="@dimen/text_body"
                     android:textStyle="bold" />
 
                 <ImageView
@@ -529,7 +529,7 @@
                     android:maxLines="2"
                     android:text="@string/clear_cache"
                     android:textColor="@color/theme_text_primary"
-                    android:textSize="14sp"
+                    android:textSize="@dimen/text_body"
                     android:textStyle="bold" />
 
                 <TextView
@@ -592,7 +592,7 @@
                         android:maxLines="1"
                         android:text="全部功能"
                         android:textColor="@color/theme_text_primary"
-                        android:textSize="14sp"
+                        android:textSize="@dimen/text_body"
                         android:textStyle="bold" />
 
                     <TextView
@@ -603,7 +603,7 @@
                         android:maxLines="1"
                         android:text="94 项进阶能力，字幕、投屏、媒体服务"
                         android:textColor="@color/theme_text_secondary"
-                        android:textSize="12sp" />
+                        android:textSize="@dimen/text_caption" />
                 </LinearLayout>
 
                 <ImageView
@@ -671,7 +671,7 @@
                     android:maxLines="2"
                     android:text="@string/profile_about_app"
                     android:textColor="@color/theme_text_primary"
-                    android:textSize="14sp"
+                    android:textSize="@dimen/text_body"
                     android:textStyle="bold" />
 
                 <TextView
@@ -682,7 +682,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:textColor="@color/theme_text_secondary"
-                    android:textSize="12sp" />
+                    android:textSize="@dimen/text_caption" />
             </LinearLayout>
 
             <ImageView

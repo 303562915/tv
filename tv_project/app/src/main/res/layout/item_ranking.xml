@@ -57,7 +57,7 @@
                 android:layout_height="wrap_content"
                 android:text="腾讯视频独播"
                 android:textColor="@color/theme_text_secondary"
-                android:textSize="12sp" />
+                android:textSize="@dimen/text_caption" />
 
             <TextView
                 android:id="@+id/tvOnlineDays"
@@ -66,7 +66,7 @@
                 android:layout_marginStart="@dimen/card_gap"
                 android:text="上线18天"
                 android:textColor="@color/theme_text_secondary"
-                android:textSize="12sp" />
+                android:textSize="@dimen/text_caption" />
 
         </LinearLayout>
 
@@ -78,7 +78,7 @@
             android:layout_marginTop="4dp"
             android:text="实时热量 7244.03 万"
             android:textColor="@color/theme_warning"
-            android:textSize="12sp" />
+            android:textSize="@dimen/text_caption" />
 
         <!-- 播放量（可选） -->
         <TextView
@@ -88,7 +88,7 @@
             android:layout_marginTop="2dp"
             android:text="实时播放量 6683.6 万"
             android:textColor="@color/theme_text_secondary"
-            android:textSize="12sp"
+            android:textSize="@dimen/text_caption"
             android:visibility="gone" />
 
     </LinearLayout>

@@ -107,7 +107,7 @@
                     android:text="@string/f070_default_size"
                     android:textColor="@color/theme_text_primary"
                     android:textColorHint="@color/theme_text_secondary"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/text_body" />
 
                 <!-- Range 请求头 -->
                 <TextView
@@ -134,7 +134,7 @@
                     android:text="@string/f070_default_range"
                     android:textColor="@color/theme_text_primary"
                     android:textColorHint="@color/theme_text_secondary"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/text_body" />
 
                 <TextView
                     android:layout_width="match_parent"
@@ -168,7 +168,7 @@
                     android:text="@string/f070_default_mime"
                     android:textColor="@color/theme_text_primary"
                     android:textColorHint="@color/theme_text_secondary"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/text_body" />
 
                 <!-- 解析：主动作，正文用主题色 -->
                 <LinearLayout
@@ -385,7 +385,7 @@
                         android:fontFamily="monospace"
                         android:text="@string/f070_value_empty"
                         android:textColor="@color/theme_text_primary"
-                        android:textSize="14sp" />
+                        android:textSize="@dimen/text_body" />
                 </LinearLayout>
 
                 <!-- Content-Length -->
@@ -410,7 +410,7 @@
                         android:fontFamily="monospace"
                         android:text="@string/f070_value_empty"
                         android:textColor="@color/theme_text_primary"
-                        android:textSize="14sp" />
+                        android:textSize="@dimen/text_body" />
                 </LinearLayout>
 
                 <!-- 分块数：length / 64 KB -->
@@ -435,7 +435,7 @@
                         android:fontFamily="monospace"
                         android:text="@string/f070_value_empty"
                         android:textColor="@color/theme_text_primary"
-                        android:textSize="14sp" />
+                        android:textSize="@dimen/text_body" />
                 </LinearLayout>
 
                 <TextView

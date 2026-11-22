@@ -61,7 +61,7 @@
                 android:focusableInTouchMode="true"
                 android:nextFocusRight="@id/btnSourcePlayed"
                 android:text="@string/f026_action_source_added"
-                android:textSize="14sp" />
+                android:textSize="@dimen/text_body" />
 
             <Button
                 android:id="@+id/btnSourcePlayed"
@@ -73,7 +73,7 @@
                 android:focusableInTouchMode="true"
                 android:nextFocusLeft="@id/btnSourceAdded"
                 android:text="@string/f026_action_source_played"
-                android:textSize="14sp" />
+                android:textSize="@dimen/text_body" />
         </LinearLayout>
 
         <!-- 上限档位：5 / 10 / 20 三档，选中态同上 -->
@@ -99,7 +99,7 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:nextFocusRight="@id/btnLimit10"
-                android:textSize="14sp" />
+                android:textSize="@dimen/text_body" />
 
             <Button
                 android:id="@+id/btnLimit10"
@@ -111,7 +111,7 @@
                 android:focusableInTouchMode="true"
                 android:nextFocusLeft="@id/btnLimit5"
                 android:nextFocusRight="@id/btnLimit20"
-                android:textSize="14sp" />
+                android:textSize="@dimen/text_body" />
 
             <Button
                 android:id="@+id/btnLimit20"
@@ -122,7 +122,7 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:nextFocusLeft="@id/btnLimit10"
-                android:textSize="14sp" />
+                android:textSize="@dimen/text_body" />
         </LinearLayout>
 
         <!-- 示例数据操作：横向可滚，窄屏也不挤成一团 -->
@@ -144,7 +144,7 @@
                     android:focusable="true"
                     android:focusableInTouchMode="true"
                     android:text="@string/f026_action_load_samples"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/text_body" />
 
                 <Button
                     android:id="@+id/btnClearLibrary"
@@ -154,7 +154,7 @@
                     android:focusable="true"
                     android:focusableInTouchMode="true"
                     android:text="@string/f026_action_clear"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/text_body" />
             </LinearLayout>
         </HorizontalScrollView>
 

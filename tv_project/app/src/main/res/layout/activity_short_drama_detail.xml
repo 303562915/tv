@@ -12,16 +12,28 @@
         android:layout_height="wrap_content"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
+        <!--
+            加了 id 是为了让代码能 setTitle(剧名)：全页收起后只剩这条工具栏，
+            写死「短剧详情」等于把用户唯一还看得见的标题浪费掉
+        -->
         <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:id="@+id/collapsingToolbar"
             android:layout_width="match_parent"
             android:layout_height="250dp"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed"
-            app:contentScrim="@color/theme_primary">
+            app:contentScrim="@color/theme_primary"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
+            <!--
+                封面圆角：sd_detail_cover_placeholder 提供 radius_xl 圆角 + surface_block 兜底底色，
+                clipToOutline 才真的把图裁进去。兜底底色是必须的——bg_cover_xl 是透明底，
+                图没加载出来时整块就是纯白，看着像封面丢了
+            -->
             <ImageView
                 android:id="@+id/ivCover"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:background="@drawable/sd_detail_cover_placeholder"
+                android:clipToOutline="true"
                 android:scaleType="centerCrop"
                 app:layout_collapseMode="parallax"
                 tools:src="@drawable/ic_placeholder" />
@@ -35,17 +47,7 @@
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                app:layout_collapseMode="pin">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="短剧详情"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:textColor="@android:color/white" />
-
-            </androidx.appcompat.widget.Toolbar>
+                app:layout_collapseMode="pin" />
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 
@@ -64,11 +66,46 @@
             android:orientation="vertical"
             android:padding="16dp">
 
+            <!--
+                首屏骨架：详情还没回来时先把「标题 / 副信息 / 简介」三块的位置占住，
+                免得页面只挂一个转圈、内容到位时整页往下跳。
+                不引 shimmer 库，呼吸效果由代码里的 ObjectAnimator 改变 alpha 实现
+            -->
+            <LinearLayout
+                android:id="@+id/sd_detail_skeleton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <View
+                    android:id="@+id/sd_detail_skeleton_block1"
+                    android:layout_width="match_parent"
+                    android:layout_height="24dp"
+                    android:background="@drawable/sd_detail_skeleton_block" />
+
+                <View
+                    android:id="@+id/sd_detail_skeleton_block2"
+                    android:layout_width="160dp"
+                    android:layout_height="14dp"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/sd_detail_skeleton_block" />
+
+                <View
+                    android:id="@+id/sd_detail_skeleton_block3"
+                    android:layout_width="match_parent"
+                    android:layout_height="120dp"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/sd_detail_skeleton_block" />
+
+            </LinearLayout>
+
             <TextView
                 android:id="@+id/tvTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="20sp"
+                android:textSize="@dimen/text_headline"
                 android:textStyle="bold"
                 android:textColor="@color/theme_text_primary"
                 tools:text="短剧标题" />
@@ -85,7 +122,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:textSize="14sp"
+                    android:textSize="@dimen/text_body"
                     android:textColor="@color/theme_text_secondary"
                     tools:text="作者: XXX" />
 
@@ -98,7 +135,7 @@
                     android:paddingTop="4dp"
                     android:paddingBottom="4dp"
                     android:background="@drawable/bg_tag"
-                    android:textSize="12sp"
+                    android:textSize="@dimen/text_caption"
                     android:textColor="@color/theme_accent"
                     tools:text="都市爱情" />
 
@@ -116,7 +153,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:textSize="14sp"
+                    android:textSize="@dimen/text_body"
                     android:textColor="@color/theme_text_secondary"
                     tools:text="10万播放" />
 
@@ -124,7 +161,7 @@
                     android:id="@+id/tvEpisodeCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="14sp"
+                    android:textSize="@dimen/text_body"
                     android:textColor="@color/theme_text_secondary"
                     tools:text="共80集" />
 
@@ -136,10 +173,29 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:textSize="12sp"
+                android:textSize="@dimen/text_caption"
                 android:textColor="@color/theme_text_secondary"
                 android:visibility="gone"
                 tools:text="2024 · 评分 8.5 · 已完结"
+                tools:visibility="visible" />
+
+            <!--
+                主操作：一屏只留这一个实心按钮，文案由代码按「有没有本地进度」切换。
+                分集没加载出来 / 一条都没有时整块 GONE（代码里控制），不留一个点了没反应的按钮
+            -->
+            <TextView
+                android:id="@+id/btnPrimaryPlay"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_primary_button"
+                android:gravity="center"
+                android:text="播放第1集"
+                android:textColor="@color/theme_on_primary"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="继续看第12集"
                 tools:visibility="visible" />
 
             <!-- 简介默认 3 行，超长才出「展开」，避免长简介把选集挤到屏幕外 -->
@@ -150,7 +206,7 @@
                 android:layout_marginTop="16dp"
                 android:maxLines="3"
                 android:ellipsize="end"
-                android:textSize="14sp"
+                android:textSize="@dimen/text_body"
                 android:lineSpacingExtra="4dp"
                 android:textColor="@color/theme_text_primary"
                 tools:text="剧情简介..." />
@@ -181,9 +237,29 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="选集"
-                    android:textSize="16sp"
+                    android:textSize="@dimen/text_title"
                     android:textStyle="bold"
                     android:textColor="@color/theme_text_primary" />
+
+                <!--
+                    跳集入口：百集以上靠「展开全部」翻不动，输入集号直接定位更实用。
+                    放在「上次看到」角标左边，保证角标永远是这一行最靠右、位置最稳定的那个
+                -->
+                <TextView
+                    android:id="@+id/tvJumpEpisode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/bg_tag"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:text="跳集"
+                    android:textSize="@dimen/text_caption"
+                    android:textColor="@color/theme_text_secondary"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
 
                 <!-- 上次看到的集数角标：有进度才显示，点一下直接跳到那一集 -->
                 <TextView
@@ -195,7 +271,7 @@
                     android:paddingTop="4dp"
                     android:paddingBottom="4dp"
                     android:background="@drawable/bg_tag"
-                    android:textSize="12sp"
+                    android:textSize="@dimen/text_caption"
                     android:textColor="@color/theme_accent"
                     android:visibility="gone"
                     tools:text="上次看到第12集"
@@ -238,20 +314,26 @@
                 android:gravity="center"
                 android:paddingTop="12dp"
                 android:paddingBottom="4dp"
-                android:textSize="14sp"
+                android:textSize="@dimen/text_body"
                 android:textColor="@color/theme_accent"
                 android:visibility="gone"
                 tools:text="展开全部（共 120 集）"
                 tools:visibility="visible" />
 
-            <!-- 空态 / 失败重试共用这一块：文案和可点性由代码切换 -->
+            <!--
+                空态 / 失败重试共用这一块：文案和可点性由代码切换。
+                高度改 wrap_content + minHeight：失败原因可能折成两行，写死 100dp 会被截掉
+            -->
             <TextView
                 android:id="@+id/emptyView"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"
+                android:layout_height="wrap_content"
                 android:gravity="center"
+                android:minHeight="100dp"
+                android:paddingTop="24dp"
+                android:paddingBottom="24dp"
                 android:text="暂无剧集"
-                android:textSize="14sp"
+                android:textSize="@dimen/text_body"
                 android:textColor="@color/theme_text_secondary"
                 android:visibility="gone" />
 

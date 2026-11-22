@@ -25,12 +25,14 @@
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/searchBox"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="48dp"
             android:layout_marginEnd="@dimen/card_gap"
             android:layout_weight="1"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
             app:cardBackgroundColor="@color/surface_inset"
             app:cardCornerRadius="@dimen/radius_full"
             app:cardElevation="0dp"
@@ -78,11 +80,13 @@
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/chipShortDrama"
             android:layout_width="wrap_content"
-            android:layout_height="40dp"
+            android:layout_height="48dp"
             android:layout_marginStart="@dimen/card_gap"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
             app:cardBackgroundColor="@color/surface_inset"
             app:cardCornerRadius="@dimen/radius_full"
             app:cardElevation="0dp"
@@ -148,8 +152,8 @@
         -->
         <ImageView
             android:id="@+id/bannerToggleIcon"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:layout_gravity="bottom|center_horizontal"
             android:layout_marginBottom="8dp"
             android:alpha="0.6"
@@ -157,7 +161,7 @@
             android:clickable="true"
             android:contentDescription="收起或展开轮播图"
             android:focusable="true"
-            android:padding="4dp"
+            android:padding="16dp"
             android:src="@drawable/ic_expand_more" />
 
     </FrameLayout>
@@ -374,7 +378,7 @@
             android:paddingEnd="20dp"
             android:text="@string/retry"
             android:textColor="@color/theme_primary"
-            android:textSize="14sp" />
+            android:textSize="@dimen/text_body" />
 
     </LinearLayout>
 

@@ -50,7 +50,7 @@
             android:gravity="center"
             android:text="该文件夹没有视频"
             android:textColor="@color/theme_text_secondary"
-            android:textSize="14sp" />
+            android:textSize="@dimen/text_body" />
 
         <!-- 无权限 / 读取失败时给可点的动作按钮；目录真的空时不显示 -->
         <Button

@@ -105,7 +105,7 @@
                     android:singleLine="true"
                     android:textColor="@color/theme_text_primary"
                     android:textColorHint="@color/theme_text_secondary"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/text_body" />
 
                 <!-- 预设端点：代码按 F055Engine.PRESETS 顺序动态填充 -->
                 <LinearLayout
@@ -219,7 +219,7 @@
                     android:singleLine="true"
                     android:textColor="@color/theme_text_primary"
                     android:textColorHint="@color/theme_text_secondary"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/text_body" />
 
                 <!-- 解析：主动作，正文用主题色 -->
                 <LinearLayout
@@ -410,7 +410,7 @@
                     android:text="@string/f055_result_idle"
                     android:textColor="@color/theme_text_primary"
                     android:textIsSelectable="true"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/text_body" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

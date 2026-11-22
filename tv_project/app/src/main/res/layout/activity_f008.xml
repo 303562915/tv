@@ -119,7 +119,7 @@
                         android:gravity="center"
                         android:text="@string/f008_action_decrease"
                         android:textColor="@color/theme_primary"
-                        android:textSize="16sp"
+                        android:textSize="@dimen/text_title"
                         android:textStyle="bold" />
 
                     <TextView
@@ -150,7 +150,7 @@
                         android:gravity="center"
                         android:text="@string/f008_action_increase"
                         android:textColor="@color/theme_primary"
-                        android:textSize="16sp"
+                        android:textSize="@dimen/text_title"
                         android:textStyle="bold" />
                 </LinearLayout>
 
@@ -203,7 +203,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/f008_label_video"
                     android:textColor="@color/theme_text_primary"
-                    android:textSize="14sp"
+                    android:textSize="@dimen/text_body"
                     android:textStyle="bold" />
 
                 <!-- 画面时间线：偏移发生时整体平移，位移由 translationX 驱动 -->
@@ -236,7 +236,7 @@
                     android:layout_marginTop="@dimen/card_gap"
                     android:text="@string/f008_label_audio"
                     android:textColor="@color/theme_text_primary"
-                    android:textSize="14sp"
+                    android:textSize="@dimen/text_body"
                     android:textStyle="bold" />
 
                 <FrameLayout

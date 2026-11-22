@@ -117,7 +117,7 @@
                     <TextView
                         android:id="@+id/f077ClearButton"
                         android:layout_width="wrap_content"
-                        android:layout_height="44dp"
+                        android:layout_height="48dp"
                         android:layout_marginStart="8dp"
                         android:background="@drawable/bg_secondary_button"
                         android:clickable="true"
@@ -125,11 +125,13 @@
                         android:focusableInTouchMode="true"
                         android:gravity="center"
                         android:minWidth="72dp"
+                        android:paddingTop="2dp"
+                        android:paddingBottom="2dp"
                         android:paddingStart="16dp"
                         android:paddingEnd="16dp"
                         android:text="@string/f077_action_clear"
                         android:textColor="@color/theme_text_primary"
-                        android:textSize="14sp" />
+                        android:textSize="@dimen/text_body" />
                 </LinearLayout>
 
                 <TextView
@@ -138,7 +140,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:textColor="@color/theme_text_primary"
-                    android:textSize="12sp" />
+                    android:textSize="@dimen/text_caption" />
 
                 <TextView
                     android:id="@+id/f077Status"
@@ -147,7 +149,7 @@
                     android:layout_marginTop="4dp"
                     android:lineSpacingExtra="2dp"
                     android:textColor="@color/theme_text_secondary"
-                    android:textSize="12sp" />
+                    android:textSize="@dimen/text_caption" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

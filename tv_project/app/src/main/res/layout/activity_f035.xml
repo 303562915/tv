@@ -69,7 +69,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/card_gap"
                     android:textColor="@color/theme_text_secondary"
-                    android:textSize="12sp" />
+                    android:textSize="@dimen/text_caption" />
 
                 <TextView
                     android:id="@+id/exportText"
@@ -81,7 +81,7 @@
                     android:padding="12dp"
                     android:textColor="@color/theme_text_primary"
                     android:textIsSelectable="true"
-                    android:textSize="12sp" />
+                    android:textSize="@dimen/text_caption" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnExport"
@@ -143,7 +143,7 @@
                     android:scrollbars="vertical"
                     android:textColor="@color/theme_text_primary"
                     android:textColorHint="@color/theme_text_secondary"
-                    android:textSize="12sp" />
+                    android:textSize="@dimen/text_caption" />
 
                 <LinearLayout
                     android:layout_width="match_parent"

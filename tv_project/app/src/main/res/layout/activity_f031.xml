@@ -172,7 +172,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:textColor="@color/theme_primary"
-                        android:textSize="20sp"
+                        android:textSize="@dimen/text_headline"
                         android:textStyle="bold" />
 
                     <TextView
@@ -209,7 +209,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:textColor="@color/theme_primary"
-                        android:textSize="20sp"
+                        android:textSize="@dimen/text_headline"
                         android:textStyle="bold" />
 
                     <TextView
@@ -246,7 +246,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:textColor="@color/theme_primary"
-                        android:textSize="20sp"
+                        android:textSize="@dimen/text_headline"
                         android:textStyle="bold" />
 
                     <TextView
