@@ -12,7 +12,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="HTML调试工具"
+            android:text="@string/html_debug_title"
             android:textSize="@dimen/text_display"
             android:textStyle="bold"
             android:gravity="center"
@@ -37,7 +37,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="获取HTML"
+                android:text="@string/html_debug_fetch"
                 android:layout_marginEnd="4dp" />
 
             <Button
@@ -45,7 +45,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="复制HTML"
+                android:text="@string/html_debug_copy_html"
                 android:layout_marginStart="4dp"
                 android:layout_marginEnd="4dp" />
 
@@ -54,7 +54,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="复制分析"
+                android:text="@string/html_debug_copy_analysis"
                 android:layout_marginStart="4dp" />
         </LinearLayout>
 
@@ -62,7 +62,7 @@
             android:id="@+id/tvStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="准备就绪"
+            android:text="@string/common_ready"
             android:textSize="@dimen/text_title"
             android:padding="8dp"
             android:background="@android:color/darker_gray"
@@ -72,7 +72,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="HTML结构分析"
+            android:text="@string/html_debug_section_structure"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
@@ -81,7 +81,7 @@
             android:id="@+id/tvAnalysis"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="等待分析..."
+            android:text="@string/html_debug_pending_analysis"
             android:textSize="@dimen/text_caption"
             android:fontFamily="monospace"
             android:padding="12dp"
@@ -92,7 +92,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="HTML源码"
+            android:text="@string/html_debug_section_source"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
@@ -101,7 +101,7 @@
             android:id="@+id/tvHtml"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="等待获取..."
+            android:text="@string/html_debug_pending_html"
             android:textSize="10sp"
             android:fontFamily="monospace"
             android:padding="12dp"

@@ -10,7 +10,7 @@
         android:id="@+id/tv_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="视频流程日志"
+        android:text="@string/simple_flow_log_title"
         android:textSize="@dimen/text_display"
         android:textStyle="bold"
         android:textColor="@color/theme_text_primary"
@@ -25,7 +25,7 @@
             android:id="@+id/tv_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="暂无日志\n\n播放视频后会自动记录流程日志"
+            android:text="@string/simple_flow_log_empty"
             android:textSize="@dimen/text_body"
             android:textColor="@color/theme_text_secondary"
             android:lineSpacingExtra="4dp" />
@@ -43,7 +43,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="复制"
+            android:text="@string/common_copy"
             android:layout_marginEnd="4dp" />
 
         <Button
@@ -51,7 +51,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="清空"
+            android:text="@string/common_clear"
             android:layout_marginEnd="4dp" />
 
         <Button
@@ -59,7 +59,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="刷新"
+            android:text="@string/common_refresh"
             android:layout_marginEnd="4dp" />
 
         <Button
@@ -67,7 +67,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="关闭" />
+            android:text="@string/common_close" />
 
     </LinearLayout>
 

@@ -39,6 +39,11 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
     private var onSleepTimerSelected: ((Int) -> Unit)? = null
     private var sleepTimerDialog: AlertDialog? = null
     private var subtitleDialog: AlertDialog? = null
+
+    // 调试信息开关：状态存播放页的 SharedPreferences，菜单不自己落盘，只显示 + 回传点击
+    private var debugInfoEnabled = false
+    private var onDebugInfoToggled: ((Boolean) -> Unit)? = null
+
     private val sleepTimerRefreshHandler = Handler(Looper.getMainLooper())
     private val sleepTimerRefreshRunnable = object : Runnable {
         override fun run() {
@@ -180,6 +185,11 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
             showSubtitleDialog()
         }
         refreshSubtitleState()
+
+        // 调试信息：默认关，点一下翻转；右侧只写「开 / 关」，
+        // 具体收放哪三处（状态浮层 / 丢帧 / 加载日志）由播放页实现
+        binding.rowDebugInfo.setOnClickListener { toggleDebugInfo() }
+        refreshDebugInfoState()
     }
 
     private fun refreshPipState() {
@@ -242,6 +252,18 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
             .create()
         subtitleDialog = dialog
         dialog.show()
+    }
+
+    private fun refreshDebugInfoState() {
+        val binding = _binding ?: return
+        binding.tvDebugInfoValue.text = if (debugInfoEnabled) "开" else "关"
+    }
+
+    /** 点一下翻转：先刷本行文字再回传，播放页不回调也不会显示成反的。 */
+    private fun toggleDebugInfo() {
+        debugInfoEnabled = !debugInfoEnabled
+        refreshDebugInfoState()
+        onDebugInfoToggled?.invoke(debugInfoEnabled)
     }
 
     private fun setSpeed(speed: Float) {
@@ -356,6 +378,17 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
     /** [action] 取 ACTION_* 常量：菜单只回传「用户点了哪一项」，具体怎么做由播放页决定。 */
     fun setOnSubtitleActionListener(listener: (Int) -> Unit) {
         this.onSubtitleAction = listener
+    }
+
+    /** 调试信息开关的当前值由播放页给（SharedPreferences 读出来的那份），菜单只负责显示。 */
+    fun setDebugInfoEnabled(enabled: Boolean) {
+        this.debugInfoEnabled = enabled
+        refreshDebugInfoState()
+    }
+
+    /** 用户翻转开关：回传新值，播放页负责落盘并立刻收放三处调试信息。 */
+    fun setOnDebugInfoToggledListener(listener: (Boolean) -> Unit) {
+        this.onDebugInfoToggled = listener
     }
 
     override fun onDestroyView() {

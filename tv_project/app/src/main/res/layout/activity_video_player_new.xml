@@ -53,7 +53,7 @@
                         android:id="@+id/videoTitleDetail"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="视频标题"
+                        android:text="@string/player_new_title_placeholder"
                         android:textColor="@color/theme_text_primary"
                         android:textSize="18sp"
                         android:textStyle="bold"
@@ -66,7 +66,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="8.5分 · 8118播放"
+                        android:text="@string/player_new_info_placeholder"
                         android:textColor="@color/theme_text_secondary"
                         android:textSize="@dimen/text_caption" />
 
@@ -106,7 +106,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="推荐"
+                            android:text="@string/player_new_recommend"
                             android:textColor="@color/theme_text_secondary"
                             android:textSize="11sp" />
                     </LinearLayout>
@@ -135,7 +135,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="加追"
+                            android:text="@string/player_new_follow"
                             android:textColor="@color/theme_text_secondary"
                             android:textSize="11sp" />
                     </LinearLayout>
@@ -164,7 +164,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="下载"
+                            android:text="@string/common_download"
                             android:textColor="@color/theme_text_secondary"
                             android:textSize="11sp" />
                     </LinearLayout>
@@ -193,7 +193,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="投屏"
+                            android:text="@string/player_new_cast"
                             android:textColor="@color/theme_text_secondary"
                             android:textSize="11sp" />
                     </LinearLayout>
@@ -222,7 +222,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="分享"
+                            android:text="@string/common_share"
                             android:textColor="@color/theme_text_secondary"
                             android:textSize="11sp" />
                     </LinearLayout>
@@ -246,7 +246,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="选集"
+                        android:text="@string/common_episodes"
                         android:textColor="@color/theme_text_primary"
                         android:textSize="@dimen/text_title"
                         android:textStyle="bold" />

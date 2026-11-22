@@ -148,4 +148,145 @@
     <string name="lv_exclude_hint">已关闭排除</string>
     <string name="lv_exclude_dialog_title">排除的后缀（可多选）</string>
     <string name="lv_saved">已保存</string>
+
+    <!-- ============ 下载列表页（activity_download） ============ -->
+    <string name="download_tab_all">全部</string>
+    <string name="download_tab_downloading">下载中</string>
+    <string name="download_tab_completed">已完成</string>
+    <string name="download_tab_error">错误</string>
+    <string name="download_tab_scheduled">计划任务</string>
+    <string name="download_import_file">从文本文件导入</string>
+    <string name="download_import_clipboard">从剪贴板</string>
+    <string name="download_add_link">添加链接</string>
+
+    <!-- ============ 跨页面复用的通用文案（同文案只留一份） ============ -->
+    <string name="common_ready">准备就绪</string>
+    <string name="common_close">关闭</string>
+    <string name="common_clear">清空</string>
+    <string name="common_copy">复制</string>
+    <string name="common_refresh">刷新</string>
+    <string name="common_play">播放</string>
+    <string name="common_download">下载</string>
+    <string name="common_share">分享</string>
+    <string name="common_episodes">选集</string>
+
+    <!-- ============ 文件选择页（activity_file_picker） ============ -->
+    <string name="file_picker_select_file">选择文件</string>
+
+    <!-- ============ HTML 调试页（activity_html_debug） ============ -->
+    <string name="html_debug_title">HTML调试工具</string>
+    <string name="html_debug_fetch">获取HTML</string>
+    <string name="html_debug_copy_html">复制HTML</string>
+    <string name="html_debug_copy_analysis">复制分析</string>
+    <string name="html_debug_section_structure">HTML结构分析</string>
+    <string name="html_debug_pending_analysis">等待分析...</string>
+    <string name="html_debug_section_source">HTML源码</string>
+    <string name="html_debug_pending_html">等待获取...</string>
+
+    <!-- ============ 图片加载测试页（activity_image_load_test） ============ -->
+    <string name="img_test_title">图片加载性能测试</string>
+    <string name="img_test_preload">测试预加载 (20张图片)</string>
+    <string name="img_test_single">测试单张加载</string>
+    <string name="img_test_view_stats">查看统计</string>
+    <string name="img_test_check_status">检查性能状态</string>
+    <string name="img_test_reset_stats">重置统计</string>
+    <string name="img_test_perf_idle">性能状态: 未检测</string>
+    <string name="img_test_no_stats">暂无统计数据</string>
+
+    <!-- ============ 图片预览页（activity_image_preview） ============ -->
+    <string name="image_preview_download">下载当前图片</string>
+
+    <!-- ============ 本地视频文件夹页（activity_local_video_folder） ============ -->
+    <string name="local_video_folder_empty">该文件夹没有视频</string>
+    <string name="local_video_folder_delete">删除选中的视频</string>
+
+    <!-- ============ 本地视频页（activity_local_video） ============ -->
+    <string name="local_video_sort_recent">排序：最近添加</string>
+    <string name="local_video_filter_all">筛选：全部</string>
+    <string name="local_video_empty">没有找到本地视频\n下拉刷新重新扫描</string>
+
+    <!-- ============ 登录/注册页（activity_login） ============ -->
+    <string name="login_action_login">登录</string>
+    <string name="login_tab_register">注册</string>
+    <string name="login_get_code">获取验证码</string>
+    <string name="login_auto_login">自动登录</string>
+    <string name="login_remember_password">记住密码</string>
+    <string name="login_no_account">还没有账号？</string>
+    <string name="login_go_register">去注册</string>
+    <string name="login_forgot_password">忘记密码</string>
+    <string name="login_agree_prefix">我已同意平台</string>
+    <string name="login_agreement_service">《服务协议》</string>
+    <string name="login_agreement_join">和</string>
+    <string name="login_agreement_privacy">《隐私政策》</string>
+    <string name="login_other_methods">其他快捷登录</string>
+    <string name="login_brand_restricted_hint">本系统仅限于\'172号卡\'用户使用</string>
+
+    <!-- ============ 聚合解析页（activity_parser） ============ -->
+    <string name="parser_title">聚合解析</string>
+    <string name="parser_subtitle">支持解析抖音、快手、B站等平台视频</string>
+    <string name="parser_input_label">视频链接</string>
+    <string name="parser_start">开始解析</string>
+    <string name="parser_result_title">解析结果</string>
+    <string name="parser_result_video_title">视频标题</string>
+    <string name="parser_result_author">作者</string>
+    <string name="parser_copy_link">复制链接</string>
+
+    <!-- ============ 搜索页（activity_search） ============ -->
+    <string name="search_submit">搜索</string>
+    <string name="search_tab_ranking">榜单</string>
+    <string name="search_tab_find">找片</string>
+    <string name="search_no_results">暂无搜索结果</string>
+
+    <!-- ============ 短剧列表页（activity_short_drama） ============ -->
+    <string name="short_drama_empty">暂无短剧</string>
+
+    <!-- ============ 短剧详情页（activity_short_drama_detail） ============ -->
+    <string name="short_drama_detail_play_first">播放第1集</string>
+    <string name="short_drama_detail_expand">展开</string>
+    <string name="short_drama_detail_jump">跳集</string>
+    <string name="short_drama_detail_no_episodes">暂无剧集</string>
+
+    <!-- ============ 短剧播放页（activity_short_drama_player） ============ -->
+    <string name="short_drama_player_finished">已看完全集</string>
+    <string name="short_drama_player_finished_hint">下滑可以回看上一集</string>
+    <string name="short_drama_player_replay">重播本集</string>
+    <string name="short_drama_player_back_detail">返回详情</string>
+
+    <!-- ============ 视频流程日志页（activity_simple_video_flow_log） ============ -->
+    <string name="simple_flow_log_title">视频流程日志</string>
+    <string name="simple_flow_log_empty">暂无日志\n\n播放视频后会自动记录流程日志</string>
+
+    <!-- ============ 主题设置页（activity_theme） ============ -->
+    <string name="theme_header_hint">浅色 / 深色模式与主色都会立即生效</string>
+    <string name="theme_section_mode">外观模式</string>
+    <string name="theme_mode_follow">跟随系统</string>
+    <string name="theme_mode_follow_desc">随系统切换</string>
+    <string name="theme_mode_light">浅色模式</string>
+    <string name="theme_mode_light_desc">始终浅色</string>
+    <string name="theme_mode_dark">深色模式</string>
+    <string name="theme_mode_dark_desc">始终深色</string>
+    <string name="theme_section_color">主题色</string>
+    <string name="theme_color_default_blue">蓝色</string>
+    <string name="theme_current_color_label">当前主色</string>
+    <string name="theme_section_preview">效果预览</string>
+    <string name="theme_preview_text">主色文字示例 · 标题与链接都跟着变</string>
+    <string name="theme_preview_button">主题色按钮</string>
+
+    <!-- ============ 播放流程日志页（activity_video_flow_log） ============ -->
+    <string name="video_flow_log_clear_all">清除所有日志</string>
+    <string name="video_flow_log_empty">暂无日志</string>
+    <string name="video_flow_log_empty_hint">播放视频时会自动记录流程日志</string>
+
+    <!-- ============ 播放页-备份布局（activity_video_player_backup） ============ -->
+    <string name="player_backup_buffering">正在缓冲</string>
+    <string name="player_backup_skip_intro">跳过片头 ⏭</string>
+    <string name="player_backup_quality">清晰</string>
+    <string name="player_backup_speed">倍速</string>
+
+    <!-- ============ 播放页-新版布局（activity_video_player_new） ============ -->
+    <string name="player_new_title_placeholder">视频标题</string>
+    <string name="player_new_info_placeholder">8.5分 · 8118播放</string>
+    <string name="player_new_recommend">推荐</string>
+    <string name="player_new_follow">加追</string>
+    <string name="player_new_cast">投屏</string>
 </resources>

@@ -48,7 +48,7 @@
             android:layout_marginStart="24dp"
             android:layout_marginEnd="24dp"
             android:gravity="center"
-            android:text="该文件夹没有视频"
+            android:text="@string/local_video_folder_empty"
             android:textColor="@color/theme_text_secondary"
             android:textSize="@dimen/text_body" />
 
@@ -61,7 +61,7 @@
             android:background="@drawable/bg_primary_button"
             android:paddingStart="20dp"
             android:paddingEnd="20dp"
-            android:text="重试"
+            android:text="@string/retry"
             android:textColor="@color/theme_on_primary"
             android:visibility="gone" />
 
@@ -76,7 +76,7 @@
         android:layout_marginEnd="@dimen/page_margin"
         android:layout_marginBottom="@dimen/page_margin"
         android:background="@drawable/bg_primary_button"
-        android:text="删除选中的视频"
+        android:text="@string/local_video_folder_delete"
         android:textColor="@color/theme_on_primary"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"

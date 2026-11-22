@@ -41,7 +41,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="正在缓冲"
+            android:text="@string/player_backup_buffering"
             android:textColor="@android:color/white"
             android:textSize="@dimen/text_body" />
         
@@ -109,7 +109,7 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="120dp"
         android:background="@drawable/gesture_hint_background"
-        android:text="跳过片头 ⏭"
+        android:text="@string/player_backup_skip_intro"
         android:textColor="@android:color/white"
         android:textSize="@dimen/text_body"
         android:padding="12dp"
@@ -382,7 +382,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="36dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:text="清晰"
+                android:text="@string/player_backup_quality"
                 android:textColor="@android:color/white"
                 android:textSize="@dimen/text_caption" />
 
@@ -391,7 +391,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="36dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:text="选集"
+                android:text="@string/common_episodes"
                 android:textColor="@android:color/white"
                 android:textSize="@dimen/text_caption" />
 
@@ -400,7 +400,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="36dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:text="倍速"
+                android:text="@string/player_backup_speed"
                 android:textColor="@android:color/white"
                 android:textSize="@dimen/text_caption" />
 

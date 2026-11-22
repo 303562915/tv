@@ -416,6 +416,36 @@
             android:textColor="@color/theme_text_secondary" />
     </LinearLayout>
 
+    <!-- 调试信息开关：点一下翻转，右侧显示「开 / 关」；
+         关闭（默认）时播放页底部的状态浮层 / 丢帧信息 / 加载日志一律不显示 -->
+    <LinearLayout
+        android:id="@+id/rowDebugInfo"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackground">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="显示调试信息"
+            android:textSize="14sp"
+            android:textColor="@color/theme_text_primary" />
+
+        <TextView
+            android:id="@+id/tvDebugInfoValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="关"
+            android:textSize="14sp"
+            android:textColor="@color/theme_text_secondary" />
+    </LinearLayout>
+
     <View
         android:layout_width="match_parent"
         android:layout_height="1px"

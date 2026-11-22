@@ -102,7 +102,7 @@
                 android:layout_height="48dp"
                 android:layout_marginBottom="@dimen/card_gap"
                 android:background="@drawable/bg_primary_button"
-                android:text="重试"
+                android:text="@string/retry"
                 android:textColor="@color/theme_on_primary"
                 android:textSize="15sp"
                 android:textStyle="bold"
@@ -155,7 +155,7 @@
                             android:clickable="true"
                             android:focusable="true"
                             android:gravity="center"
-                            android:text="收藏"
+                            android:text="@string/favorite"
                             android:textColor="@color/theme_text_primary"
                             android:textSize="@dimen/text_body" />
 
@@ -169,7 +169,7 @@
                             android:clickable="true"
                             android:focusable="true"
                             android:gravity="center"
-                            android:text="分享"
+                            android:text="@string/common_share"
                             android:textColor="@color/theme_text_primary"
                             android:textSize="@dimen/text_body" />
 
@@ -236,7 +236,7 @@
                         android:layout_height="48dp"
                         android:layout_marginTop="@dimen/card_padding"
                         android:background="@drawable/bg_primary_button"
-                        android:text="播放"
+                        android:text="@string/common_play"
                         android:textColor="@color/theme_on_primary"
                         android:textSize="15sp"
                         android:textStyle="bold" />
@@ -274,7 +274,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="选集"
+                            android:text="@string/common_episodes"
                             android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
 
                         <TextView

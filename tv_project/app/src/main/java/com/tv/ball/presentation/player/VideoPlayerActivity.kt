@@ -223,6 +223,13 @@ class VideoPlayerActivity : AppCompatActivity() {
 
     // 外挂字幕：控制器活到 onDestroy，不跟菜单/弹窗的生命周期绑定，菜单关掉不影响字幕显示
     private var subtitleController: SubtitleOverlayController? = null
+
+    // 调试信息开关（状态浮层 / 丢帧 / 加载日志）：默认关，值存 player_settings 的 player_show_debug_info，
+    // 「⋯ 更多」菜单里那一行翻的就是它；读一次就够，切换时立刻重算三处可见性
+    private var showDebugInfo = false
+
+    // 丢帧调试行上一次写进去的文案：200ms 的 tick 里没变化就不 setText
+    private var lastDroppedFramesText = ""
     // 上一次写进浮层的文本：200ms tick 里文本没变就不重复 setText，省掉每帧的重排
     private var lastSubtitleText: String = ""
     // 上一次处理过字幕的片源地址：同一个地址重复回调（例如重试）不能把已加载的字幕清掉
@@ -253,6 +260,11 @@ class VideoPlayerActivity : AppCompatActivity() {
         sleepTimerMinutes = getSharedPreferences("player_settings", MODE_PRIVATE)
             .getInt("sleep_timer_minutes", 0)
             .coerceAtLeast(0)  // 老数据里可能存着「播完当前集」的哨兵值 -1，恢复成关闭
+
+        // 调试信息（状态浮层 / 丢帧 / 加载日志）默认隐藏：整个 onCreate 只读这一次，
+        // 之后靠「⋯ 更多」菜单里的开关改，改完立刻重算可见性
+        showDebugInfo = getSharedPreferences("player_settings", MODE_PRIVATE)
+            .getBoolean(KEY_SHOW_DEBUG_INFO, false)
 
         // 加载播放器布局
         binding = ActivityVideoPlayerBinding.inflate(layoutInflater)
@@ -290,6 +302,9 @@ class VideoPlayerActivity : AppCompatActivity() {
 
         // 设置 ScrollView 为内容视图
         setContentView(scrollView)
+
+        // 三处调试信息按开关初值收一次（布局里本来就是 GONE，这里只是把「开关打开」的老用户恢复回来）
+        applyDebugInfoVisibility()
 
         // 设置初始屏幕方向为竖屏
         android.util.Log.d("VideoPlayer", "设置屏幕方向为竖屏: SCREEN_ORIENTATION_PORTRAIT")
@@ -3084,6 +3099,17 @@ class VideoPlayerActivity : AppCompatActivity() {
                     return@apply
                 }
                 text = message
+                // 调试信息开关关闭（默认）：浮层不显示。
+                // 「失败 / 错误」这类文案原本是唯一的失败提示，静默下去用户只剩一片黑屏，
+                // 所以这一类降级成 Toast；开关打开时仍走浮层，不重复提示。
+                if (!showDebugInfo) {
+                    removeCallbacks(hideStatusTextRunnable)
+                    visibility = View.GONE
+                    if (message.contains("失败") || message.contains("错误")) {
+                        Toast.makeText(this@VideoPlayerActivity, message, Toast.LENGTH_SHORT).show()
+                    }
+                    return@apply
+                }
                 // 浮层不占底栏位置：把底边抬到底部控制栏上沿（底栏收起时贴屏幕底）
                 applyStatusOverlayOffset()
                 visibility = View.VISIBLE
@@ -3181,6 +3207,9 @@ class VideoPlayerActivity : AppCompatActivity() {
 
         /** 字幕行尾最多显示多少个字符的文件名，超出留尾部（语言标记在尾部，最有用）。 */
         private const val SUBTITLE_NAME_MAX_CHARS = 20
+
+        /** 调试信息开关的键：player_settings 里存布尔，缺省 false = 隐藏三处调试信息。 */
+        private const val KEY_SHOW_DEBUG_INFO = "player_show_debug_info"
 
         /** 底部弹窗（bottom_sheet_all_episodes）选集网格列数 */
         private const val EPISODE_SHEET_COLUMNS = 6
@@ -4784,6 +4813,8 @@ class VideoPlayerActivity : AppCompatActivity() {
                     checkSkipIntro()
                 }
                 updateSystemInfo()
+                // 丢帧调试行：只有开关打开时才去读 ExoPlayer 的解码统计（关着连 API 都不碰）
+                updateDroppedFramesDebugText()
                 // 画中画窗口只留画面与字幕：上面的状态更新想让控件冒头，同一轮里就压回去
                 if (isInPictureInPictureMode) hidePictureOverlayViews()
             }
@@ -5037,7 +5068,77 @@ class VideoPlayerActivity : AppCompatActivity() {
         menuSheet.setSubtitleStateProvider { subtitleUiState() }
         menuSheet.setOnSubtitleActionListener { action -> onSubtitleAction(action) }
 
+        // 调试信息：菜单里那一行只显示「开 / 关」，落盘与三处可见性都在本页做
+        menuSheet.setDebugInfoEnabled(showDebugInfo)
+        menuSheet.setOnDebugInfoToggledListener { enabled -> setDebugInfoEnabled(enabled) }
+
         menuSheet.show(supportFragmentManager, PlayerMenuBottomSheet.TAG)
+    }
+
+    // ==================== 调试信息开关 ====================
+
+    /**
+     * 收放三处调试信息：状态浮层 [binding.statusText] / 丢帧 [binding.droppedFramesText] /
+     * 加载日志 [binding.loadingLogText]。
+     *
+     * 三处都是内容驱动的浮层，所以这里只做两件事：关掉时把残留内容一并收起；
+     * 打开时只把「本来有内容」的那几处放出来，没内容的不摆空壳。
+     */
+    private fun applyDebugInfoVisibility() {
+        val on = showDebugInfo
+        binding.statusText.visibility =
+            if (on && !binding.statusText.text.isNullOrEmpty()) View.VISIBLE else View.GONE
+        binding.loadingLogText.visibility =
+            if (on && !binding.loadingLogText.text.isNullOrEmpty()) View.VISIBLE else View.GONE
+        if (on && binding.loadingLogText.visibility == View.VISIBLE) {
+            // 上一次可能是淡出到 alpha=0 才 GONE 的，放出来要先把透明度补回 1，否则「可见但看不见」
+            binding.loadingLogText.alpha = 1f
+        }
+        // 丢帧那行没有「上次的文案」可复用，直接按当前解码统计现算一次
+        updateDroppedFramesDebugText()
+        if (binding.statusText.visibility == View.VISIBLE) applyStatusOverlayOffset()
+    }
+
+    /**
+     * 丢帧信息：ExoPlayer 视频解码器的累计丢帧 / 渲染帧数。
+     *
+     * 走 [ExoPlayerManager.getPlayer] 拿到 ExoPlayer 再读 `videoDecoderCounters`（2.19.1 的公开接口）。
+     * 开关关闭或拿不到统计（还没初始化解码器）时整行 GONE；画中画窗口里也不放。
+     */
+    private fun updateDroppedFramesDebugText() {
+        val view = binding.droppedFramesText
+        if (!showDebugInfo || isInPictureInPictureMode) {
+            lastDroppedFramesText = ""
+            view.visibility = View.GONE
+            return
+        }
+        val counters = runCatching { exoPlayerManager.getPlayer()?.getVideoDecoderCounters() }.getOrNull()
+        if (counters == null) {
+            lastDroppedFramesText = ""
+            view.visibility = View.GONE
+            return
+        }
+        val text = "丢帧 ${counters.droppedBufferCount} / 渲染 ${counters.renderedOutputBufferCount}"
+        if (text != lastDroppedFramesText) {
+            lastDroppedFramesText = text
+            view.text = text
+        }
+        view.visibility = View.VISIBLE
+    }
+
+    /** 菜单里翻转「显示调试信息」：落盘 + 立刻重算可见性，不重启页面。 */
+    private fun setDebugInfoEnabled(enabled: Boolean) {
+        showDebugInfo = enabled
+        getSharedPreferences("player_settings", MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_SHOW_DEBUG_INFO, enabled)
+            .apply()
+        applyDebugInfoVisibility()
+        Toast.makeText(
+            this,
+            if (enabled) "已显示调试信息" else "已隐藏调试信息",
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     // ==================== 外挂字幕 ====================
@@ -5436,6 +5537,11 @@ class VideoPlayerActivity : AppCompatActivity() {
         runOnUiThread {
             binding.loadingLogText.apply {
                 text = message
+                // 调试信息开关关闭（默认）：文案照存不显示，打开开关后由 applyDebugInfoVisibility 露出来
+                if (!showDebugInfo) {
+                    visibility = View.GONE
+                    return@apply
+                }
                 visibility = View.VISIBLE
                 
                 // 淡入

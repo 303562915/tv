@@ -34,7 +34,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="浅色 / 深色模式与主色都会立即生效"
+            android:text="@string/theme_header_hint"
             android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
 
         <!-- 小节：外观模式 -->
@@ -43,7 +43,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/card_padding"
             android:layout_marginBottom="@dimen/card_gap"
-            android:text="外观模式"
+            android:text="@string/theme_section_mode"
             android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
 
         <com.google.android.material.card.MaterialCardView
@@ -108,7 +108,7 @@
                             android:layout_marginTop="8dp"
                             android:ellipsize="end"
                             android:maxLines="1"
-                            android:text="跟随系统"
+                            android:text="@string/theme_mode_follow"
                             android:textColor="@color/theme_text_primary"
                             android:textSize="15sp" />
 
@@ -118,7 +118,7 @@
                             android:layout_marginTop="2dp"
                             android:ellipsize="end"
                             android:maxLines="1"
-                            android:text="随系统切换"
+                            android:text="@string/theme_mode_follow_desc"
                             android:textColor="@color/theme_text_secondary"
                             android:textSize="@dimen/text_caption" />
                     </LinearLayout>
@@ -166,7 +166,7 @@
                             android:layout_marginTop="8dp"
                             android:ellipsize="end"
                             android:maxLines="1"
-                            android:text="浅色模式"
+                            android:text="@string/theme_mode_light"
                             android:textColor="@color/theme_text_primary"
                             android:textSize="15sp" />
 
@@ -176,7 +176,7 @@
                             android:layout_marginTop="2dp"
                             android:ellipsize="end"
                             android:maxLines="1"
-                            android:text="始终浅色"
+                            android:text="@string/theme_mode_light_desc"
                             android:textColor="@color/theme_text_secondary"
                             android:textSize="@dimen/text_caption" />
                     </LinearLayout>
@@ -224,7 +224,7 @@
                             android:layout_marginTop="8dp"
                             android:ellipsize="end"
                             android:maxLines="1"
-                            android:text="深色模式"
+                            android:text="@string/theme_mode_dark"
                             android:textColor="@color/theme_text_primary"
                             android:textSize="15sp" />
 
@@ -234,7 +234,7 @@
                             android:layout_marginTop="2dp"
                             android:ellipsize="end"
                             android:maxLines="1"
-                            android:text="始终深色"
+                            android:text="@string/theme_mode_dark_desc"
                             android:textColor="@color/theme_text_secondary"
                             android:textSize="@dimen/text_caption" />
                     </LinearLayout>
@@ -248,7 +248,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/card_padding"
             android:layout_marginBottom="@dimen/card_gap"
-            android:text="主题色"
+            android:text="@string/theme_section_color"
             android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
 
         <com.google.android.material.card.MaterialCardView
@@ -297,14 +297,14 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
                         android:layout_weight="1"
-                        android:text="蓝色"
+                        android:text="@string/theme_color_default_blue"
                         android:textColor="@color/theme_text_primary"
                         android:textSize="15sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="当前主色"
+                        android:text="@string/theme_current_color_label"
                         android:textAppearance="@style/TextAppearance.TVPlayer.Caption" />
                 </LinearLayout>
             </LinearLayout>
@@ -322,7 +322,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/card_padding"
             android:layout_marginBottom="@dimen/card_gap"
-            android:text="效果预览"
+            android:text="@string/theme_section_preview"
             android:textAppearance="@style/TextAppearance.TVPlayer.SectionTitle" />
 
         <com.google.android.material.card.MaterialCardView
@@ -349,7 +349,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/card_gap"
-                    android:text="主色文字示例 · 标题与链接都跟着变"
+                    android:text="@string/theme_preview_text"
                     android:textColor="@color/theme_primary"
                     android:textSize="15sp" />
 
@@ -364,7 +364,7 @@
                     android:focusable="false"
                     android:gravity="center"
                     android:importantForAccessibility="no"
-                    android:text="主题色按钮"
+                    android:text="@string/theme_preview_button"
                     android:textColor="@color/theme_on_primary"
                     android:textSize="15sp" />
             </LinearLayout>

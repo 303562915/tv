@@ -13,7 +13,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="图片加载性能测试"
+            android:text="@string/img_test_title"
             android:textSize="@dimen/text_display"
             android:textStyle="bold"
             android:gravity="center"
@@ -41,7 +41,7 @@
             android:id="@+id/tvStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="准备就绪"
+            android:text="@string/common_ready"
             android:textSize="@dimen/text_title"
             android:padding="8dp"
             android:background="@android:color/darker_gray"
@@ -53,35 +53,35 @@
             android:id="@+id/btnTestPreload"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="测试预加载 (20张图片)"
+            android:text="@string/img_test_preload"
             android:layout_marginBottom="8dp" />
 
         <Button
             android:id="@+id/btnTestSingle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="测试单张加载"
+            android:text="@string/img_test_single"
             android:layout_marginBottom="8dp" />
 
         <Button
             android:id="@+id/btnViewStats"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="查看统计"
+            android:text="@string/img_test_view_stats"
             android:layout_marginBottom="8dp" />
 
         <Button
             android:id="@+id/btnCheckPerformance"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="检查性能状态"
+            android:text="@string/img_test_check_status"
             android:layout_marginBottom="8dp" />
 
         <Button
             android:id="@+id/btnResetStats"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="重置统计"
+            android:text="@string/img_test_reset_stats"
             android:backgroundTint="@android:color/holo_red_light"
             android:layout_marginBottom="16dp" />
 
@@ -90,7 +90,7 @@
             android:id="@+id/tvPerformance"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="性能状态: 未检测"
+            android:text="@string/img_test_perf_idle"
             android:textSize="18sp"
             android:textStyle="bold"
             android:padding="12dp"
@@ -108,7 +108,7 @@
                 android:id="@+id/tvStats"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="暂无统计数据"
+                android:text="@string/img_test_no_stats"
                 android:textSize="@dimen/text_body"
                 android:fontFamily="monospace"
                 android:padding="16dp" />

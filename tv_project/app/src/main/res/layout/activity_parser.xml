@@ -34,7 +34,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="聚合解析"
+                    android:text="@string/parser_title"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="@color/theme_text_primary"
@@ -43,7 +43,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="支持解析抖音、快手、B站等平台视频"
+                    android:text="@string/parser_subtitle"
                     android:textSize="@dimen/text_body"
                     android:textColor="@color/theme_text_secondary" />
             </LinearLayout>
@@ -69,7 +69,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="视频链接"
+                    android:text="@string/parser_input_label"
                     android:textSize="@dimen/text_title"
                     android:textColor="@color/theme_text_primary"
                     android:textStyle="bold"
@@ -118,7 +118,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="开始解析"
+                    android:text="@string/parser_start"
                     android:textSize="@dimen/text_title"
                     app:cornerRadius="@dimen/radius_sm"
                     style="@style/Widget.MaterialComponents.Button" />
@@ -147,7 +147,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="解析结果"
+                    android:text="@string/parser_result_title"
                     android:textSize="@dimen/text_title"
                     android:textColor="@color/theme_text_primary"
                     android:textStyle="bold"
@@ -182,7 +182,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="视频标题"
+                    android:text="@string/parser_result_video_title"
                     android:textSize="@dimen/text_title"
                     android:textColor="@color/theme_text_primary"
                     android:textStyle="bold"
@@ -195,7 +195,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="作者"
+                    android:text="@string/parser_result_author"
                     android:textSize="@dimen/text_body"
                     android:textColor="@color/theme_text_secondary" />
 
@@ -212,7 +212,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginEnd="4dp"
-                        android:text="播放"
+                        android:text="@string/common_play"
                         app:icon="@drawable/ic_play"
                         style="@style/Widget.MaterialComponents.Button" />
 
@@ -223,7 +223,7 @@
                         android:layout_weight="1"
                         android:layout_marginStart="4dp"
                         android:layout_marginEnd="4dp"
-                        android:text="下载"
+                        android:text="@string/common_download"
                         app:icon="@drawable/ic_download"
                         style="@style/Widget.MaterialComponents.Button" />
 
@@ -233,7 +233,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="4dp"
-                        android:text="复制链接"
+                        android:text="@string/parser_copy_link"
                         style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
                 </LinearLayout>
             </LinearLayout>
