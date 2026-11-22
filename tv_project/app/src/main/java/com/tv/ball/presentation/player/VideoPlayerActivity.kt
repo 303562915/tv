@@ -221,7 +221,8 @@ class VideoPlayerActivity : AppCompatActivity() {
     // 上一次处理过字幕的片源地址：同一个地址重复回调（例如重试）不能把已加载的字幕清掉
     private var lastSubtitleSourceUrl: String = ""
 
-    /** SAF 选字幕：TV 上的文件管理器经常不认字幕 mime，调用侧会再补 */* 兜底。 */
+    // SAF 选字幕：TV 上的文件管理器经常不认字幕 mime，调用侧会再补一个万能类型兜底。
+    // 注意别把那个通配 mime 原样写进块注释里——它的星号加斜杠会提前闭合注释，编译直接报错。
     private val subtitleFilePicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         if (uri != null) onSubtitleFilePicked(uri)
     }
