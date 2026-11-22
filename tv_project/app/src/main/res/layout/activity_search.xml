@@ -257,6 +257,39 @@
             android:layout_gravity="center"
             android:visibility="gone" />
 
+        <!--
+          联想下拉：放在结果区这一层 FrameLayout 的最上面，用覆盖的方式压在列表之上。
+          为什么不放进外层竖排 LinearLayout 占位：占位会让下面的 RecyclerView 每次弹出/收起
+          都重新测量一次，滚动位置和榜单分批游标都会被打断；覆盖式只在视觉上盖住前几行，
+          收起后列表原样不动。
+          位置就在搜索框正下方——一旦开始输入，tabLayout 与 historySection 都已经 GONE 了。
+          行由 SearchActivity 运行时生成（行数随候选变化，不新增布局文件），这里只留容器。
+        -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardSuggestions"
+            style="@style/Widget.TVPlayer.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:layout_marginStart="@dimen/page_margin"
+            android:layout_marginTop="@dimen/card_gap"
+            android:layout_marginEnd="@dimen/page_margin"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/surface_card"
+            app:cardCornerRadius="@dimen/radius_md"
+            app:cardElevation="8dp"
+            app:contentPadding="0dp">
+
+            <LinearLayout
+                android:id="@+id/suggestionPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp" />
+
+        </com.google.android.material.card.MaterialCardView>
+
     </FrameLayout>
 
 </LinearLayout>

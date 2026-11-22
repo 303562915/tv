@@ -34,6 +34,22 @@ interface FavoriteDao {
     @Query("UPDATE favorites SET category = :category WHERE videoId = :videoId")
     suspend fun updateCategory(videoId: Long, category: String?)
 
+    /**
+     * 重命名分类：把 [from] 下的收藏整体改成 [to]，一条 UPDATE 搞定，不逐条搬运。
+     * 返回受影响行数；0 表示这个旧分类名下已经没有收藏了（分类由数据反推，等于不存在）。
+     */
+    @Query("UPDATE favorites SET category = :to WHERE category = :from")
+    suspend fun renameCategory(from: String, to: String): Int
+
+    /**
+     * 删除分类：只把 [category] 下收藏的分类字段置空（退回「未分类」）。
+     * 分类没有独立表，所以「删分类」本质上就是清掉这些行上的名字；
+     * **收藏本体一条都不能删** —— 用户删的是分类标签，不是里面的片子。
+     * 返回受影响行数，供 UI 提示有多少条退回了未分类。
+     */
+    @Query("UPDATE favorites SET category = NULL WHERE category = :category")
+    suspend fun clearCategory(category: String): Int
+
     @Query("SELECT * FROM favorites WHERE videoId = :videoId LIMIT 1")
     suspend fun getFavoriteByVideoId(videoId: Long): FavoriteEntity?
 
