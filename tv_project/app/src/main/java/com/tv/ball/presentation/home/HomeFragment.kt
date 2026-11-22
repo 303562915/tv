@@ -397,10 +397,13 @@ class HomeFragment : Fragment() {
     private fun renderPage(position: Int) {
         val category = categories.getOrNull(position) ?: return
         val state = viewModel.pages.value[category.id]
-        // 只有「从没请求过」或「首屏还没成功且还有下一试」才发首屏请求；
-        // 源本来就返回 0 条（hasMore=false）时不再重复打
-        val needsFirstLoad = state == null ||
-            (state.items.isEmpty() && !state.loading && state.error == null && state.hasMore)
+        // 从没请求过 → 发首屏请求（先判空，后面的 state 才能是稳定非空）
+        if (state == null) {
+            viewModel.loadFirstPage(category.id)
+            return
+        }
+        // 首屏没成功且还有下一试才重试；源本来就返回 0 条（hasMore=false）时不再重复打
+        val needsFirstLoad = state.items.isEmpty() && !state.loading && state.error == null && state.hasMore
         if (needsFirstLoad) {
             viewModel.loadFirstPage(category.id)
             return
