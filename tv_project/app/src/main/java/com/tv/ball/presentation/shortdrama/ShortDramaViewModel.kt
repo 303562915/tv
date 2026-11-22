@@ -156,7 +156,12 @@ class ShortDramaViewModel : ViewModel() {
 
                 if (items.isEmpty()) {
                     if (page <= 1) {
-                        _error.value = if (keyword.isNotEmpty()) "没搜到「$keyword」相关的短剧" else "该分类暂时没有短剧"
+                        // 第 1 页返回空 = 正常的「没有内容」，不是错误。
+                        // 早先这里往 _error 里塞「没搜到…」，界面那边把它当成失败：同时弹 Toast、
+                        // 把空态切成可点的「加载失败，点我重试」、footer 也变成失败态。
+                        // 可「搜不到」重试多少次还是搜不到，_error 只留给真异常（网络失败、解析失败、源全挂）。
+                        // 空态的上下文文案改由界面按「搜索态 / 分类浏览」自己拼（见 Activity / Fragment 的 renderState）。
+                        //
                         // 首页就没数据：后面也不会有，直接标记没有更多
                         _hasMore.value = false
                     } else {

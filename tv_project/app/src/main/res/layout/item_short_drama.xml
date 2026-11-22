@@ -74,11 +74,15 @@
             app:layout_constraintTop_toBottomOf="@id/ivCover"
             tools:text="短剧标题" />
 
-        <!-- 左：集数 / 年份（空值不拼，绝不出现孤立的「集」字） -->
+        <!-- 左：分类 · 集数 · 年份（空值不拼，绝不出现孤立的「集」字）。
+             限定 1 行 + 末尾省略：多拼了一个分类后文字更长，不限行会折行把卡片撑高，
+             同一行网格里的卡片就一高一低了。 -->
         <TextView
             android:id="@+id/tvEpisodes"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:paddingStart="8dp"
             android:paddingEnd="4dp"
             android:paddingBottom="8dp"
@@ -87,7 +91,7 @@
             app:layout_constraintEnd_toStartOf="@id/tvPlayCount"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvTitle"
-            tools:text="80集 · 2023" />
+            tools:text="都市 · 80集 · 2023" />
 
         <!-- 右：评分优先，没有评分再退回播放量 -->
         <TextView

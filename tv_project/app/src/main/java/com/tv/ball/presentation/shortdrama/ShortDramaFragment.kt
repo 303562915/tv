@@ -205,6 +205,15 @@ class ShortDramaFragment : Fragment() {
 
                 // 同一分类不重复请求：重建时 Tab 会把「上次选中的」再回调一次，不能又打一遍
                 if (categories[index] == loadedCategory) return
+
+                // 换分类就是换了一整份列表：发请求之前先把网格滚回顶部，
+                // 否则用户在旧分类滚到后面再点新分类，新数据填进来时视图还停在原位，
+                // 看起来就像分类没切、内容没换。
+                binding.recyclerView.scrollToPosition(0)
+                // 重建时存下的滚动位置只对旧分类有意义，留在 pendingScrollPosition 里，
+                // 新列表一提交就会被 restoreScrollIfNeeded 拽回旧位置，刚才那次回顶等于白做。
+                pendingScrollPosition = RecyclerView.NO_POSITION
+
                 initialLoadDone = true
                 loadCategory(categories[index])
             }
@@ -240,6 +249,13 @@ class ShortDramaFragment : Fragment() {
             intent.putExtra("BOOK_ID", drama.bookId)
             intent.putExtra("TITLE", drama.title)
             intent.putExtra("COVER", drama.cover)
+            // 继续观看：和 ShortDramaActivity.openDetail() 保持一致的写法，
+            // 把「上次看到第几集」带给详情页（详情页按 Int 读 START_EPISODE）；
+            // 没进度就不传，让详情页自己从头开始。
+            // 这里以前漏了这一段，同一个入口从 Fragment 进去就会丢掉观看进度。
+            ShortDramaProgressStore.progressOf(drama.bookId)
+                ?.takeIf { it.episodeNum > 0 }
+                ?.let { intent.putExtra("START_EPISODE", it.episodeNum) }
             startActivity(intent)
         }
 
@@ -385,8 +401,14 @@ class ShortDramaFragment : Fragment() {
         binding.emptyView.visibility = if (empty && !loading) View.VISIBLE else View.GONE
 
         if (empty && !loading) {
-            // 失败过就换成可点的重试入口；正常空数据（源里就是没货）保持不可点
-            binding.emptyView.text = if (loadFailed) "加载失败，点我重试" else "暂无短剧"
+            // 失败过就换成可点的重试入口；正常空数据（源里就是没货）保持不可点。
+            // 「拿到空结果」不是失败：文案要说清是这个分类暂时没内容、以及可以下拉刷新，
+            // 否则一句「暂无短剧」既看不出原因，也看不出下一步能做什么。
+            binding.emptyView.text = if (loadFailed) {
+                "加载失败，点我重试"
+            } else {
+                "该分类暂时没有短剧，下拉可以刷新"
+            }
             binding.emptyView.isClickable = loadFailed
         }
 

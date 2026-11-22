@@ -179,8 +179,18 @@ object ShortDramaRepository {
 
     private val cacheLock = Any()
 
+    /**
+     * 缓存的一页：条目本身 + 「这一页是哪个源给的」。
+     *
+     * 为什么要记来源：命中缓存时我们一个请求都没发，如果就这么 return，某个源的失败计数和
+     * 降级窗口不会因为「它其实早就恢复了」被清掉 —— 用户在这 10 分钟里翻到的全是缓存页，
+     * 看上去一切正常，等缓存过期，请求还是先撞那个降级窗口。记下来源，命中就等于
+     * 「这个源刚刚还在正常出数」，顺手 markProviderSuccess 一下。
+     */
+    private data class CachedPage(val items: List<ShortDramaItem>, val providerKey: String)
+
     /** accessOrder = true，keys 的第一个即最久未用，用来做 LRU 淘汰 */
-    private val pageCache = LinkedHashMap<String, List<ShortDramaItem>>(8, 0.75f, true)
+    private val pageCache = LinkedHashMap<String, CachedPage>(8, 0.75f, true)
 
     /**
      * 缓存 key = `mode|请求指纹|page`。
@@ -205,13 +215,18 @@ object ShortDramaRepository {
         }
     }
 
-    private fun cachedPage(key: String): List<ShortDramaItem>? =
+    private fun cachedPage(key: String): CachedPage? =
         synchronized(cacheLock) { pageCache[key] }
 
-    private fun putPage(key: String, items: List<ShortDramaItem>) {
+    /**
+     * 写一页缓存。providerKey 是竞速里真正胜出的那个源（见 [fetch]），命中时拿它清降级标记。
+     *
+     * 空列表依旧不入缓存：空页代表「到底了」，缓存住会让源恢复之后也刷不出东西。
+     */
+    private fun putPage(key: String, providerKey: String, items: List<ShortDramaItem>) {
         if (items.isEmpty()) return
         synchronized(cacheLock) {
-            pageCache[key] = items
+            pageCache[key] = CachedPage(items, providerKey)
             // size > 3 时 keys 一定非空，first() 就是最久未用的那一页
             while (pageCache.size > CACHE_PAGE_LIMIT) {
                 pageCache.remove(pageCache.keys.first())
@@ -389,11 +404,14 @@ object ShortDramaRepository {
         // 搜索的 mode 和分类分开，否则「搜索 逆袭」会和「逆袭 Tab」共用缓存/翻页状态
         val mode = if (isSearch) "search" else modeOf(tab)
         val key = cacheKey(mode, requestSignature(tab, isSearch), page)
-        cachedPage(key)?.let {
-            Log.d(TAG, "命中页缓存 $key(${it.size} 条)")
+        cachedPage(key)?.let { cached ->
+            Log.d(TAG, "命中页缓存 $key(${cached.items.size} 条，来源 ${cached.providerKey})")
+            // 命中就等于「这个源刚才还正常出过一页数」：顺手清掉它的失败计数和降级窗口，
+            // 否则源早就恢复了，也要等这几页缓存全部过期它才可能被重新当成健康源
+            markProviderSuccess(cached.providerKey)
             // 缓存命中也补记一次已见集合，否则「第 1 页来自缓存 → 翻第 2 页」时没有可比对的基准
-            rememberPage(mode, page, it)
-            return it
+            rememberPage(mode, page, cached.items)
+            return cached.items
         }
 
         // 整库刷优先用带短剧分类的源，其余源作为关键词兜底
@@ -409,27 +427,29 @@ object ShortDramaRepository {
             p to raceScope.async(start = CoroutineStart.DEFAULT) { attempt(p, tab, page, mode) }
         }
         var lastError: String? = null
-        var winner: List<ShortDramaItem>? = null
+        // 胜出的结果连源一起带出来：写缓存时要记「这一页是哪个源给的」（见 CachedPage）
+        var winner: Pair<Provider, List<ShortDramaItem>>? = null
         try {
             while (true) {
                 val pending = jobs.filter { it.second.isActive }
                 if (pending.isEmpty()) break
-                val result = select<Attempt> {
-                    pending.forEach { (_, job) -> job.onAwait { it } }
+                val result = select<Pair<Provider, Attempt>> {
+                    pending.forEach { (p, job) -> job.onAwait { p to it } }
                 }
-                when (result) {
+                val outcome = result.second
+                when (outcome) {
                     // 第一个可用结果直接定胜负：剩下的源不再等，finally 里统一 cancel
                     is Attempt.Ok -> {
-                        winner = result.items
+                        winner = result.first to outcome.items
                         break
                     }
                     // 某个源说「翻页无效」，按到底处理（其它源还没来得及回，就当它也到底）
                     is Attempt.PagingBroken -> {
-                        winner = emptyList()
+                        winner = result.first to emptyList<ShortDramaItem>()
                         break
                     }
-                    is Attempt.Fail -> lastError = result.message
-                    is Attempt.Empty -> lastError = result.message ?: lastError
+                    is Attempt.Fail -> lastError = outcome.message
+                    is Attempt.Empty -> lastError = outcome.message ?: lastError
                 }
             }
         } finally {
@@ -438,10 +458,11 @@ object ShortDramaRepository {
         }
         // 空列表由 putPage 内部挡掉（那里有 if (items.isEmpty()) return）：
         // 空页代表「到底」，缓存住会让源恢复之后也刷不出东西
-        val items = winner ?: throw ShortDramaException(lastError ?: "短剧源返回格式异常")
+        val (winningProvider, items) = winner
+            ?: throw ShortDramaException(lastError ?: "短剧源返回格式异常")
         // 只把真正交给 UI 的这页记进已见集合：并发的几个源各记一份会互相污染
         rememberPage(mode, page, items)
-        putPage(key, items)
+        putPage(key, winningProvider.key, items)
         return items
     }
 
@@ -570,15 +591,65 @@ object ShortDramaRepository {
             bookId = "${p.key}:$vodId",
             title = name.ifBlank { "未命名短剧" },
             author = o.optString("vod_actor").trim().ifBlank { "未知" },
-            type = o.optString("vod_class").trim().ifBlank { remarks },
+            // 分类只认 vod_class，不再退回 vod_remarks：
+            // remarks 是「更新至80集」「全100集」这类状态备注，不是题材。卡片现在把分类拼在
+            // 集数行最前面，退回 remarks 就会出现「更新至80集 · 80集 · 2023」——同一个集数写两遍。
+            // 源没给 vod_class 时宁可不显示分类（卡片层会按空值把这一段过滤掉）。
+            type = blankIfZero(o.optString("vod_class")),
+            // playCnt 的 "0" 保留：卡片层自己判断 "0" 不显示，这里改成空串反而会和「没这个字段」混掉
             playCnt = o.optString("vod_hits").trim().ifBlank { "0" },
             episodeCnt = episodeCount,
-            cover = o.optString("vod_pic").trim(),
+            // 封面可能是 //host/x.jpg 或 /upload/x.jpg，Glide 拿这种地址直接失败，卡片只剩占位图
+            cover = normalizeCover(o.optString("vod_pic"), p),
             intro = intro,
-            year = o.optString("vod_year").trim(),
-            score = o.optString("vod_score").trim(),
+            // 采集源对「没填」的表达很统一：空串或 0 / 0.0 —— 一律归一成空串，
+            // 否则卡片会把 "0" 当成有效年份拼进集数行、还会显示「0分」
+            year = blankIfZero(o.optString("vod_year")),
+            score = blankIfZero(o.optString("vod_score")),
             finished = finished
         )
+    }
+
+    /**
+     * 封面地址归一：把采集源给的三种「半截地址」补成完整可下载的 URL。
+     *
+     * - `//img.example.com/x.jpg` 协议相对 → 补 provider 自己的 scheme（拿不到就 https）
+     * - `/upload/vod/x.jpg` 站内绝对路径 → 拼 scheme + host
+     * - `upload/vod/x.jpg` 相对路径 → 拿 scheme + host 再补一个 `/`
+     *
+     * 为什么 scheme 优先取 provider 的而不是直接写死 https：源站如果只监听 http（见过几个采集站），
+     * 强行升 https 会让整页封面 404，用源自己的 scheme 至少和请求它的接口同协议。
+     * 空串原样返回空串：上层会用占位图，别在这儿编一个假地址出来。
+     */
+    private fun normalizeCover(raw: String, provider: Provider): String {
+        val url = raw.trim()
+        if (url.isEmpty()) return ""
+        if (url.startsWith("http://", ignoreCase = true) || url.startsWith("https://", ignoreCase = true)) {
+            return url
+        }
+        // provider.base 形如 https://host/api.php/provide/vod/?ac=videolist，截掉 /api.php 就是站点根
+        val origin = provider.base.substringBefore("/api.php").trim().trimEnd('/')
+        val scheme = origin.substringBefore("://", "").lowercase()
+        // 站点根都解析不出来（base 被改坏）时，能给的只有 https 默认值
+        if (origin.isEmpty() || scheme.isEmpty()) {
+            return if (url.startsWith("//")) "https:$url" else url
+        }
+        return when {
+            url.startsWith("//") -> "$scheme:$url"
+            url.startsWith("/") -> "$origin$url"
+            else -> "$origin/$url"
+        }
+    }
+
+    /**
+     * 「0 视为没有」：`vod_year` / `vod_score` 返回 "0"、"0.0"、"0.00" 是采集源的日常，
+     * 不是真值。能解析成数字且等于 0 就当空串，其它值（含 "8.5"、非数字的怪值）原样保留。
+     */
+    private fun blankIfZero(raw: String): String {
+        val value = raw.trim()
+        if (value.isEmpty()) return ""
+        val number = value.toDoubleOrNull() ?: return value
+        return if (number == 0.0) "" else value
     }
 
     /**
@@ -646,12 +717,76 @@ object ShortDramaRepository {
         if (msg.isNotBlank()) msg else null
     }.getOrNull()
 
-    private fun stripHtml(input: String): String =
-        input.replace(Regex("<[^>]+>"), " ")
-            .replace("&nbsp;", " ")
-            .replace("&amp;", "&")
-            .replace(Regex("\\s+"), " ")
-            .trim()
+    /**
+     * `&amp;` 解码前的临时占位符。
+     *
+     * 用 NUL 包一段 ASCII：正文里不可能出现，正则也不会把它当成实体的一部分，用完立刻换回 `&`。
+     */
+    private const val AMP_HOLD = "\u0000amp\u0000"
+
+    /**
+     * 采集源简介里最常见的具名实体。
+     * 只收这些而不是全表：其余实体在短剧简介里基本不出现，硬塞一张 2000 项的表只是白占内存。
+     */
+    private val namedEntities = arrayOf(
+        "nbsp" to " ",
+        "quot" to "\"",
+        "apos" to "'",
+        "lt" to "<",
+        "gt" to ">",
+        "mdash" to "\u2014",
+        "ndash" to "\u2013",
+        "hellip" to "\u2026",
+        "middot" to "\u00B7"
+    )
+
+    /** 数字实体：`&#39;`、`&#8212;` 十进制，`&#x27;` 十六进制，两拨一起匹配 */
+    private val entityRef = Regex("&#(?:[xX]([0-9a-fA-F]{1,6})|([0-9]{1,7}));")
+
+    /**
+     * 清简介里的 HTML，并把实体解码成真正能显示的字符。
+     *
+     * 采集源的 vod_content 是富文本：标签和实体混着来。常见的有 `&quot;最强赘婿&quot;`、
+     * `&#39;`、`&hellip;`、`&mdash;`。原来只换 `&nbsp;` / `&amp;`，其余实体就这么原样
+     * 怼到用户脸上，简介看着像乱码（线上见过简介里出现成对的 `&quot;`）。
+     *
+     * 解码顺序有个坑，必须按「先把 `&amp;` 摘出去，再解其它，最后还回来」做：
+     * 一次解码里，`&amp;quot;` 的语义是「字面量 `&quot;`」。如果先把它换成 `&` 再去解
+     * `&quot;`，这串就会被解成 `"` —— 用户本该看到 `&quot;` 的地方凭空多出一个引号。
+     * 用占位符扣住 `&amp;`，等价于「一趟扫描、每串只解一次」。
+     */
+    private fun stripHtml(input: String): String {
+        val withoutTags = input.replace(Regex("<[^>]+>"), " ")
+            .replace("&amp;", AMP_HOLD)
+        val decoded = decodeEntities(withoutTags).replace(AMP_HOLD, "&")
+        // 最后仍然折叠空白：上面的解码会把 `&nbsp;` 变成普通空格，不折叠就会出现一串空洞
+        return decoded.replace(Regex("\\s+"), " ").trim()
+    }
+
+    /**
+     * 具名实体 + 数字实体解码。
+     *
+     * 越界的数字实体（`&#9999999;`、`&#0;`、代理区）原样保留：上层是列表解析，一次
+     * `toChar()` 抛异常就能把整页短剧变成「源返回格式异常」，宁可留一串原始文本。
+     */
+    private fun decodeEntities(input: String): String {
+        // 绝大多数简介一个实体都没有，省掉两次正则扫描
+        if (input.indexOf('&') < 0) return input
+        var out = input
+        for ((name, replacement) in namedEntities) {
+            out = out.replace("&$name;", replacement)
+        }
+        out = entityRef.replace(out) { match ->
+            val hex = match.groups[1]?.value
+            val code = if (hex != null) hex.toIntOrNull(16) else match.groups[2]?.value?.toIntOrNull()
+            if (code == null || code <= 0 || code > 0xFFFF || code in 0xD800..0xDFFF) {
+                match.value
+            } else {
+                code.toChar().toString()
+            }
+        }
+        return out
+    }
 }
 
 /** 一条播放源（线路）。episodes 为该线路自己的分集列表。 */

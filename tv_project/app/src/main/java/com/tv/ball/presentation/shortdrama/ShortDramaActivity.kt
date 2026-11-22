@@ -117,6 +117,14 @@ class ShortDramaActivity : AppCompatActivity() {
     private var footerFailed = false
 
     /**
+     * 首屏 / 搜索这一轮请求失败过。
+     * 为什么单独记：失败时列表是空的，footer 那套（footerFailed）只在「已有内容、翻页失败」时才有意义，
+     * 首屏失败原来只剩一条转瞬即逝的 Toast —— 用户过两秒就只剩一块「暂无短剧」的空屏，
+     * 既不知道是失败了，也没有地方点重试。这个标记把空态变成可点的重试入口。
+     */
+    private var loadFailed = false
+
+    /**
      * 本次加载是不是用户下拉触发的。
      * 为什么单独记：下拉刷新会先清空列表（ViewModel refresh 里 _dramas = emptyList），
      * 这时「空列表 + loading」看起来像首屏，renderState 会把系统转圈关掉换成骨架，
@@ -148,6 +156,8 @@ class ShortDramaActivity : AppCompatActivity() {
 
         binding.btnBack.setOnClickListener { finish() }
         binding.tvFooter.setOnClickListener { retryFromFooter() }
+        // 空态在「首屏/搜索失败」时是可点的重试入口（见 renderState 里的 loadFailed）
+        binding.emptyView.setOnClickListener { retryFromEmptyState() }
 
         // 重建（进程被杀 / 屏幕旋转）时把滚动位置捡回来，Tab 记忆由 setupTabs 自己负责
         pendingScrollPosition = savedInstanceState?.getInt(KEY_SCROLL_POSITION, RecyclerView.NO_POSITION)
@@ -230,6 +240,15 @@ class ShortDramaActivity : AppCompatActivity() {
                 // 点 Tab = 回到分类浏览：清掉搜索词（搜索态本来隐藏了 Tab，这里是防御性处理）
                 clearSearchInputSilently()
                 resetPaging()
+
+                // 换分类就是换了一整份列表：发请求之前先把网格滚回顶部，
+                // 否则用户在旧分类滚到第 30 条再点新分类，新数据填进来时视图还停在原位，
+                // 看起来就像分类没切、内容没换。
+                binding.recyclerView.scrollToPosition(0)
+                // 重建时存下的滚动位置只对旧分类有意义，留在 pendingScrollPosition 里，
+                // 新列表一提交就会被 restoreScrollIfNeeded 拽回旧位置，刚才那次回顶等于白做。
+                pendingScrollPosition = RecyclerView.NO_POSITION
+
                 viewModel.loadDramas(categories[index], page = 1, refresh = true)
             }
 
@@ -559,6 +578,9 @@ class ShortDramaActivity : AppCompatActivity() {
         appendRequested = false
         noMore = false
         footerFailed = false
+        // 新的一轮请求开始了，上一轮的失败标记作废：
+        // 不清的话空态会一直挂着「加载失败，点我重试」，即使这次已经成功拿到内容
+        loadFailed = false
         appendBaseSize = 0
         pullRefreshing = false
     }
@@ -609,6 +631,22 @@ class ShortDramaActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 空态点击：只在「首屏/搜索这一轮失败过」时可点（renderState 里 `isClickable = loadFailed`，
+     * 这里再判一次，避免某次状态竞争下把「没有内容」当成失败去重试）。
+     * 重试语义与下拉刷新一致：搜索态重搜当前词，分类浏览重拉当前分类第一页。
+     */
+    private fun retryFromEmptyState() {
+        if (!loadFailed) return
+        val keyword = viewModel.searchKeyword.value
+        resetPaging()
+        if (keyword.isNotEmpty()) {
+            viewModel.search(keyword)
+        } else {
+            viewModel.loadDramas(categories[currentTabIndex], page = 1, refresh = true)
+        }
+    }
+
     private fun retryFromFooter() {
         if (!footerFailed) return
         footerFailed = false
@@ -647,7 +685,21 @@ class ShortDramaActivity : AppCompatActivity() {
         binding.skeletonRecycler.visibility = if (firstLoad) View.VISIBLE else View.GONE
         binding.recyclerView.visibility = if (empty) View.GONE else View.VISIBLE
         binding.emptyView.visibility = if (empty && !loading) View.VISIBLE else View.GONE
-        binding.emptyView.text = if (keyword.isEmpty()) "暂无短剧" else "没搜到相关短剧"
+        // 空态文案要带上下文，一句「暂无短剧」让人分不清是「这个词没搜到」还是「这个分类本来就没货」，
+        // 也不知道下一步该干什么：
+        // · 请求真的失败过 → 空态就是重试入口（首屏失败原来只有一条转瞬即逝的 Toast，
+        //   用户看不出是失败，也没地方点重试）；
+        // · 搜索态 → 把关键词回显出来，提示换个词；
+        // · 分类浏览 → 说明是这个分类暂时没内容，并提示下拉能刷新。
+        if (loadFailed) {
+            binding.emptyView.text = "加载失败，点我重试"
+        } else if (keyword.isEmpty()) {
+            binding.emptyView.text = "该分类暂时没有短剧，下拉可以刷新"
+        } else {
+            binding.emptyView.text = "没搜到「$keyword」，换个词试试"
+        }
+        // 只有失败态的空态可点；「没有内容」点了也变不出内容，别给假的可点反馈
+        binding.emptyView.isClickable = loadFailed
         // 下拉刷新保留自己的转圈（即使列表被清空、骨架同时出现）；翻页时不用整页转圈
         binding.swipeRefresh.isRefreshing =
             loading && (pullRefreshing || (!firstLoad && !appendRequested))
@@ -707,10 +759,13 @@ class ShortDramaActivity : AppCompatActivity() {
                 if (error != null) {
                     Log.e(TAG, "短剧列表请求失败: $error")
                     // 列表里还有内容 = 翻页失败，交给 footer 的「点我重试」；
-                    // 首屏失败（列表为空）由空态 + Toast 提示，footer 不重复占位
+                    // 列表是空的 = 首屏/搜索这一轮就失败了，把空态切成可点的重试入口。
+                    // 两个标记互斥地反映「失败发生在哪一层」，不要同时亮。
                     if (viewModel.dramas.value.isNotEmpty()) {
                         appendRequested = false
                         footerFailed = true
+                    } else {
+                        loadFailed = true
                     }
                     Toast.makeText(this@ShortDramaActivity, error, Toast.LENGTH_SHORT).show()
                     // StateFlow 不会因为「读过」自己清空：留着这条旧错误，页面旋转后重新 collect、

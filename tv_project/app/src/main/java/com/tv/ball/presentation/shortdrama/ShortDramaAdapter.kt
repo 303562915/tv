@@ -14,7 +14,7 @@ import java.util.Locale
 /**
  * 短剧卡片适配器。
  *
- * 为什么卡片信息（集数/年份、评分/播放量、完结角标、继续观看）都放在这里算：
+ * 为什么卡片信息（分类/集数/年份、评分/播放量、完结角标、继续观看）都放在这里算：
  * 布局已经由另一位同学铺好了 4 个信息位（tvEpisodes / tvPlayCount / tvBadge / tvProgress），
  * 列表页（ShortDramaActivity）与首页「免费短剧」Tab（ShortDramaFragment）共用这个 Adapter，
  * 把「有就显示、没有就留空」的规则集中在一处，两处界面才不会一边显示「集」一边不显示。
@@ -28,6 +28,19 @@ class ShortDramaAdapter(
      * 必须是同一个对象才能 removeListener 摘掉，所以存成字段，而不是每次现造一个 lambda。
      */
     private var progressListener: (() -> Unit)? = null
+
+    init {
+        // 稳定 id：用 bookId 的 hashCode 当 item id（bookId 形如 "360zy:110377"，源 key + vod_id，全局唯一）。
+        // 为什么需要：从详情页返回、或进度监听触发 notifyItemRangeChanged 时，没有稳定 id 的话
+        // RecyclerView 只能按位置比对，整片重绑容易闪一下；有 id 才能认出「这一条还是那一条」。
+        // 为什么用 hashCode：RecyclerView 只接受 Long，字符串得转；hashCode 理论上可能撞，
+        // 但撞了只影响动画/复用观感，不影响数据正确性 —— 绑定用的仍是 getItem(position)，
+        // DiffCallback 也按 bookId 比较，id 不参与数据判定。
+        setHasStableIds(true)
+    }
+
+    /** 稳定 id 的具体来源，见 init 里的说明；只用于动画/复用识别，不做数据键 */
+    override fun getItemId(position: Int): Long = getItem(position).bookId.hashCode().toLong()
 
     /**
      * 为什么要在挂到 RecyclerView 时才注册监听：
@@ -76,26 +89,42 @@ class ShortDramaAdapter(
         fun bind(item: ShortDramaItem) {
             binding.tvTitle.text = item.title
 
-            // 「集数 · 年份」：采集源经常只给其中一项，也可能给 "0"。
+            // 「分类 · 集数 · 年份」：采集源经常只给其中一项，也可能给 "0"。
             // 先各自算成「片段」，再 filter + join，空值不会拼出孤立的「集」字，
             // 也不会留下 " · " 这种悬空分隔符。
+            // 分类（type，来自 vod_class）原来抓了却从不显示，用户看不出是什么题材；
+            // 排在第一位，因为它比集数/年份更能决定这张卡点不点。
+            // 注意：仓库层不会拿 vod_remarks（「更新至80集」这类状态备注）冒充分类，
+            // 否则这里会拼出「更新至80集 · 80集 · 2023」，同一个集数写两遍。
+            val typePart = item.type.trim()
             val episodePart = item.episodeCnt.trim()
                 .takeIf { it.isNotEmpty() && it != "0" }
                 ?.let { "${it}集" }
                 .orEmpty()
             val yearPart = item.year.trim()
-            binding.tvEpisodes.text = listOf(episodePart, yearPart)
+            val episodesText = listOf(typePart, episodePart, yearPart)
                 .filter { it.isNotEmpty() }
                 .joinToString(" · ")
+            binding.tvEpisodes.text = episodesText
 
             // 右侧信息位：有评分优先显示「x.x分」（比播放量更能影响点不点），
             // 没评分才退回播放量；playCnt 为 "0"/空 = 源没给，留空而不是写个 0。
             val score = item.score.trim()
-            binding.tvPlayCount.text = when {
+            val playCountText = when {
                 score.isNotEmpty() -> "${score}分"
                 item.playCnt.isBlank() || item.playCnt == "0" -> ""
                 else -> formatPlayCount(item.playCnt)
             }
+            binding.tvPlayCount.text = playCountText
+
+            // 两个信息位都可能全空（源既没给集数/年份，也没给评分/播放量）。这时文案是空串，
+            // 但 View 还是 wrap_content 的可见 View，各自带 8dp paddingBottom，
+            // 卡片底部就凭空多出一条空白。所以按「有没有内容」决定可见性，GONE 后不占位也不留 padding。
+            // 注意：每次 bind 都按当前数据重设（不是只在空的时候设 GONE），
+            // RecyclerView 复用 ViewHolder 时上一张卡的 VISIBLE/GONE 才不会被带到下一张卡上。
+            binding.tvEpisodes.visibility = if (episodesText.isNotEmpty()) View.VISIBLE else View.GONE
+            binding.tvPlayCount.visibility =
+                if (playCountText.isNotEmpty()) View.VISIBLE else View.GONE
 
             // 完结角标：只有明确完结才显示。GONE 而不是 INVISIBLE，未完结时不留空档。
             binding.tvBadge.visibility = if (item.finished) View.VISIBLE else View.GONE
