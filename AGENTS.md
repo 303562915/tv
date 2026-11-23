@@ -142,12 +142,16 @@ gh run download <run-id> -n <artifact> -D <dir>
   关于页的渠道芯片可切到稳定版，选择存 `f086_about/update_channel`。
 - 检查顺序：只看当前渠道；该渠道的下载页镜像拿不到才退 GitHub API，再退 Release 页面。
 - 下载：落到应用私有缓存目录，校验体积 / `sha256`。
-- 安装顺序：① 应用内 `PackageInstaller` → ② 系统安装器（`ACTION_VIEW` + FileProvider）→
-  ③ 前两步失败时回退 Shizuku（`pm install -r -t <path>`）→ ④ root → ⑤ 全失败才给网页链接。
+- 安装顺序：① root（面具 / KernelSU / APatch，`su -c pm install`）→ ② Shizuku / Stellar
+  （UserService 里的 `pm install`；装了没授权会当场申请授权，允许后接着装）→
+  ③ Dhizuku（设备所有者权限，服务器进程里 `pm install`；没授权拉起它的授权页）→
+  ④ 自带系统安装器（`ACTION_VIEW` + FileProvider，保底弹一次确认）→ ⑤ 全失败才给网页链接。
+- 顺序与关于页「权限来源」卡片共用一份定义：`update/PrivilegeSources.kt`（`PrivilegeKind` 枚举即顺序），
+  改顺序只改那里，别在 `ApkInstaller` 里另写一套。
 - 相关权限：`REQUEST_INSTALL_PACKAGES`；Shizuku 需在 `AndroidManifest.xml` 注册
-  `rikka.shizuku.ShizukuProvider`。
-- `versionCode` 必须单调递增；`DEV_BUILD_NUMBER` 由 CI 注入，本地构建为 0。
-- 改这一链路必须保证：没有 Shizuku、没有 root、没有安装权限的普通设备，功能不能崩，只能提示并降级。
+  `rikka.shizuku.ShizukuProvider`；按包名判断各家来源需要 `<queries>` 声明
+  （Shizuku `moe.shizuku.privileged.api` / Stellar `roro.stellar.manager` / Dhizuku `com.rosan.dhizuku` / 各家 root 管理器）。
+- 改这一链路必须保证：没有 Shizuku、没有 root、没有 Dhizuku、没有安装权限的普通设备，功能不能崩，只能提示并降级。
 
 ---
 
@@ -195,5 +199,9 @@ gh run download <run-id> -n <artifact> -D <dir>
 | `pet-theme` | 宠物人格主题对话：不进代码、不改 App，把随附图片当角色头像，写「宠物主题」人格设定与台词并按该人格对话 | 2026-11-21 | 首次见 `/pet-theme` + 一张自拍图；已确认选项「宠物人格主题对话」，非 App 主题皮肤、非图片改图 |
 | 抄 FlClash 的那个图标 | 抄 FlClash 里**对应功能**的 glyph，不是抄名字最像的那个：视频源页的「刷新」实际是重测延迟，对应 `AppGlyphs.bolt`（闪电），不是 `AppGlyphs.refresh`（环形箭头） | 2026-11-21 | 用户纠正原话：「他那个项目，他的是一个闪电的吧，测速的那个」。含义已更新：按功能语义选字形 |
 | 刷短视频 / 短视频 | 指 App 里「首页 → 免费短剧」这条链路（`tv_project/.../presentation/shortdrama`）：短剧列表、详情、竖屏连播 | 2026-11-21 | 我先把「刷短视频」认成 `G:\trae\R1\douyin-auto-fire`，用户纠正原话：「我知道你们短剧在哪，短剧它那个现在报网络错误」。以后听到「刷短视频/短视频」先想到本仓库的短剧模块 |
+| 面具 | Magisk（root 管理器），不是表情/皮肤；「root 的面具那些」= 面具 / KernelSU / APatch 这一类 root 方案 | 2026-11-23 | 用户原话：「是 root 的面具那些还是 shizuku 还是 stellar 还是 dhizuku」 |
+| `stellar` | Shizuku 的深度定制分支（`roro.stellar.manager`），带 `rikka.shizuku` 兼容层 → 安装通道与 Shizuku 共用一套 binder，只是来源不同 | 2026-11-23 | 首次出现时按「Shizuku 分支」实现，未改动用户说法 |
+| `dhizuku` | Dhizuku（`com.rosan.dhizuku`），共享设备所有者（DeviceOwner/ProfileOwner）权限，无 root 也能静默装应用 | 2026-11-23 | 同上，用户点名要兼容 |
+| 自带的保底 | 系统安装器 + 「安装未知应用」权限，安装链路里永远最后一级 | 2026-11-23 | 用户原话：「最后才是自带的保底啊」 |
 
 > 说明：`ga` 默认指 GitHub Actions，但**不是绝对**——若上下文明显在谈别的东西（如统计分析、灰度发布），以当轮上下文为准；判断依据写进备注。默认顺序：先 Actions，再看上下文。

@@ -49,8 +49,8 @@ android {
                 ?: project.findProperty("TVPLAYER_DEV_BUILD_NUMBER") as String?
             )?.toIntOrNull() ?: 0
 
-        versionCode = 73
-        versionName = "1.2.70"
+        versionCode = 74
+        versionName = "1.2.71"
         buildConfigField("int", "DEV_BUILD_NUMBER", "$devBuildNumber")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

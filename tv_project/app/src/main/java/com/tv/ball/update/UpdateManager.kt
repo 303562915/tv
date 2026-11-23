@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * 「检查更新 → 下载 → 安装」的完整编排，界面用纯代码弹窗，不依赖布局文件。
  *
- * 安装顺序：PackageInstaller / 系统安装器 → Shizuku → root → 网页。
+ * 安装顺序：root（面具 / KernelSU / APatch）→ Shizuku / Stellar → Dhizuku → 自带系统安装器 → 网页。
  * 「我的」页的检查走默认弹窗流（[start]）；关于页（F086）需要渠道与
  * 失败原因，直接用 [UpdateChecker.check] 并把 [failureMessage] 显示在页面上，
  * 下载安装仍委托 [downloadAndInstall]。
@@ -88,10 +88,10 @@ object UpdateManager {
             val total: Long = 0L
         ) : Status
 
-        /** 已经交给安装链路（Shizuku → root → 系统安装器）。 */
+        /** 已经交给安装链路（root → Shizuku / Stellar → Dhizuku → 系统安装器）。 */
         data class Installing(val info: UpdateInfo) : Status
 
-        /** 安装链路已经接手（系统安装器已拉起，或 Shizuku / root 静默装完）。 */
+        /** 安装链路已经接手（系统安装器已拉起，或 root / Shizuku / Dhizuku 静默装完）。 */
         data object Installed : Status
 
         /** 检查或下载失败，[reason] 是人话。 */
@@ -538,7 +538,7 @@ object UpdateManager {
     private fun askOpenPage(activity: Activity, onDone: () -> Unit) {
         AlertDialog.Builder(activity)
             .setTitle("需要手动安装")
-            .setMessage("可以到下载页取最新 APK，或装好 Shizuku 后再试。")
+            .setMessage("可以到下载页取最新 APK；或者在面具 / KernelSU / APatch、Shizuku、Dhizuku 里给本应用授权，之后的更新就能静默安装。")
             .setPositiveButton("打开下载页") { _, _ ->
                 openUrl(activity, DOWNLOAD_PAGE)
                 onDone()

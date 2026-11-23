@@ -86,8 +86,13 @@ object ShizukuInstaller {
         }
     }
 
-    /** 复制到 Download/TVPlayer/ 并拿真实文件路径（Android 10+ 需要 MediaStore）。 */
-    private fun stageInDownloads(context: Context, apk: File): String? = runCatching {
+    /**
+     * 复制到 Download/TVPlayer/ 并拿真实文件路径（Android 10+ 需要 MediaStore）。
+     *
+     * 不只是 Shizuku 通道在用：Dhizuku 的服务器进程跑在自己的 uid 下，读不到本应用的私有缓存，
+     * 所以它也要先把 APK 暂存到公共下载目录，拿真实路径再去 `pm install`。
+     */
+    internal fun stageInDownloads(context: Context, apk: File): String? = runCatching {
         val resolver = context.contentResolver
         val collection = android.provider.MediaStore.Downloads
             .getContentUri(android.provider.MediaStore.VOLUME_EXTERNAL_PRIMARY)
@@ -135,28 +140,5 @@ object ShizukuInstaller {
         val failure = pmInstall(shell, "$STAGE_BASE.apk")
         shell.run("rm -f '$STAGE_BASE.apk'")
         return failure
-    }
-}
-
-/** root 兜底：su 里直接 pm install。 */
-object RootBridge {
-
-    fun isAvailable(): Boolean = runCatching {
-        val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "id"))
-        val out = process.inputStream.bufferedReader().use { it.readText() }
-        process.waitFor()
-        out.contains("uid=0")
-    }.getOrDefault(false)
-
-    fun install(apk: File): Boolean {
-        if (!isAvailable() || !apk.isFile) return false
-        return runCatching {
-            val process = Runtime.getRuntime()
-                .exec(arrayOf("su", "-c", "pm install -r -d '${apk.absolutePath}'"))
-            val out = process.inputStream.bufferedReader().use { it.readText() }
-            val err = process.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
-            process.waitFor()
-            (out + err).contains("Success")
-        }.getOrDefault(false)
     }
 }

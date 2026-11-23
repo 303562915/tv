@@ -22,11 +22,11 @@ object Changelog {
 
     /** 最近 5 个版本（新 → 旧）。 */
     val entries: List<ChangelogEntry> = listOf(
+        ChangelogEntry("1.2.71", "安装通道扩到 root / Shizuku / Stellar / Dhizuku，关于页列出权限来源"),
         ChangelogEntry("1.2.59", "收藏状态同源、选集分批懒加载、设置页搜索"),
         ChangelogEntry("1.2.57", "补 drawable 修资源链接"),
         ChangelogEntry("1.2.56", "点击区 48dp、字号令牌收敛、对比度提升"),
-        ChangelogEntry("1.2.46", "本地视频排序筛选与续播、下载并发可配"),
-        ChangelogEntry("1.2.44", "列表长按菜单、搜索历史管理、返回键双击退出")
+        ChangelogEntry("1.2.46", "本地视频排序筛选与续播、下载并发可配")
     )
 
     /** 弹窗正文：每条一段「v版本号  说明」，段间空一行。 */

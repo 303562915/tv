@@ -3,6 +3,7 @@ package com.tv.ball.feature.f086
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
 import android.text.TextUtils
@@ -11,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.BaseAdapter
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -18,12 +20,21 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.tv.ball.R
 import com.tv.ball.databinding.ActivityF086Binding
+import com.tv.ball.update.ApkInstaller
+import com.tv.ball.update.DhizukuBridge
+import com.tv.ball.update.PrivilegeKind
+import com.tv.ball.update.PrivilegeSource
+import com.tv.ball.update.PrivilegeSources
+import com.tv.ball.update.PrivilegeState
+import com.tv.ball.update.ShizukuBridge
 import com.tv.ball.update.UpdateChannel
 import com.tv.ball.update.UpdateChecker
 import com.tv.ball.update.UpdateInfo
 import com.tv.ball.update.UpdateManager
 import com.tv.ball.util.CustomToast
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * 「关于」页 —— 结构对照 unicanta 的 AboutScreen 一比一翻译成 View 体系：
@@ -33,10 +44,13 @@ import kotlinx.coroutines.launch
  *    正在下载 / 失败原因（点名被墙、配额、超时、上游故障），失败的再点一次就是重试；
  * 3. **UpdateChannelCard**：一行「更新渠道 + 下拉选择」，选定即存（默认开发版）；
  * 4. **自动下载安装开关**（与倍速面板同一套开关美化）；
- * 5. **外链卡**：下载页 / 源码仓库，交给系统浏览器，没有浏览器时只提示、不崩（末位区块）。
+ * 5. **权限来源**：Root（面具 / KernelSU / APatch）、Shizuku、Stellar、Dhizuku、自带安装器
+ *    逐条列出来，标出哪一条「使用中」、哪一条还没授权；点「未授权」那行直接去申请。
+ *    顺序与安装链路完全一致（见 `PrivilegeSources`）；
+ * 6. **外链卡**：下载页 / 源码仓库，交给系统浏览器，没有浏览器时只提示、不崩（末位区块）。
  *
- * 电视遥控器：焦点链 返回 → 检查更新 → 渠道下拉 → 自动安装 → 下载页 →
- * 打开仓库（末位，不再向下延伸）。
+ * 电视遥控器：焦点链 返回 → 检查更新 → 渠道下拉 → 自动安装 → 权限来源各行 →
+ * 下载页 → 打开仓库（末位，不再向下延伸）。
  */
 class F086Activity : AppCompatActivity() {
 
@@ -97,6 +111,228 @@ class F086Activity : AppCompatActivity() {
 
         renderHero()
         render(state)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 从 Shizuku / Dhizuku 授权页回来时要看到最新状态，所以每次回前台重探一次
+        refreshPrivileges()
+    }
+
+    // ===== 权限来源 =====
+
+    /** root 探测会弹一次 su 授权框，只在页面第一次进来时重探，之后读缓存。 */
+    private var rootProbed = false
+
+    /**
+     * 重新探测所有权限来源并重画那一组行。
+     *
+     * 探测里有 binder 事务（Shizuku ping / Dhizuku init），统统扔到 IO；
+     * 页面已经销毁就丢掉结果，不往已销毁的 View 上写。
+     */
+    private fun refreshPrivileges() {
+        val refreshRoot = !rootProbed
+        rootProbed = true
+        lifecycleScope.launch {
+            val sources = runCatching {
+                withContext(Dispatchers.IO) {
+                    PrivilegeSources.detect(this@F086Activity, refreshRoot = refreshRoot)
+                }
+            }.getOrNull() ?: return@launch
+            if (isFinishing || isDestroyed) return@launch
+            renderPrivileges(sources)
+        }
+    }
+
+    private fun renderPrivileges(sources: List<PrivilegeSource>) {
+        val container = binding.f086PrivilegeContainer
+        container.removeAllViews()
+        if (sources.isEmpty()) return
+        val rows = sources.map { source ->
+            buildPrivilegeRow(source).also { container.addView(it) }
+        }
+        // 遥控器焦点链：自动安装开关 → 第一条来源 … 最后一条来源 → 下载页
+        rows.first().nextFocusUp = R.id.f086AutoInstall
+        rows.last().nextFocusDown = R.id.f086DownloadCard
+        binding.f086DownloadCard.nextFocusUp = rows.last().id
+    }
+
+    /** 一行来源：左边「名字 + 说明」，右边状态字样；点一下就去申请对应授权。 */
+    private fun buildPrivilegeRow(source: PrivilegeSource): LinearLayout {
+        val density = resources.displayMetrics.density
+        fun dp(value: Int): Int = (value * density).toInt()
+
+        val row = LinearLayout(this).apply {
+            id = View.generateViewId()
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            background = ContextCompat.getDrawable(this@F086Activity, R.drawable.bg_profile_row)
+            foreground = ContextCompat.getDrawable(this@F086Activity, R.drawable.bg_focus_ring)
+            isClickable = true
+            isFocusable = true
+            isFocusableInTouchMode = true
+            minHeight = dp(48)
+            setPadding(dp(4), dp(7), dp(4), dp(7))
+            setOnClickListener { onPrivilegeTap(source) }
+        }
+
+        val text = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+        text.addView(
+            TextView(this).apply {
+                text = titleOf(source.kind)
+                setTextColor(color(R.color.theme_text_primary))
+                textSize = 14f
+                maxLines = 1
+                ellipsize = TextUtils.TruncateAt.END
+            },
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        )
+        text.addView(
+            TextView(this).apply {
+                text = source.detail
+                setTextColor(color(R.color.theme_text_secondary))
+                textSize = 11f
+                maxLines = 2
+                ellipsize = TextUtils.TruncateAt.END
+            },
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).also { it.topMargin = dp(2) }
+        )
+        row.addView(
+            text,
+            LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        )
+
+        val stateView = TextView(this).apply {
+            text = stateTextOf(source)
+            setTextColor(color(stateColorOf(source.state)))
+            textSize = 13f
+            typeface = Typeface.DEFAULT_BOLD
+            gravity = Gravity.END or Gravity.CENTER_VERTICAL
+            maxLines = 1
+        }
+        row.addView(
+            stateView,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).also { it.marginStart = dp(8) }
+        )
+        return row
+    }
+
+    private fun titleOf(kind: PrivilegeKind): String = getString(
+        when (kind) {
+            PrivilegeKind.ROOT -> R.string.f086_privilege_title_root
+            PrivilegeKind.SHIZUKU -> R.string.f086_privilege_title_shizuku
+            PrivilegeKind.STELLAR -> R.string.f086_privilege_title_stellar
+            PrivilegeKind.DHIZUKU -> R.string.f086_privilege_title_dhizuku
+            PrivilegeKind.BUILTIN -> R.string.f086_privilege_title_builtin
+        }
+    )
+
+    /**
+     * 状态字样。root 单独一种说法：设备上可能压根没有 su，
+     * 也可能有 su 但没给本应用授权，「无 root」比「未安装」贴切。
+     */
+    private fun stateTextOf(source: PrivilegeSource): String = getString(
+        when (source.state) {
+            PrivilegeState.IN_USE -> R.string.f086_privilege_state_in_use
+            PrivilegeState.READY -> R.string.f086_privilege_state_ready
+            PrivilegeState.NEED_AUTH -> R.string.f086_privilege_state_need_auth
+            PrivilegeState.NOT_INSTALLED ->
+                if (source.kind == PrivilegeKind.ROOT) R.string.f086_privilege_state_no_root
+                else R.string.f086_privilege_state_not_installed
+            PrivilegeState.UNAVAILABLE -> R.string.f086_privilege_state_unavailable
+        }
+    )
+
+    private fun stateColorOf(state: PrivilegeState): Int = when (state) {
+        PrivilegeState.IN_USE, PrivilegeState.READY -> R.color.theme_primary
+        PrivilegeState.NEED_AUTH -> R.color.theme_error
+        PrivilegeState.NOT_INSTALLED, PrivilegeState.UNAVAILABLE -> R.color.theme_text_secondary
+    }
+
+    /**
+     * 点一行来源：能申请授权就直接申请（Shizuku / Dhizuku），
+     * 没装的只说清楚要装什么，不能点出一堆没反应的按钮。
+     */
+    private fun onPrivilegeTap(source: PrivilegeSource) {
+        when (source.kind) {
+            PrivilegeKind.ROOT -> {
+                CustomToast.show(this, getString(R.string.f086_privilege_toast_root_denied))
+            }
+
+            PrivilegeKind.BUILTIN -> {
+                if (source.state == PrivilegeState.NEED_AUTH) {
+                    ApkInstaller.openUnknownSourceSettings(this)
+                } else {
+                    CustomToast.show(this, getString(R.string.f086_privilege_toast_builtin))
+                }
+            }
+
+            PrivilegeKind.SHIZUKU, PrivilegeKind.STELLAR -> onShellTap(source)
+
+            PrivilegeKind.DHIZUKU -> onDhizukuTap(source)
+        }
+    }
+
+    private fun onShellTap(source: PrivilegeSource) {
+        val title = titleOf(source.kind)
+        when (source.state) {
+            PrivilegeState.NEED_AUTH -> {
+                // 申请 + 打开本体：弹窗被 ROM 拦掉时，用户还能在应用里手动点允许
+                ShizukuBridge.requestPermission(ApkInstaller.REQUEST_SHIZUKU)
+                ShizukuBridge.openShizukuApp(this)
+                CustomToast.show(this, getString(R.string.f086_privilege_toast_requested, title))
+                refreshPrivilegesLater()
+            }
+
+            PrivilegeState.READY, PrivilegeState.IN_USE -> {
+                CustomToast.show(this, getString(R.string.f086_privilege_toast_ready, title))
+            }
+
+            else -> {
+                CustomToast.show(this, getString(R.string.f086_privilege_toast_need_app, title))
+            }
+        }
+    }
+
+    private fun onDhizukuTap(source: PrivilegeSource) {
+        val title = titleOf(PrivilegeKind.DHIZUKU)
+        when (source.state) {
+            PrivilegeState.NOT_INSTALLED -> {
+                CustomToast.show(this, getString(R.string.f086_privilege_toast_need_app, title))
+            }
+
+            PrivilegeState.NEED_AUTH -> {
+                if (!DhizukuBridge.isConnected(this)) {
+                    // 装着但没激活：授权页拉不起来，只能提示去 Dhizuku 里激活
+                    CustomToast.show(this, getString(R.string.f086_privilege_toast_dhizuku_inactive))
+                    return
+                }
+                if (DhizukuBridge.requestPermission(this)) {
+                    CustomToast.show(this, getString(R.string.f086_privilege_toast_requested, title))
+                    refreshPrivilegesLater()
+                } else {
+                    CustomToast.show(this, getString(R.string.f086_privilege_toast_need_app, title))
+                }
+            }
+
+            else -> CustomToast.show(this, getString(R.string.f086_privilege_toast_ready, title))
+        }
+    }
+
+    /** 授权动作是异步的：闪一下再重探，用户点完弹窗回来就能看到新状态。 */
+    private fun refreshPrivilegesLater() {
+        binding.f086PrivilegeCard.postDelayed({ if (!isFinishing && !isDestroyed) refreshPrivileges() }, 800L)
     }
 
     // ===== AppHero =====
