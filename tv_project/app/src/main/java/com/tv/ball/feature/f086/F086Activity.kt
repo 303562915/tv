@@ -171,7 +171,7 @@ class F086Activity : AppCompatActivity() {
             isClickable = true
             isFocusable = true
             isFocusableInTouchMode = true
-            minHeight = dp(48)
+            minimumHeight = dp(48)
             setPadding(dp(4), dp(7), dp(4), dp(7))
             setOnClickListener { onPrivilegeTap(source) }
         }
