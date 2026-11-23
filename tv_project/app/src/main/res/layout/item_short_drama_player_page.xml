@@ -498,39 +498,29 @@
                 tools:text="线路一" />
         </LinearLayout>
 
-        <LinearLayout
+        <!--
+          极细进度条：抖音是「纯展示、不能拖」，也没有 00:12 / 01:30 那种时间文字
+          （短剧一集一两分钟，拖动带来的收益远小于误触代价）。
+          所以这里设成不可点击/不可聚焦，触摸事件直接穿给根布局，
+          单击暂停、双击点赞、上下滑翻页都照常生效。
+        -->
+        <SeekBar
+            android:id="@+id/seekBar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="2dp"
             android:layout_marginTop="10dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <!-- 高度给 28dp 是为了拖动热区；真正画出来的条只有 3dp（maxHeight/minHeight） -->
-            <SeekBar
-                android:id="@+id/seekBar"
-                android:layout_width="0dp"
-                android:layout_height="28dp"
-                android:layout_weight="1"
-                android:contentDescription="播放进度，可拖动"
-                android:max="1000"
-                android:maxHeight="3dp"
-                android:minHeight="3dp"
-                android:paddingStart="0dp"
-                android:paddingEnd="0dp"
-                android:progressDrawable="@drawable/sd_seekbar_progress"
-                android:splitTrack="false"
-                android:thumb="@null" />
-
-            <TextView
-                android:id="@+id/tvTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:text="00:00 / 00:00"
-                android:textColor="@android:color/white"
-                android:textSize="11sp"
-                tools:text="00:12 / 01:30" />
-        </LinearLayout>
+            android:clickable="false"
+            android:enabled="false"
+            android:focusable="false"
+            android:importantForAccessibility="no"
+            android:max="1000"
+            android:maxHeight="2dp"
+            android:minHeight="2dp"
+            android:paddingStart="0dp"
+            android:paddingEnd="0dp"
+            android:progressDrawable="@drawable/sd_seekbar_progress"
+            android:splitTrack="false"
+            android:thumb="@null" />
 
     </LinearLayout>
 
@@ -558,16 +548,15 @@
 
     <!--
       双指缩小后的底部控制条：✕ / -5s / 播放暂停 / +5s / 倍速。
-      宽度是算好的（4x36 + 44 + 左右各 6 = 200dp），居中后两侧各留 80dp，
-      正好避开右侧竖排按钮那一列（贴右 10dp，宽 56dp）。
+      抖音这条是贴屏幕最底的「一行纯图标」，没有深色背景条，也不悬在半空，
+      所以这里 marginBottom 交给代码按 systemBars inset 补，不用猜 dp
+      （不同机型手势条 / 三键导航高度差很多，写死会被压住或悬空）。
     -->
     <LinearLayout
         android:id="@+id/zoomBar"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="132dp"
-        android:background="@drawable/sd_bg_control_bar"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_gravity="bottom"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="6dp"
@@ -577,59 +566,55 @@
 
         <ImageView
             android:id="@+id/btnZoomClose"
-            android:layout_width="36dp"
-            android:layout_height="48dp"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:contentDescription="收起控制条并恢复全屏"
             android:focusable="true"
-            android:padding="9dp"
+            android:padding="12dp"
             android:scaleType="centerInside"
-            android:src="@drawable/sd_ic_close"
-            android:paddingBottom="15dp"
-            android:paddingTop="15dp" />
+            android:src="@drawable/sd_ic_close" />
 
         <ImageView
             android:id="@+id/btnBack5"
-            android:layout_width="36dp"
-            android:layout_height="48dp"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:contentDescription="后退5秒"
             android:focusable="true"
-            android:padding="9dp"
+            android:padding="12dp"
             android:scaleType="centerInside"
-            android:src="@drawable/sd_ic_back5"
-            android:paddingBottom="15dp"
-            android:paddingTop="15dp" />
+            android:src="@drawable/sd_ic_back5" />
 
         <ImageView
             android:id="@+id/btnBarPlay"
-            android:layout_width="36dp"
-            android:layout_height="48dp"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:contentDescription="暂停"
             android:focusable="true"
-            android:padding="9dp"
+            android:padding="12dp"
             android:scaleType="centerInside"
-            android:src="@drawable/sd_ic_pause"
-            android:paddingBottom="15dp"
-            android:paddingTop="15dp" />
+            android:src="@drawable/sd_ic_pause" />
 
         <ImageView
             android:id="@+id/btnForward5"
-            android:layout_width="36dp"
-            android:layout_height="48dp"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:contentDescription="前进5秒"
             android:focusable="true"
-            android:padding="9dp"
+            android:padding="12dp"
             android:scaleType="centerInside"
-            android:src="@drawable/sd_ic_forward5"
-            android:paddingBottom="15dp"
-            android:paddingTop="15dp" />
+            android:src="@drawable/sd_ic_forward5" />
 
         <TextView
             android:id="@+id/btnBarSpeed"

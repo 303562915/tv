@@ -6,8 +6,10 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
-import android.widget.SeekBar
+import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.android.exoplayer2.ExoPlayer
@@ -17,7 +19,6 @@ import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout
 import com.tv.ball.R
 import com.tv.ball.databinding.ItemShortDramaPlayerPageBinding
-import java.util.Locale
 import kotlin.math.abs
 
 /**
@@ -145,7 +146,6 @@ class ShortDramaPlayerPageHolder(
 
     private var player: ExoPlayer? = null
     private var item: ShortDramaQueueItem? = null
-    private var userSeeking = false
     private var errorShown = false
 
     /** 播完提示只报一次，避免 ENDED 状态回调重复触发时连翻两集 */
@@ -323,29 +323,21 @@ class ShortDramaPlayerPageHolder(
         }
         binding.btnBarSpeed.setOnClickListener { host.onSpeedClick(pagePosition) }
 
-        binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (!fromUser) return
-                // 拖动过程中只改时间文案，不真的 seek：边拖边 seek 在 m3u8 上会疯狂重连
-                val duration = currentDuration()
-                if (duration > 0) {
-                    binding.tvTime.text = formatTime(duration * progress / SEEK_MAX) + " / " + formatTime(duration)
-                }
+        // 控制条要贴着屏幕最底，但底下还有手势条 / 三键导航。写死 dp 在不同机型上
+        // 不是被压住就是悬空，所以按真实 systemBars inset 补底部间距。
+        ViewCompat.setOnApplyWindowInsetsListener(binding.zoomBar) { view, insets ->
+            val bottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom
+            val params = view.layoutParams as ViewGroup.MarginLayoutParams
+            if (params.bottomMargin != bottom) {
+                params.bottomMargin = bottom
+                view.layoutParams = params
             }
+            insets
+        }
 
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                userSeeking = true
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                userSeeking = false
-                val duration = currentDuration()
-                val bar = seekBar ?: return
-                if (duration > 0) {
-                    player?.seekTo(duration * bar.progress / SEEK_MAX)
-                }
-            }
-        })
+        // 进度条不接拖动：抖音短剧这条是纯展示（布局里已设 clickable/enabled=false）。
+        // 一集一两分钟，拖动时间的收益远小于「误触把进度拖走」的代价；
+        // 真要跳时间用控制条的 ±5 秒，那个按钮界明确、失败也不会把进度搞乱。
     }
 
     // -----------------------------------------------------------------
@@ -372,6 +364,8 @@ class ShortDramaPlayerPageHolder(
         disarmDragLock()
         binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
         binding.zoomBar.visibility = View.GONE
+        // 上一轮若停在缩小态，bottomInfo 也被藏过；不复位就会「这一集底部什么都没有」
+        binding.bottomInfo.visibility = View.VISIBLE
         renderLabels()
         renderAvatar()
 
@@ -527,6 +521,8 @@ class ShortDramaPlayerPageHolder(
         if (zoomedOut) return
         zoomedOut = true
         binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+        // 抖音缩放态底部让给控制条：剧名/集数那块先淡出，否则和控制条挤在一起
+        binding.bottomInfo.visibility = View.GONE
         renderZoomBar()
         binding.zoomBar.visibility = View.VISIBLE
     }
@@ -538,6 +534,7 @@ class ShortDramaPlayerPageHolder(
         pinchAccumScale = 1f
         binding.playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
         binding.zoomBar.visibility = View.GONE
+        binding.bottomInfo.visibility = View.VISIBLE
     }
 
     /** 控制条上的图标 / 文案要和当前状态一致（播放中显示暂停图标） */
@@ -652,23 +649,11 @@ class ShortDramaPlayerPageHolder(
     private fun renderProgress() {
         val exo = player ?: return
         val duration = currentDuration()
+        // 时长还没解析出来时不动进度条：这个阶段按 0/0 算会把条打回 0，看着像「回到开头」
+        if (duration <= 0) return
         val position = exo.currentPosition.coerceAtLeast(0L)
-
-        if (duration > 0 && !userSeeking) {
-            val progress = (position * SEEK_MAX / duration).toInt().coerceIn(0, SEEK_MAX)
-            if (binding.seekBar.progress != progress) binding.seekBar.progress = progress
-        }
-
-        binding.tvTime.text = if (duration > 0) {
-            formatTime(position) + " / " + formatTime(duration)
-        } else {
-            formatTime(position) + " / --:--"
-        }
-    }
-
-    private fun formatTime(ms: Long): String {
-        val totalSeconds = (ms / 1000).coerceAtLeast(0L)
-        return String.format(Locale.US, "%02d:%02d", totalSeconds / 60, totalSeconds % 60)
+        val progress = (position * SEEK_MAX / duration).toInt().coerceIn(0, SEEK_MAX)
+        if (binding.seekBar.progress != progress) binding.seekBar.progress = progress
     }
 
     // -----------------------------------------------------------------
