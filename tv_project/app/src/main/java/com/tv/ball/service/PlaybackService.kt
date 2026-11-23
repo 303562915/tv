@@ -7,13 +7,14 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
-import android.media.session.MediaSession
-import android.media.session.PlaybackState
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import android.view.KeyEvent
 import androidx.core.app.NotificationCompat
+import androidx.media.app.NotificationCompat as MediaNotificationCompat
+import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import com.google.android.exoplayer2.Player
 import com.tv.ball.di.Dependencies
 import com.tv.ball.presentation.player.VideoPlayerActivity
@@ -29,9 +30,9 @@ import com.tv.ball.presentation.player.VideoPlayerActivity
  * 通知复用「正在播放」样式（低优先级、点击回播放页），渠道复用现有渠道
  * （优先 download_channel），不新建渠道、不加新权限。
  *
- * MediaSession 用框架自带的 android.media.session.MediaSession（API 21+，minSdk 24），
- * 不引 MediaCompat / Media3 依赖；会话由本服务持有、随服务销毁释放，
- * 让锁屏 / 蓝牙耳机的播放/暂停键能用。
+ * MediaSession 用 androidx 的 MediaSessionCompat（`androidx.media:media`）：
+ * 通知走 MediaStyle 并挂上 sessionToken，Android 13+ 才会把它识别成「媒体通知」，
+ * 在通知栏/锁屏/媒体输出切换器里显示播放控件；锁屏与蓝牙耳机的播放暂停键也走同一会话。
  */
 class PlaybackService : Service() {
 
@@ -74,7 +75,7 @@ class PlaybackService : Service() {
     /** 通知 / 锁屏文案用的标题：每次播放页起服务时刷新。 */
     private var currentTitle: String = "未命名视频"
 
-    private var mediaSession: MediaSession? = null
+    private var mediaSession: MediaSessionCompat? = null
 
     /** 当前挂着监听的那个 player：换集 / 释放后 player 实例会变，变了就重挂。 */
     private var attachedPlayer: Player? = null
@@ -139,7 +140,7 @@ class PlaybackService : Service() {
         attachedPlayer = null
         runCatching { stopForegroundCompat() }
         runCatching {
-            mediaSession?.setActive(false)
+            mediaSession?.isActive = false
             mediaSession?.release()
         }
         mediaSession = null
@@ -241,6 +242,12 @@ class PlaybackService : Service() {
                 "关闭",
                 closeIntent
             )
+            // MediaStyle + sessionToken：Android 13+ 媒体控件（系统媒体卡片）靠这个识别
+            .setStyle(
+                MediaNotificationCompat.MediaStyle()
+                    .setMediaSession(mediaSession?.sessionToken)
+                    .setShowActionsInCompactView(0, 1)
+            )
             .build()
     }
 
@@ -272,29 +279,8 @@ class PlaybackService : Service() {
     private fun ensureMediaSession() {
         if (mediaSession != null) return
         mediaSession = runCatching {
-            MediaSession(this, "TVPlayerPlayback").apply {
-                setCallback(object : MediaSession.Callback() {
-                    override fun onMediaButtonEvent(mediaButtonIntent: Intent): Boolean {
-                        @Suppress("DEPRECATION")
-                        val event = mediaButtonIntent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
-                        return when (event?.keyCode) {
-                            KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
-                            KeyEvent.KEYCODE_HEADSETHOOK -> {
-                                runCatching { Dependencies.exoPlayerManager.togglePlayPause() }
-                                true
-                            }
-                            KeyEvent.KEYCODE_MEDIA_PLAY -> {
-                                runCatching { Dependencies.exoPlayerManager.play() }
-                                true
-                            }
-                            KeyEvent.KEYCODE_MEDIA_PAUSE -> {
-                                runCatching { Dependencies.exoPlayerManager.pause() }
-                                true
-                            }
-                            else -> super.onMediaButtonEvent(mediaButtonIntent)
-                        }
-                    }
-
+            MediaSessionCompat(this, "TVPlayerPlayback").apply {
+                setCallback(object : MediaSessionCompat.Callback() {
                     override fun onPlay() {
                         runCatching { Dependencies.exoPlayerManager.play() }
                     }
@@ -302,39 +288,57 @@ class PlaybackService : Service() {
                     override fun onPause() {
                         runCatching { Dependencies.exoPlayerManager.pause() }
                     }
+
+                    override fun onStop() {
+                        runCatching { Dependencies.exoPlayerManager.pause() }
+                    }
+
+                    // 媒体按键：MediaSessionCompat 已把 KeyEvent 解成 onPlay/onPause，
+                    // 这里只兜住播放/暂停「切换」语义（单击耳机线控）
+                    override fun onMediaButtonEvent(mediaButtonIntent: Intent): Boolean {
+                        @Suppress("DEPRECATION")
+                        val event = mediaButtonIntent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
+                        if (event?.keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE ||
+                            event?.keyCode == KeyEvent.KEYCODE_HEADSETHOOK
+                        ) {
+                            if (event?.action == KeyEvent.ACTION_DOWN) {
+                                runCatching { Dependencies.exoPlayerManager.togglePlayPause() }
+                            }
+                            return true
+                        }
+                        return super.onMediaButtonEvent(mediaButtonIntent)
+                    }
                 })
+                isActive = true
                 setPlaybackState(buildPlaybackState())
-                setActive(true)
             }
         }.getOrNull()
     }
 
-    /** 把当前播放状态写进 MediaSession（锁屏按钮态 / 进度）。 */
+    /** 把当前播放状态写进 MediaSession（锁屏按钮态 / 媒体卡片进度）。 */
     private fun refreshMediaSessionPlaybackState() {
-        // 用显式 setter：android.media.session.MediaSession 只保证有 setPlaybackState()，
-        // 不依赖合成属性（getPlaybackState 在部分 API 上没有）
         mediaSession?.setPlaybackState(buildPlaybackState())
     }
 
-    private fun buildPlaybackState(): PlaybackState {
+    private fun buildPlaybackState(): PlaybackStateCompat {
         val manager = Dependencies.exoPlayerManager
         val player = manager.getPlayer()
         val state = when {
-            player?.playbackState == Player.STATE_BUFFERING -> PlaybackState.STATE_BUFFERING
-            player?.playbackState == Player.STATE_ENDED -> PlaybackState.STATE_STOPPED
-            manager.isPlaying() -> PlaybackState.STATE_PLAYING
-            else -> PlaybackState.STATE_PAUSED
+            player?.playbackState == Player.STATE_BUFFERING -> PlaybackStateCompat.STATE_BUFFERING
+            player?.playbackState == Player.STATE_ENDED -> PlaybackStateCompat.STATE_STOPPED
+            manager.isPlaying() -> PlaybackStateCompat.STATE_PLAYING
+            else -> PlaybackStateCompat.STATE_PAUSED
         }
-        val actions = PlaybackState.ACTION_PLAY or
-            PlaybackState.ACTION_PAUSE or
-            PlaybackState.ACTION_PLAY_PAUSE or
-            PlaybackState.ACTION_STOP
-        return PlaybackState.Builder()
+        val actions = PlaybackStateCompat.ACTION_PLAY or
+            PlaybackStateCompat.ACTION_PAUSE or
+            PlaybackStateCompat.ACTION_PLAY_PAUSE or
+            PlaybackStateCompat.ACTION_STOP
+        return PlaybackStateCompat.Builder()
             .setActions(actions)
             .setState(
                 state,
                 manager.getCurrentPosition().coerceAtLeast(0L),
-                if (state == PlaybackState.STATE_PLAYING) manager.getPlaybackSpeed() else 0f
+                if (state == PlaybackStateCompat.STATE_PLAYING) manager.getPlaybackSpeed() else 0f
             )
             .build()
     }

@@ -8,6 +8,9 @@ espressoCore = "3.7.0"
 appcompat = "1.7.1"
 material = "1.13.0"
 
+# 媒体通知（MediaStyle + MediaSessionCompat）：后台播放的通知栏控件
+androidxMedia = "1.7.0"
+
 # ExoPlayer
 exoplayer = "2.19.1"
 
@@ -37,6 +40,7 @@ androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "j
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+androidx-media = { group = "androidx.media", name = "media", version.ref = "androidxMedia" }
 
 # ExoPlayer
 exoplayer-core = { group = "com.google.android.exoplayer", name = "exoplayer-core", version.ref = "exoplayer" }

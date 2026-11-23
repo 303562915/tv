@@ -49,8 +49,8 @@ android {
                 ?: project.findProperty("TVPLAYER_DEV_BUILD_NUMBER") as String?
             )?.toIntOrNull() ?: 0
 
-        versionCode = 71
-        versionName = "1.2.68"
+        versionCode = 72
+        versionName = "1.2.69"
         buildConfigField("int", "DEV_BUILD_NUMBER", "$devBuildNumber")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -134,6 +134,8 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.constraintlayout)
+    // 媒体通知（MediaStyle + MediaSessionCompat），后台播放的通知栏播放控件用
+    implementation(libs.androidx.media)
     
     // Activity & Fragment
     implementation(libs.androidx.activity.ktx)
