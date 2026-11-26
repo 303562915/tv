@@ -152,9 +152,10 @@ class F086Activity : AppCompatActivity() {
             buildPrivilegeRow(source).also { container.addView(it) }
         }
         // 遥控器焦点链：自动安装开关 → 第一条来源 … 最后一条来源 → 下载页
-        rows.first().nextFocusUp = R.id.f086AutoInstall
-        rows.last().nextFocusDown = R.id.f086DownloadCard
-        binding.f086DownloadCard.nextFocusUp = rows.last().id
+        // View 上没有 `nextFocusUp/nextFocusDown` 这个 Kotlin 属性名，只有 setNextFocus*Id(int)
+        rows.first().nextFocusUpId = R.id.f086AutoInstall
+        rows.last().nextFocusDownId = R.id.f086DownloadCard
+        binding.f086DownloadCard.nextFocusUpId = rows.last().id
     }
 
     /** 一行来源：左边「名字 + 说明」，右边状态字样；点一下就去申请对应授权。 */
@@ -176,10 +177,12 @@ class F086Activity : AppCompatActivity() {
             setOnClickListener { onPrivilegeTap(source) }
         }
 
-        val text = LinearLayout(this).apply {
+        // 名字不能叫 text：`TextView(...).apply { text = ... }` 里的 text 会被这个外层局部变量
+        // 抢先解析（局部 `var` 优先级高于隐式 receiver 的属性），报「Val cannot be reassigned」
+        val textColumn = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
         }
-        text.addView(
+        textColumn.addView(
             TextView(this).apply {
                 text = titleOf(source.kind)
                 setTextColor(color(R.color.theme_text_primary))
@@ -192,7 +195,7 @@ class F086Activity : AppCompatActivity() {
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
         )
-        text.addView(
+        textColumn.addView(
             TextView(this).apply {
                 text = source.detail
                 setTextColor(color(R.color.theme_text_secondary))
@@ -206,7 +209,7 @@ class F086Activity : AppCompatActivity() {
             ).also { it.topMargin = dp(2) }
         )
         row.addView(
-            text,
+            textColumn,
             LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         )
 

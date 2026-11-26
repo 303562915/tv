@@ -184,7 +184,9 @@ class DLNAManager(private val context: Context) {
             val lanInterface = findLanInterface()
             var joinedWithInterface = false
             if (lanInterface != null) {
-                joinedWithInterface = runCatching { socket.joinGroup(group, lanInterface) }
+                joinedWithInterface = runCatching {
+                    socket.joinGroup(InetSocketAddress(group, SSDP_PORT), lanInterface)
+                }
                     .onFailure { Log.w(TAG, "指定网卡加入组播失败，回落默认: ${it.message}") }
                     .isSuccess
                 if (!joinedWithInterface) {
@@ -226,7 +228,7 @@ class DLNAManager(private val context: Context) {
             }
 
             if (joinedWithInterface && lanInterface != null) {
-                runCatching { socket.leaveGroup(group, lanInterface) }
+                runCatching { socket.leaveGroup(InetSocketAddress(group, SSDP_PORT), lanInterface) }
             } else {
                 runCatching { socket.leaveGroup(group) }
             }
