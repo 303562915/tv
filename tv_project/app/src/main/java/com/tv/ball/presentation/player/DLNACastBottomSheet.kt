@@ -119,17 +119,33 @@ class DLNACastBottomSheet : BottomSheetDialogFragment() {
         current.emptyStateLayout.visibility = View.GONE
         current.deviceRecyclerView.visibility = View.VISIBLE
 
-        dlnaManager.startDiscovery { devices ->
-            val view = _binding ?: return@startDiscovery
-            if (devices.isEmpty()) {
-                view.subtitleText.text = "未发现 DLNA 设备"
+        dlnaManager.startDiscovery(
+            callback = onDevices@{ devices ->
+                val view = _binding ?: return@onDevices
+                if (devices.isEmpty()) {
+                    view.subtitleText.text = "未发现 DLNA 设备"
+                    view.emptyStateLayout.visibility = View.VISIBLE
+                    view.deviceRecyclerView.visibility = View.GONE
+                } else {
+                    view.subtitleText.text = "发现 ${devices.size} 个 DLNA 设备"
+                    deviceAdapter.submitList(devices)
+                }
+            },
+            onError = { error ->
+                // 网络 / 组播层就失败了，不能显示成「未发现设备」——这两种情况补救办法完全不同
+                val view = _binding ?: return@startDiscovery
+                view.subtitleText.text = "搜索失败"
+                view.emptyStateTitle.text = "搜索失败"
+                view.emptyStateHint.text = buildString {
+                    append("当前网络没有放开组播（SSDP）：")
+                    append(error)
+                    append("\n\n常见原因：路由器开了「AP 隔离 / 客户端隔离」、Wi-Fi 处于省电模式、")
+                    append("或本机不在 WiFi 上。可以换手机热点直连电视，或把电视插网线再试。")
+                }
                 view.emptyStateLayout.visibility = View.VISIBLE
                 view.deviceRecyclerView.visibility = View.GONE
-            } else {
-                view.subtitleText.text = "发现 ${devices.size} 个 DLNA 设备"
-                deviceAdapter.submitList(devices)
             }
-        }
+        )
     }
 
     /**

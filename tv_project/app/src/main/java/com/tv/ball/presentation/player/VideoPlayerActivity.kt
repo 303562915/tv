@@ -3218,6 +3218,11 @@ class VideoPlayerActivity : AppCompatActivity() {
     companion object {
         private const val REQUEST_STORAGE_PERMISSION = 1001
 
+        /** DLNA 投屏经本机代理取流时带的 UA：部分源站按 UA 判人机，用播放器同款 UA 最稳。 */
+        private const val CAST_USER_AGENT =
+            "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) " +
+                "Chrome/120.0.0.0 Mobile Safari/537.36"
+
         /** 设置页「字体大小」写入的位置（与 SettingsFragment 的 PREFS_NAME / KEY_FONT_SCALE 对齐）。 */
         private const val FONT_PREFS_NAME = "user_prefs"
         private const val KEY_FONT_SCALE = "font_scale"
@@ -4329,27 +4334,87 @@ class VideoPlayerActivity : AppCompatActivity() {
         }
 
         bottomSheet.setOnDeviceSelectedListener { device ->
-            // 投屏到选中的设备
-            lifecycleScope.launch {
-                try {
-                    Toast.makeText(this@VideoPlayerActivity, "正在投屏到 ${device.name}...", Toast.LENGTH_SHORT).show()
+            // 投屏到选中的设备：走异步版本，失败要能带回具体原因
+            Toast.makeText(this@VideoPlayerActivity, "正在投屏到 ${device.name}...", Toast.LENGTH_SHORT).show()
 
-                    val dlnaManager = com.tv.ball.domain.dlna.DLNAManager(this@VideoPlayerActivity)
-                    val success = dlnaManager.castVideo(device, videoUrl, videoTitle)
+            // 原始直链常带 Referer/UA 校验，电视端裸请求会被 403。
+            // 有本地代理服务在跑就把地址换成本机代理地址，让电视通过本机取流。
+            val castUrl = buildCastProxyUrl(videoUrl)
 
-                    if (success) {
-                        Toast.makeText(this@VideoPlayerActivity, "投屏成功", Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(this@VideoPlayerActivity, "投屏失败，请重试", Toast.LENGTH_SHORT).show()
+            val dlnaManager = com.tv.ball.domain.dlna.DLNAManager(this@VideoPlayerActivity)
+            dlnaManager.castVideoAsync(device, castUrl ?: videoUrl, videoTitle) { result ->
+                if (isFinishing || isDestroyed) return@castVideoAsync
+                when (result) {
+                    is com.tv.ball.domain.dlna.DLNACastResult.Success ->
+                        Toast.makeText(this@VideoPlayerActivity, "投屏成功", Toast.LENGTH_LONG).show()
+
+                    is com.tv.ball.domain.dlna.DLNACastResult.Failure -> {
+                        val reason = result.reason
+                        android.util.Log.e(
+                            "VideoPlayerActivity",
+                            "投屏失败: ${reason.error} ${reason.message} ${reason.detail}"
+                        )
+                        Toast.makeText(
+                            this@VideoPlayerActivity,
+                            "投屏失败：${reason.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
-                } catch (e: Exception) {
-                    Toast.makeText(this@VideoPlayerActivity, "投屏失败: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
         }
         bottomSheet.show(supportFragmentManager, DLNACastBottomSheet.TAG)
     }
     
+    /**
+     * 生成给电视用的取流地址。
+     *
+     * 直接投原始直链：不少源站校验 Referer / User-Agent / Cookie，电视端裸 HTTP 请求会被 403/404，
+     * 表现就是「提示投屏成功，但电视上一直转圈或报错」。
+     * 本机 LocalWebServer 的 `/video?url=` 会带上 Referer/UA 转发，所以只要服务在跑就优先用它。
+     *
+     * 拿不到局域网地址（服务没起、不在 WiFi）时返回 null，调用方回落到原始地址——
+     * 保证这条路永远可退，不会因为代理没起就把投屏整个卡死。
+     */
+    private fun buildCastProxyUrl(rawVideoUrl: String): String? {
+        if (rawVideoUrl.isEmpty()) return null
+        return try {
+            val server = com.tv.ball.domain.webserver.LocalWebServer.getInstance(this)
+            server.setVideoInfo(rawVideoUrl, videoTitle, castRefererOf(rawVideoUrl), CAST_USER_AGENT)
+            if (!server.isAlive) {
+                if (!server.startServer()) return null
+            }
+            val baseUrl = server.getAccessUrl()
+            if (baseUrl.contains("127.0.0.1")) return null
+            "$baseUrl/video?url=${java.net.URLEncoder.encode(rawVideoUrl, "UTF-8")}"
+        } catch (e: Exception) {
+            android.util.Log.w("VideoPlayerActivity", "构建投屏代理地址失败: ${e.message}")
+            null
+        }
+    }
+
+    /**
+     * 投屏代理转发时用的 Referer。
+     *
+     * 和 [ExoPlayerManager] 里播直链用的推导规则保持一致：几个常见防盗链源站点写死站点根，
+     * 其余按 `scheme://host` 推。同一套规则才能保证「手机能播的，电视也能播」。
+     */
+    private fun castRefererOf(url: String): String {
+        return when {
+            url.contains("libvio", ignoreCase = true) ||
+                url.contains("vbing", ignoreCase = true) -> "https://www.libvio.link"
+            url.contains("maowushi", ignoreCase = true) -> "https://www.maowushi.com"
+            url.contains("iqiyi", ignoreCase = true) ||
+                url.contains("qiyi", ignoreCase = true) -> "https://www.iqiyi.com"
+            else -> try {
+                val uri = android.net.Uri.parse(url)
+                "${uri.scheme}://${uri.host}"
+            } catch (e: Exception) {
+                url.substringBefore("?")
+            }
+        }
+    }
+
     private fun tryOpenCastApps() {
         val castPackages = listOf(
             "com.hpplay.happyplay.aw",  // 乐播投屏
